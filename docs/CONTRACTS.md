@@ -136,3 +136,60 @@ ui-woodcraft **只依赖 `IdPhotoController` 和 `AppState`**，阶段 2 用 `Fa
 | ImageTooLargeException | 图片太大了，请用小于 8000px 的照片 |
 
 所有异常必须在 controller 层转成 `AppState.errorMessage`，**不得让异常穿透到 UI**。
+
+---
+
+## 7. 截图接缝（阶段 1.5 追加，主会话写入）
+
+G2C.1 要求用 `FakeController` 截出 8 张固定场景图。但 `lib/ui/` 归 ui-woodcraft，
+`integration_test/` 归 gatekeeper（考生不出考卷）。两者必须靠一个稳定接缝对接，
+否则截图测试要么侵入 UI 内部实现，要么根本驱动不了瞬时状态（S3 拖拽中 / S4 生成中）。
+
+### 7.1 场景工厂（ui-woodcraft 提供，gatekeeper 消费）
+
+ui-woodcraft 必须提供 `lib/ui/dev/shot_harness.dart`：
+
+```dart
+/// 截图场景 id，与 capture-shots skill 的文件名一一对应，不得增删改名。
+const List<String> kShotScenarios = <String>[
+  'S1_empty',      // 空态，未选照片
+  'S2_loaded',     // 已加载照片，裁剪框默认位置
+  'S3_dragging',   // 按住右下角控制点拖拽中
+  'S4_generating', // 候选区生成中
+  'S5_ready',      // 6 个候选就绪，选中蓝底
+  'S6_saved',      // 保存成功反馈态
+];
+
+/// 构造处于指定场景状态的完整 App 根 widget（内部用 FakeController 驱动）。
+///
+/// 必须是**确定性**的：同一 id 每次构造出同一画面，不依赖真实模型、
+/// 不依赖时序、不依赖随机数。S3/S4 这类瞬时态由 FakeController 直接钉住，
+/// 不许靠 `Future.delayed` 碰运气。
+///
+/// 照片输入固定用 `test/golden/src/` 按文件名排序的第一张（g01.jpg），
+/// 以 asset 或内嵌字节的方式提供，不读运行时相册。
+Widget buildShotScenario(String scenarioId);
+```
+
+`buildShotScenario` 返回的 widget 必须能直接塞进 `tester.pumpWidget()`，
+自带 `MaterialApp` / `ProviderScope` 等一切所需上下文。
+
+### 7.2 稳定 Key（ui-woodcraft 必须挂，gatekeeper 只准用这些）
+
+widget 树内部结构随时可能变，测试只认这几个 Key：
+
+| Key | 挂在哪 | 用途 |
+|---|---|---|
+| `Key('area_a')` | 区域 A 根容器 | G2C 三段比例实测 |
+| `Key('area_b')` | 区域 B 根容器 | 同上 |
+| `Key('area_c')` | 区域 C 根容器 | 同上 |
+| `Key('btn_pick')` | 空态"轻触选择照片" | 交互测试 |
+| `Key('btn_save')` | 保存按钮 | 交互测试 |
+| `Key('spec_ruler')` | 顶部黄铜标尺条 | 规格切换 |
+| `Key('crop_handle_tl'/'tr'/'bl'/'br')` | 裁剪框四角控制点 | G2C.5 热区 / G2C.6 宽高比 / G2C.7 边界 |
+| `Key('crop_handle_t'/'b'/'l'/'r')` | 裁剪框四边控制点 | 同上 |
+| `Key('crop_box')` | 裁剪框本体 | 整体拖动 |
+| `Key('candidate_<styleId>')` | 每个候选项，如 `candidate_blue` | G2C 选中态 |
+
+ui-woodcraft 若要改 Key 名或场景 id，必须在报告里向主会话提出，不得自己改 ——
+改了 gatekeeper 的截图测试会静默截错图，而不是报错。
