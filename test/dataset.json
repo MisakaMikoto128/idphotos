@@ -1,0 +1,745 @@
+{
+  "root": "C:\\Users\\liuyu\\Pictures",
+  "excluded_dirs": [
+    "c:\\users\\liuyu\\pictures\\luminar neo catalog\\backups",
+    "c:\\users\\liuyu\\pictures\\luminar neo catalog\\cachedocuments",
+    "c:\\users\\liuyu\\pictures\\luminar neo catalog\\previewcache"
+  ],
+  "total": 80,
+  "summary": {
+    "screenshot": 37,
+    "portrait": 11,
+    "landscape": 16,
+    "multi_face": 3,
+    "non_image": 13
+  },
+  "scan_seconds": 11.3,
+  "items": [
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\)T@WU8]6Q}21RVC5RUROQ]G.jpeg",
+      "sha256": "5b51dc57ea4de651779e9ff80ee51075f7d4dab52e6a55215952b413e085e76b",
+      "class": "screenshot",
+      "w": 939,
+      "h": 540,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 244.2,
+      "_face_area_ratio": 0.0076,
+      "_manual_reclass_reason": "实为网页截图（学籍在线验证报告页面），文件名被混淆未匹配到截图命名规则，人工目检确认改判"
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\)T@WU8]6Q}21RVC5RUROQ]G.png",
+      "sha256": "30d632bb01cb19d7df1db6b93844de88e47423a8a8b0e255a89cd66ee6c60cfa",
+      "class": "screenshot",
+      "w": 939,
+      "h": 540,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 244.5,
+      "_face_area_ratio": 0.0077,
+      "_manual_reclass_reason": "实为网页截图（学籍在线验证报告页面），文件名被混淆未匹配到截图命名规则，人工目检确认改判"
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\1 (2).jpg",
+      "sha256": "6c89a01cb9b07476c9dc3c58126c71cb2d9c77a25c47030d3e6d4bd533e5cc8c",
+      "class": "portrait",
+      "w": 2880,
+      "h": 4982,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 177.6,
+      "_face_area_ratio": 0.0086
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\18.jpg",
+      "sha256": "5d6d0b44d06f4e3ad3075612d04c5768ed82c0b05e4b0a3f577420c906ee39a7",
+      "class": "landscape",
+      "w": 24,
+      "h": 40,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 141.8
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\1979d869c783fcc849d4e05b81eb809e.png",
+      "sha256": "4132eea2fad12ee054e6d5cc34234642a14d1518f0b891b3cb30085fcc5fccc5",
+      "class": "multi_face",
+      "w": 4032,
+      "h": 3024,
+      "exif_orientation": 1,
+      "_n_faces": 5,
+      "_mean_v": 119.1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\2.jpg",
+      "sha256": "1cacf7d022913bdd8abb9371b8f02a2fbfbe77fa15883d7b98c970a7bcf06ec8",
+      "class": "portrait",
+      "w": 1080,
+      "h": 1415,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 209.5,
+      "_face_area_ratio": 0.1957
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\20240710193717_7c99.jpg",
+      "sha256": "8a92802d870c7f76ab250ef8c93e081351b3653a1f211edac206ae4247f715ad",
+      "class": "portrait",
+      "w": 480,
+      "h": 640,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 160.9,
+      "_face_area_ratio": 0.2735
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\29EDA59B982FA8339335D50B00CCD096.jpg",
+      "sha256": "c53da2c612d659beb0af88305b81d2c63c9001df5dacca9aae0ab886d2731d3a",
+      "class": "portrait",
+      "w": 1282,
+      "h": 1920,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 225.4,
+      "_face_area_ratio": 0.0264
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\4e84ef7b8a910c776acd0eebb8293ee9.png",
+      "sha256": "c8a456d00f3682085d7be2db1f2e852c06fdf5a62de568fcfe24bda4644863d5",
+      "class": "multi_face",
+      "w": 4032,
+      "h": 3024,
+      "exif_orientation": 1,
+      "_n_faces": 5,
+      "_mean_v": 112.8
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\8D861A29F86CE7464865EFEB3C9B4124 (自定义).jpg",
+      "sha256": "09b525e3db3b4c76ae3e01efe514975a36313a10f2b8397b476545bbb5097a1f",
+      "class": "portrait",
+      "w": 483,
+      "h": 800,
+      "exif_orientation": 1,
+      "_n_faces": 2,
+      "_mean_v": 174.4,
+      "_manual_reclass_reason": "MTCNN 误检为 2 张脸（眼镜反光/发丝纹理触发误检），人工目检确认实际只有 1 人，改判为 portrait"
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\8D861A29F86CE7464865EFEB3C9B4124.jpg",
+      "sha256": "d938d9ec168290932c11f82bb4fa1acd9a0fe230a848341a76b419da7ac02562",
+      "class": "portrait",
+      "w": 1159,
+      "h": 1920,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 174.3,
+      "_face_area_ratio": 0.0772
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\a.jpg",
+      "sha256": "2256c8b892f068c0e192e6aa884afb5f6e0da8198673811675a7677f01411483",
+      "class": "portrait",
+      "w": 483,
+      "h": 604,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 161.0,
+      "_face_area_ratio": 0.414
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\dan5njb-28279924-59e5-4094-8d16-d410efcf2acc.jpg",
+      "sha256": "b6f5cc405d2e2c2bcc2b547961567b466f23f6a65f9e097aca3aa0fb4d2f0117",
+      "class": "landscape",
+      "w": 1252,
+      "h": 751,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 136.9
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\desktop.ini",
+      "sha256": "88856962cef670c087eda4e07d8f78465beeabb6143b96bd90f884a80af925b4",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\e9168d2cfe9045d07fac74e68419d211.png",
+      "sha256": "01d88e595856b55e4bcb7bbb7c9eaf735cb14c4532c800bb680d5a909ab0ed37",
+      "class": "multi_face",
+      "w": 4032,
+      "h": 3024,
+      "exif_orientation": 1,
+      "_n_faces": 5,
+      "_mean_v": 115.7
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\fwebp.webp",
+      "sha256": "f80e788955a39bd9e65189d6acc7122314c464e7434e128596633410c4e57122",
+      "class": "landscape",
+      "w": 2400,
+      "h": 2400,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 40.9
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Globe_High.png",
+      "sha256": "30de805b2426e18fd3b723f9b9778a0f5fcff94c8c3a67ea99ffa05b8ebb102e",
+      "class": "landscape",
+      "w": 800,
+      "h": 800,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 222.2
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\IMG_20230115_130634.jpg",
+      "sha256": "d426acc95f6d3eea649a0b1d80e5b3ced8bad9cd1efa73dcc39511fc93b0e451",
+      "class": "landscape",
+      "w": 1844,
+      "h": 4096,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 164.1,
+      "_face_area_ratio": 0.0008,
+      "_manual_reclass_reason": "MTCNN 误检：图中人脸来自文档/网页截图内嵌的证件照缩略图，非独立人像照片（人工目检确认，见 QA 报告）"
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\IMG_20230115_130941.jpg",
+      "sha256": "23e129a71c173f78ffbce949f28268b03ea15a9dbddd18539fc2ee1580982f35",
+      "class": "landscape",
+      "w": 1844,
+      "h": 4096,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 127.9
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\IMG_20230115_132101.jpg",
+      "sha256": "ba21dc506294aab0e6ffecb0afe075f615c9e68160e8815d8a0788318e372b48",
+      "class": "landscape",
+      "w": 4096,
+      "h": 1844,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 184.3
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\IMG_20230115_133511.jpg",
+      "sha256": "632f39c82f8c9f83b429dc0a984f6945a5c740afe82f812a53993c2af4415005",
+      "class": "landscape",
+      "w": 4096,
+      "h": 1844,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 163.9,
+      "_face_area_ratio": 0.0002,
+      "_manual_reclass_reason": "MTCNN 误检：图中人脸来自文档/网页截图内嵌的证件照缩略图，非独立人像照片（人工目检确认，见 QA 报告）"
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Online Verification Report of Student Record_LIU YUANLIN_00.jpg",
+      "sha256": "277c4f9c99ca9fa5db9eaf30514bb165d0b4d6829735162b0545e4ed8b749749",
+      "class": "landscape",
+      "w": 4958,
+      "h": 7017,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 240.6,
+      "_face_area_ratio": 0.0,
+      "_manual_reclass_reason": "MTCNN 误检：图中人脸来自文档/网页截图内嵌的证件照缩略图，非独立人像照片（人工目检确认，见 QA 报告）"
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\QQ截图20230115131411.jpg",
+      "sha256": "8f778be830db92fa15aafdadb236e2043b47b7e37252ae981c9765c3c40ee009",
+      "class": "screenshot",
+      "w": 1542,
+      "h": 1019,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\QQ截图20230115132012.jpg",
+      "sha256": "6269d235b422148e430533d833e84c8cb28c6b8039d8b34a527763222bb1a749",
+      "class": "screenshot",
+      "w": 878,
+      "h": 533,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\QQ截图20230528124945.jpg",
+      "sha256": "001c3ddb42376f5020fb40af0102eb65a8b07fb29cb48232eb8778c9bbfbf1b9",
+      "class": "screenshot",
+      "w": 2560,
+      "h": 1440,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\W}4M@N_DCBQUON5NZ{{QZ%W.png",
+      "sha256": "daa72f0715eb7f18e8690c0ef72741303fc8bd9d7185350efee5800ea131d3e5",
+      "class": "landscape",
+      "w": 608,
+      "h": 484,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 211.7
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Y{0T[9S[]P$MV9_W)W5U{}P.png",
+      "sha256": "6036c85243521e427361f1d02888d56f0dccf193aba6b324e7e9a8a5795d10c7",
+      "class": "landscape",
+      "w": 413,
+      "h": 712,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 164.2
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\吴港+通信工程+532128200107160711.jpg",
+      "sha256": "4247c404d0642a682db49d2bbcb91d58c97b33fe0302134bf798960dcf02ea3b",
+      "class": "portrait",
+      "w": 480,
+      "h": 640,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 215.6,
+      "_face_area_ratio": 0.1482
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\微信图片_2025-11-11_211809_101.jpg",
+      "sha256": "05698b1bed543a753d9eef147eb08f1a48bc3bcfd25ed68ad1b9984715aa9bf4",
+      "class": "landscape",
+      "w": 1280,
+      "h": 1707,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 123.1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\微信图片_20250423221504.jpg",
+      "sha256": "5ccec1df1e859ef4cb8bee81e267ca3168e25ea30cfb0d66cd7b78cfd1431dea",
+      "class": "landscape",
+      "w": 1081,
+      "h": 1920,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 92.3
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\微信图片_202504232215041.jpg",
+      "sha256": "5ccec1df1e859ef4cb8bee81e267ca3168e25ea30cfb0d66cd7b78cfd1431dea",
+      "class": "landscape",
+      "w": 1081,
+      "h": 1920,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 92.3
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\微信图片_20250423221513.jpg",
+      "sha256": "137f20bdab427434b19989802b37a4d1eee71a4daa750f3090f15d6bbb44404a",
+      "class": "landscape",
+      "w": 1081,
+      "h": 1920,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 118.9
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\报名照片.jpg",
+      "sha256": "c53b38eab3aaa4556fc6aa7c27bf76a2004f0d58c9f986ed77506b37983bc83d",
+      "class": "portrait",
+      "w": 295,
+      "h": 413,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 206.8,
+      "_face_area_ratio": 0.2214
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\拼多多128固态硬盘测试结果.jpg",
+      "sha256": "a46667f96e87ff22d97645633a1528d4bd5fc87be19b4ed15e886727e0a2c9ce",
+      "class": "landscape",
+      "w": 1009,
+      "h": 557,
+      "exif_orientation": 1,
+      "_n_faces": 0,
+      "_mean_v": 209.8
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\新文件 27.txt",
+      "sha256": "1057a5b08b8e3a7c2145144b12cb8ac451ad52780c06fa8cca31825cac242644",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\desktop.ini",
+      "sha256": "231a08caba1f9ba9f14bd3e46834288f3c351079fcedda15e391b724ac0c7ea8",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\WIN_20230522_00_19_11_Pro.jpg",
+      "sha256": "f99d2fb4c309c96422d038fec27c38e727c920e33e396c2f201865794a3840ff",
+      "class": "portrait",
+      "w": 1280,
+      "h": 720,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 124.3,
+      "_face_area_ratio": 0.1279
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\WIN_20230522_00_19_21_Pro.jpg",
+      "sha256": "8c61ae2e67df112cc2338be50f8adb3695bfcb4b7812dd6ba4fb47a9730b64bd",
+      "class": "portrait",
+      "w": 1272,
+      "h": 716,
+      "exif_orientation": 1,
+      "_n_faces": 1,
+      "_mean_v": 124.7,
+      "_face_area_ratio": 0.1327
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Lightroom\\Lightroom Catalog.lrcat",
+      "sha256": "557244d4ac077517ee970233cb98178e2432fe9069c512d8c855922656bdfd06",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Lightroom\\Lightroom Catalog Helper.lrdata\\helper.db",
+      "sha256": "35d4f7ccde4e63acd702cfc626d1aa580e795c26dabbc3f3edc5e1c789f6234e",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Lightroom\\Lightroom Catalog Previews.lrdata\\previews.db",
+      "sha256": "2c845f3d3df7b84c0a9885831a58148d50d4cbdc36217ef7fef19c1e1ee294e1",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Lightroom\\Lightroom Catalog Previews.lrdata\\root-pixels.db",
+      "sha256": "361c06bb602f483e1092245e0b9171dd4983060d1ffae2489e7f10a4cd97aadc",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\Luminar Neo Catalog.luminarneo",
+      "sha256": "5ce1a0c6216ab7f9b58b6bc947fe517113905e9f3f8180d35137457b2beac502",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\map.dat",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\vectors.dat",
+      "sha256": "af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\Sample Images\\scenario.json",
+      "sha256": "a342a1263f7908c6db606ffc5b2203d5ebc8909549404aeda9ad94911e2c2140",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Saved Pictures\\desktop.ini",
+      "sha256": "ab48d51302bff9c6b06c72e48a2ab17d5860627574f7fe05d3ea30a188e2b0df",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\desktop.ini",
+      "sha256": "d16d46c71ab8c1b6217129f965e0fa8a516984ce1ecc5ea189f45372be0b7cc7",
+      "class": "non_image",
+      "w": 0,
+      "h": 0,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-07-26 172208.png",
+      "sha256": "6f27c9396b393885ba7e91be6507cf5fdf853cab7b2b58eabdc9d386dfd8c22e",
+      "class": "screenshot",
+      "w": 879,
+      "h": 557,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-09-07 151043.png",
+      "sha256": "54cedbefe98a2243e9c26671bc288ea8b850865c0ae962ff52370f113baa6525",
+      "class": "screenshot",
+      "w": 1057,
+      "h": 1160,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-09-09 105351.png",
+      "sha256": "38547c3d561fc66238a01069a05ccbc9d1839977a963273501930664a8b8c841",
+      "class": "screenshot",
+      "w": 278,
+      "h": 368,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-10-21 203504.png",
+      "sha256": "fbc1b45c89b425671d9e31d8e8552006a83c9a184a3bcf0e0da837b9a5ad8ef2",
+      "class": "screenshot",
+      "w": 395,
+      "h": 391,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-10-21 210032.png",
+      "sha256": "82b6ad0bc01f87d3e4f138e463cbf9c17bfe3844e5a7cb4c55f70705b939dc98",
+      "class": "screenshot",
+      "w": 418,
+      "h": 415,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-11-14 113737.png",
+      "sha256": "3569104b1ab78b98ba3b6512bf1852168cd9a48d3152c3db0aa20068079adccb",
+      "class": "screenshot",
+      "w": 545,
+      "h": 237,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-01-26 112901.png",
+      "sha256": "ffc49c68ccef909de5ad122b90274e6f33f6bcd3cbea4af559ca1e721fa33677",
+      "class": "screenshot",
+      "w": 404,
+      "h": 267,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-01-26 112931.png",
+      "sha256": "ca5763af80a8172dd1661041a85a4b514cfcf7b32af5b49b6d3d5c63e448d4a1",
+      "class": "screenshot",
+      "w": 1619,
+      "h": 1280,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-05-06 213407.png",
+      "sha256": "6843199a55bcc2e5d3f3d1447086cddbd3ff3218c608259fafd9f82b7dc0c943",
+      "class": "screenshot",
+      "w": 2879,
+      "h": 1700,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-05-06 213412.png",
+      "sha256": "7858712d8bb3d4cad5a55ba7c97ae004ef64c34c491e72a6f8a3e474740bffa3",
+      "class": "screenshot",
+      "w": 1845,
+      "h": 929,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-09-16 193456.png",
+      "sha256": "15d0e7770be16f688d6fd2e7800611d383d05ff891d6dd6fec6a44e271488276",
+      "class": "screenshot",
+      "w": 1708,
+      "h": 1371,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-09-16 193518.png",
+      "sha256": "f77170d8119810b69ddacd5fef303fefdbc3ac275da65f3e3a8edd917071e421",
+      "class": "screenshot",
+      "w": 1457,
+      "h": 1342,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-10-16 121748.png",
+      "sha256": "68e111c7bc14cb29ea55d00506af423703b14b7086ede39a682f527471da9a12",
+      "class": "screenshot",
+      "w": 2169,
+      "h": 1206,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-11-06 142831.png",
+      "sha256": "cb7b71fc2758b386e75108eb7bdb0ffe841337d7bbb47f3ff5f26e01e3426458",
+      "class": "screenshot",
+      "w": 939,
+      "h": 201,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-11-06 142855.png",
+      "sha256": "b324b6afe0c10dde77ceaeaae3ab40f029e8d418a47db7ae551feb056581b22f",
+      "class": "screenshot",
+      "w": 925,
+      "h": 516,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-03-01 112555.png",
+      "sha256": "5828fb493f3dd482fcf5d8cc9fb4eb1d9fdcafbd916414a189f481908481eabd",
+      "class": "screenshot",
+      "w": 566,
+      "h": 735,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-06 170927.png",
+      "sha256": "e4ef0a0c3a5a073692db021dfaefe6cf742203b0f67d425556cf7f356cb1ce4e",
+      "class": "screenshot",
+      "w": 129,
+      "h": 11,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-10 234413.png",
+      "sha256": "83c7c99c96bb603c0462b5d87fd09fb2106ae96454914d1886dd9e3e6db5b9ee",
+      "class": "screenshot",
+      "w": 928,
+      "h": 1004,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-11 175944.png",
+      "sha256": "5391d37b62a9697774aae3dfee79128d45784ca45aa13bf07f26ca6e98914451",
+      "class": "screenshot",
+      "w": 331,
+      "h": 1158,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-12 222310.png",
+      "sha256": "eb6c0b8770a1e5c0b7f51825441d7a4e64f82b920c68541b9e1fad95594a9f2f",
+      "class": "screenshot",
+      "w": 84,
+      "h": 63,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-13 112721.png",
+      "sha256": "71135cf2f086c95c61e30e17c8591135413efadd5ea3b89f93a4317b1b9151c0",
+      "class": "screenshot",
+      "w": 2,
+      "h": 3,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-15 125826.png",
+      "sha256": "45de0cbc689892b0ddc5ba0477de34d91e4f1ef7d37caacab927dd7566b1caad",
+      "class": "screenshot",
+      "w": 185,
+      "h": 27,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-20 163718.png",
+      "sha256": "80c238b5fcf01f84f14784135544f201a263f2460c143d3ef52b1059604ef20f",
+      "class": "screenshot",
+      "w": 534,
+      "h": 658,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-20 163727.png",
+      "sha256": "2a1df6cb10bed28881779b2df2ba10da6ba9144da012f1a21b0de38f53ce380c",
+      "class": "screenshot",
+      "w": 1668,
+      "h": 1056,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-20 163733.png",
+      "sha256": "20ac8b5d803157d0487a88e713fa9480af1b246e9662818a62ae3b3d5c5a4fcc",
+      "class": "screenshot",
+      "w": 307,
+      "h": 510,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-20 185612.png",
+      "sha256": "bc3f943430b43ca516005569b72650d16245a8c4603be063dcef4ae7f0a52b9d",
+      "class": "screenshot",
+      "w": 182,
+      "h": 414,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-21 113927.png",
+      "sha256": "3a00f808689db97cfc86f52637e199ef144b242c0843fc25e71a5210cd1c46c6",
+      "class": "screenshot",
+      "w": 265,
+      "h": 218,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-21 134949.png",
+      "sha256": "3b797542575a221e537abe14f781346d64d13251349f66a976174598abd9cb0e",
+      "class": "screenshot",
+      "w": 782,
+      "h": 558,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-24 080543.png",
+      "sha256": "62a7b89b92ffc75ccdb8489370dc2a520c14b8b141e521356eb8e01d8bc1fd29",
+      "class": "screenshot",
+      "w": 87,
+      "h": 236,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-05-24 123944.png",
+      "sha256": "dc00ac7ab1501f8a7e562238a85a1f92d541a9faa5f03cca8f12083d20a9411e",
+      "class": "screenshot",
+      "w": 92,
+      "h": 147,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-07-08 104838.png",
+      "sha256": "5415de8703aa9986b6e25ae182951123a965a29f69045e36880218880f181516",
+      "class": "screenshot",
+      "w": 1224,
+      "h": 1404,
+      "exif_orientation": 1
+    },
+    {
+      "path": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-08-12 154339.png",
+      "sha256": "49eec210cb18b8ac82f2cd2fad3140627c71b62c6d041f3ef445fa3faf25f03f",
+      "class": "screenshot",
+      "w": 1077,
+      "h": 1014,
+      "exif_orientation": 1
+    }
+  ],
+  "manual_reclass_note": "本文件包含 6 处人工改判（见各条目 _manual_reclass_reason 字段），均为 qa-batch 目检修正 MTCNN 启发式分类的已知误判（文档内嵌照片误判为 portrait、未按命名规则识别的网页截图误判为 portrait、眼镜反光触发的双人脸误检）。详见 out/QA_golden_report.md。"
+}

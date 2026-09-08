@@ -1,0 +1,68 @@
+{
+  "gate": "G1",
+  "generatedAt": "2026-09-08T06:02:38.408354",
+  "items": [
+    {
+      "id": "1.1",
+      "description": "flutter build apk --debug 退出码为 0",
+      "expected": "0",
+      "actual": "exitCode=0 timedOut=false\nstdout:\nRunning Gradle task 'assembleDebug'...                             23.7s\n√ Built build\\app\\outputs\\flutter-apk\\app-debug.apk\n\nstderr:\n",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "1.2",
+      "description": "docs/ENV.md 中 \"- [ ]\" 计数为 0",
+      "expected": "0",
+      "actual": "0",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "1.3",
+      "description": "test/golden/src/ 下 >= 8 张 JPEG",
+      "expected": ">=8",
+      "actual": "8",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "1.4",
+      "description": "test/golden/ref/ 下与 src 同名 PNG，数量一致",
+      "expected": "src=8 张，ref 同名同数量",
+      "actual": "ref=8 张；缺失=[]；多余=[]",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "1.5",
+      "description": "每张参考 alpha 前景占比在 8%-70% 之间",
+      "expected": "全部在 8%-70%",
+      "actual": "超范围: 无；解码失败: 无",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "1.6",
+      "description": "截图流水线打通，out/shots/ 下 >=1 张非纯黑 PNG",
+      "expected": ">=1 张非纯黑 PNG，写明 degraded 标记",
+      "actual": "success=true degraded=false shots=[S1_empty.png] error=无\n设备已上线: emulator-5554\nflutter drive 退出码=0 timedOut=false\n...(截断)...\n255; UID 10192; state: ENABLED\nD/EGL_emulation( 5160): app_time_stats: avg=3464.75ms min=3016.42ms max=3913.09ms count=2\nD/EGL_emulat...(截断)",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "1.7",
+      "description": "内存/耗时采集打通，写入 out/gate_metrics.json",
+      "expected": "coldStartMs 与 peakMemoryKb 均非 null",
+      "actual": "coldStartMs=5988 peakMemoryKb=237881 packageId=com.muzhao.muzhao error=无\napplicationId=com.muzhao.muzhao\n设备已上线: emulator-5554\nadb install -r 退出码=0\nstdout:\nPerforming Streamed Install\r\nSuccess\r\n\nstderr:\n\nam start -W 退出码=0\nstdout:\nStarting: Intent { cmp=com.muzhao.muzhao/.Ma...(截断)",
+      "pass": true,
+      "manual": false
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "manual": 0
+  },
+  "pass": true
+}

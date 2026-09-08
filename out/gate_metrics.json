@@ -1,0 +1,7 @@
+{
+  "generatedAt": "2026-09-08T06:02:38.399479",
+  "packageId": "com.muzhao.muzhao",
+  "coldStartMs": 5988,
+  "peakMemoryKb": 237881,
+  "note": "阶段1：coldStartMs 代表冷启动到首帧耗时（占位单步耗时），非阶段4要求的抠图 p95 耗时；后者由 qa-batch 在真实功能就绪后另行采集。"
+}

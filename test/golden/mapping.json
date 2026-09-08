@@ -1,0 +1,146 @@
+[
+  {
+    "golden_name": "g01.jpg",
+    "source_path": "C:\\Users\\liuyu\\Pictures\\2.jpg",
+    "source_sha256": "1cacf7d022913bdd8abb9371b8f02a2fbfbe77fa15883d7b98c970a7bcf06ec8",
+    "source_wh": [
+      1080,
+      1415
+    ],
+    "golden_sha256": "25b14d07b1375bc303ac8c9020c80b708005c39a34b6d04e91b610533168b366",
+    "golden_wh": [
+      1080,
+      1415
+    ],
+    "resized": false,
+    "note": "蓝底标准证件照，短发无镜框",
+    "matting_ok": true,
+    "foreground_ratio": 0.5564
+  },
+  {
+    "golden_name": "g02.jpg",
+    "source_path": "C:\\Users\\liuyu\\Pictures\\20240710193717_7c99.jpg",
+    "source_sha256": "8a92802d870c7f76ab250ef8c93e081351b3653a1f211edac206ae4247f715ad",
+    "source_wh": [
+      480,
+      640
+    ],
+    "golden_sha256": "2328619ebf59aa0fd03f97a26fd610c41c03a28b8e137be59ab69c27eff1c2bc",
+    "golden_wh": [
+      480,
+      640
+    ],
+    "resized": false,
+    "note": "白底证件照，镜框+卷发",
+    "matting_ok": true,
+    "foreground_ratio": 0.6916
+  },
+  {
+    "golden_name": "g03.jpg",
+    "source_path": "C:\\Users\\liuyu\\Pictures\\29EDA59B982FA8339335D50B00CCD096.jpg",
+    "source_sha256": "c53da2c612d659beb0af88305b81d2c63c9001df5dacca9aae0ab886d2731d3a",
+    "source_wh": [
+      1282,
+      1920
+    ],
+    "golden_sha256": "122ff5d66288b6b5a5ff777051c069a458b0f0ca14094449ce180105b260f482",
+    "golden_wh": [
+      1282,
+      1920
+    ],
+    "resized": false,
+    "note": "蓝底标准证件照，镜框",
+    "matting_ok": true,
+    "foreground_ratio": 0.6017
+  },
+  {
+    "golden_name": "g04.jpg",
+    "source_path": "C:\\Users\\liuyu\\Pictures\\吴港+通信工程+532128200107160711.jpg",
+    "source_sha256": "4247c404d0642a682db49d2bbcb91d58c97b33fe0302134bf798960dcf02ea3b",
+    "source_wh": [
+      480,
+      640
+    ],
+    "golden_sha256": "a69d061342d9fc395155919a29c5253de80d2673cf472472153f1a3eb42ec8f8",
+    "golden_wh": [
+      480,
+      640
+    ],
+    "resized": false,
+    "note": "蓝底证件照，中年男性，不同年龄段",
+    "matting_ok": true,
+    "foreground_ratio": 0.558
+  },
+  {
+    "golden_name": "g05.jpg",
+    "source_path": "C:\\Users\\liuyu\\Pictures\\报名照片.jpg",
+    "source_sha256": "c53b38eab3aaa4556fc6aa7c27bf76a2004f0d58c9f986ed77506b37983bc83d",
+    "source_wh": [
+      295,
+      413
+    ],
+    "golden_sha256": "4eafe37e392536acc923a4b1b64a2bb85357d17f732b1066339bd10f08899556",
+    "golden_wh": [
+      295,
+      413
+    ],
+    "resized": false,
+    "note": "蓝底证件照，低分辨率(295x413)小图",
+    "matting_ok": true,
+    "foreground_ratio": 0.5824
+  },
+  {
+    "golden_name": "g06.jpg",
+    "source_path": "C:\\Users\\liuyu\\Pictures\\1 (2).jpg",
+    "source_sha256": "6c89a01cb9b07476c9dc3c58126c71cb2d9c77a25c47030d3e6d4bd533e5cc8c",
+    "source_wh": [
+      2880,
+      4982
+    ],
+    "golden_sha256": "0b267f6b1850fae3192bd2927b91354915c01155cb79378dbd037b12d057e74f",
+    "golden_wh": [
+      1184,
+      2048
+    ],
+    "resized": true,
+    "note": "真实复杂背景（楼道），镜框+自然发型，原图超大需缩放",
+    "matting_ok": true,
+    "foreground_ratio": 0.603
+  },
+  {
+    "golden_name": "g07.jpg",
+    "source_path": "C:\\Users\\liuyu\\Pictures\\8D861A29F86CE7464865EFEB3C9B4124.jpg",
+    "source_sha256": "d938d9ec168290932c11f82bb4fa1acd9a0fe230a848341a76b419da7ac02562",
+    "source_wh": [
+      1159,
+      1920
+    ],
+    "golden_sha256": "14810439508070d5435d120991b1a225ab7acf50f585d80cfb7fd469c83d93cb",
+    "golden_wh": [
+      1159,
+      1920
+    ],
+    "resized": false,
+    "note": "真实复杂背景（楼道），镜框+蓬松碎发（发丝抠图难点）",
+    "matting_ok": true,
+    "foreground_ratio": 0.642
+  },
+  {
+    "golden_name": "g08.jpg",
+    "source_path": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\WIN_20230522_00_19_11_Pro.jpg",
+    "source_sha256": "f99d2fb4c309c96422d038fec27c38e727c920e33e396c2f201865794a3840ff",
+    "source_wh": [
+      1280,
+      720
+    ],
+    "golden_sha256": "5569ad3bdbc60713eb82dd98265474e0d4e189fef52bc04e53caddca2df0ebaa",
+    "golden_wh": [
+      1280,
+      720
+    ],
+    "resized": false,
+    "note": "网络摄像头暗光室内自拍，杂乱背景，非正规证件照场景",
+    "matting_ok": true,
+    "foreground_ratio": 0.2103
+  }
+]
