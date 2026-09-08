@@ -1,0 +1,26 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+
+# Android 签名（绝不能提交）
+android/key.properties
+*.jks
+*.keystore
+
+# 产出与临时
+out/tmp/
+out/shots/
+*.log
+
+# 大文件：模型权重按需决定是否提交
+# assets/models/*.onnx
+
+# IDE / OS
+.idea/
+.vscode/
+Thumbs.db
+desktop.ini
