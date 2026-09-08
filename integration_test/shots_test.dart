@@ -1,77 +1,92 @@
 // integration_test/shots_test.dart
 //
-// 截图流水线（G1.6 生命线 / capture-shots skill 的唯一实现）。
+// 截图流水线（G1.6 生命线，阶段 2 起扩成 capture-shots skill 规定的 8 张）。
 // 势力范围：gatekeeper。ui-woodcraft/qa-batch/visual-critic/store-assets 只消费
-// out/shots/ 下的产出，不应修改本文件；如需新增截图场景，在报告里向 gatekeeper 提需求。
+// out/shots/ 下的产出，不应修改本文件。
 //
-// 当前阶段（G1，lib/ 还没有正式 UI）：只验证"流水线本身能不能跑通"——
-// 启动 App → convertFlutterSurfaceToImage() → pumpAndSettle() → takeScreenshot()
-// → 由 test_driver/integration_test_driver.dart 落盘到 out/shots/。
+// 阶段 2 起靠 docs/CONTRACTS.md 第 7 节的接缝对接 ui-woodcraft：
+//   import 'package:muzhao/ui/dev/shot_harness.dart' show kShotScenarios, buildShotScenario;
+// 本文件只认这个接缝和第 7.2 节列出的稳定 Key，不读 ui-woodcraft 内部 widget 结构。
+// 此刻（阶段 2 刚开始）ui-woodcraft 还没交付 shot_harness.dart，本文件编译不过——
+// 预期状态，见 gatekeeper 报告。
 //
-// 阶段 2 UI 就绪后，把 kScenarios 换成 capture-shots skill 规定的 8 个场景
-// （S1_empty / S2_loaded / S3_dragging / S4_generating / S5_ready / S6_saved /
-//  S2_small / S5_small），每个场景的 prepare 回调负责把界面/FakeController
-// 驱动到对应状态。这里先用常量列表把结构搭好，方便后续只改列表不改主流程。
+// 两台 AVD 跑两遍：
+//   - 主截图 S1-S6：在 Pixel_3a_API_34...（1080x2220）上跑，SHOT_MODE=main。
+//   - 小屏 S2_small/S5_small：在 MuZhao_Small（720x1280）上跑，SHOT_MODE=small，
+//     场景内容用 S2_loaded/S5_ready，只是落盘文件名加 _small 后缀。
+// 由 tools/gate/capture_shots.dart 负责两次调用、传对应 --dart-define。
 //
-// 依赖：需要 pubspec.yaml 的 dev_dependencies 声明
-//   integration_test: { sdk: flutter }
-//   flutter_test: { sdk: flutter }
-// 这是主会话（pubspec.yaml 唯一写入者）的职责，本文件写好后请主会话在阶段 1.5 补上。
-//
-// 关于 app 入口的引用：pubspec.yaml 的 name 现已确定为 muzhao，
-// 本文件用标准的 package:muzhao/main.dart 引用应用入口（符合 Flutter 官方 integration_test 惯例，
-// 也避免 avoid_relative_lib_imports lint）。
+// 稳定 Key 矩形边框：为了让 gate_G2C.dart 能在"排除照片区域"的前提下做调色板/
+// 纯黑纯白检测（2C.2/2C.4），本文件把关键 Key（area_a/b/c、crop_box、
+// candidate_<styleId>）的屏幕矩形（物理像素，已乘 devicePixelRatio）写进
+// `binding.reportData`，flutter drive 跑完后会落盘到
+// build/integration_response_data.json，gate_G2C.dart 从那里读。
 
+import 'dart:ui' as ui;
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:muzhao/ui/dev/shot_harness.dart' show kShotScenarios, buildShotScenario;
 
-import 'package:muzhao/main.dart' as app;
+const String kShotMode = String.fromEnvironment('SHOT_MODE', defaultValue: 'main');
 
-/// 一个截图场景：名字 + 如何把界面驱动到该场景对应的状态。
-class ShotScenario {
-  final String name;
-  final Future<void> Function(WidgetTester tester) prepare;
-  const ShotScenario(this.name, this.prepare);
-}
+/// 主截图场景就是 shot_harness 里定义的全部场景（S1-S6）。
+/// 小屏模式只重跑 S2_loaded/S5_ready 两个，落盘时改名加 _small 后缀。
+const List<String> kSmallScreenSourceScenarios = ['S2_loaded', 'S5_ready'];
 
-/// 阶段 1（G1）场景列表：只验证流水线本身，截 1 张默认 App 的首屏。
-final List<ShotScenario> kPhase1Scenarios = <ShotScenario>[
-  ShotScenario('S1_empty', (tester) async {
-    // 阶段1还没有真实 UI，这里只是等首帧稳定下来。
-    await tester.pumpAndSettle(const Duration(seconds: 2));
-  }),
+/// 稳定 Key 列表，见 CONTRACTS.md 第 7.2 节。不是每个场景都有全部这些 widget，
+/// 找不到的 Key 直接跳过，不算错误。
+const List<String> kStableKeysToRecord = [
+  'area_a', 'area_b', 'area_c',
+  'crop_box',
+  'candidate_white', 'candidate_blue', 'candidate_red',
+  'candidate_deep_blue', 'candidate_gray', 'candidate_blue_gradient',
 ];
 
-/// 阶段 2 起替换为这份（示例结构，具体 prepare 实现留给阶段 2 时的 gatekeeper 补全，
-/// 依赖 ui-woodcraft 提供的 FakeController /真实 Controller 状态钩子）：
-///
-/// final List<ShotScenario> kFullScenarios = <ShotScenario>[
-///   ShotScenario('S1_empty', ...),
-///   ShotScenario('S2_loaded', ...),
-///   ShotScenario('S3_dragging', ...),
-///   ShotScenario('S4_generating', ...),
-///   ShotScenario('S5_ready', ...),
-///   ShotScenario('S6_saved', ...),
-///   ShotScenario('S2_small', ...), // 需在 MuZhao_Small (720x1280) AVD 上跑
-///   ShotScenario('S5_small', ...),
-/// ];
+Map<String, dynamic>? _rectOf(WidgetTester tester, String keyName) {
+  final finder = find.byKey(Key(keyName));
+  if (finder.evaluate().isEmpty) return null;
+  final rect = tester.getRect(finder);
+  final dpr = ui.PlatformDispatcher.instance.views.first.devicePixelRatio;
+  return {
+    'left': rect.left * dpr,
+    'top': rect.top * dpr,
+    'right': rect.right * dpr,
+    'bottom': rect.bottom * dpr,
+  };
+}
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('capture shots pipeline', (tester) async {
-    app.main();
-    // 首帧可能有异步初始化（比如后续阶段的 warmUp），多等一会儿再转换 surface。
-    await tester.pumpAndSettle(const Duration(seconds: 3));
+    final allRects = <String, Map<String, dynamic>?>{};
 
-    // 关键：不转换成 image 的话，截图会是纯黑——这是最常见的失败模式。
-    await binding.convertFlutterSurfaceToImage();
-    await tester.pumpAndSettle();
+    final scenarios = kShotMode == 'small' ? kSmallScreenSourceScenarios : kShotScenarios;
 
-    for (final scenario in kPhase1Scenarios) {
-      await scenario.prepare(tester);
+    for (final scenarioId in scenarios) {
+      await tester.pumpWidget(buildShotScenario(scenarioId));
+      // 确定性场景：不依赖真实异步/时序，一次 pumpAndSettle 应该就能稳定下来。
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      await binding.convertFlutterSurfaceToImage();
       await tester.pumpAndSettle();
-      await binding.takeScreenshot(scenario.name);
+
+      // 小屏模式最终文件名是 S2_small/S5_small，不是 S2_loaded_small——
+      // 用固定映射转换，避免在 driver 侧再猜文件名规则。
+      final finalName = kShotMode == 'small'
+          ? (scenarioId == 'S2_loaded' ? 'S2_small' : 'S5_small')
+          : scenarioId;
+      await binding.takeScreenshot(finalName);
+
+      final rects = <String, dynamic>{};
+      for (final keyName in kStableKeysToRecord) {
+        final r = _rectOf(tester, keyName);
+        if (r != null) rects[keyName] = r;
+      }
+      allRects[finalName] = rects.isEmpty ? null : rects;
     }
+
+    binding.reportData = {'rects': allRects};
   });
 }

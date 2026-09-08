@@ -75,6 +75,17 @@ flutter:
     - assets/textures/
     - assets/fonts/
 
+  # ui-woodcraft 用 fontTools 从系统自带的 NotoSerifSC-VF.ttf(OFL) 实例化并按
+  # lib/ 内实际出现的字符子集化，两个字重合计约 169KB（G2C.8 限 400KB）。
+  # 运行期另有 FontLoader 兜底注册，这里声明是为了 release 产物更稳。
+  fonts:
+    - family: MuZhaoSerif
+      fonts:
+        - asset: assets/fonts/NotoSerifSC-Subset-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSerifSC-Subset-Bold.ttf
+          weight: 700
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

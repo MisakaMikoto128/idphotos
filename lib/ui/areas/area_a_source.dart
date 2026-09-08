@@ -1,0 +1,431 @@
+/// 区域 A — 上传与框选（DESIGN.md §5，占屏 45%）。
+///
+/// 顶部一条黄铜标尺（当前规格 + 像素尺寸，点击拉出规格抽屉）；
+/// 下方一个带铜包角的木相框：空态框内是绒布 + 铜质"+"；有图后图片居中 contain，
+/// 覆盖可拖拽的裁剪框。
+///
+/// 势力范围：ui-woodcraft。
+library;
+
+import 'dart:typed_data';
+
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/api.dart';
+import '../state/photo_source.dart';
+import '../state/providers.dart';
+import '../theme/brass.dart';
+import '../theme/paper_painter.dart';
+import '../theme/surfaces.dart';
+import '../theme/tokens.dart';
+import '../theme/typography.dart';
+import '../theme/wood_painter.dart';
+import '../util/crop_geometry.dart';
+import '../util/image_size.dart';
+import '../widgets/crop_overlay.dart';
+import '../widgets/metal.dart';
+import '../widgets/press_effect.dart';
+import '../widgets/spec_ruler.dart';
+
+class AreaASource extends ConsumerWidget {
+  const AreaASource({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppState app = ref.watch(appStateProvider);
+    final WorkbenchState wb = ref.watch(workbenchProvider);
+    final double topInset = MediaQuery.paddingOf(context).top;
+    final bool hasImage = app.sourceImage != null;
+
+    return SizedBox.expand(
+      key: const Key('area_a'),
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          const WoodSurface(spec: WoodSpec(seed: 7)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              SizedBox(height: topInset + 8),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+                child: Row(
+                  children: <Widget>[
+                    const _BrandPlate(),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SpecRuler(
+                        spec: app.spec,
+                        onTap: () => ref
+                            .read(workbenchProvider.notifier)
+                            .setSpecSheet(true),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _CaptionRow(
+                hasImage: hasImage,
+                spec: app.spec,
+                error: app.errorMessage,
+                onRepick: () => _pick(ref),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
+                  child: _PhotoFrame(
+                    app: app,
+                    wb: wb,
+                    onPick: () => _pick(ref),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Future<void> _pick(WidgetRef ref) async {
+    final Uint8List? bytes = await ref.read(photoSourceProvider).pick();
+    if (bytes == null) return;
+    await ref.read(controllerProvider).loadImage(bytes);
+  }
+}
+
+/// 左上角的品牌铭牌：整台"工作台"的铭板。
+class _BrandPlate extends StatelessWidget {
+  const _BrandPlate();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 62,
+      height: 40,
+      child: MetalPlate(
+        finish: MetalFinish.brass,
+        seed: 2,
+        screws: false,
+        child: Center(
+          child: EngravedText(
+            '木照',
+            style: Type.subtitle(T.inkBrown),
+            relief: T.brassHi,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 标尺下方的一行小字：告诉用户此刻该做什么（RUBRIC R6 信息层级）。
+class _CaptionRow extends StatelessWidget {
+  final bool hasImage;
+  final PhotoSpec spec;
+  final String? error;
+  final VoidCallback onRepick;
+
+  const _CaptionRow({
+    required this.hasImage,
+    required this.spec,
+    required this.error,
+    required this.onRepick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final String text = error ??
+        (hasImage
+            ? '拖动四角调整裁剪范围　·　已锁定${spec.nameZh}比例'
+            : '支持 JPG / PNG　·　全程离线处理，照片不离开本机');
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 7, 14, 1),
+      child: Row(
+        children: <Widget>[
+          if (error != null)
+            const Padding(
+              padding: EdgeInsets.only(right: 6),
+              child: _ErrorMark(),
+            ),
+          Expanded(
+            child: Text(
+              text,
+              style: Type.caption(error != null ? T.paper : T.creamText),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (hasImage)
+            PressSurface(
+              onTap: onRepick,
+              sink: 1,
+              semanticLabel: '更换照片',
+              builder: (BuildContext c, bool pressed) => SizedBox(
+                width: 60,
+                height: 24,
+                child: MetalPlate(
+                  finish: MetalFinish.brass,
+                  pressed: pressed,
+                  seed: 7,
+                  child: Center(
+                    child: EngravedText(
+                      '更换',
+                      style: Type.caption(T.inkBrown),
+                      relief: T.brassHi,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 错误提示前的一枚旧漆红标记。
+class _ErrorMark extends StatelessWidget {
+  const _ErrorMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 10,
+      height: 10,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: T.accentRed,
+          shape: BoxShape.circle,
+          boxShadow: Shade.pressed,
+        ),
+      ),
+    );
+  }
+}
+
+/// 木相框：外框木料 + 内衬绒布 + 四角铜包角。
+class _PhotoFrame extends ConsumerWidget {
+  final AppState app;
+  final WorkbenchState wb;
+  final VoidCallback onPick;
+
+  const _PhotoFrame({
+    required this.app,
+    required this.wb,
+    required this.onPick,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final Uint8List? bytes = app.sourceImage;
+    final PixelSize? px = bytes == null ? null : readImageSize(bytes);
+
+    Widget inner;
+    if (bytes == null || px == null) {
+      inner = _EmptyPlate(onPick: onPick);
+    } else {
+      final Size src = Size(px.width.toDouble(), px.height.toDouble());
+      final Rect crop = _effectiveCrop(app, wb, src);
+      inner = CropOverlay(
+        sourceSize: src,
+        crop: crop,
+        aspectRatio: app.spec.aspectRatio,
+        imageBytes: bytes,
+        activeHandle: wb.activeHandle,
+        onChanged: (Rect r) {
+          ref
+              .read(workbenchProvider.notifier)
+              .updateCrop(r, cropTokenOf(app));
+          ref.read(controllerProvider).setCrop(r);
+        },
+        onDragStart: (String h) =>
+            ref.read(workbenchProvider.notifier).beginDrag(h),
+        onDragEnd: () => ref.read(workbenchProvider.notifier).endDrag(),
+      );
+    }
+
+    return WoodPanel(
+      spec: const WoodSpec(tone: WoodTone.dark, seed: 23, figure: false),
+      grainOrigin: const Offset(0, 120),
+      padding: const EdgeInsets.all(11),
+      child: BrassCorners(
+        arm: 28,
+        highlight: wb.activeHandle != null,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(2)),
+          child: Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              const FeltSurface(seed: 13),
+              inner,
+              // 框口内投影：让照片显得真的嵌在框里
+              const IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: <Color>[
+                        Shade.warmShadow,
+                        Color(0x00241609),
+                        Color(0x00241609),
+                      ],
+                      stops: <double>[0.0, 0.10, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 有效裁剪框：用户拖过就用用户的；否则用引擎给的建议框；再否则居中推算。
+  static Rect _effectiveCrop(AppState app, WorkbenchState wb, Size src) {
+    final Rect bounds = Offset.zero & src;
+    final double aspect = app.spec.aspectRatio;
+    if (wb.crop != null && wb.cropToken == cropTokenOf(app)) {
+      return CropMath.fitIntoBounds(wb.crop!, bounds, aspect);
+    }
+    final Rect? suggested = app.suggestedCrop;
+    if (suggested != null && !suggested.isEmpty) {
+      return CropMath.fitIntoBounds(suggested, bounds, aspect);
+    }
+    return CropMath.defaultCrop(src, aspect);
+  }
+}
+
+/// 空态：绒布上一枚铜质"+"托盘。
+class _EmptyPlate extends StatelessWidget {
+  final VoidCallback onPick;
+
+  const _EmptyPlate({required this.onPick});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: PressSurface(
+        key: const Key('btn_pick'),
+        onTap: onPick,
+        semanticLabel: '轻触选择照片',
+        builder: (BuildContext context, bool pressed) {
+          return Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                SizedBox(
+                  width: 74,
+                  height: 74,
+                  child: CustomPaint(painter: _PlusPainter(pressed: pressed)),
+                ),
+                const SizedBox(height: 14),
+                _PaperLabel(pressed: pressed),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PaperLabel extends StatelessWidget {
+  final bool pressed;
+
+  const _PaperLabel({required this.pressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        boxShadow: pressed ? Shade.pressed : Shade.lifted,
+        borderRadius: Shape.buttonBorder,
+      ),
+      child: ClipRRect(
+        borderRadius: Shape.buttonBorder,
+        child: CustomPaint(
+          painter: const PaperPainter(seed: 41, edgeDarken: 0.8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text('轻触选择照片', style: Type.bodyStrong(T.inkBrown)),
+                const SizedBox(height: 2),
+                Text('从相册里挑一张正面照', style: Type.caption(T.inkBrown)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 铜质"+"：一枚圆铜牌，中间是凹刻的十字。
+class _PlusPainter extends CustomPainter {
+  final bool pressed;
+
+  const _PlusPainter({required this.pressed});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Offset c = Offset(size.width / 2, size.height / 2);
+    final double r = size.width / 2 - 3;
+    canvas.drawCircle(
+      c + Offset(1.2, pressed ? 1.0 : 2.4),
+      r,
+      Paint()..color = Shade.warmShadow,
+    );
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: const <Color>[T.brassHi, T.brass, T.brassShadow],
+          stops: const <double>[0.0, 0.55, 1.0],
+        ).createShader(Rect.fromCircle(center: c, radius: r)),
+    );
+    // 环形凹槽
+    canvas.drawCircle(
+      c,
+      r - 6,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..color = T.brassShadow.withValues(alpha: 0.8),
+    );
+    canvas.drawCircle(
+      c,
+      r - 7.4,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2
+        ..color = T.brassHi.withValues(alpha: 0.55),
+    );
+    // 十字：先暗刻，再在下缘补一道高光，做出凹陷
+    const double arm = 16;
+    final Paint carve = Paint()
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.square
+      ..color = T.brassShadow;
+    canvas.drawLine(c - const Offset(arm, 0), c + const Offset(arm, 0), carve);
+    canvas.drawLine(c - const Offset(0, arm), c + const Offset(0, arm), carve);
+    final Paint gleam = Paint()
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.square
+      ..color = T.brassHi.withValues(alpha: 0.75);
+    canvas.drawLine(c - const Offset(arm, -3), c + const Offset(arm, 3), gleam);
+    canvas.drawLine(c - const Offset(-3, arm), c + const Offset(3, arm), gleam);
+  }
+
+  @override
+  bool shouldRepaint(_PlusPainter old) => old.pressed != pressed;
+}

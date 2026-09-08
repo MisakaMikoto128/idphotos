@@ -14,6 +14,21 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // 阶段 2 由主会话按 CLAUDE.md 7.5 的跨界请求流程代 release 加入。
+    //
+    // 起因：pub 插件 onnxruntime:1.4.1 的 jniLibs 只带 arm64-v8a / armeabi-v7a，
+    // 没有 x86_64；而本机两台 AVD 都是 x86_64，不补这个库 G2A 在模拟器上必然
+    // 起不来（不是模型的问题，是找不到 .so）。ml-porting 已把官方 ORT 1.15.1
+    // 的 x86_64 libonnxruntime.so 放进 native/android/jniLibs/。
+    //
+    // 这是**为了让模拟器能跑通验收**而加的开发期依赖。release 在阶段 5 必须复核：
+    // 用 abiFilters 把 x86/x86_64 从发布包里排掉，否则平白多 16MB（G5.5 限 60MB）。
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("src/main/jniLibs", "../../native/android/jniLibs")
+        }
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.muzhao.muzhao"
