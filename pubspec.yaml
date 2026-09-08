@@ -65,6 +65,16 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # 阶段 1.5 由主会话一次性声明。之后任何 agent 需要新增资源目录，
+  # 必须在报告里向主会话提出请求，不得自行修改本文件（CLAUDE.md §7.5）。
+  #   assets/models/   -> ml-porting   (ONNX 权重)
+  #   assets/textures/ -> ui-woodcraft (木纹/纸纹/黄铜/绒布，优先程序化绘制)
+  #   assets/fonts/    -> ui-woodcraft (中文子集字体，总计 <= 400KB，见 G2C.8)
+  assets:
+    - assets/models/
+    - assets/textures/
+    - assets/fonts/
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

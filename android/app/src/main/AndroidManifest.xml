@@ -1,4 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 木照 MuZhao 权限清单（CLAUDE.md §6 硬红线：100% 离线）
+
+         G5.1：release 的 merged manifest 中不得出现 android.permission.INTERNET。
+         G5.2：最终权限集必须是 {READ_MEDIA_IMAGES, WRITE_EXTERNAL_STORAGE(maxSdk<=32)} 的子集。
+         阶段 1.5 由主会话声明；release 在阶段 5 做最终精简与 merged manifest 校验。 -->
+
+    <!-- 从相册读取用户选择的照片（Android 13+ / API 33+） -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- API <= 32 上保存成品到相册所需；33+ 由 MediaStore 直接写入，无需权限 -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
     <application
         android:label="muzhao"
         android:name="${applicationName}"

@@ -1,0 +1,2 @@
+# 占位文件：保证 pubspec.yaml 声明的 assets 目录存在。
+# assets/models -> ml-porting; assets/textures + assets/fonts -> ui-woodcraft
