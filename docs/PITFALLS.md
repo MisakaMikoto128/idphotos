@@ -208,3 +208,69 @@
   （实测逐像素平均差 0.5、最大 8–31，主要来自 IDCT 和色度上采样实现不同），
   这部分**没法在 Dart 侧消除**，除非自己重写一个 bit-exact 的 JPEG 解码器。
   谁再去调 g08 的指标，先看这条，别重复走一遍量化调参的死路。
+
+## [gatekeeper] shots_test.dart 把 convertFlutterSurfaceToImage() 错放进了场景循环
+- 现象：8 场景截图流水线只产出 1 张，第 2 个场景起 `flutter drive` 抛
+  `Surface already converted to an image`（ui-woodcraft 用自己的 adb 兜底截图自测
+  UI 时发现这个 G2C 官方流水线的问题，按纪律没有动手改我的文件，写了 PITFALLS 转达）。
+- 原因：`binding.convertFlutterSurfaceToImage()` 每个测试生命周期只能调用一次
+  （一次性把渲染 surface 切到可截图模式），我在循环体内每个场景都调用了一次。
+- 解法：加一个 `surfaceConverted` 标志位，只在第一个场景的首帧之后转换一次，
+  后续场景直接复用。已在 `integration_test/shots_test.dart` 修好。
+
+## [gatekeeper] adb push 到 /sdcard/ 的文件 App 自己读不到（scoped storage）
+- 现象：`gate_G2A.dart` 第一次跑设备端评测，`flutter test matting_eval_test.dart` 里
+  `File('/sdcard/muzhao_gate_tmp/dataset_manifest.json').readAsBytes()` 报
+  `PathAccessException ... errno = 13 (Permission denied)`，和模型/代码对不对无关。
+- 原因：`adb push` 建到 `/sdcard/...` 的文件属主是 shell 的 `media_rw` 组
+  （`adb shell ls -la` 实测 `-rw-rw---- u0_a179 media_rw`），App 自己的沙箱 UID 不在
+  这个组，Android 10+ 的 scoped storage（FUSE 模拟层）直接拒绝跨 UID 读取。
+- 解法：改用 `/data/local/tmp/`——真实 ext4 路径，不走 scoped storage。`adb push`
+  在这里建的文件默认 world-readable（`rw-rw-rw-`），子目录 world-traversable
+  （`rwxrwxr-x`），App 读没问题；但顶层目录本身默认只有 shell 能写，App 要在里面
+  **新建**结果 JSON 前，host 侧必须先 `adb shell mkdir -p <dir> && chmod 777 <dir>`
+  （见 `tools/gate/device_harness_common.dart` 的 `prepareDeviceGateDir`）。
+  实测验证过整条链路：push 目录/文件权限、chmod 后 App 能建文件，都用
+  `adb shell ls -la` 逐层核对过，不是纸上推断。
+
+## [imaging] 溢色判据对通道**不对称**：只用绿底自测必然漏掉品红方向
+- 现象：G2B 第 1 轮我自测「溢色 0」，门禁实测**绿 0 / 品红 295**。不是脚本 bug，
+  两套判定是镜像对称写的。
+- 原因：双线性插值是逐通道独立的凸组合，会**凭空造出原图不存在的色相**，
+  而两个判据抓它的能力天差地别。以「青色标记条 (0,255,255) 与中性灰混色」为例：
+  G 和 B 同步变化，`G − max(R,B)` 恒等于 0，绿判据**永远抓不到**；
+  换成品红 (255,0,255) 与灰混色，R、B 同升而 G 下降，`min(R,B) − G` 直接冲到 255·t。
+  也就是说**绿底自测通过，完全不能推出品红底也通过**。
+- 解法：不要给品红打补丁（补丁只会让下一种底色翻车）。真正对任意底色都成立的做法是
+  **禁止重采样发明新色相**：四角样本的 `R−G`/`B−G`/`R−B` 跨度超过阈值时判定这一格
+  跨了色度硬边，色度取权重最大的那个真实源样本、亮度仍走双线性
+  （`render.dart` 的 `kChromaSnapSpread`）。自测必须跑绿/品红/红/蓝四种极端底色。
+
+## [imaging] JPEG 振铃不随 quality 单调下降，q95→q98 反而更差
+- 现象：门禁同款合成图（纯蓝底 + 纯青标记条，亮度阶跃 Y 从 29 跳到 179）下，
+  溢色计数在 q94/95/96/98 上是 **287 / 0 / 3 / 6**。
+- 原因：Gibbs 过冲的来源是被保留的高频 AC 系数。质量越高、量化步长越小，
+  过冲越不会被量化抹平，反而更明显；低质量则是过冲和细节一起被量化掉。
+  想靠「提高 quality 减少溢色」的直觉是错的。
+- 附带结论：**溢色必须解码成品 JPEG 之后再测**，测渲染缓冲会漏掉振铃这一份；
+  且一个 1.6px 高的全宽饱和色条会让整行进入同一个 8×8 块，振铃沿整行铺开。
+
+## [imaging] 摆正的方向性 bug：错在「用错 x 去转 y」，不是旋转符号
+- 现象：`rollDeg = −10°` 残差 0.0° 完美，`+10°` 成片里**完全找不到头顶标记条**。
+- 原因：`FaceInfo.headTopY` 是纯 y 标量，要把「头顶」搬进旋转空间必须凑一个 x。
+  之前用 `box.center.dx`，而它未必落在头部真实竖直轴上；旋转会把这份横向误差
+  按 `Δy = sinθ·Δx` 折算进 y（θ=10°、Δx=165px → Δy≈29px），**正负角符号相反**，
+  于是一侧完美、另一侧把头顶整条裁出画面。只验一侧必然漏掉。
+- 解法：用 alpha 掩膜在旋转空间里量出头部真实水平中心 Xc
+  （`crop_geometry.dart` 的 `probeHeadInRotated`），再按仿射逆关系闭式解出
+  「源图 y 恰为 headTopY」的那条旋转空间行。θ 只出现在 `sinθ·Δx` 和 `cosθ` 里，
+  正负角完全对称。**摆正类改动一律要正负两个方向 + 至少两个角度一起验。**
+
+## [imaging] 真实人像的「品红溢色」有天然假阳性，判据必须看换底前后的差异
+- 现象：黄金集 g05 在纯品红底下有 2 个像素满足 `min(R,B) − G > 40`。
+- 原因：被摄者身上本来就有紫红色（衣物/深紫头发）。实测同一坐标换**白底**合成，
+  一个是 [181,118,159] vs [177,117,154]（底色贡献 +4），另一个 [73,0,70] vs
+  [80,4,88]（底色贡献 **−6**，白底反而更「品红」）——与换底质量无关。
+- 解法：对真实照片，「溢色」只能定义成**底色渗进前景**，即同一像素在目标底色下的
+  偏色量减去白底下的偏色量。门禁的 2B.7 用灰色合成人像（不含这种自然色），
+  绝对计数 0 才是可达的；拿绝对计数去卡真实照片会得到假阳性。

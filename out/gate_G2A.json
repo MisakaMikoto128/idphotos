@@ -1,0 +1,76 @@
+{
+  "gate": "G2A",
+  "generatedAt": "2026-09-08T17:16:48.115666",
+  "items": [
+    {
+      "id": "2A.1",
+      "description": "抠图模型文件体积 ≤10MB",
+      "expected": "<= 10485760 字节",
+      "actual": "assets/models\\modnet_portrait_int8.onnx: 7537642 字节",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2A.2",
+      "description": "人脸模型文件体积 ≤2MB",
+      "expected": "<= 2097152 字节",
+      "actual": "assets/models\\face_yunet_2023mar.onnx: 232589 字节",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2A.3",
+      "description": "alpha 与参考 IoU（二值化@128），每一张 >=0.95",
+      "expected": "每张 >=0.95",
+      "actual": "不达标: 无",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2A.4",
+      "description": "alpha 平均绝对误差，黄金集均值 <=0.04",
+      "expected": "<=0.04",
+      "actual": "0.0017",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2A.5",
+      "description": "边缘带误差（参考边界±5px环带内 MAE），每张 <=0.12",
+      "expected": "每张 <=0.12",
+      "actual": "不达标: 无",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2A.6",
+      "description": "单张耗时 512x512 p95 <=1500ms",
+      "expected": "<=1500ms",
+      "actual": "1010.0ms（样本数=24）",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2A.7",
+      "description": "全量鲁棒性：进程 0 崩溃，非人像(screenshot/landscape/non_image) 返回 null 或抛约定异常",
+      "expected": "0 崩溃；非人像违规数=0",
+      "actual": "数据集共 80 项，host push 失败 0 项，设备端实际处理 80 项（跳过 0）；非人像违规: 无；设备端流程性错误: 无",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2A.8",
+      "description": "人脸检测召回：黄金集 8/8 检出，chinY>headTopY 恒成立",
+      "expected": "8/8 且 chinY>headTopY",
+      "actual": "检出 8/8；违规: 无",
+      "pass": true,
+      "manual": false
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "manual": 0
+  },
+  "pass": true
+}

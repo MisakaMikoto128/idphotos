@@ -1,0 +1,84 @@
+{
+  "gate": "G2B",
+  "generatedAt": "2026-09-08T21:51:39.630315",
+  "items": [
+    {
+      "id": "2B.1",
+      "description": "7 个规格逐一像素级精确匹配 CONTRACTS.md 第 4 节",
+      "expected": "{cn_1inch: {w: 295, h: 413}, cn_small_1inch: {w: 260, h: 378}, cn_big_1inch: {w: 390, h: 567}, cn_2inch: {w: 413, h: 579}, cn_small_2inch: {w: 413, h: 531}, cn_social_security: {w: 358, h: 441}, visa_us: {w: 600, h: 600}}",
+      "actual": "7/7 精确匹配",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2B.2",
+      "description": "JFIF DPI 字段回读=300，7/7",
+      "expected": "每个规格 xDensity=yDensity=300, units=1(DPI)",
+      "actual": "7/7 通过",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2B.3",
+      "description": "头高比 (chinY-headTopY)/H 与 spec.headHeightRatio 偏差 <=0.02",
+      "expected": "<=0.02",
+      "actual": "全部达标",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2B.4",
+      "description": "头顶留白比 headTopY/H 与 spec.headTopRatio 偏差 <=0.02",
+      "expected": "<=0.02",
+      "actual": "全部达标",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2B.5",
+      "description": "人脸水平居中，中心 x 与画面中心偏差 <=画宽 3%",
+      "expected": "<=3%",
+      "actual": "全部达标",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2B.6",
+      "description": "换纯绿#00FF00底后，前景区 G-max(R,B)>40 的像素计数=0",
+      "expected": "0",
+      "actual": "0",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2B.7",
+      "description": "换纯品红#FF00FF底后，前景区 min(R,B)-G>40 的像素计数=0",
+      "expected": "0",
+      "actual": "0",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2B.8",
+      "description": "构造±10°旋转输入，输出 rollDeg 残差 <=1.5°",
+      "expected": "<=1.5°",
+      "actual": "全部达标",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2B.9",
+      "description": "人脸贴近图片边缘时不抛异常、不产生黑边",
+      "expected": "不抛异常；边框黑像素占比=0",
+      "actual": "未抛异常；边框黑像素占比=0.0000",
+      "pass": true,
+      "manual": false
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "manual": 0
+  },
+  "pass": true
+}

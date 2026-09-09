@@ -110,6 +110,24 @@ $stubs}
 }
 
 /// adb push 一个文件或目录到设备。
+/// 建好设备端评测目录并放开权限（777）。
+///
+/// **坑（已验证，见 docs/PITFALLS.md）**：`/sdcard/...` 受 Android 10+ scoped storage
+/// 管辖，`adb push` 建的文件属主是 shell 的 `media_rw` 组，App 自己的沙箱 UID 不在这个组
+/// 里，读会直接 EACCES（errno=13），跟模型/代码对不对完全无关。改用
+/// `/data/local/tmp/`——这是真实 ext4 路径，不走 scoped storage 的 FUSE 模拟层。
+/// `adb push` 建的文件默认是 world-readable（rw-rw-rw-），子目录 world-traversable
+/// （rwxrwxr-x），App 读没问题；但顶层目录本身默认只有 shell 能写，App 要在这里面
+/// 写结果 JSON，必须显式 chmod 777 顶层目录（子目录/文件不需要，只有 App **新建**
+/// 文件的那一层父目录需要写权限）。
+Future<RunResult> prepareDeviceGateDir(String deviceId, String remoteDir) async {
+  return runProcess(
+    'adb',
+    ['-s', deviceId, 'shell', 'mkdir -p $remoteDir && chmod 777 $remoteDir'],
+    timeout: const Duration(seconds: 20),
+  );
+}
+
 Future<RunResult> adbPush(String deviceId, String localPath, String remotePath) {
   return runProcess('adb', ['-s', deviceId, 'push', localPath, remotePath],
       timeout: const Duration(minutes: 5));
@@ -135,4 +153,4 @@ Future<RunResult> runIntegrationTestOnDevice(
 }
 
 /// 设备上供测试读写的公共临时目录（推送黄金集/数据集、拉回结果都用这个）。
-const String kDeviceGateTmpDir = '/sdcard/muzhao_gate_tmp';
+const String kDeviceGateTmpDir = '/data/local/tmp/muzhao_gate_tmp';

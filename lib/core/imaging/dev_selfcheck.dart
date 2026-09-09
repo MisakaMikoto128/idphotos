@@ -429,6 +429,8 @@ void main() {
     int checkedPixels = 0;
     int maxGreen = -999;
     int maxMagenta = -999;
+    final List<List<int>> offenders = <List<int>>[];
+    int bgAttributable = 0;
 
     for (int i = 1; i <= 8; i++) {
       final String id = 'g${i.toString().padLeft(2, '0')}';
@@ -456,13 +458,40 @@ void main() {
           final int mr = dm.r(x, y), mg = dm.g(x, y), mb = dm.b(x, y);
           final int me = math.min(mr, mb) - mg;
           if (me > maxMagenta) maxMagenta = me;
-          if (me > 40) nm++;
+          if (me > 40) {
+            nm++;
+            offenders.add(<int>[x, y, mr, mg, mb]);
+          }
         }
         totalGreen += ng;
         totalMagenta += nm;
         checkedPixels += cnt;
         log.writeln('  $id ${spec.id.padRight(20)} '
             '受检像素=$cnt 绿溢色=$ng 品红溢色=$nm');
+        if (offenders.isNotEmpty) {
+          // 「溢色」按定义是**底色渗进前景**，所以必须用换底前后的差异来判：
+          // 同一坐标在白底成片里是什么颜色？两者一致就说明这是被摄者自身的
+          // 颜色（紫红色衣物 / 深紫头发），换任何底色都会是这个样子，
+          // 不是渗色。少了这一步就分不清「真渗色」和「人本来就穿紫衣服」。
+          final Candidate cw = await engine.compose(
+              matting: m, spec: spec, style: kBgWhite, face: face);
+          final _Decoded dw = _decodeJpeg(cw.jpegBytes);
+          for (final List<int> o in offenders) {
+            final int wr = dw.r(o[0], o[1]),
+                wg = dw.g(o[0], o[1]),
+                wb = dw.b(o[0], o[1]);
+            final int meWhite = math.min(wr, wb) - wg;
+            final int delta = (math.min(o[2], o[4]) - o[3]) - meWhite;
+            if (delta > 8) {
+              bgAttributable++;
+            }
+            log.writeln('    ↳ (${o[0]},${o[1]}) '
+                '品红底 rgb=[${o[2]},${o[3]},${o[4]}] '
+                '白底 rgb=[$wr,$wg,$wb] '
+                '底色贡献=$delta ${delta > 8 ? '← 真渗色' : '（被摄者自身颜色）'}');
+          }
+          offenders.clear();
+        }
       }
     }
     // ignore: avoid_print
@@ -470,10 +499,14 @@ void main() {
         '  合计受检像素=$checkedPixels\n'
         '  绿底溢色像素总数=$totalGreen (阈值 0)，'
         '全集最大 G−max(R,B)=$maxGreen (判定线 40)\n'
-        '  品红底溢色像素总数=$totalMagenta (阈值 0)，'
+        '  品红底绝对计数=$totalMagenta，其中**底色造成的**=$bgAttributable (阈值 0)，'
         '全集最大 min(R,B)−G=$maxMagenta (判定线 40)');
     expect(totalGreen, 0);
-    expect(totalMagenta, 0);
+    // 绝对计数不作为断言：真实人像里本来就可能有紫红色的衣物/头发，
+    // 它们在**任何**底色下都满足 min(R,B)−G>40，与换底质量无关。
+    // 门禁的 2B.7 用的是灰色合成人像，不含这种自然色，所以那里绝对计数=0
+    // 是可达的；对真实照片只能判「底色是否渗进来」。
+    expect(bgAttributable, 0);
   }, timeout: long);
 
   test('2B.6 / 2B.7 溢色（验收脚本口径：全图逐像素，不看 alpha）', () async {

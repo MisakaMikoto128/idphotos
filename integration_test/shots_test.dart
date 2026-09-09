@@ -65,11 +65,19 @@ void main() {
 
     final scenarios = kShotMode == 'small' ? kSmallScreenSourceScenarios : kShotScenarios;
 
+    // convertFlutterSurfaceToImage() 只能在整个测试生命周期里调用一次——
+    // 曾经错放在循环里，第 2 个场景起必然抛 "Surface already converted to an
+    // image"，导致官方 8 张只出得来 1 张（ui-woodcraft 发现并上报，记入
+    // docs/PITFALLS.md）。现在只在第一个场景的首帧之后转换一次。
+    var surfaceConverted = false;
     for (final scenarioId in scenarios) {
       await tester.pumpWidget(buildShotScenario(scenarioId));
       // 确定性场景：不依赖真实异步/时序，一次 pumpAndSettle 应该就能稳定下来。
       await tester.pumpAndSettle(const Duration(seconds: 2));
-      await binding.convertFlutterSurfaceToImage();
+      if (!surfaceConverted) {
+        await binding.convertFlutterSurfaceToImage();
+        surfaceConverted = true;
+      }
       await tester.pumpAndSettle();
 
       // 小屏模式最终文件名是 S2_small/S5_small，不是 S2_loaded_small——
@@ -87,6 +95,15 @@ void main() {
       allRects[finalName] = rects.isEmpty ? null : rects;
     }
 
-    binding.reportData = {'rects': allRects};
+    // 坑（本轮实测发现，记入 docs/PITFALLS.md）：`takeScreenshot()` 内部把每张截图
+    // append 进 `binding.reportData!['screenshots']`（见
+    // packages/integration_test/lib/integration_test.dart）。这里如果直接
+    // `binding.reportData = {'rects': allRects}` 做整体赋值，会把 takeScreenshot
+    // 已经积累的 'screenshots' 列表整个覆盖掉——`flutter drive` 侧的
+    // `integrationDriver()` 只在 `response.data['screenshots'] != null` 时才会调用
+    // `onScreenshot` 回调落盘，于是 8 张截图全部"跑完但没人写盘"，报出 0/8 且没有
+    // 任何报错（All tests passed. 之下悄悄丢数据）。必须合并写入，不能整体替换。
+    binding.reportData ??= <String, dynamic>{};
+    binding.reportData!['rects'] = allRects;
   });
 }

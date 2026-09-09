@@ -1,0 +1,92 @@
+{
+  "gate": "G2C",
+  "generatedAt": "2026-09-08T17:46:27.562887",
+  "items": [
+    {
+      "id": "2C.1",
+      "description": "8 张 golden 截图全部产出且非纯黑",
+      "expected": "S1_empty, S2_loaded, S3_dragging, S4_generating, S5_ready, S6_saved, S2_small, S5_small",
+      "actual": "success=true degraded=false 得到=S1_empty.png, S2_loaded.png, S2_small.png, S3_dragging.png, S4_generating.png, S5_ready.png, S5_small.png, S6_saved.png 缺失= error=无",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2C.2",
+      "description": "截图去除照片区域后，>=95% 像素与 DESIGN.md 色卡 ΔE00<=12",
+      "expected": ">=95%",
+      "actual": "98.51%（采样 1387597 像素，步进 3）",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2C.3",
+      "description": "不得出现 Material 紫 #6750A4/#D0BCFF/#EADDFF 及 ΔE00<=6 邻域",
+      "expected": "0",
+      "actual": "0（示例: ）",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2C.4",
+      "description": "照片区域外，纯黑#000000与纯白#FFFFFF像素合计占比<=2%",
+      "expected": "<=2%",
+      "actual": "0.000%（全量扫描 12481008 像素）",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2C.5",
+      "description": "触摸热区：8 个裁剪控制点命中区 >=44x44 逻辑像素",
+      "expected": "success",
+      "actual": "success",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2C.6",
+      "description": "宽高比锁定：拖拽任一角后裁剪框宽高比与 spec 偏差 <=0.5%",
+      "expected": "success",
+      "actual": "success",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2C.7",
+      "description": "边界约束：拖出图片范围时裁剪框被钳制在图内",
+      "expected": "success",
+      "actual": "success",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2C.8",
+      "description": "assets/fonts/ 总计 <=400KB",
+      "expected": "<= 409600 字节",
+      "actual": "3 个文件，合计 172888 字节",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2C.9",
+      "description": "splashFactory: NoSplash 已全局设置，无裸 InkWell",
+      "expected": "hasNoSplash=true 且 裸InkWell计数=0",
+      "actual": "hasNoSplash=true，裸InkWell=0",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "2C.10",
+      "description": "全 lib/ grep 无 http/dio/Socket/HttpClient",
+      "expected": "0 命中",
+      "actual": "0 命中",
+      "pass": true,
+      "manual": false
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 10,
+    "manual": 0
+  },
+  "pass": true
+}

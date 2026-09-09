@@ -38,7 +38,7 @@ import '../tools/gate/jpeg_utils.dart';
 import '_generated_compose_harness.dart';
 
 const String kGateTmpDir =
-    String.fromEnvironment('GATE_TMP_DIR', defaultValue: '/sdcard/muzhao_gate_tmp');
+    String.fromEnvironment('GATE_TMP_DIR', defaultValue: '/data/local/tmp/muzhao_gate_tmp');
 
 const int kCanvasW = 1000;
 const int kCanvasH = 1400;
@@ -173,7 +173,7 @@ Map<String, dynamic> _measureOutput(Uint8List jpegBytes, PhotoSpec spec) {
 }
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('G2B compose evaluation', (tester) async {
     final harness = GateComposeHarness();
@@ -339,9 +339,9 @@ void main() {
 
     result['errors'] = errors;
 
-    final outFile = File('$kGateTmpDir/g2b_results.json');
-    await outFile.parent.create(recursive: true);
-    await outFile.writeAsString(jsonEncode(result));
-    expect(await outFile.exists(), isTrue);
+    // 走 flutter_driver 的 VM service 通道带回 host，见
+    // integration_test/matting_eval_test.dart 头部注释和 docs/PITFALLS.md
+    // 的 scoped storage 写权限踩坑记录。必须用 `flutter drive` 跑本文件。
+    binding.reportData = result;
   }, timeout: const Timeout(Duration(minutes: 10)));
 }

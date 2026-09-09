@@ -47,6 +47,43 @@ const double kAlphaForceOpaque = 0.75;
 double hardenAlpha(double a) => a >= kAlphaBinaryThreshold ? 1.0 : 0.0;
 
 // ---------------------------------------------------------------------------
+// 色相保护重采样
+// ---------------------------------------------------------------------------
+
+/// 判定「这一格是色度阶跃」的阈值：四个角样本之间 `R−G` / `B−G` / `R−B`
+/// 三个色差分量的最大跨度（0–255）。
+///
+/// ## 为什么需要它（G2B.6 / G2B.7 的真正成因）
+///
+/// 溢色判据是**逐通道对比**：绿看 `G − max(R,B) > 40`，品红看
+/// `min(R,B) − G > 40`。双线性插值是逐通道独立的凸组合，两个色相差别很大的
+/// 源像素混出来的中间色，其色差分量必然落在两端之间 —— 于是**凭空产生了
+/// 原图里根本不存在的色相**，判据抓到的就是它。
+///
+/// 这件事对通道**不是对称的**，这正是第 1 轮「绿 0 / 品红 295」的根因：
+/// 青(0,255,255) 与中性灰混色时 G 和 B 同步变化，`G − max(R,B)` 恒为 0，
+/// 判据抓不到；品红(255,0,255) 与中性灰混色时 R、B 同升而 G 下降，
+/// `min(R,B) − G` 直接冲到 255·t。也就是说，只按「绿方向」验证的实现
+/// 一定会在品红方向翻车。**唯一对任意底色都成立的修法，是禁止插值发明新色相**，
+/// 而不是给某个方向打补丁。
+///
+/// ## 做法
+///
+/// 四角色差跨度超过本阈值时，判定这一格跨了一条色度硬边：
+/// **色度取权重最大的那个有效角样本（即真实存在的源色相），亮度仍走双线性**
+/// （见 [_lumaOf]），于是边缘的位置精度与灰阶过渡都保留，只是不再混色相。
+/// 色度跨度小于阈值时走完整双线性，与原来完全一致 ——
+/// 真实人像的肤色/头发是低频色度，几乎不会触发。
+///
+/// 阈值取 32：混色要越过判据线需要色差分量差 > 40，32 留了余量；
+/// 而人脸内部相邻像素的色度差通常在 10 以内。
+const double kChromaSnapSpread = 32.0;
+
+/// Rec.601 亮度。色相保护重采样里用它保留双线性的灰阶精度。
+double _lumaOf(double r, double g, double b) =>
+    0.299 * r + 0.587 * g + 0.114 * b;
+
+// ---------------------------------------------------------------------------
 // 预滤波（box 降采样）
 // ---------------------------------------------------------------------------
 
@@ -217,6 +254,13 @@ RenderedImage renderComposite({
   const int forceOpaque = 191; // kAlphaForceOpaque * 255，取整偏保守
   int solid = 0;
 
+  // 色相保护用的四角缓冲，循环外分配一次，避免逐像素 new。
+  final Float64List cr = Float64List(4);
+  final Float64List cg = Float64List(4);
+  final Float64List cb = Float64List(4);
+  final Float64List cw = Float64List(4);
+  final Int32List ci = Int32List(4);
+
   for (int y = 0; y < outHeight; y++) {
     final double yr = crop.top + (y + 0.5) * sy;
     final int obase = y * outWidth * 3;
@@ -292,6 +336,74 @@ RenderedImage renderComposite({
       if (fr > 255) fr = 255;
       if (fgc > 255) fgc = 255;
       if (fb > 255) fb = 255;
+
+      // ---- 色相保护：不让插值发明原图里不存在的色相（见 kChromaSnapSpread）----
+      ci[0] = i00;
+      ci[1] = i01;
+      ci[2] = i10;
+      ci[3] = i11;
+      cw[0] = w00;
+      cw[1] = w01;
+      cw[2] = w10;
+      cw[3] = w11;
+      int nValid = 0;
+      double dRGmin = 1e9, dRGmax = -1e9;
+      double dBGmin = 1e9, dBGmax = -1e9;
+      double dRBmin = 1e9, dRBmax = -1e9;
+      int best = -1;
+      double bestW = -1.0;
+      for (int k = 0; k < 4; k++) {
+        final int ii = ci[k];
+        final int ca = mp[ii + 3];
+        if (ca <= 8) {
+          continue; // 背景角：颜色未定义（预乘后是 0），不参与色相判定
+        }
+        final double inv255 = 255.0 / ca;
+        final double kr = mp[ii] * inv255;
+        final double kg = mp[ii + 1] * inv255;
+        final double kb = mp[ii + 2] * inv255;
+        cr[k] = kr;
+        cg[k] = kg;
+        cb[k] = kb;
+        final double dRG = kr - kg;
+        final double dBG = kb - kg;
+        final double dRB = kr - kb;
+        if (dRG < dRGmin) dRGmin = dRG;
+        if (dRG > dRGmax) dRGmax = dRG;
+        if (dBG < dBGmin) dBGmin = dBG;
+        if (dBG > dBGmax) dBGmax = dBG;
+        if (dRB < dRBmin) dRBmin = dRB;
+        if (dRB > dRBmax) dRBmax = dRB;
+        if (cw[k] > bestW) {
+          bestW = cw[k];
+          best = k;
+        }
+        nValid++;
+      }
+      if (nValid > 1 && best >= 0) {
+        double spread = dRGmax - dRGmin;
+        final double sBG = dBGmax - dBGmin;
+        final double sRB = dRBmax - dRBmin;
+        if (sBG > spread) spread = sBG;
+        if (sRB > spread) spread = sRB;
+        if (spread > kChromaSnapSpread) {
+          // 色度取最近（权重最大）的真实源像素，亮度沿用双线性结果。
+          final double yNear = _lumaOf(cr[best], cg[best], cb[best]);
+          final double yBil = _lumaOf(fr, fgc, fb);
+          // 乘性缩放：保持通道比例，恒为 0 的通道仍然是 0，
+          // 因此纯色（如纯品红的 G=0）不会被拉出色偏。
+          final double k = yNear > 8.0 ? yBil / yNear : 1.0;
+          fr = cr[best] * k;
+          fgc = cg[best] * k;
+          fb = cb[best] * k;
+          if (fr > 255) fr = 255;
+          if (fgc > 255) fgc = 255;
+          if (fb > 255) fb = 255;
+          if (fr < 0) fr = 0;
+          if (fgc < 0) fgc = 0;
+          if (fb < 0) fb = 0;
+        }
+      }
 
       final double ah = amx >= forceOpaque ? 1.0 : hardenAlpha(a);
       if (ah >= 1.0) {

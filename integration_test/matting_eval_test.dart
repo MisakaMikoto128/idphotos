@@ -33,7 +33,7 @@ import '../tools/gate/png_utils.dart';
 import '_generated_matting_harness.dart';
 
 const String kGateTmpDir =
-    String.fromEnvironment('GATE_TMP_DIR', defaultValue: '/sdcard/muzhao_gate_tmp');
+    String.fromEnvironment('GATE_TMP_DIR', defaultValue: '/data/local/tmp/muzhao_gate_tmp');
 
 /// 8 邻域一轮膨胀。
 List<bool> _dilateOnce(List<bool> mask, int w, int h) {
@@ -155,7 +155,7 @@ Future<Map<String, dynamic>> _evalOneGolden(
 }
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('G2A matting evaluation', (tester) async {
     final harness = GateMattingHarness();
@@ -267,11 +267,10 @@ void main() {
     result['dataset'] = datasetResults;
     result['errors'] = errors;
 
-    final outFile = File('$kGateTmpDir/g2a_results.json');
-    await outFile.parent.create(recursive: true);
-    await outFile.writeAsString(jsonEncode(result));
-
-    // 本文件不做阈值判断，只要能跑完写出文件就算"设备端流程成功"。
-    expect(await outFile.exists(), isTrue);
+    // 通过 flutter_driver 的 VM service 通道把结果带回 host（`build/
+    // integration_response_data.json`），完全绕开 adb push/pull 和 Android
+    // scoped storage / SELinux 的写权限问题——那条路上踩过坑，见 docs/PITFALLS.md。
+    // 必须用 `flutter drive` 而不是 `flutter test` 跑本文件，reportData 才有人收。
+    binding.reportData = result;
   }, timeout: const Timeout(Duration(minutes: 20)));
 }

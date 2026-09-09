@@ -21,7 +21,7 @@ const String kComposeMixinDir = 'lib/core/imaging';
 const String kComposeMixinName = 'ComposeEngineMixin';
 const String kGeneratedHarnessPath = 'integration_test/_generated_compose_harness.dart';
 const String kGeneratedHarnessClass = 'GateComposeHarness';
-const String kDeviceGateDir = '/sdcard/muzhao_gate_tmp';
+const String kDeviceGateDir = '/data/local/tmp/muzhao_gate_tmp';
 
 /// CONTRACTS.md 第 4 节，逐字抄录，不从 api.dart 读。
 const Map<String, Map<String, int>> kContractSpecsPx = {
@@ -94,33 +94,36 @@ Future<List<Map<String, dynamic>>> _runDeviceEval() async {
     return _deviceUnavailableItems('模拟器未能上线');
   }
 
-  final testRun = await runProcess(
+  final prep = await prepareDeviceGateDir(deviceId, kDeviceGateDir);
+  if (!prep.success) {
+    return _deviceUnavailableItems('设备端建目录/放权限失败: ${prep.tail(maxChars: 300)}');
+  }
+
+  final responseDataPath = 'build/integration_response_data.json';
+  final responseFile = File(responseDataPath);
+  if (await responseFile.exists()) await responseFile.delete();
+
+  final driveRun = await runProcess(
     'flutter',
     [
-      'test',
-      'integration_test/compose_eval_test.dart',
+      'drive',
+      '--driver=test_driver/integration_test_driver.dart',
+      '--target=integration_test/compose_eval_test.dart',
       '-d',
       deviceId,
       '--dart-define=GATE_TMP_DIR=$kDeviceGateDir',
     ],
     timeout: const Duration(minutes: 10),
   );
-  if (!testRun.success) {
+  if (!driveRun.success || !await responseFile.exists()) {
     return _deviceUnavailableItems(
-        '设备端评测（flutter test compose_eval_test.dart）失败/超时，可能是 imaging 的 '
-        'mixin 编译不过或运行异常。退出码=${testRun.exitCode} timedOut=${testRun.timedOut}\n'
-        '${testRun.tail(maxChars: 1500)}');
+        '设备端评测（flutter drive compose_eval_test.dart）失败/超时或没有产出 '
+        '$responseDataPath，可能是 imaging 的 mixin 编译不过或运行异常。'
+        '退出码=${driveRun.exitCode} timedOut=${driveRun.timedOut}\n'
+        '${driveRun.tail(maxChars: 1500)}');
   }
 
-  final pullDir = Directory('out/tmp/g2b_device_results');
-  await pullDir.create(recursive: true);
-  final pull = await adbPull(deviceId, '$kDeviceGateDir/g2b_results.json', pullDir.path);
-  final resultFile = File('${pullDir.path}/g2b_results.json');
-  if (!pull.success || !await resultFile.exists()) {
-    return _deviceUnavailableItems('adb pull 结果文件失败: ${pull.tail(maxChars: 300)}');
-  }
-
-  final data = jsonDecode(await resultFile.readAsString()) as Map<String, dynamic>;
+  final data = jsonDecode(await responseFile.readAsString()) as Map<String, dynamic>;
   return _applyThresholds(data);
 }
 

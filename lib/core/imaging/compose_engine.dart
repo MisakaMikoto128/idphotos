@@ -37,6 +37,14 @@ import 'render.dart';
 /// [kAlphaBinaryThreshold]）后阶跃两侧都是平坦色块，振铃大幅减小，
 /// q95 与 q97 的实测已经没有实质差别（最大值 20/34 对 18/35，判定线 40），
 /// 于是保留 95。**测溢色必须解码成品 JPEG 之后再测**，测渲染缓冲会漏掉振铃这一份。
+///
+/// 用门禁同款合成图（`dev_gate_repro.dart`）在 q94/95/96/98 上逐一实测过，
+/// 结论是**振铃随质量单调下降的直觉是错的**：纯绿、纯品红、纯红三种底色下
+/// 各档最大色偏都在 0–4（判定线 40，余量 36 以上），而纯蓝底 +
+/// 纯青标记条这一组是**亮度阶跃最大**的组合（Y 从 29 跳到 179），
+/// 溢色计数在 q94/95/96/98 上是 287/0/3/6 —— 提高质量反而更差，
+/// 因为高质量保留了更多高频 AC，Gibbs 过冲反而不再被量化抹平。
+/// 95 是四档里唯一四种底色全为 0 的档位，故锁定 95。
 const int kJpegQuality = 95;
 
 /// 缩略图 JPEG 质量。
@@ -93,8 +101,35 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
   /// 预滤波金字塔缓存，键为降采样倍数。7 个规格里多个规格会命中同一倍数。
   final Map<int, MipLevel> _mipCache = <int, MipLevel>{};
 
+  /// 摆正用的掩膜头部探针缓存。同一张抠图 + 同一摆正角会被 7 规格 × 6 底色
+  /// 反复用到，探针要扫全图，算一次就够。
+  MattingResult? _probeKey;
+  double _probeAngle = double.nan;
+  RotHeadProbe? _probeValue;
+
   /// 最近一次 [compose] 的几何诊断，供自检与调试读取。
   ComposeDiagnostics? lastDiagnostics;
+
+  RotHeadProbe _headProbeFor(
+      MattingResult m, RotationPlan plan, double headHeight) {
+    final RotHeadProbe? hit = _probeValue;
+    if (hit != null &&
+        identical(_probeKey, m) &&
+        _probeAngle == plan.angleRad) {
+      return hit;
+    }
+    final RotHeadProbe probe = probeHeadInRotated(
+      alpha: m.alpha,
+      width: m.width,
+      height: m.height,
+      plan: plan,
+      headHeight: headHeight,
+    );
+    _probeKey = m;
+    _probeAngle = plan.angleRad;
+    _probeValue = probe;
+    return probe;
+  }
 
   @override
   Future<Candidate> compose({
@@ -120,8 +155,13 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
       rollDeg: face?.rollDeg ?? 0.0,
     );
 
-    final CropSolution solution =
-        _solveCrop(plan: plan, spec: s, face: face, cropOverride: cropOverride);
+    final CropSolution solution = _solveCrop(
+      matting: matting,
+      plan: plan,
+      spec: s,
+      face: face,
+      cropOverride: cropOverride,
+    );
 
     lastDiagnostics = ComposeDiagnostics(
       cropRect: solution.rect,
@@ -245,6 +285,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
   }
 
   CropSolution _solveCrop({
+    required MattingResult matting,
     required RotationPlan plan,
     required PhotoSpec spec,
     FaceInfo? face,
@@ -285,12 +326,49 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     }
 
     final List<double> p = <double>[0.0, 0.0];
-    plan.toRotated(face.box.center.dx, face.headTopY, p);
-    final double headTopYr = p[1];
-    plan.toRotated(face.box.center.dx, face.box.center.dy, p);
-    final double faceCxr = p[0];
-    // 旋转是刚体变换，头顶到下巴的长度不变；摆正后这段长度就落在竖直方向上。
-    final double headH = face.headHeightPx;
+    double headTopYr;
+    double faceCxr;
+    double headH = face.headHeightPx;
+
+    if (!plan.enabled) {
+      // 不摆正：源图坐标即旋转空间坐标，直接用。
+      headTopYr = face.headTopY;
+      faceCxr = face.box.center.dx;
+    } else {
+      // 摆正：`headTopY` 是**投影到竖直方向**的量，摆正后头轴转正，
+      // 真实头高恢复为 headTopY→chin 的斜边长度，需除以 cosθ。
+      final double cosA = math.cos(plan.angleRad).abs();
+      if (cosA > 1e-3) {
+        headH = headH / cosA;
+      }
+
+      // 人脸框的 x 不可靠（见 probeHeadInRotated 的注释）：先用掩膜在旋转
+      // 空间里量出头部真实水平中心 Xc，再按仿射逆关系解出「源图 y 恰为
+      // face.headTopY」的那条旋转空间行 Yt：
+      //
+      //   srcY = srcCy + sinθ·(Xc − rotCx) + cosθ·(Yt − rotCy) = headTopY
+      //   ⇒ Yt = rotCy + (headTopY − srcCy − sinθ·(Xc − rotCx)) / cosθ
+      //
+      // θ 只出现在 sinθ·Δx 与 cosθ 里，正负角完全对称，不会再出现
+      // 「−10° 完美、+10° 头顶被裁掉」这种单侧偏差。
+      final RotHeadProbe probe = _headProbeFor(matting, plan, headH);
+      if (probe.valid && cosA > 1e-3) {
+        faceCxr = probe.centerX;
+        final double sinA = math.sin(plan.angleRad);
+        final double srcCy = plan.srcHeight / 2.0;
+        final double rotCx = plan.rotWidth / 2.0;
+        final double rotCy = plan.rotHeight / 2.0;
+        headTopYr = rotCy +
+            (face.headTopY - srcCy - sinA * (faceCxr - rotCx)) /
+                math.cos(plan.angleRad);
+      } else {
+        // 掩膜探针失效（全透明 / 尺寸异常）时退回朴素换算，至少不崩。
+        plan.toRotated(face.box.center.dx, face.headTopY, p);
+        headTopYr = p[1];
+        plan.toRotated(face.box.center.dx, face.box.center.dy, p);
+        faceCxr = p[0];
+      }
+    }
 
     return solveAutoCrop(
       canvasWidth: cw,
