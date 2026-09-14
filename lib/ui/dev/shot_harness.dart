@@ -57,7 +57,18 @@ Widget buildShotScenario(String scenarioId) {
       '未知截图场景，可用值见 kShotScenarios',
     );
   }
+  return KeyedSubtree(
+    // 场景切换必须整个换树：截图流水线在同一个 tester 里连续 pumpWidget 各场景，
+    // 若 ProviderScope 元素被原地复用（widget 类型/位置相同），Riverpod 容器会
+    // 沿用第一帧的 overrides —— 后面场景钉死的 WorkbenchState（S3 拖拽框、
+    // S5 选中蓝底、S6 保存反馈）会被静默丢弃，全部回落到默认值。
+    // 换 key 强制旧 scope 卸载、新容器按本场景的 overrides 重建。
+    key: ValueKey<String>('MuZhaoScope-$scenarioId'),
+    child: _scenarioTree(scenarioId),
+  );
+}
 
+Widget _scenarioTree(String scenarioId) {
   final Uint8List photo = sampleSourceJpeg();
   const PhotoSpec spec = kDefaultSpec;
   final Rect suggested = defaultSuggestedCrop(photo, spec);
@@ -114,7 +125,14 @@ Widget buildShotScenario(String scenarioId) {
   return buildMuZhaoScope(
     controller: FakeController(initial: app),
     workbench: wb,
-    config: const UiConfig(freezeAnimations: true, haptics: false),
+    // syncRaster：照片与候选缩略图首帧即出图。Image.memory 的引擎解码是
+    // 异步的，pumpAndSettle 等不到"还没开始解码"的回调，官方 S2 截图曾
+    // 间歇性整张丢照片（out/VISUAL_2C.md 致命项 [F-场景]）。
+    config: const UiConfig(
+      freezeAnimations: true,
+      haptics: false,
+      syncRaster: true,
+    ),
     photoSource: const SampleSource(),
   );
 }

@@ -342,3 +342,41 @@
   仅 deprecation 警告）后 8 张截图全部跑通。真机不受影响，这是纯测试环境 workaround。
 - 教训：模拟器"消失/卡死"时先查 crash DB 的 minidump，再看 `systeminfo` 内存——
   r2 把 GPU 崩溃误判成内存问题，多烧了一轮预算。
+
+## [visual-critic r2C] 官方 S2 截图出现"图片间歇性不渲染"，量图时别误判成空态 bug
+
+- 2026-09-14，G2C 第 3 轮官方 8 张截图里，`S2_loaded.png`（1080×2154）区域 A 只有绒布+
+  裁剪框，**照片整个没渲染**（框内取色 `(49,75,54)` 与框外绒布同色，仅多一圈暗带），
+  但状态文案已是"已完成 6 张"且候选框全是空白纸占位；同场景小屏 `S2_small.png` 却渲染
+  完全正常（照片+6 张候选都在）。同一步骤两种结果 → 疑似图片 decode/渲染竞态，而非
+  空态逻辑缺失。S3/S4/S5 均正常。
+- 教训：审截图遇到"该有的图没有"先对比同场景其他分辨率截图再下结论；qa/gatekeeper
+  复拍 S2 时应在截图谓词里显式等待区域 A 图片像素非纯绒布色，避免再拿到间歇性废片。
+
+## [ui-woodcraft] 同一个 tester 连续 pumpWidget 多个场景时，Riverpod 的 overrideWith 会被静默丢弃
+- 现象：官方截图 S3/S5/S6 两轮全部没吃到场景状态——S3 的裁剪框不在"拖拽后"位置（`_rects.json` 里
+  S2/S3 的 crop_box 完全相同）、S5 选中的是白底而非钉死的蓝底、S6 的保存纸条不出现。查了三处才发现：
+  seed 本身传对了（单独 pump S5 时 `container.read` 就是 blue），**只有按官方顺序 S1→…→S5 连续 pump 时才丢**。
+- 原因：`integration_test/shots_test.dart` 在同一个 tester 里对 6 个场景逐个 `pumpWidget(buildShotScenario(id))`。
+  每个场景的根 widget 都是同类型同位置的 `ProviderScope`，Flutter 会**原地 update** 这个元素而不是卸载重建，
+  于是 Riverpod 容器被跨场景复用；`updateOverrides` 对**已经初始化过**的 provider 不生效——S1 已把
+  `workbenchProvider` 用默认 seed 初始化，后面场景传入的新 override 闭包（带拖拽框/蓝底/保存反馈）全部被忽略。
+- 解法：给每个场景的 `ProviderScope` 挂 `ValueKey('MuZhaoScope-$scenarioId')`（已改在
+  `lib/ui/dev/shot_harness.dart` 的 buildShotScenario 里）。换 key 强制旧 scope 卸载、容器按本场景
+  overrides 重建。凡是用 Riverpod + 连续 pumpWidget 驱动多状态的测试都要注意这一条。
+- 教训：排查这类问题别只看"seed 传没传对"，要用**和流水线完全相同的 pump 序列**复现——单独 pump 一个
+  场景永远是好的。
+
+## [ui-woodcraft] 官方 S2 截图"照片整张没渲染"的根因：Image.memory 异步解码 + pumpAndSettle 等不到未调度的帧
+- 现象：visual-critic 两轮都见到 S2_loaded.png 里照片整个没渲染、候选全是空白纸，但状态文案已是
+  "已完成 6 张"；同场景 S2_small 却正常，看似"间歇性"。10 连拍实验（out/tmp/race_exp_data/）证明
+  主 AVD 上是**确定性复现**：10/10 全部丢图，且与上一轮废片逐像素一致。
+- 原因：`Image.memory` 的解码在引擎后台线程异步完成，解码回调落地前没有任何帧被调度；
+  `pumpAndSettle` 的循环条件是 `hasScheduledFrame`，于是在解码完成前就退出。S2 是整个 drive 里
+  **第一个**触发照片/缩略图解码的场景，截图定格在"未解码"帧；到 S3 时解码结果已进 image cache，
+  所以 S3/S5 全部正常。小屏 AVD 解码时序不同，侥幸赶上。
+- 解法：截图/测试场景不用引擎解码——`lib/ui/widgets/sync_raster.dart` 用 `image` 包**同步**解码字节、
+  铺成顶点色三角网格（`canvas.drawVertices`）直出首帧，由 `UiConfig.syncRaster` 开关控制（场景开、
+  真机关，真机大图同步解码会卡 UI 线程）。CONTRACTS §7.1 的确定性因此真正成立。
+- 附带坑：排查时别拿 (540,600) 单点取色判"照片在不在"——该点在深绿绒布上时和"丢图"同色；
+  先导出裁剪图目检，或对区域 A 求色彩方差。

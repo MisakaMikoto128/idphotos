@@ -48,10 +48,19 @@ class UiConfig {
   /// 是否触发震动反馈。截图场景关掉，避免多余的平台通道调用。
   final bool haptics;
 
+  /// 照片/候选缩略图用**同步**光栅渲染（`SyncRaster`）。
+  ///
+  /// `Image.memory` 的引擎解码是异步的，`pumpAndSettle` 等不到"尚未开始解码"
+  /// 的帧回调，官方截图曾因此间歇性丢掉整张照片（out/VISUAL_2C.md 致命项）。
+  /// 截图/测试场景必须置 true，保证首帧就含有照片像素；
+  /// 真机运行保持 false——大图同步解码会卡 UI 线程。
+  final bool syncRaster;
+
   const UiConfig({
     this.freezeAnimations = false,
     this.frozenPhase = 0.38,
     this.haptics = true,
+    this.syncRaster = false,
   });
 }
 

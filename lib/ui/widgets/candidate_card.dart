@@ -17,12 +17,17 @@ import '../theme/tokens.dart';
 import '../theme/wood_painter.dart';
 import 'metal.dart';
 import 'press_effect.dart';
+import 'sync_raster.dart';
 
-/// 降饱和滤镜（未选中的候选"退到后面去"）。
+/// 未选中候选的降饱和滤镜。
+///
+/// DESIGN.md §5 要求只"**略微**降低饱和度"——旧实现把饱和度压到 ~35%，
+/// 人像被压成近灰度，用户无法据此比对肤色与底色（visual-critic R8 扣分）。
+/// 现在保留 70% 饱和度，配合上浮/铜边/铭牌的选中反馈仍一眼可辨。
 const ColorFilter _desaturate = ColorFilter.matrix(<double>[
-  0.55, 0.36, 0.09, 0, 0, //
-  0.18, 0.73, 0.09, 0, 0, //
-  0.18, 0.36, 0.46, 0, 0, //
+  0.764, 0.215, 0.022, 0, 0, //
+  0.064, 0.915, 0.022, 0, 0, //
+  0.064, 0.215, 0.722, 0, 0, //
   0, 0, 0, 1, 0, //
 ]);
 
@@ -40,6 +45,9 @@ class CandidateCard extends StatelessWidget {
   /// 冲洗中时用的占位内容。
   final Widget? placeholder;
 
+  /// true = 缩略图用同步光栅渲染（截图/测试场景，见 [SyncRaster]）。
+  final bool syncRaster;
+
   final int seed;
 
   const CandidateCard({
@@ -51,6 +59,7 @@ class CandidateCard extends StatelessWidget {
     required this.width,
     required this.onTap,
     this.placeholder,
+    this.syncRaster = false,
     this.seed = 11,
   });
 
@@ -85,6 +94,12 @@ class CandidateCard extends StatelessWidget {
     );
   }
 
+  /// 未选中态套"略微降饱和"；选中态原样。
+  Widget _tinted(Widget photo) {
+    if (selected) return photo;
+    return ColorFiltered(colorFilter: _desaturate, child: photo);
+  }
+
   Widget _frame() {
     final Widget photo = AspectRatio(
       aspectRatio: aspectRatio,
@@ -96,22 +111,16 @@ class CandidateCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(3),
               child: ClipRect(
-                child: selected
-                    ? Image.memory(
-                        thumb!,
-                        fit: BoxFit.cover,
-                        gaplessPlayback: true,
-                        filterQuality: FilterQuality.medium,
-                      )
-                    : ColorFiltered(
-                        colorFilter: _desaturate,
-                        child: Image.memory(
+                child: _tinted(
+                  syncRaster
+                      ? SyncRaster(bytes: thumb!, fit: BoxFit.cover)
+                      : Image.memory(
                           thumb!,
                           fit: BoxFit.cover,
                           gaplessPlayback: true,
                           filterQuality: FilterQuality.medium,
                         ),
-                      ),
+                ),
               ),
             )
           else if (placeholder != null)

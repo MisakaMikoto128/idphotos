@@ -251,6 +251,9 @@ class _PhotoFrame extends ConsumerWidget {
         crop: crop,
         aspectRatio: app.spec.aspectRatio,
         imageBytes: bytes,
+        // 截图/测试场景用同步光栅：Image.memory 的异步解码曾让官方 S2
+        // 截图间歇性丢掉整张照片（out/VISUAL_2C.md 致命项）。
+        syncRaster: ref.watch(uiConfigProvider).syncRaster,
         activeHandle: wb.activeHandle,
         onChanged: (Rect r) {
           ref
@@ -331,19 +334,24 @@ class _EmptyPlate extends StatelessWidget {
         onTap: onPick,
         semanticLabel: '轻触选择照片',
         builder: (BuildContext context, bool pressed) {
-          return Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                SizedBox(
-                  width: 74,
-                  height: 74,
-                  child: CustomPaint(painter: _PlusPainter(pressed: pressed)),
-                ),
-                const SizedBox(height: 14),
-                _PaperLabel(pressed: pressed),
-              ],
+          // FittedBox：真机上有的是空间，原尺寸呈现；极矮的测试表面
+          // （800x600 的 host test）里整体等比缩小，而不是竖向溢出。
+          return FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  SizedBox(
+                    width: 74,
+                    height: 74,
+                    child: CustomPaint(painter: _PlusPainter(pressed: pressed)),
+                  ),
+                  const SizedBox(height: 14),
+                  _PaperLabel(pressed: pressed),
+                ],
+              ),
             ),
           );
         },

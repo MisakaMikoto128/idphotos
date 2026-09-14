@@ -109,12 +109,18 @@ class _AreaCSaveState extends ConsumerState<AreaCSave> {
             padding: EdgeInsets.fromLTRB(16, 8, 16, 4 + bottomInset),
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints c) {
-                // 小屏（720×1280）上区域 C 只有 ~109 逻辑像素高，
-                // 纸条 + 间距 + 按钮用 Column 竖排必然溢出。
-                // 改成 Stack：按钮贴底、纸条贴顶，两者各自按可用高度收缩，
-                // 空间不够时由 Stack 裁切而不是抛 overflow（RUBRIC 致命项 7）。
+                // 按钮高度：占区域 C 可用高度的 68%，上限 92 逻辑像素。
+                // 旧上限 74 曾在主屏留下 ~50 逻辑像素的纯装饰空木面，
+                // 区域 C 因此显得比 17% 更空（visual-critic R5）。
                 final double h =
-                    (c.maxHeight * 0.68).clamp(40.0, 74.0).clamp(0.0, c.maxHeight);
+                    (c.maxHeight * 0.68).clamp(40.0, 92.0).clamp(0.0, c.maxHeight);
+                // 高度够时在按钮上方刻一行当前规格小字，填掉按钮与桌沿
+                // 之间的空木面。注意 c.maxHeight 已扣除本层 Padding，
+                // 主屏约 121 逻辑像素；小屏约 97，放不下（97 < 116）就省略。
+                // 保存反馈纸条也占顶部空间，二者重叠，纸条可见时让位。
+                final bool showCaption = c.maxHeight >= 116 &&
+                    !wb.saveFeedback &&
+                    wb.saveError == null;
                 return Stack(
                   fit: StackFit.expand,
                   children: <Widget>[
@@ -127,14 +133,34 @@ class _AreaCSaveState extends ConsumerState<AreaCSave> {
                     ),
                     Align(
                       alignment: Alignment.bottomCenter,
-                      child: SizedBox(
-                        height: h,
-                        width: double.infinity,
-                        child: _SaveButton(
-                          enabled: enabled,
-                          saved: wb.saveFeedback,
-                          onTap: sel == null ? null : () => _save(sel),
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          if (showCaption)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 5),
+                              child: EngravedText(
+                                '${app.spec.nameZh} · '
+                                '${app.spec.widthPx}×${app.spec.heightPx}px'
+                                ' · ${app.spec.dpi}dpi',
+                                style: Type.caption(
+                                  T.creamText.withValues(alpha: 0.9),
+                                ),
+                                relief: T.woodDark,
+                                raised: false,
+                              ),
+                            ),
+                          SizedBox(
+                            height: h,
+                            width: double.infinity,
+                            child: _SaveButton(
+                              enabled: enabled,
+                              saved: wb.saveFeedback,
+                              onTap: sel == null ? null : () => _save(sel),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

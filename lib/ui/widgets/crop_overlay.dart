@@ -19,6 +19,7 @@ import 'package:flutter/widgets.dart';
 
 import '../theme/tokens.dart';
 import '../util/crop_geometry.dart';
+import 'sync_raster.dart';
 
 /// 控制点视觉臂长（角）与条长（边）。命中区固定 [kMinHitSize]。
 const double _cornerArm = 19;
@@ -37,6 +38,11 @@ class CropOverlay extends StatefulWidget {
   /// 原图字节。null 时只画框（widget test 里不需要真的解码像素）。
   final Uint8List? imageBytes;
 
+  /// true = 用同步光栅（`SyncRaster`）渲染照片，首帧即出图。
+  /// 截图/测试场景必须开（`Image.memory` 的异步解码是官方 S2 截图间歇性
+  /// 丢照片的根因）；真机大图保持 false，同步解码会卡 UI 线程。
+  final bool syncRaster;
+
   /// 正在按住的控制点 id（[CropHandle.keySuffix]），null = 没在拖。
   final String? activeHandle;
 
@@ -51,6 +57,7 @@ class CropOverlay extends StatefulWidget {
     required this.aspectRatio,
     required this.imageBytes,
     required this.activeHandle,
+    this.syncRaster = false,
     required this.onChanged,
     required this.onDragStart,
     required this.onDragEnd,
@@ -120,12 +127,17 @@ class _CropOverlayState extends State<CropOverlay> {
               rect: display,
               child: widget.imageBytes == null
                   ? const SizedBox.expand()
-                  : Image.memory(
-                      widget.imageBytes!,
-                      fit: BoxFit.fill,
-                      gaplessPlayback: true,
-                      filterQuality: FilterQuality.medium,
-                    ),
+                  : widget.syncRaster
+                      ? SyncRaster(
+                          bytes: widget.imageBytes!,
+                          fit: BoxFit.fill,
+                        )
+                      : Image.memory(
+                          widget.imageBytes!,
+                          fit: BoxFit.fill,
+                          gaplessPlayback: true,
+                          filterQuality: FilterQuality.medium,
+                        ),
             ),
             // 压暗 + 框线 + 三分线 + 角标
             Positioned.fill(
