@@ -380,3 +380,13 @@
   真机关，真机大图同步解码会卡 UI 线程）。CONTRACTS §7.1 的确定性因此真正成立。
 - 附带坑：排查时别拿 (540,600) 单点取色判"照片在不在"——该点在深绿绒布上时和"丢图"同色；
   先导出裁剪图目检，或对区域 A 求色彩方差。
+
+## [ui-woodcraft] charset_scan 报"缺字 据"但没人新加文案：异常/日志字符串也是字符串字面量
+- 现象：修绒布噪点时顺手跑 `dart run lib/ui/dev/charset_scan.dart`，突然 COVERAGE FAIL，
+  缺字"据"。本轮 UI 文案没新增任何字，以为是扫描器坏了，白查 15 分钟。
+- 原因：`sync_raster.dart` 的 `ArgumentError('SyncRaster: 无法解码的图片数据')` 里的"数据"——
+  该文件是修 S2 丢图时**新增**的，落地后没人重跑扫描器，子集里一直没有"据"。扫描器扫的是
+  `lib/` 全部字符串字面量，**异常消息、debugPrint、semanticLabel 都算**，不只是"界面上看得见的文案"。
+- 教训：任何 agent 在 `lib/` 里新增含中文的字符串（哪怕只是异常消息）之后，必须重跑 charset_scan +
+  重新 pyftsubset + 同步 `fonts.dart` 的 coveredCharset 三件套；CI/门禁若只在"UI 文案变更"时触发
+  字体检查，就会漏掉这一类。另外 `pyftsubset` 对同字符集重跑是幂等安全的，发现缺字直接补跑即可。

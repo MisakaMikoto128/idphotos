@@ -91,6 +91,8 @@ class _AreaCSaveState extends ConsumerState<AreaCSave> {
     final WorkbenchState wb = ref.watch(workbenchProvider);
     final Candidate? sel = _selected(app, wb);
     final bool enabled = sel != null && app.stage == Stage.ready && !_busy;
+    final bool developing =
+        app.stage == Stage.matting || app.stage == Stage.composing;
     final double bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return SizedBox.expand(
@@ -157,6 +159,8 @@ class _AreaCSaveState extends ConsumerState<AreaCSave> {
                             child: _SaveButton(
                               enabled: enabled,
                               saved: wb.saveFeedback,
+                              developing: developing,
+                              saving: _busy,
                               onTap: sel == null ? null : () => _save(sel),
                             ),
                           ),
@@ -179,11 +183,30 @@ class _SaveButton extends ConsumerWidget {
   final bool saved;
   final VoidCallback? onTap;
 
+  /// 照片已载入、端侧正在出候选（matting/composing）。
+  /// 禁用态的文案必须区分"没照片"和"在干活"——R8（visual-critic r2）：
+  /// 区域 B 明明写着"正在冲洗 0 / 6"，按钮却显示空态文案"请先选择照片"，
+  /// 界面自相矛盾。
+  final bool developing;
+
+  /// 保存请求在途（[_AreaCSaveState._busy]）。此时明明有已选候选，
+  /// 同样不允许回退到空态文案。
+  final bool saving;
+
   const _SaveButton({
     required this.enabled,
     required this.saved,
     required this.onTap,
+    this.developing = false,
+    this.saving = false,
   });
+
+  /// 禁用态文案。空态文案只允许在真正没有候选时出现。
+  String get _idleLabel {
+    if (saving) return '正 在 保 存 · 请 稍 候';
+    if (developing) return '正 在 冲 洗 · 请 稍 候';
+    return '请 先 选 择 照 片';
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -193,7 +216,7 @@ class _SaveButton extends ConsumerWidget {
       key: const Key('btn_save'),
       enabled: enabled,
       haptic: haptic,
-      semanticLabel: enabled ? label : '请先选择照片',
+      semanticLabel: enabled ? label : _idleLabel,
       onTap: enabled ? onTap : null,
       builder: (BuildContext context, bool pressed) {
         final MetalFinish finish =
@@ -217,7 +240,7 @@ class _SaveButton extends ConsumerWidget {
                       )
                     // 哑光禁用态：面偏暗，改用米色字保住对比度（实测 6.3:1）
                     : EngravedText(
-                        '请 先 选 择 照 片',
+                        _idleLabel,
                         style: Type.title(T.creamText),
                         relief: T.woodDark,
                         raised: false,

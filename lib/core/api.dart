@@ -452,10 +452,12 @@ class AppState {
     Stage? stage,
     String? errorMessage,
     bool clearError = false,
+    bool clearSuggestedCrop = false,
   }) {
     return AppState(
       sourceImage: sourceImage ?? this.sourceImage,
-      suggestedCrop: suggestedCrop ?? this.suggestedCrop,
+      suggestedCrop:
+          clearSuggestedCrop ? null : (suggestedCrop ?? this.suggestedCrop),
       candidates: candidates ?? this.candidates,
       spec: spec ?? this.spec,
       stage: stage ?? this.stage,
