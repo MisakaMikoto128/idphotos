@@ -384,7 +384,7 @@ CropSolution solveAutoCrop({
   // 但若 top > 0 且底边有余量，保持原值即可。
 
   RectD rect = RectD(left, top, w, h);
-  double oob = _outOfBoundsFraction(rect, canvasWidth, canvasHeight);
+  double oob = outOfBoundsFraction(rect, canvasWidth, canvasHeight);
 
   if (oob <= maxOutOfBounds) {
     return CropSolution(
@@ -409,7 +409,7 @@ CropSolution solveAutoCrop({
   left = left.clamp(0.0, math.max(0.0, canvasWidth - w)).toDouble();
   top = top.clamp(0.0, math.max(0.0, canvasHeight - h)).toDouble();
   rect = RectD(left, top, w, h);
-  oob = _outOfBoundsFraction(rect, canvasWidth, canvasHeight);
+  oob = outOfBoundsFraction(rect, canvasWidth, canvasHeight);
 
   final double achievedHead = headH / h;
   return CropSolution(
@@ -471,7 +471,11 @@ RectD normalizeToAspect({
   return RectD(left, top, w, h);
 }
 
-double _outOfBoundsFraction(RectD r, double cw, double ch) {
+/// 矩形越出画布的面积占比。0 表示完全落在画布内，1 表示完全在画布外。
+///
+/// 越界部分在合成时按 alpha = 0 处理（直接填底色），所以它不是错误，
+/// 只是诊断信息 —— [CropSolution.outOfBoundsFraction] 与用户框选路径都用它。
+double outOfBoundsFraction(RectD r, double cw, double ch) {
   final double ix0 = math.max(r.left, 0.0);
   final double iy0 = math.max(r.top, 0.0);
   final double ix1 = math.min(r.right, cw);

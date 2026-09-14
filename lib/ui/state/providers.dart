@@ -78,6 +78,18 @@ class WorkbenchState {
   /// 规格抽屉是否展开。
   final bool specSheetOpen;
 
+  /// 取图/载入阶段的错误（区域 A 的提示行显示）。
+  ///
+  /// CONTRACTS §6 要求引擎异常在 controller 层转成 `AppState.errorMessage`，
+  /// 但**取图不经过 controller** —— `ImagePicker` 在用户拒绝
+  /// `READ_MEDIA_IMAGES`、picker activity 被系统回收时抛 `PlatformException`，
+  /// 这条路径上没有 controller 可以兜底。所以 UI 层自备这一个错误位，
+  /// 保证"任何失败都有中文提示"，而不是静默退回空态。
+  final String? pickError;
+
+  /// 保存失败的中文提示（区域 C 的纸条显示）。null = 没失败过。
+  final String? saveError;
+
   const WorkbenchState({
     this.crop,
     this.cropToken,
@@ -85,6 +97,8 @@ class WorkbenchState {
     this.selectedStyleId = 'white',
     this.saveFeedback = false,
     this.specSheetOpen = false,
+    this.pickError,
+    this.saveError,
   });
 
   WorkbenchState copyWith({
@@ -95,6 +109,10 @@ class WorkbenchState {
     String? selectedStyleId,
     bool? saveFeedback,
     bool? specSheetOpen,
+    String? pickError,
+    bool clearPickError = false,
+    String? saveError,
+    bool clearSaveError = false,
   }) {
     return WorkbenchState(
       crop: crop ?? this.crop,
@@ -103,6 +121,8 @@ class WorkbenchState {
       selectedStyleId: selectedStyleId ?? this.selectedStyleId,
       saveFeedback: saveFeedback ?? this.saveFeedback,
       specSheetOpen: specSheetOpen ?? this.specSheetOpen,
+      pickError: clearPickError ? null : (pickError ?? this.pickError),
+      saveError: clearSaveError ? null : (saveError ?? this.saveError),
     );
   }
 }
@@ -131,7 +151,20 @@ class WorkbenchNotifier extends Notifier<WorkbenchState> {
   void select(String styleId) =>
       state = state.copyWith(selectedStyleId: styleId);
 
-  void setSaveFeedback(bool v) => state = state.copyWith(saveFeedback: v);
+  void setSaveFeedback(bool v) => state = state.copyWith(
+        saveFeedback: v,
+        clearSaveError: v,
+      );
+
+  /// [msg] 为 null 表示清除上一条取图错误。
+  void setPickError(String? msg) => state = msg == null
+      ? state.copyWith(clearPickError: true)
+      : state.copyWith(pickError: msg);
+
+  /// [msg] 为 null 表示清除上一条保存错误。
+  void setSaveError(String? msg) => state = msg == null
+      ? state.copyWith(clearSaveError: true)
+      : state.copyWith(saveError: msg, saveFeedback: false);
 
   void setSpecSheet(bool v) => state = state.copyWith(specSheetOpen: v);
 }

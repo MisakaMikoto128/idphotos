@@ -1,6 +1,6 @@
 {
   "gate": "G2A",
-  "generatedAt": "2026-09-08T17:16:48.115666",
+  "generatedAt": "2026-09-14T07:48:08.374719",
   "items": [
     {
       "id": "2A.1",
@@ -46,7 +46,7 @@
       "id": "2A.6",
       "description": "单张耗时 512x512 p95 <=1500ms",
       "expected": "<=1500ms",
-      "actual": "1010.0ms（样本数=24）",
+      "actual": "1044.0ms（样本数=24）",
       "pass": true,
       "manual": false
     },

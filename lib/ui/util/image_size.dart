@@ -11,6 +11,7 @@
 /// 势力范围：ui-woodcraft。
 library;
 
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 /// 解析结果。解析不出来时返回 null，调用方退化到默认比例。
@@ -93,9 +94,11 @@ PixelSize? readImageSize(Uint8List bytes) {
     return null;
   }
 
-  // JPEG: FF D8，然后逐段找 SOF0..SOF15（跳过 SOF4/SOF8/SOF12 这些非帧标记）
+  // JPEG: FF D8，然后逐段找 SOF0..SOF15（跳过 SOF4/SOF8/SOF12 这些非帧标记），
+  // 沿途顺带记下 APP1/Exif 里的 Orientation。
   if (bytes[0] == 0xFF && bytes[1] == 0xD8) {
     int i = 2;
+    int orientation = 1;
     while (i + 3 < bytes.length) {
       if (bytes[i] != 0xFF) {
         i++;
@@ -123,13 +126,73 @@ PixelSize? readImageSize(Uint8List bytes) {
         if (i + 9 >= bytes.length) break;
         final int h = (bytes[i + 5] << 8) | bytes[i + 6];
         final int w = (bytes[i + 7] << 8) | bytes[i + 8];
-        if (w > 0 && h > 0) return PixelSize(w, h);
+        if (w > 0 && h > 0) return applyOrientation(PixelSize(w, h), orientation);
         break;
+      }
+      if (marker == 0xE1 && len >= 2) {
+        final int? o = _readExifOrientation(bytes, i + 4, len - 2);
+        if (o != null) orientation = o;
       }
       if (len < 2) break;
       i += 2 + len;
     }
   }
 
+  return null;
+}
+
+/// EXIF orientation 值 5/6/7/8 表示图像被旋转了 90°，**摆正后宽高互换**。
+///
+/// 引擎侧 `decodeToRgb()` 显式调了 `img.bakeOrientation`，所以
+/// `MattingResult.width/height` 和 `AppState.suggestedCrop` 全都在**摆正后**的
+/// 坐标系里；Flutter 的 `Image.memory` 渲染的也是摆正后的位图。UI 若按 SOF 头的
+/// 原始宽高建立坐标系，一张 orientation=6 的手机竖拍照就会用 4000×3000 去解读
+/// 一个 3000×4000 空间里的建议框，再把转置空间里的矩形回传给 `setCrop` ——
+/// 取景整个是错的。所以这里统一口径：**readImageSize 返回摆正后的尺寸**。
+PixelSize applyOrientation(PixelSize raw, int orientation) =>
+    (orientation >= 5 && orientation <= 8)
+        ? PixelSize(raw.height, raw.width)
+        : raw;
+
+/// 从 APP1 段体（[start] 起 [length] 字节）里读 IFD0 的 Orientation(0x0112)。
+/// 不是 Exif 段、或结构不完整时返回 null（调用方保持 orientation=1）。
+int? _readExifOrientation(Uint8List bytes, int start, int length) {
+  // "Exif\0\0"
+  if (start + 8 > bytes.length || length < 8) return null;
+  if (bytes[start] != 0x45 ||
+      bytes[start + 1] != 0x78 ||
+      bytes[start + 2] != 0x69 ||
+      bytes[start + 3] != 0x66 ||
+      bytes[start + 4] != 0x00) {
+    return null;
+  }
+  final int tiff = start + 6;
+  final int end = math.min(start + length, bytes.length);
+  if (tiff + 8 > end) return null;
+
+  final int bom = (bytes[tiff] << 8) | bytes[tiff + 1];
+  final Endian endian;
+  if (bom == 0x4949) {
+    endian = Endian.little; // 'II'
+  } else if (bom == 0x4D4D) {
+    endian = Endian.big; // 'MM'
+  } else {
+    return null;
+  }
+  final ByteData d = ByteData.sublistView(bytes);
+  if (d.getUint16(tiff + 2, endian) != 0x002A) return null;
+
+  final int ifd0 = tiff + d.getUint32(tiff + 4, endian);
+  if (ifd0 + 2 > end || ifd0 < tiff) return null;
+  final int count = d.getUint16(ifd0, endian);
+  for (int k = 0; k < count; k++) {
+    final int e = ifd0 + 2 + k * 12;
+    if (e + 12 > end) break;
+    if (d.getUint16(e, endian) != 0x0112) continue;
+    // type 3 = SHORT（值直接内联在 entry 的后 4 字节里，取前 2 字节）
+    if (d.getUint16(e + 2, endian) != 3) continue;
+    final int v = d.getUint16(e + 8, endian);
+    return (v >= 1 && v <= 8) ? v : null;
+  }
   return null;
 }

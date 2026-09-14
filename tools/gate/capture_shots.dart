@@ -60,10 +60,31 @@ Future<String?> _ensureDeviceOnline(String avdId, Duration bootTimeout, StringBu
   var deviceId = await waitForAdbDeviceOnline(timeout: const Duration(seconds: 5));
   if (deviceId != null) return deviceId;
   log.writeln('没有在线设备，尝试启动模拟器 $avdId ...');
-  final launch = await runProcess('flutter', ['emulators', '--launch', avdId],
-      timeout: const Duration(seconds: 30));
-  log.writeln('flutter emulators --launch 退出码=${launch.exitCode}');
-  if (!launch.ok) return null;
+  // 不再用 `flutter emulators --launch`：host 的 GPU 驱动栈当前 GL/Vulkan 初始化
+  // 全部失败（GLES context 创建不了、vkGetDeviceQueue 报 Invalid device，
+  // 见 out/tmp/emu_verbose.log），flutter emulators --launch 走默认硬件 GPU，
+  // 模拟器会卡死/退出。必须 -no-window + swiftshader 软渲染 + 禁用 Vulkan 宿主仿真。
+  // 用 detached 方式启动：emulator 是常驻进程，不能被 runProcess 的超时 kill 掉，
+  // 由调用方跑完后 adb emu kill 收尾。
+  try {
+    await Process.start(
+      'emulator',
+      [
+        '-avd', avdId,
+        '-no-snapshot-save',
+        '-no-boot-anim',
+        '-no-window',
+        '-gpu', 'guest',
+        '-feature', '-Vulkan',
+      ],
+      mode: ProcessStartMode.detached,
+      runInShell: true,
+    );
+    log.writeln('emulator -avd $avdId 已 detached 启动');
+  } catch (e) {
+    log.writeln('emulator -avd $avdId 启动失败: $e');
+    return null;
+  }
   deviceId = await waitForAdbDeviceOnline(timeout: bootTimeout);
   return deviceId;
 }
@@ -85,6 +106,10 @@ Future<CaptureResult> runCaptureShots({
 
   final args = [
     'drive',
+    // host GPU 驱动栈损坏期间（GL/Vulkan 全废）App 必须软件渲染；
+    // Impeller GLES 在软渲染下会把 qemu 宿主进程带走（takeScreenshot 路径），
+    // 退回 Skia 后截图 drive 才能稳定跑完。真机不受影响，这是纯测试环境 workaround。
+    '--no-enable-impeller',
     '--driver=test_driver/integration_test_driver.dart',
     '--target=integration_test/shots_test.dart',
     '-d',
@@ -128,6 +153,8 @@ Future<CaptureResult> runFullShotsPipeline({
     'flutter',
     [
       'drive',
+      // 见 runCaptureShots 里关于 host GPU 损坏期间 Impeller/Skia 的说明。
+      '--no-enable-impeller',
       '--driver=test_driver/integration_test_driver.dart',
       '--target=integration_test/shots_test.dart',
       '-d',
@@ -141,6 +168,10 @@ Future<CaptureResult> runFullShotsPipeline({
     return _fallback(log, error: '主 AVD flutter drive 失败/超时，触发 adb 截图兜底');
   }
   await _mergeResponseRects(mergedRects, log);
+  // host 内存清理后仍只有有限物理内存（AEHD 加速下两台 AVD 同开曾把主 AVD 挤崩，
+  // 见 docs/PITFALLS.md G2C r2 条目与 out/GATE_G2C_r2.md）。主 AVD 的 6 张截图和
+  // rects 已经拿到，先关掉它再起小屏 AVD，保证任一时刻最多一台模拟器在跑。
+  await _killEmulator(mainDevice, log);
 
   // 小屏 AVD：S2_small/S5_small
   final smallDevice = await _ensureDeviceOnline(smallAvd, bootTimeout, log);
@@ -151,6 +182,8 @@ Future<CaptureResult> runFullShotsPipeline({
       'flutter',
       [
         'drive',
+        // 见 runCaptureShots 里关于 host GPU 损坏期间 Impeller/Skia 的说明。
+        '--no-enable-impeller',
         '--driver=test_driver/integration_test_driver.dart',
         '--target=integration_test/shots_test.dart',
         '-d',
@@ -170,6 +203,8 @@ Future<CaptureResult> runFullShotsPipeline({
 
   final rectsFile = File('$kShotsDir/_rects.json');
   await rectsFile.writeAsString(jsonEncode(mergedRects));
+  // 小屏 AVD 也跑完了，关掉，不把模拟器进程留给调用方收拾。
+  if (smallDevice != null) await _killEmulator(smallDevice, log);
 
   final validated = await _validateShots();
   log.writeln('最终校验通过的截图 (${validated.length}张): ${validated.join(', ')}');
@@ -180,6 +215,29 @@ Future<CaptureResult> runFullShotsPipeline({
     log: log.toString(),
     error: validated.length < 8 ? '只拿到 ${validated.length}/8 张，见 log' : null,
   );
+}
+
+/// 关掉一台模拟器并等它从 `adb devices` 消失（最多 60s）。
+/// 失败只记警告，不抛异常——截图已经拿到，杀不掉顶多占着内存，不该让整条流水线报错。
+Future<void> _killEmulator(String serial, StringBuffer log) async {
+  final kill = await runProcess('adb', ['-s', serial, 'emu', 'kill'],
+      timeout: const Duration(seconds: 15));
+  log.writeln('adb -s $serial emu kill 退出码=${kill.exitCode}');
+  final deadline = DateTime.now().add(const Duration(seconds: 60));
+  while (DateTime.now().isBefore(deadline)) {
+    final r = await runProcess('adb', ['devices'], timeout: const Duration(seconds: 15));
+    final stillThere = r.ok &&
+        r.stdout.split('\n').any((l) {
+          final p = l.trim().split(RegExp(r'\s+'));
+          return p.isNotEmpty && p[0] == serial;
+        });
+    if (!stillThere) {
+      log.writeln('$serial 已从 adb devices 消失');
+      return;
+    }
+    await Future.delayed(const Duration(seconds: 3));
+  }
+  log.writeln('警告: $serial 在 60s 内没有从 adb devices 消失');
 }
 
 Future<void> _mergeResponseRects(Map<String, dynamic> merged, StringBuffer log) async {

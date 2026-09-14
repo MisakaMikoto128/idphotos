@@ -132,7 +132,12 @@ Future<Map<String, List<_Rect>>> _loadExcludeRects() async {
       final rects = <_Rect>[];
       final m = v as Map<String, dynamic>;
       m.forEach((key, rv) {
-        if (key == 'crop_box' || key.startsWith('candidate_')) {
+        // `/code-review high`（out/REVIEW_G2.md #7）：裁剪框外、照片 display
+        // 矩形内的部分只是被压暗（60% alpha scrim），像素仍是照片内容而非
+        // chrome，必须一并排除，否则 2C.2/2C.4 会被高饱和度真实照片拖累。
+        // 'photo_display' 目前还没有对应的稳定 Key（已向主会话申请追加到
+        // CONTRACTS §7.2），落地前这个分支不会命中任何数据，行为等价于旧版。
+        if (key == 'crop_box' || key == 'photo_display' || key.startsWith('candidate_')) {
           final r = rv as Map<String, dynamic>;
           rects.add(_Rect(
             (r['left'] as num).toDouble(),
@@ -287,22 +292,24 @@ Future<List<Map<String, dynamic>>> _widgetTestChecks() async {
 
   return List.generate(ids.length, (i) {
     final id = ids[i];
-    String? matchedResult;
+    // 同一个 id 前缀可能对应多个用例（例如 2C.7 既有手势集成用例又有针对
+    // CropMath.resize 的纯函数回归用例）——必须**全部**通过才算这一项通过，
+    // 只取第一个匹配会让后面加的用例悄悄失败也不影响 gate 结论。
+    final matches = <String, String?>{}; // 用例名 -> 结果
     for (final entry in testNames.entries) {
       if (entry.value.startsWith(id)) {
-        matchedResult = testResults[entry.key];
-        break;
+        matches[entry.value] = testResults[entry.key];
       }
     }
-    final pass = matchedResult == 'success';
+    final pass = matches.isNotEmpty && matches.values.every((r) => r == 'success');
     return {
       'id': id,
       'description': descs[i],
-      'expected': 'success',
-      'actual': matchedResult == null
+      'expected': 'success（该 id 下所有用例）',
+      'actual': matches.isEmpty
           ? '在 flutter test --reporter=json 输出里没找到名字以 "$id" 开头的用例'
               '${run.success ? '' : '（且整体进程退出码=${run.exitCode}，可能编译失败）\n${run.tail(maxChars: 800)}'}'
-          : matchedResult,
+          : matches.entries.map((e) => '${e.key}=${e.value}').join('; '),
       'pass': pass,
       'manual': false,
     };

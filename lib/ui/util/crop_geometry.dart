@@ -190,7 +190,15 @@ abstract final class CropMath {
 
       final double left = growLeft ? anchor.dx - w : anchor.dx;
       final double top = growUp ? anchor.dy - h : anchor.dy;
-      return Rect.fromLTWH(left, top, w, h);
+      // 锚点贴近边界、而最小宽度 lo 又超过该方向可用空间时，`hi = max(lo, …)`
+      // 会强行把宽度拉回 lo 而无视 availX/availY，锚点那一侧必然探出 bounds。
+      // 因为 lo ≤ maxW = min(bounds.width, bounds.height * aspect)，
+      // 此刻的框一定不大于 bounds，所以纯平移就能收回去，不会破坏宽高比。
+      // 四个**边**分支结尾一直都调了 translateIntoBounds，角点分支漏了 ——
+      // 漏掉的后果不只是难看：越界矩形会被 onChanged 原样转发给
+      // controller.setCrop，而预览画的是 fitIntoBounds 修正版，
+      // 成片里就会出现用户从没见过的底色填充条。
+      return translateIntoBounds(Rect.fromLTWH(left, top, w, h), bounds);
     }
 
     // 边控制点：对边固定，另一轴保持中心，越界时整体平移而不是截断

@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api.dart';
 import '../state/providers.dart';
+import '../util/error_text.dart';
 import '../theme/brass.dart';
 import '../theme/paper_painter.dart';
 import '../theme/surfaces.dart';
@@ -48,16 +49,33 @@ class _AreaCSaveState extends ConsumerState<AreaCSave> {
     return app.candidates.first;
   }
 
+  /// 保存。
+  ///
+  /// `save()` 返回的 Future 可能 reject（无存储权限、磁盘满、MediaStore 插入
+  /// 失败）。**必须 try/finally**：否则异常从这个 `VoidCallback` 逃逸成未处理的
+  /// 异步错误，`_busy` 永不复位，`enabled` 恒为 false，按钮退回哑光
+  /// "请先选择照片"态 —— 不重启 App 就没法重试。
+  /// catch 分支不空吞：翻成中文写进 `WorkbenchState.saveError`，
+  /// 由按钮上方的纸条显示出来（见 [_SaveSlip]）。
   Future<void> _save(Candidate c) async {
     if (_busy) return;
     setState(() => _busy = true);
     final WorkbenchNotifier wb = ref.read(workbenchProvider.notifier);
     final UiConfig cfg = ref.read(uiConfigProvider);
-    // 失败信息由 controller 转成 AppState.errorMessage（CONTRACTS §6），
-    // 这里只负责把成功反馈亮出来。
-    await ref.read(controllerProvider).save(c);
-    if (!mounted) return;
-    setState(() => _busy = false);
+    wb.setSaveError(null);
+    bool ok = false;
+    try {
+      await ref.read(controllerProvider).save(c);
+      ok = true;
+    } catch (e, st) {
+      logUiError('save', e, st);
+      if (mounted) {
+        wb.setSaveError(errorTextOf(e, fallback: '保存失败了，请再试一次'));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    if (!mounted || !ok) return;
     wb.setSaveFeedback(true);
     if (!cfg.freezeAnimations) {
       _dismiss?.cancel();
@@ -102,7 +120,10 @@ class _AreaCSaveState extends ConsumerState<AreaCSave> {
                   children: <Widget>[
                     Align(
                       alignment: Alignment.topCenter,
-                      child: _SaveSlip(visible: wb.saveFeedback),
+                      child: _SaveSlip(
+                        visible: wb.saveFeedback || wb.saveError != null,
+                        error: wb.saveError,
+                      ),
                     ),
                     Align(
                       alignment: Alignment.bottomCenter,
@@ -184,11 +205,13 @@ class _SaveButton extends ConsumerWidget {
   }
 }
 
-/// 保存成功后飘出的小纸条（DESIGN.md §5：300ms）。
+/// 保存后飘出的小纸条（DESIGN.md §5：300ms）。
+/// [error] 非空时改成失败提示：同一张纸条，前面多一枚旧漆红标记。
 class _SaveSlip extends StatelessWidget {
   final bool visible;
+  final String? error;
 
-  const _SaveSlip({required this.visible});
+  const _SaveSlip({required this.visible, this.error});
 
   @override
   Widget build(BuildContext context) {
@@ -214,10 +237,32 @@ class _SaveSlip extends StatelessWidget {
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  child: Text(
-                    '已保存到相册　·　照片未离开本机',
-                    style: Type.small(T.inkBrown),
-                    maxLines: 1,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      if (error != null)
+                        const Padding(
+                          padding: EdgeInsets.only(right: 6),
+                          child: SizedBox(
+                            width: 8,
+                            height: 8,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: T.accentRed,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ),
+                      Flexible(
+                        child: Text(
+                          error ?? '已保存到相册　·　照片未离开本机',
+                          style: Type.small(T.inkBrown),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -22,6 +22,7 @@ import '../theme/tokens.dart';
 import '../theme/typography.dart';
 import '../theme/wood_painter.dart';
 import '../util/crop_geometry.dart';
+import '../util/error_text.dart';
 import '../util/image_size.dart';
 import '../widgets/crop_overlay.dart';
 import '../widgets/metal.dart';
@@ -68,7 +69,9 @@ class AreaASource extends ConsumerWidget {
               _CaptionRow(
                 hasImage: hasImage,
                 spec: app.spec,
-                error: app.errorMessage,
+                // 取图失败是 UI 层自己的错（不经过 controller），优先显示；
+                // 其余错误仍来自 AppState.errorMessage（CONTRACTS §6）。
+                error: wb.pickError ?? app.errorMessage,
                 onRepick: () => _pick(ref),
               ),
               Expanded(
@@ -88,10 +91,25 @@ class AreaASource extends ConsumerWidget {
     );
   }
 
+  /// 取图 + 载入。
+  ///
+  /// 全程包在 try/catch 里：`ImagePicker` 在用户拒绝 `READ_MEDIA_IMAGES`
+  /// 或 picker activity 被系统杀掉时会抛 `PlatformException`（Android 13+
+  /// 首次运行的常见路径）。没人接的话异常会变成未处理的异步错误，用户只看到
+  /// 空态、没有任何提示 —— 违反 CONTRACTS §6"所有异常必须转成中文提示"。
+  /// 这里**不是空吞**：翻成中文写进 `WorkbenchState.pickError`，
+  /// 由区域 A 的提示行显示出来，同时把原始异常打进日志。
   static Future<void> _pick(WidgetRef ref) async {
-    final Uint8List? bytes = await ref.read(photoSourceProvider).pick();
-    if (bytes == null) return;
-    await ref.read(controllerProvider).loadImage(bytes);
+    final WorkbenchNotifier wb = ref.read(workbenchProvider.notifier);
+    wb.setPickError(null);
+    try {
+      final Uint8List? bytes = await ref.read(photoSourceProvider).pick();
+      if (bytes == null) return; // 用户主动取消，不是错误
+      await ref.read(controllerProvider).loadImage(bytes);
+    } catch (e, st) {
+      logUiError('pick', e, st);
+      wb.setPickError(errorTextOf(e, fallback: '打不开相册，请稍后再试'));
+    }
   }
 }
 

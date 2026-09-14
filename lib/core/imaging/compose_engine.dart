@@ -297,20 +297,24 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     if (cropOverride != null &&
         cropOverride.width > 1 &&
         cropOverride.height > 1) {
-      final RectD inRot = _mapRectToRotated(cropOverride, plan);
+      final RectD inRot = _mapCropToRotated(cropOverride, plan);
       final RectD fitted = normalizeToAspect(
         rect: inRot,
         aspectRatio: spec.aspectRatio,
         canvasWidth: cw,
         canvasHeight: ch,
       );
+      final double oob = outOfBoundsFraction(fitted, cw, ch);
       return CropSolution(
         rect: fitted,
-        outOfBoundsFraction: 0.0,
+        outOfBoundsFraction: oob,
         shrunk: false,
         achievedHeadHeightRatio: 0.0,
         achievedHeadTopRatio: 0.0,
-        note: '使用用户框选的裁剪区域',
+        note: oob <= 1e-6
+            ? '使用用户框选的裁剪区域'
+            : '使用用户框选的裁剪区域，摆正后有 '
+                '${(oob * 100).toStringAsFixed(1)}% 转出画布，按 alpha=0 填底色',
       );
     }
 
@@ -382,23 +386,38 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     );
   }
 
-  RectD _mapRectToRotated(Rect r, RotationPlan plan) {
+  /// 把用户框选的矩形（源图坐标）搬进旋转空间，**尺寸原样保留**。
+  ///
+  /// ## 为什么不能取四角的轴对齐外接框（AABB）
+  ///
+  /// 用户框选表达的是两件事：**取哪块内容**（中心）和**主体多大**（尺寸）。
+  /// 摆正只是把画面转正，不该改变后者。可 AABB 恒大于原矩形：
+  ///
+  /// ```
+  /// W' = w·cosθ + h·sinθ,  H' = w·sinθ + h·cosθ
+  /// θ=10°、295×413  →  362×458，[normalizeToAspect] 再撑到 362×507
+  /// ```
+  ///
+  /// 裁剪框大了 22.7%，缩放到同样的 295×413 成品后，主体就只剩用户框选的
+  /// 81.5%。更糟的是**用户无法纠正**：框得更紧，AABB 依然按同一比例放大，
+  /// 只是基数变小。这是静默的、单向的、不可逆的构图篡改。
+  ///
+  /// 正确做法是把框**整体反旋转**：中心用 [RotationPlan.toRotated] 映射，
+  /// 宽高原样带过去。这等价于「拿用户框的那个窗口，绕自己的中心转 −θ」，
+  /// 是刚体变换，面积与主体尺度精确守恒（保留比例 100%）。
+  /// 代价是窗口的四个角在源图里会探出用户框之外 —— 若探到图外，
+  /// 那部分按 alpha=0 填底色，与自动取景路径的越界策略一致（见 [solveAutoCrop]），
+  /// 不会出现黑边（G2B.9）。这部分占比据实写进 [CropSolution.outOfBoundsFraction]。
+  ///
+  /// 摆正角受 [kMaxRollDeg]=30° 钳制，不会出现宽高需要互换的情况。
+  RectD _mapCropToRotated(Rect r, RotationPlan plan) {
     if (!plan.enabled) {
       return RectD(r.left, r.top, r.width, r.height);
     }
     final List<double> p = <double>[0.0, 0.0];
-    double minX = double.infinity, minY = double.infinity;
-    double maxX = -double.infinity, maxY = -double.infinity;
-    final List<double> xs = <double>[r.left, r.right, r.right, r.left];
-    final List<double> ys = <double>[r.top, r.top, r.bottom, r.bottom];
-    for (int i = 0; i < 4; i++) {
-      plan.toRotated(xs[i], ys[i], p);
-      minX = math.min(minX, p[0]);
-      minY = math.min(minY, p[1]);
-      maxX = math.max(maxX, p[0]);
-      maxY = math.max(maxY, p[1]);
-    }
-    return RectD(minX, minY, maxX - minX, maxY - minY);
+    plan.toRotated(r.center.dx, r.center.dy, p);
+    return RectD(
+        p[0] - r.width / 2.0, p[1] - r.height / 2.0, r.width, r.height);
   }
 }
 

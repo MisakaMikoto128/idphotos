@@ -69,12 +69,27 @@ class OrtSessionHandle {
   final String provider;
 }
 
+/// 是否已经在当前 isolate 里创建过 ORT 环境。
+///
+/// `OrtEnv.init()` 不是幂等的：连续调用两次会各自 `CreateEnv` 一次，
+/// 第二次直接覆盖 Dart 侧持有的指针，第一个环境的 native 内存从此没有任何
+/// 句柄能再释放它。`_loadModels()`（见 matting_engine.dart）在同一个
+/// `Isolate.run` 里先后为抠图、人脸两个模型各调一次 [createSession]，
+/// 必须共用同一个环境，否则每次 `warmUp()` 都会静默泄漏一个 env。
+bool _envInitialized = false;
+
+void _ensureEnv() {
+  if (_envInitialized) return;
+  OrtEnv.instance.init(level: OrtLoggingLevel.error);
+  _envInitialized = true;
+}
+
 /// 按 XNNPACK → NNAPI → CPU 的顺序创建会话，返回第一个成功的。
 ///
 /// [threads] 为 intra-op 线程数。中端机大核通常 2–4 个，给 4 已经够用，
 /// 再多反而因为调度抖动拉高 p95。
 OrtSessionHandle createSession(String modelPath, {int threads = 4}) {
-  OrtEnv.instance.init(level: OrtLoggingLevel.error);
+  _ensureEnv();
   // 刻意不用 `OrtSession.fromFile`：插件把路径按 UTF-8 `char*` 传给
   // `CreateSession`，而 Windows 上 ORT 的 `ORTCHAR_T` 是 `wchar_t`，
   // 路径会被解释成乱码、报 "File doesn't exist"。`CreateSessionFromArray`
@@ -109,6 +124,10 @@ OrtSessionHandle createSession(String modelPath, {int threads = 4}) {
       return OrtSessionHandle(session.address, ep);
     } catch (e) {
       lastError = e;
+    } finally {
+      // 成功、失败两条路径都要释放：`OrtSession.fromBuffer` 成功后
+      // session 内部已经拷走了它需要的配置，`options` 不再被引用，
+      // 不释放就是每次成功 `warmUp()` 泄漏一个 native 对象。
       options?.release();
     }
   }

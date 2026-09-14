@@ -21,6 +21,18 @@
 // candidate_<styleId>）的屏幕矩形（物理像素，已乘 devicePixelRatio）写进
 // `binding.reportData`，flutter drive 跑完后会落盘到
 // build/integration_response_data.json，gate_G2C.dart 从那里读。
+//
+// `/code-review high`（out/REVIEW_G2.md #7）指出：区域 A 里"裁剪框外、照片内"
+// 的部分只是被压暗（60% alpha scrim），像素仍然是照片内容，不是 chrome，
+// 但旧版 `_loadExcludeRects` 只排除 crop_box——2C.2/2C.4 换成饱和度高的真实照片后
+// 会被拖累。正确排除范围应该是**照片的 display 矩形**（BoxFit.contain 的整张图），
+// 比 crop_box 大。CONTRACTS.md §7.2 规定"gatekeeper 只准用列出的稳定 Key"，
+// 而照片 display 矩形目前没有对应的 Key（挂在 `Image.memory` 外层的
+// `Positioned.fromRect` 上，是 ui-woodcraft 的内部实现，不在契约范围内）。
+// 已向主会话申请在 CONTRACTS §7.2 追加 `Key('photo_display')`（gatekeeper 报告，
+// 未定案，未擅自去改 lib/ui/）。这里先把 'photo_display' 加进待记录列表——
+// 在这个 Key 真正落地前，`_rectOf` 找不到它会静默跳过（不算错误，见下方列表注释），
+// 行为等价于目前状态；Key 落地后本文件不需要再改，自动开始记录。
 
 import 'dart:ui' as ui;
 
@@ -30,6 +42,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:muzhao/ui/dev/shot_harness.dart' show kShotScenarios, buildShotScenario;
 
 const String kShotMode = String.fromEnvironment('SHOT_MODE', defaultValue: 'main');
+
+const String kPhotoDisplayKey = 'photo_display';
 
 /// 主截图场景就是 shot_harness 里定义的全部场景（S1-S6）。
 /// 小屏模式只重跑 S2_loaded/S5_ready 两个，落盘时改名加 _small 后缀。
@@ -42,6 +56,8 @@ const List<String> kStableKeysToRecord = [
   'crop_box',
   'candidate_white', 'candidate_blue', 'candidate_red',
   'candidate_deep_blue', 'candidate_gray', 'candidate_blue_gradient',
+  // 待契约追加，见上方说明；未落地前 _rectOf 会因找不到该 Key 而静默跳过。
+  kPhotoDisplayKey,
 ];
 
 Map<String, dynamic>? _rectOf(WidgetTester tester, String keyName) {

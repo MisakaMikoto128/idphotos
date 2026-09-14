@@ -38,6 +38,7 @@ import 'package:image/image.dart' as img;
 
 import '../api.dart';
 import '../specs/photo_specs.dart';
+import 'compose_engine.dart';
 import 'compose_only_engine.dart';
 import 'crop_geometry.dart';
 import 'jpeg_dpi.dart';
@@ -599,6 +600,162 @@ void main() {
     print('[2B.8]\n$log  最差残差=${worst.toStringAsFixed(3)}° (阈值 1.5°)');
     expect(worst <= 1.5, isTrue);
     expect(straightened, isFalse);
+  }, timeout: long);
+
+  test('用户框选 × 摆正：主体尺度守恒（REVIEW_G2 #3 回归）', () async {
+    // 回归 out/REVIEW_G2.md 第 3 条：摆正生效时，用户框选被静默放大约 23%。
+    //
+    // 旧实现把用户框的四个角转进旋转空间后取**轴对齐外接框**，
+    // 外接框恒大于原框（10° 时 295×413 → 362×458，再撑比例到 362×507），
+    // 于是成片里的主体只剩用户框选的 81.5%，而且框得更紧也纠正不了。
+    // 现在改成**整体反旋转**（中心映射 + 宽高原样保留），是刚体变换，
+    // 主体尺度精确守恒。
+    //
+    // 测法不复算裁剪公式，而是量成片像素：合成人像的头部在「设计空间」里
+    // 恒为 380×320，摆正后旋转空间里的头高应恢复成 380，于是成片头高恒为
+    // 380 × 413/644 = 243.7px。任何对用户框的缩放都会等比例改变这个数字。
+    // 死区内（|roll| ≤ 3°）不摆正，头是斜的，肤色区的轴对齐高度理应是
+    // 380·cosθ + 320·sinθ —— 那是倾斜本身，不是缩放，按实际角度算进理想值。
+    const double cropW = 460.0; // 460:644 = 295:413，正好是 cn_1inch 比例
+    const double cropH = 644.0;
+    const double headDesignH = 380.0; // chinY(700) − headTopY(320)
+    const double headDesignW = 320.0;
+    final StringBuffer log = StringBuffer();
+    double worstErr = 0.0;
+    for (final double roll in <double>[0.0, 2.0, 6.0, 10.0, -10.0, 20.0]) {
+      final _Synth s = _makeSynthetic(
+        width: 1000,
+        height: 1400,
+        headCx: 500,
+        headTopY: 320,
+        chinY: 700,
+        headWidth: 320,
+        rollDeg: roll,
+      );
+      // 用户在**源图**上框的那块内容：设计空间的头部中心 (500, 510)
+      // 随图像一起转到源图空间，框住同一块内容。
+      final double rad = roll * math.pi / 180.0;
+      final double dy = 510.0 - 700.0;
+      final Rect crop = Rect.fromCenter(
+        center: Offset(500.0 - math.sin(rad) * dy, 700.0 + math.cos(rad) * dy),
+        width: cropW,
+        height: cropH,
+      );
+      final Candidate c = await engine.compose(
+        matting: s.matting,
+        spec: specCn1inch,
+        style: kBgWhite,
+        face: s.face,
+        cropOverride: crop,
+      );
+      final ComposeDiagnostics diag = engine.lastDiagnostics!;
+      final _Decoded d = _decodeJpeg(c.jpegBytes);
+      final List<double> m = _measureHead(d);
+      expect(m[3] > 0, isTrue, reason: 'roll=$roll 成片里没找到肤色区域');
+      final double headPx = m[1] - m[0] + 1;
+      final double headRotPx = diag.straightened
+          ? headDesignH
+          : headDesignH * math.cos(rad).abs() +
+              headDesignW * math.sin(rad).abs();
+      final double idealHeadPx = headRotPx * specCn1inch.heightPx / cropH;
+      final double keep = headPx / idealHeadPx;
+      worstErr = math.max(worstErr, (keep - 1.0).abs());
+      log.writeln('  roll=${roll.toStringAsFixed(1)}° 摆正=${diag.straightened} '
+          '裁剪框=${diag.cropRect.width.toStringAsFixed(1)}×'
+          '${diag.cropRect.height.toStringAsFixed(1)}'
+          '（用户框 ${cropW.toStringAsFixed(0)}×${cropH.toStringAsFixed(0)}）'
+          ' 成片头高=${headPx.toStringAsFixed(1)}px'
+          '（理想 ${idealHeadPx.toStringAsFixed(1)}）'
+          ' 保留比例=${(keep * 100).toStringAsFixed(1)}%');
+      // 裁剪框尺寸必须与用户框逐像素一致（比例已一致，normalizeToAspect 是空操作）
+      expect((diag.cropRect.width - cropW).abs() < 0.5, isTrue,
+          reason: 'roll=$roll 裁剪框宽被改成了 ${diag.cropRect.width}');
+      expect((diag.cropRect.height - cropH).abs() < 0.5, isTrue,
+          reason: 'roll=$roll 裁剪框高被改成了 ${diag.cropRect.height}');
+    }
+    // ignore: avoid_print
+    print('[用户框选×摆正]');
+    // ignore: avoid_print
+    print('$log  最差偏离=${(worstErr * 100).toStringAsFixed(1)}% (阈值 3%)');
+    expect(worstErr <= 0.03, isTrue);
+  }, timeout: long);
+
+  test('用户框选 × 摆正 × 越界：无黑边（2B.9 的反旋转新路径）', () async {
+    // 反旋转把用户框整体转进旋转空间，代价是框的四角可能探到源图之外
+    // （AABB 那版靠放大规避了这个问题，代价是篡改构图）。这一条钉死代价可控：
+    // 越界区域必须按 alpha=0 走底色，不能出现黑边。
+    // 「图外」要在**源图空间**判定 —— 旋转画布本身的四角就是空的，
+    // 拿旋转画布边界判会漏掉真正的空区。
+    final StringBuffer log = StringBuffer();
+    int worstBlack = 0;
+    double maxOob = 0.0;
+    // 用户把框拖到四个角 / 完全拖出图外，同时人脸带 10° 侧倾
+    final List<List<double>> centers = <List<double>>[
+      <double>[40, 40], <double>[960, 40],
+      <double>[40, 1360], <double>[960, 1360],
+      <double>[500, -800],
+    ];
+    for (final double roll in <double>[10.0, -10.0]) {
+      final _Synth s = _makeSynthetic(
+        width: 1000, height: 1400, headCx: 500, headTopY: 320,
+        chinY: 700, headWidth: 320, rollDeg: roll,
+      );
+      final RotationPlan plan = planRotation(
+        srcWidth: s.matting.width,
+        srcHeight: s.matting.height,
+        rollDeg: s.face.rollDeg,
+      );
+      expect(plan.enabled, isTrue, reason: 'roll=$roll 应当触发摆正');
+      for (int i = 0; i < centers.length; i++) {
+        final Rect crop = Rect.fromCenter(
+          center: Offset(centers[i][0], centers[i][1]),
+          width: 460.0,
+          height: 644.0,
+        );
+        final Candidate c = await engine.compose(
+          matting: s.matting, spec: specCn1inch, style: kBgWhite,
+          face: s.face, cropOverride: crop,
+        );
+        final ComposeDiagnostics diag = engine.lastDiagnostics!;
+        maxOob = math.max(maxOob, diag.outOfBoundsFraction);
+        final _Decoded d = _decodeJpeg(c.jpegBytes);
+        final RectD r = diag.cropRect;
+        final List<double> pt = <double>[0.0, 0.0];
+        int black = 0;
+        for (int y = 0; y < d.height; y++) {
+          final double yr = r.top + (y + 0.5) * r.height / d.height;
+          for (int x = 0; x < d.width; x++) {
+            final double xr = r.left + (x + 0.5) * r.width / d.width;
+            plan.toSource(xr, yr, pt);
+            final bool outside = pt[0] < 0 ||
+                pt[1] < 0 ||
+                pt[0] >= s.matting.width ||
+                pt[1] >= s.matting.height;
+            if (!outside) continue;
+            if (d.r(x, y) < 210 || d.g(x, y) < 210 || d.b(x, y) < 210) {
+              black++;
+            }
+          }
+        }
+        worstBlack = math.max(worstBlack, black);
+        log.writeln('  roll=${roll.toStringAsFixed(0)}° 框心='
+            '(${centers[i][0].toStringAsFixed(0)},${centers[i][1].toStringAsFixed(0)})'
+            ' 裁剪框=${r.width.toStringAsFixed(1)}×${r.height.toStringAsFixed(1)}'
+            ' 越界=${(diag.outOfBoundsFraction * 100).toStringAsFixed(1)}%'
+            ' 图外非白像素=$black');
+        // 越界再多也不许改用户框的尺寸
+        expect((r.width - 460.0).abs() < 0.5 && (r.height - 644.0).abs() < 0.5,
+            isTrue,
+            reason: 'roll=$roll 框心=${centers[i]} 裁剪框被改成 ${r.width}×${r.height}');
+      }
+    }
+    // ignore: avoid_print
+    print('[用户框选×摆正×越界]');
+    // ignore: avoid_print
+    print('$log  最大越界比例=${(maxOob * 100).toStringAsFixed(1)}%'
+        ' 图外非白像素（最差单张）=$worstBlack (阈值 0)');
+    expect(maxOob > 0.2, isTrue, reason: '用例没造出真正的越界，测了个寂寞');
+    expect(worstBlack, 0);
   }, timeout: long);
 
   test('2B.9 边界安全（贴边人脸不抛异常、无黑边）', () async {

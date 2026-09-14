@@ -109,17 +109,24 @@ class _CropOverlayState extends State<CropOverlay> {
           key: _stackKey,
           fit: StackFit.expand,
           children: <Widget>[
-            // 照片本体
-            if (widget.imageBytes != null)
-              Positioned.fromRect(
-                rect: display,
-                child: Image.memory(
-                  widget.imageBytes!,
-                  fit: BoxFit.fill,
-                  gaplessPlayback: true,
-                  filterQuality: FilterQuality.medium,
-                ),
-              ),
+            // 照片本体。这个矩形 = BoxFit.contain 之后照片真正铺满的区域，
+            // 比裁剪框大（框外的照片只是被 Shade.scrim 压暗，并没有消失）。
+            // CONTRACTS §7.2 的 `photo_display` 就指它：G2C.2/2C.4 靠它把照片
+            // 像素从色卡比对里剔除，G2C.7 靠它判裁剪框有没有跑到照片外面。
+            // 即使 imageBytes 为 null（widget test 不解码像素）也保留这个
+            // Positioned，否则 Key 时有时无，测试会静默跳过而不是报错。
+            Positioned.fromRect(
+              key: const Key('photo_display'),
+              rect: display,
+              child: widget.imageBytes == null
+                  ? const SizedBox.expand()
+                  : Image.memory(
+                      widget.imageBytes!,
+                      fit: BoxFit.fill,
+                      gaplessPlayback: true,
+                      filterQuality: FilterQuality.medium,
+                    ),
+            ),
             // 压暗 + 框线 + 三分线 + 角标
             Positioned.fill(
               child: IgnorePointer(

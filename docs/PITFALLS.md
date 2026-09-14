@@ -274,3 +274,71 @@
 - 解法：对真实照片，「溢色」只能定义成**底色渗进前景**，即同一像素在目标底色下的
   偏色量减去白底下的偏色量。门禁的 2B.7 用灰色合成人像（不含这种自然色），
   绝对计数 0 才是可达的；拿绝对计数去卡真实照片会得到假阳性。
+
+## [imaging] 把用户框选映射进旋转空间，取轴对齐外接框 = 静默篡改构图
+- 现象：`|rollDeg|>3°` 触发摆正后，用户框的 460×644 被换成 564.8×790.8（10°），
+  成片里主体只剩用户框选的 **81.7%**（6° 时 88.2%）。用户框得更紧也纠正不了 ——
+  外接框按同一比例继续放大，只是基数变小。全程无报错、无提示。
+- 原因：用四个角点转到旋转空间后取 AABB。`W'=w·cosθ+h·sinθ`、`H'=w·sinθ+h·cosθ`
+  **恒大于** `w×h`，`normalizeToAspect` 再把它撑回目标比例，于是二次放大。
+- 解法：把框当**刚体**整体反旋转 —— 只用 `plan.toRotated` 映射中心，宽高原样带过去。
+  面积与主体尺度精确守恒（实测保留 100.5%）。代价是框的四角可能探到源图之外，
+  但这条路和自动取景的越界策略一致（alpha=0 填底色），实测 ±10° × 5 个贴角/全出图
+  用例，图外非白像素 0。**判「越界」要在源图空间判**：旋转画布是源图四角的包围盒，
+  它自己的四个角本来就是空的，拿旋转画布边界去判会漏掉真正的空区。
+- 通用教训：任何「把矩形换到另一个坐标系」的代码，先问一句它是不是保面积的。
+  AABB 不是；它只在你**本来就想要包住**的场景里正确。
+
+## [gatekeeper] 双 AVD 并跑时主 AVD 反复崩溃，`waitForAdbDeviceOnline` 也不区分设备
+- 现象：G2C 复核本轮（响应 REVIEW_G2 #7/#2）连续 3 次 `runFullShotsPipeline()` 全部
+  在主 AVD（Pixel_3a_API_34, emulator-5554）上失败：`adb.exe: device 'emulator-5554'
+  not found`，之后触发 adb 兜底（只拿到 1 张纯截图，2C.1/2C.2/2C.3/2C.4 被迫全 FAIL）。
+  每次事后 `adb devices -l` 都发现主 AVD 的 qemu 进程已经整个消失（不是卡住，是真的
+  退出了），`systeminfo` 显示当时可用物理内存只剩 ~3GB（总 28GB）。判断是host 内存
+  压力下 AEHD 加速的主 AVD 被挤掉，与本轮改动的代码无关（capture_shots.dart /
+  device_harness_common.dart 本轮未改一行）。
+- 顺带发现一个独立的小 bug（未在本轮修，记录留给下次）：`waitForAdbDeviceOnline()`
+  （`tools/gate/gate_common.dart`）只返回 `adb devices` 里**第一个** `device` 状态的
+  设备，完全不区分调用方想要的是主 AVD 还是小屏 AVD。两台都在线时，`capture_shots.dart`
+  给小屏 AVD 请求设备也会拿到主 AVD 的 serial——如果那次侥幸没崩溃，小屏截图会在错误
+  分辨率的设备上跑，`S2_small/S5_small` 内容其实是主屏分辨率，不会报错但语义错误。
+  建议后续给 `waitForAdbDeviceOnline` 加一个可选的 `productModel`/期望分辨率过滤，
+  或者直接用 `adb -s <serial> shell wm size` 校验后再用。
+- 排查手法记录下来供下次复用：`adb devices -l`（判存活）→
+  `adb -s <serial> shell wm size`（区分主屏 1080x2220 / 小屏 720x1280，两台设备的
+  `model`/`product` 字段完全一样，光看 `adb devices -l` 分不出谁是谁）→
+  `tasklist | grep qemu-system` 数进程数对不对得上→ `systeminfo | grep Available` 看
+  host 内存。
+- 本轮处理方式：不是代码缺陷，没有为了强行拿到 8/8 截图而反复重跑到烧完 3 轮预算；
+  2C.6/2C.7 是 host 端 `flutter test`、不依赖模拟器，独立于此问题被完整验证了两次
+  （结果一致）；2C.1-2C.4 本轮如实标记为因 host 资源不足未能复核，留给下一轮。
+
+## [ui-woodcraft] 2026-09-14 子集字体重新生成的两个坑
+
+- `pyftsubset --layout-features='*'` 会把 Noto Serif SC 的纵排/异体等 GSUB/GPOS 全保留：478 字符的子集单个字重从 151KB 涨到 234KB，两个字重就 467KB，直接顶爆 G2C.8 的 400KB 硬线。**不要加这个参数**，默认特性集即可（最终 151,052 + 151,040 = 302,092B）。
+- U+21B3（↳）在 NotoSerifSC-VF 源字体里根本没有字形，离线无法补；它只出现在 `lib/core/imaging/dev_selfcheck.dart` 的控制台日志里，UI 不渲染，不算缺字。
+- 字符集提取器已重写为真正的 Dart 字符串扫描器：`dart run lib/ui/dev/charset_scan.dart`，可正确处理插值 `${}`、`\u{...}`、三引号、原始字符串（旧的正则版漏了 28 字）。新增文案后跑它 + 重新 pyftsubset + 同步 `fonts.dart` 的 coveredCharset。
+
+## [gatekeeper] host GPU 驱动栈损坏后模拟器起不来/截图 drive 带走 qemu + Windows 增量 assembleDebug 产出损坏 APK
+- 现象一（2026-09-14）：`flutter emulators --launch` 和裸 `emulator -avd` 全部卡死或退出。
+  `-verbose` 抓到真因：`Failed to make GLES 2.x context current` → `Failed to initialize GL emulation`，
+  软渲染后又报 `vkGetDeviceQueue: Invalid device`。回溯 crash DB
+  （`%TEMP%\AndroidEmulator\emu-crash-33.1.24.db\reports\`，9月8日 23:35/23:59 两份 47MB/53MB
+  minidump）确认 **r2 那三次"内存不足挤崩主 AVD"的真实死因是 host GPU 驱动崩溃**，
+  内存压力只是诱因。GPU 栈此后持续劣化直至今天 GL/Vulkan 全废。
+- 可用解法：`emulator -avd <id> -no-window -gpu guest -feature -Vulkan`。
+  `-gpu guest` 让 App 渲染走 guest 内部软件 GL（不碰 host GL）；`-feature -Vulkan`
+  禁掉宿主 Vulkan 仿真（swiftshader_indirect 下 vkGetDeviceQueue 仍会炸）。
+  `--no-window` 必须加——带窗口启动会先走 host GL，直接死。
+- 现象二：即使模拟器起来了，**Windows 上 Flutter 增量 `assembleDebug` 会产出损坏的 APK**，
+  表现为 app 启动即 `Can't load Kernel binary: Invalid kernel binary: Indicated size is
+  invalid` → `Could not create root isolate`，driver 侧只看到 "root isolate is taking an
+  unusually long time to start"，毫无指向性。全量构建（flutter clean 后第一次）必好，
+  增量（10-17s 的 assembleDebug）必坏。怀疑与 Defender 扫描 build 目录有关（本 skill
+  Gradle 一节早有预警）。
+- 现象三：修好上面两条后 shots drive 仍会把 qemu 宿主进程整个带走（G2A 的推理 drive
+  跑 27 分钟没事，shots drive 稳定 3-5 分钟内死）。真凶是 Impeller 的 OpenGLES 后端
+  在软件渲染下跑 takeScreenshot。`flutter drive --no-enable-impeller`（退回 Skia，
+  仅 deprecation 警告）后 8 张截图全部跑通。真机不受影响，这是纯测试环境 workaround。
+- 教训：模拟器"消失/卡死"时先查 crash DB 的 minidump，再看 `systeminfo` 内存——
+  r2 把 GPU 崩溃误判成内存问题，多烧了一轮预算。

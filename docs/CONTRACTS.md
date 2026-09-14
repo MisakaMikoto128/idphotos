@@ -189,7 +189,23 @@ widget 树内部结构随时可能变，测试只认这几个 Key：
 | `Key('crop_handle_tl'/'tr'/'bl'/'br')` | 裁剪框四角控制点 | G2C.5 热区 / G2C.6 宽高比 / G2C.7 边界 |
 | `Key('crop_handle_t'/'b'/'l'/'r')` | 裁剪框四边控制点 | 同上 |
 | `Key('crop_box')` | 裁剪框本体 | 整体拖动 |
+| `Key('photo_display')` | **区域 A 内照片实际铺满的矩形**（`contain` 后的显示区，比裁剪框大） | G2C.2/2C.4 排除照片区域；G2C.7 判裁剪框边界 |
 | `Key('candidate_<styleId>')` | 每个候选项，如 `candidate_blue` | G2C 选中态 |
 
 ui-woodcraft 若要改 Key 名或场景 id，必须在报告里向主会话提出，不得自己改 ——
 改了 gatekeeper 的截图测试会静默截错图，而不是报错。
+
+### 7.3 `photo_display` 的由来（阶段 2 后追加）
+
+`/code-review high` 发现 G2C.2/2C.4 只排除了 `crop_box`，而区域 A 里照片是铺满整个显示矩形的，
+裁剪框外的照片只被压暗（`Shade.scrim` 60% alpha）而没有从采样集合剔除。
+换成饱和度高的真实照片后，这些像素会被拿去和木色卡比 ΔE ——
+**一个本该只评界面 chrome 的门禁会误判 FAIL，冤枉 ui-woodcraft**。
+ACCEPTANCE.md 2C.2 的原文是"截图**去除照片区域后**"，所以这不是加严，是修正实现使其符合原文。
+
+gatekeeper 拒绝了"用 `find.byType(CropOverlay)` 绕过去"的做法，理由正确：
+那会让门禁耦合到 ui-woodcraft 的内部结构，违反 §7.2 "只准用列出的稳定 Key"。
+因此由主会话在此正式加入 `photo_display`。
+
+同一个 Key 还用于修正 G2C.7：裁剪框的边界约束应当相对**照片显示区**判定，
+而不是相对区域 A 容器 —— 后者判不出"框跑到照片外、成片出现底色填充条"这类缺陷。
