@@ -119,6 +119,42 @@ List<RawFace> nonMaxSuppression(List<RawFace> faces,
   return keep;
 }
 
+/// 主体人脸中心权重里，贴住画面角落时的最大扣减比例。
+///
+/// 得分 = 面积 × (1 - [kCentralityPenalty] · d)，d = 脸中心到画面中心的
+/// 距离 / 半对角线 ∈ [0,1]。取 0.5 意味着"贴角的脸"面积上要大一倍才能
+/// 压过同画面的正中脸；实测在冻结数据集上：三张 5 人合影里自拍者
+/// （既最大也最居中）恒当选，portrait 类贴边主体（1280×720 摄像头横图，
+/// 人在右下角，d≈0.55）是唯一检出脸，权重不改变结果。
+const double kCentralityPenalty = 0.5;
+
+/// 从 NMS 保留的脸里挑证件照主体。
+///
+/// 决策依据（qa-batch r1 问题 4 后定型）：证件照的主体是"画面中心附近的
+/// 大脸"。纯面积最大会把贴近镜头的边缘人物选成主体，纯居中又会被背景里
+/// 的小脸抢走主体，所以用 `面积 × (1 - 0.5·中心偏移)` 的乘法权衡：
+/// 中心偏移按半对角线归一，贴角的脸得 0.5 倍面积权重，正中的脸得 1.0 倍。
+/// 单脸图（含全部黄金集与 portrait 类）不受影响——权重不改变唯一候选。
+RawFace pickSubjectFace(List<RawFace> faces, int imageW, int imageH) {
+  final cx = imageW / 2.0;
+  final cy = imageH / 2.0;
+  final halfDiag = math.sqrt(imageW * imageW + imageH * imageH) / 2.0;
+  RawFace best = faces.first;
+  var bestScore = -1.0;
+  for (final f in faces) {
+    final dx = f.x + f.w / 2 - cx;
+    final dy = f.y + f.h / 2 - cy;
+    final d =
+        (math.sqrt(dx * dx + dy * dy) / halfDiag).clamp(0.0, 1.0);
+    final score = f.area * (1.0 - kCentralityPenalty * d);
+    if (score > bestScore) {
+      bestScore = score;
+      best = f;
+    }
+  }
+  return best;
+}
+
 // ---------------------------------------------------------------------------
 // 头部几何：从 5 个关键点推 chinY / headTopY
 // ---------------------------------------------------------------------------

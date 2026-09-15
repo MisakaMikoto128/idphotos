@@ -43,24 +43,46 @@ double featherSigmaFor(double upscale) {
 /// 抠图结果的可跨 isolate 载荷。用 [TransferableTypedData] 搬运，
 /// 4000×3000 的图 rgba 有 48MB，走普通拷贝会明显拖慢一次调用。
 class MattingPayload {
-  MattingPayload(this.rgba, this.alpha, this.width, this.height);
+  MattingPayload(
+    this.rgba,
+    this.alpha,
+    this.width,
+    this.height, {
+    this.sourceWidth,
+    this.sourceHeight,
+  });
 
   final TransferableTypedData rgba;
   final TransferableTypedData alpha;
   final int width;
   final int height;
 
+  /// 降采样前的原图（摆正后）尺寸；null = 未降采样。
+  final int? sourceWidth;
+  final int? sourceHeight;
+
   MattingResult materialize() => MattingResult(
         rgba: rgba.materialize().asUint8List(),
         alpha: alpha.materialize().asUint8List(),
         width: width,
         height: height,
+        sourceWidth: sourceWidth,
+        sourceHeight: sourceHeight,
       );
 }
 
 /// 完整抠图流程，同步执行。调用方负责把它放进 isolate。
-MattingPayload runMattingSync(Uint8List bytes, int sessionAddress) {
-  final image = decodeToRgb(bytes);
+///
+/// [maxEdge] 非 null 时解码后立即降采样到该长边（dart:ui 快路径不可用时的
+/// 兜底；全尺寸解码的瞬时缓冲不可避免，但后续管线只吃小图）。
+MattingPayload runMattingSync(Uint8List bytes, int sessionAddress,
+    {int? maxEdge}) {
+  final image = decodeToRgb(bytes, maxEdge: maxEdge);
+  return runMattingFromRgb(image, sessionAddress);
+}
+
+/// 抠图推理 + 后处理。输入是已经按引擎工作分辨率解码好的 RGB。
+MattingPayload runMattingFromRgb(DecodedImage image, int sessionAddress) {
   final input = modnetInput(
       image.rgb, image.width, image.height, kMattingInputSize);
 
@@ -100,12 +122,22 @@ MattingPayload runMattingSync(Uint8List bytes, int sessionAddress) {
     TransferableTypedData.fromList(<Uint8List>[alpha]),
     image.width,
     image.height,
+    // 契约口径：只在真的降采样时才填，null = 未降采样（逐位等价旧行为）。
+    sourceWidth:
+        image.sourceWidth != image.width ? image.sourceWidth : null,
+    sourceHeight:
+        image.sourceHeight != image.height ? image.sourceHeight : null,
   );
 }
 
 /// 完整人脸检测流程，同步执行。没检出返回 null（契约要求不抛异常）。
-FaceInfo? runFaceSync(Uint8List bytes, int sessionAddress) {
-  final image = decodeToRgb(bytes);
+FaceInfo? runFaceSync(Uint8List bytes, int sessionAddress, {int? maxEdge}) {
+  final image = decodeToRgb(bytes, maxEdge: maxEdge);
+  return runFaceFromRgb(image, sessionAddress);
+}
+
+/// 人脸检测推理 + 主体选择。输入是已解码好的 RGB（引擎工作分辨率）。
+FaceInfo? runFaceFromRgb(DecodedImage image, int sessionAddress) {
   final input =
       yunetInput(image.rgb, image.width, image.height, kFaceInputSize);
 
@@ -135,9 +167,11 @@ FaceInfo? runFaceSync(Uint8List bytes, int sessionAddress) {
   if (raw.isEmpty) return null;
   final kept = nonMaxSuppression(raw);
   if (kept.isEmpty) return null;
-  // 证件照只关心主体人物：取面积最大的那张脸。
-  kept.sort((a, b) => b.area.compareTo(a.area));
-  final face = toFaceInfo(kept.first, input.scale, image.width, image.height);
+  final face = toFaceInfo(
+      pickSubjectFace(kept, image.width, image.height),
+      input.scale,
+      image.width,
+      image.height);
   final ratio = face.box.width * face.box.height / (image.width * image.height);
   if (ratio < kMinFaceAreaRatio) {
     return null;

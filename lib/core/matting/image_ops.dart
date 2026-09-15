@@ -12,15 +12,112 @@ import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 
 import '../api.dart';
+import 'image_header.dart';
+
+/// 引擎工作分辨率的长边上限。
+///
+/// 模型输入本来就是 512×512，alpha 再放大回去；合成出片最大也就二寸
+/// （413×579@300dpi ≈ 1745px）。长边 2048 对成片质量零损失，但把
+/// 4958×7017 这类扫描件的工作缓冲从 ~140MB/份 压到 ~12MB/份——这是
+/// G4.7 峰值内存达标的根本手段。黄金集长边全部 ≤2048，严格大于才降采样，
+/// 所以对黄金集逐字节零影响。
+const int kEngineMaxEdge = 2048;
+
+/// 引擎工作分辨率的规划结果。
+class WorkingSizePlan {
+  WorkingSizePlan(
+      this.width, this.height, this.sourceWidth, this.sourceHeight,
+      {this.orientation = 1});
+
+  /// 引擎工作分辨率（等比降采样后，长边 = [kEngineMaxEdge]）。
+  final int width;
+  final int height;
+
+  /// 原图（摆正后）尺寸。`width/height == sourceWidth/sourceHeight` 的
+  /// 等比关系恒成立，坐标换算只依赖这一对比值。
+  final int sourceWidth;
+  final int sourceHeight;
+
+  /// 原始 EXIF orientation（1–8）。dart:ui 降采样解码只用于 <5 的图，
+  /// 5–8（旋转类）走 image 包兜底路径，规避解码器平台差异。
+  final int orientation;
+
+  bool get downsampled => width != sourceWidth || height != sourceHeight;
+}
+
+/// 解码**之前**规划引擎工作分辨率。
+///
+/// 头部解析不出（冷门格式）返回 null，调用方走"解码后才知道尺寸"的旧路径；
+/// 摆正后长边 > [kMaxImageEdgePx] 直接抛 [ImageTooLargeException]——
+/// 契约允许拒绝，而且不必为拒绝一张 20000px 的图先解码 3 亿像素。
+WorkingSizePlan? planWorkingSize(Uint8List bytes) {
+  final header = readImageHeaderSize(bytes);
+  if (header == null) return null;
+  final long = math.max(header.width, header.height);
+  if (long > kMaxImageEdgePx) {
+    throw const ImageTooLargeException();
+  }
+  if (long <= kEngineMaxEdge) {
+    return WorkingSizePlan(
+        header.width, header.height, header.width, header.height,
+        orientation: header.orientation);
+  }
+  final s = kEngineMaxEdge / long;
+  return WorkingSizePlan(
+    (header.width * s).round().clamp(1, kEngineMaxEdge),
+    (header.height * s).round().clamp(1, kEngineMaxEdge),
+    header.width,
+    header.height,
+    orientation: header.orientation,
+  );
+}
+
+/// dart:ui 解码产物（RGBA）→ [DecodedImage]（丢掉 alpha 通道）。
+///
+/// [sourceWidth]/[sourceHeight] 传降采样前的原图（摆正后）尺寸，
+/// 未降采样时省略即可。
+DecodedImage rgbaToDecoded(
+  Uint8List rgba,
+  int width,
+  int height, {
+  int? sourceWidth,
+  int? sourceHeight,
+}) {
+  assert(rgba.length == width * height * 4);
+  final rgb = Uint8List(width * height * 3);
+  for (var i = 0, j = 0, o = 0; i < rgb.length; i += 3, j += 4, o += 4) {
+    rgb[i] = rgba[o];
+    rgb[i + 1] = rgba[o + 1];
+    rgb[i + 2] = rgba[o + 2];
+  }
+  return DecodedImage(
+    rgb,
+    width,
+    height,
+    sourceWidth: sourceWidth,
+    sourceHeight: sourceHeight,
+  );
+}
 
 /// 解码后的原图，RGB 紧凑排布（w*h*3），外加一份 RGBA 视图所需的信息。
 class DecodedImage {
-  DecodedImage(this.rgb, this.width, this.height);
+  DecodedImage(
+    this.rgb,
+    this.width,
+    this.height, {
+    int? sourceWidth,
+    int? sourceHeight,
+  })  : sourceWidth = sourceWidth ?? width,
+        sourceHeight = sourceHeight ?? height;
 
   /// 长度 = width * height * 3，顺序 R,G,B。
   final Uint8List rgb;
   final int width;
   final int height;
+
+  /// 解码摆正后、**降采样前**的尺寸（未降采样时与 [width]/[height] 相同）。
+  final int sourceWidth;
+  final int sourceHeight;
 
   int get pixelCount => width * height;
 
@@ -41,10 +138,14 @@ class DecodedImage {
 ///
 /// - 解码不出来 → [UnsupportedImageException]
 /// - 长边超过 [kMaxImageEdgePx] → [ImageTooLargeException]
+/// - [maxEdge] 非 null 且解码结果长边超过它时，解码后立即等比降采样到
+///   该长边（面积插值）。这是 dart:ui 降采样解码不可用时的兜底路径——
+///   全尺寸解码的瞬时缓冲躲不掉，但后续管线只吃小图。
 ///
-/// EXIF 方向会被烘焙进像素，这与参考实现 `cv2.imread` 的默认行为一致
-/// （OpenCV 自 3.4.1 起默认应用 EXIF orientation）。
-DecodedImage decodeToRgb(Uint8List bytes) {
+/// EXIF 方向会被烘焙进像素。注意 image 包 4.9 的 JPEG 解码器在 `getImage`
+/// 里**已经**烘焙过 orientation 并把 tag 置空，下面的 `bakeOrientation`
+/// 只兜真正还带 tag 的格式；这与参考实现 `cv2.imread` 的默认行为一致。
+DecodedImage decodeToRgb(Uint8List bytes, {int? maxEdge}) {
   if (bytes.isEmpty) {
     throw const UnsupportedImageException();
   }
@@ -68,11 +169,22 @@ DecodedImage decodeToRgb(Uint8List bytes) {
       decoded.exif.imageIfd.orientation != 1) {
     decoded = img.bakeOrientation(decoded);
   }
-  final w = decoded.width;
-  final h = decoded.height;
-  if (w <= 0 || h <= 0) {
+  final w0 = decoded.width;
+  final h0 = decoded.height;
+  if (w0 <= 0 || h0 <= 0) {
     throw const UnsupportedImageException();
   }
+  if (maxEdge != null && math.max(w0, h0) > maxEdge) {
+    final s = maxEdge / math.max(w0, h0);
+    decoded = img.copyResize(
+      decoded,
+      width: (w0 * s).round().clamp(1, maxEdge),
+      height: (h0 * s).round().clamp(1, maxEdge),
+      interpolation: img.Interpolation.average,
+    );
+  }
+  final w = decoded.width;
+  final h = decoded.height;
   // 统一成 8bit 三通道再取字节：源图可能是灰度、带调色板、16bit 或带 alpha。
   if (decoded.numChannels != 3 || decoded.format != img.Format.uint8) {
     decoded = decoded.convert(format: img.Format.uint8, numChannels: 3);
@@ -81,7 +193,7 @@ DecodedImage decodeToRgb(Uint8List bytes) {
   if (rgb.length != w * h * 3) {
     throw const UnsupportedImageException();
   }
-  return DecodedImage(rgb, w, h);
+  return DecodedImage(rgb, w, h, sourceWidth: w0, sourceHeight: h0);
 }
 
 /// 一维面积重采样的权重表。等价于 OpenCV `INTER_AREA`：
