@@ -299,6 +299,11 @@ class MuZhaoController implements IdPhotoController {
     _recompose(showProgress: false);
   }
 
+  /// 保存序号：与时间戳共同保证文件名在本进程内唯一
+  /// （审查对抗 q06：仅毫秒时间戳在同毫秒连点时撞名，并发 writeAsBytes
+  /// 互相截断产出损坏文件，X4 的失败清理还会误删同名文件）。
+  int _saveSeq = 0;
+
   @override
   Future<String> save(Candidate c) async {
     // 返回的路径必须真实存在且可重新解码（G3.3），所以先在私有目录落一份。
@@ -308,7 +313,8 @@ class MuZhaoController implements IdPhotoController {
     final Directory dir = await getTemporaryDirectory();
     final File file = File(
       '${dir.path}'
-      '/muzhao_${DateTime.now().millisecondsSinceEpoch}_${c.style.id}.jpg',
+      '/muzhao_${DateTime.now().millisecondsSinceEpoch}'
+      '_${_saveSeq++}_${c.style.id}.jpg',
     );
     try {
       await file.writeAsBytes(c.jpegBytes, flush: true);
