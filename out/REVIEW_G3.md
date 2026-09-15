@@ -91,3 +91,19 @@
 - **ml-porting**：X5(env 泄漏)
 - /simplify：A1 / A4 / S5
 - 流程：C1/C2（已回应）
+
+---
+
+## 补充发现 4（移除行为审计角度，4 条 + 9 项核清）
+
+| # | 严重度 | 位置 | 问题 | 处置 |
+|---|---|---|---|---|
+| B1 | MEDIUM | ort_runtime.dart:82 | = X5 的确认版：`_envInitialized` per-isolate 把双重 CreateEnv 泄漏**收窄到每次 _loadModels 一次**而非消除；warmUp 失败重试路径持续累积 native env，无释放通道 | 回派 ml-porting（与 X5 合并处理） |
+| B2 | MEDIUM | imaging/compose_engine.dart:300 | 刚体反旋转（#3 修复）的代价坐实：用户贴边框选 + ~10° roll 时框出旋转画布，出界区渲染为平色底——**outOfBoundsFraction 只进诊断，UI 无警示、保存无拦截**，用户框选的内容被静默丢弃且无法察觉 | 记录为已知取舍；UI 警示留待 /simplify 或后续迭代（需要 AppState 加提示通道，属契约变更，不在阶段 4 强推） |
+| B3 | LOW | tools/gate/capture_shots.dart:70 | 模拟器启动从 `flutter emulators --launch`（有退出码、快速失败）换成 detached Process.start 且 stdout/stderr 全弃、不留 PID：flag 不兼容时 gate 日志零诊断，白烧 3 分钟 bootTimeout | 回派 gatekeeper（它自己的文件，它修） |
+| B4 | LOW | main.dart:28 | = #5 确认版：移除的占位 home 不会失败，新的 unawaited warmUp 引入"启动期静默未处理拒绝"模式 | 主会话修（已在队列） |
+
+**该角度核清的 9 项**（摘关键）：G1.6 不依赖已删除的占位 home（shots_test 已不 import main.dart）；copyWith(clearSuggestedCrop) 加法安全；ort options finally-release 正确修复真实泄漏；crop_geometry 角点修复数学成立且有回归测试；fonts 新字符集是旧集严格超集（0 删 148 增，无豆腐回归）；gate 脚本改动均为加强非放松（gate_G2C 从 first-match 改为全 case 必过）。
+
+## 最终账目（5/8 角度交付：共 29 条 + 2 流程观察）
+主会话修：X1(HIGH) X2 X3 X4 #2 #5+A6 A2+S1+S2+S3 A3 ｜ ui-woodcraft：#4 A5 S6 S4 X6 ｜ ml-porting：X5+B1 ｜ gatekeeper：B3 ｜ /simplify：A1 A4 S5 B2 ｜ 流程：C1/C2（已回应）
