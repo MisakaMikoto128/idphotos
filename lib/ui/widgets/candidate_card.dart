@@ -9,15 +9,16 @@ library;
 import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api.dart';
+import '../state/providers.dart';
 import '../theme/paper_painter.dart';
 import '../theme/surfaces.dart';
 import '../theme/tokens.dart';
 import '../theme/wood_painter.dart';
 import 'metal.dart';
 import 'press_effect.dart';
-import 'sync_raster.dart';
 
 /// 未选中候选的降饱和滤镜。
 ///
@@ -31,7 +32,7 @@ const ColorFilter _desaturate = ColorFilter.matrix(<double>[
   0, 0, 0, 1, 0, //
 ]);
 
-class CandidateCard extends StatelessWidget {
+class CandidateCard extends ConsumerWidget {
   final BackgroundStyle style;
 
   /// null = 还在冲洗，画显影占位。
@@ -45,9 +46,6 @@ class CandidateCard extends StatelessWidget {
   /// 冲洗中时用的占位内容。
   final Widget? placeholder;
 
-  /// true = 缩略图用同步光栅渲染（截图/测试场景，见 [SyncRaster]）。
-  final bool syncRaster;
-
   final int seed;
 
   const CandidateCard({
@@ -59,12 +57,14 @@ class CandidateCard extends StatelessWidget {
     required this.width,
     required this.onTap,
     this.placeholder,
-    this.syncRaster = false,
     this.seed = 11,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 照片渲染器由单一注入点决定（审查 A4）：真机 Image.memory，
+    // 截图/测试场景 SyncRaster。
+    final PhotoRasterBuilder raster = ref.watch(photoRasterProvider);
     return PressSurface(
       onTap: onTap,
       sink: 1,
@@ -83,7 +83,7 @@ class CandidateCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                _frame(),
+                _frame(raster),
                 const SizedBox(height: 5),
                 Nameplate(text: style.nameZh, highlighted: selected),
               ],
@@ -100,7 +100,7 @@ class CandidateCard extends StatelessWidget {
     return ColorFiltered(colorFilter: _desaturate, child: photo);
   }
 
-  Widget _frame() {
+  Widget _frame(PhotoRasterBuilder raster) {
     final Widget photo = AspectRatio(
       aspectRatio: aspectRatio,
       child: Stack(
@@ -111,16 +111,7 @@ class CandidateCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(3),
               child: ClipRect(
-                child: _tinted(
-                  syncRaster
-                      ? SyncRaster(bytes: thumb!, fit: BoxFit.cover)
-                      : Image.memory(
-                          thumb!,
-                          fit: BoxFit.cover,
-                          gaplessPlayback: true,
-                          filterQuality: FilterQuality.medium,
-                        ),
-                ),
+                child: _tinted(raster(thumb!, BoxFit.cover)),
               ),
             )
           else if (placeholder != null)

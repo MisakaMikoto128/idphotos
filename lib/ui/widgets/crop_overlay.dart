@@ -16,16 +16,17 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../state/providers.dart';
 import '../theme/tokens.dart';
 import '../util/crop_geometry.dart';
-import 'sync_raster.dart';
 
 /// 控制点视觉臂长（角）与条长（边）。命中区固定 [kMinHitSize]。
 const double _cornerArm = 19;
 const double _edgeBar = 26;
 
-class CropOverlay extends StatefulWidget {
+class CropOverlay extends ConsumerStatefulWidget {
   /// 原图像素尺寸。
   final Size sourceSize;
 
@@ -38,13 +39,13 @@ class CropOverlay extends StatefulWidget {
   /// 原图字节。null 时只画框（widget test 里不需要真的解码像素）。
   final Uint8List? imageBytes;
 
-  /// true = 用同步光栅（`SyncRaster`）渲染照片，首帧即出图。
-  /// 截图/测试场景必须开（`Image.memory` 的异步解码是官方 S2 截图间歇性
-  /// 丢照片的根因）；真机大图保持 false，同步解码会卡 UI 线程。
-  final bool syncRaster;
-
   /// 正在按住的控制点 id（[CropHandle.keySuffix]），null = 没在拖。
   final String? activeHandle;
+
+  /// false = 拖拽交互整体禁用（引擎还在冲洗时，审查 X6）。框与把手变淡
+  /// 表示暂不可用 —— 此时用户拖出的框会与新图 token 匹配，等 suggestedCrop
+  /// 到达时反而被静默覆盖，引擎的自动取景就永远不出现了。
+  final bool interactive;
 
   final ValueChanged<Rect> onChanged;
   final ValueChanged<String> onDragStart;
@@ -57,17 +58,17 @@ class CropOverlay extends StatefulWidget {
     required this.aspectRatio,
     required this.imageBytes,
     required this.activeHandle,
-    this.syncRaster = false,
+    this.interactive = true,
     required this.onChanged,
     required this.onDragStart,
     required this.onDragEnd,
   });
 
   @override
-  State<CropOverlay> createState() => _CropOverlayState();
+  ConsumerState<CropOverlay> createState() => _CropOverlayState();
 }
 
-class _CropOverlayState extends State<CropOverlay> {
+class _CropOverlayState extends ConsumerState<CropOverlay> {
   final GlobalKey _stackKey = GlobalKey();
 
   Rect _startCrop = Rect.zero;
@@ -81,6 +82,7 @@ class _CropOverlayState extends State<CropOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final bool interactive = widget.interactive;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints c) {
         final Rect viewport =
@@ -97,6 +99,9 @@ class _CropOverlayState extends State<CropOverlay> {
           bounds.width,
           72 / (scale <= 0 ? 1 : scale),
         );
+        // 照片渲染器由单一注入点决定（审查 A4）：真机 Image.memory，
+        // 截图/测试场景 SyncRaster。
+        final PhotoRasterBuilder raster = ref.watch(photoRasterProvider);
 
         void applyResize(CropHandle h, Offset globalPos) {
           final Offset local = _toLocal(globalPos);
@@ -127,17 +132,7 @@ class _CropOverlayState extends State<CropOverlay> {
               rect: display,
               child: widget.imageBytes == null
                   ? const SizedBox.expand()
-                  : widget.syncRaster
-                      ? SyncRaster(
-                          bytes: widget.imageBytes!,
-                          fit: BoxFit.fill,
-                        )
-                      : Image.memory(
-                          widget.imageBytes!,
-                          fit: BoxFit.fill,
-                          gaplessPlayback: true,
-                          filterQuality: FilterQuality.medium,
-                        ),
+                  : raster(widget.imageBytes!, BoxFit.fill),
             ),
             // 压暗 + 框线 + 三分线 + 角标
             Positioned.fill(
@@ -147,6 +142,7 @@ class _CropOverlayState extends State<CropOverlay> {
                     display: display,
                     crop: cropView,
                     active: widget.activeHandle != null,
+                    dimmed: !interactive,
                   ),
                 ),
               ),
@@ -154,24 +150,29 @@ class _CropOverlayState extends State<CropOverlay> {
             // 框内整体拖动
             Positioned.fromRect(
               rect: cropView,
-              child: GestureDetector(
-                key: const Key('crop_box'),
-                behavior: HitTestBehavior.opaque,
-                onPanStart: (DragStartDetails d) {
-                  _startCrop = widget.crop;
-                  _startLocal = _toLocal(d.globalPosition);
-                  widget.onDragStart(CropHandle.move.keySuffix);
-                },
-                onPanUpdate: (DragUpdateDetails d) {
-                  final Offset local = _toLocal(d.globalPosition);
-                  final Offset deltaSrc =
-                      (local - _startLocal) / (scale <= 0 ? 1 : scale);
-                  widget.onChanged(
-                      CropMath.move(_startCrop, deltaSrc, bounds));
-                },
-                onPanEnd: (_) => widget.onDragEnd(),
-                onPanCancel: widget.onDragEnd,
-                child: const SizedBox.expand(),
+              child: IgnorePointer(
+                // 冲洗中禁拖（审查 X6）：这时拖出的框会把 suggestedCrop
+                // 顶掉，引擎的自动取景永远不出现。
+                ignoring: !interactive,
+                child: GestureDetector(
+                  key: const Key('crop_box'),
+                  behavior: HitTestBehavior.opaque,
+                  onPanStart: (DragStartDetails d) {
+                    _startCrop = widget.crop;
+                    _startLocal = _toLocal(d.globalPosition);
+                    widget.onDragStart(CropHandle.move.keySuffix);
+                  },
+                  onPanUpdate: (DragUpdateDetails d) {
+                    final Offset local = _toLocal(d.globalPosition);
+                    final Offset deltaSrc =
+                        (local - _startLocal) / (scale <= 0 ? 1 : scale);
+                    widget.onChanged(
+                        CropMath.move(_startCrop, deltaSrc, bounds));
+                  },
+                  onPanEnd: (_) => widget.onDragEnd(),
+                  onPanCancel: widget.onDragEnd,
+                  child: const SizedBox.expand(),
+                ),
               ),
             ),
             // 8 个控制点
@@ -180,6 +181,7 @@ class _CropOverlayState extends State<CropOverlay> {
                 handle: h,
                 cropView: cropView,
                 viewport: viewport,
+                interactive: interactive,
                 onStart: (DragStartDetails d) {
                   _startCrop = widget.crop;
                   _startLocal = _toLocal(d.globalPosition);
@@ -200,6 +202,7 @@ class _CropOverlayState extends State<CropOverlay> {
     required CropHandle handle,
     required Rect cropView,
     required Rect viewport,
+    required bool interactive,
     required void Function(DragStartDetails) onStart,
     required void Function(DragUpdateDetails) onUpdate,
     required VoidCallback onEnd,
@@ -220,20 +223,28 @@ class _CropOverlayState extends State<CropOverlay> {
       top: top,
       width: kMinHitSize,
       height: kMinHitSize,
-      child: GestureDetector(
-        key: Key('crop_handle_${handle.keySuffix}'),
-        behavior: HitTestBehavior.opaque,
-        onPanStart: onStart,
-        onPanUpdate: onUpdate,
-        onPanEnd: (_) => onEnd(),
-        onPanCancel: onEnd,
-        child: CustomPaint(
-          size: const Size(kMinHitSize, kMinHitSize),
-          painter: _HandlePainter(
-            handle: handle,
-            active: active,
-            // 命中区可能被推回可视区内，角标仍要画在裁剪框真正的角上
-            anchor: Offset(cx - left, cy - top),
+      child: IgnorePointer(
+        // 冲洗中把手一起禁用（审查 X6）
+        ignoring: !interactive,
+        child: Opacity(
+          // 不可用态整体变淡示意；仍是铜色系，不引入新的黑白
+          opacity: interactive ? 1 : 0.45,
+          child: GestureDetector(
+            key: Key('crop_handle_${handle.keySuffix}'),
+            behavior: HitTestBehavior.opaque,
+            onPanStart: onStart,
+            onPanUpdate: onUpdate,
+            onPanEnd: (_) => onEnd(),
+            onPanCancel: onEnd,
+            child: CustomPaint(
+              size: const Size(kMinHitSize, kMinHitSize),
+              painter: _HandlePainter(
+                handle: handle,
+                active: active,
+                // 命中区可能被推回可视区内，角标仍要画在裁剪框真正的角上
+                anchor: Offset(cx - left, cy - top),
+              ),
+            ),
           ),
         ),
       ),
@@ -247,10 +258,14 @@ class _CropChromePainter extends CustomPainter {
   final Rect crop;
   final bool active;
 
+  /// true = 拖拽交互被禁用（冲洗中），框线整体降淡示意。
+  final bool dimmed;
+
   const _CropChromePainter({
     required this.display,
     required this.crop,
     required this.active,
+    this.dimmed = false,
   });
 
   @override
@@ -274,14 +289,16 @@ class _CropChromePainter extends CustomPainter {
       canvas.drawLine(Offset(crop.left, y), Offset(crop.right, y), thirds);
     }
 
-    // 框线：2px brassHi 实线；按住时加粗并补一圈暗托，形成"被捏住"的重量感
+    // 框线：2px brassHi 实线；按住时加粗并补一圈暗托，形成"被捏住"的重量感。
+    // 禁用态（dimmed）整组降淡，表示"暂不可拖"。
+    final double frameAlpha = dimmed ? 0.45 : 1.0;
     if (active) {
       canvas.drawRect(
         crop.inflate(2.5),
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 5
-          ..color = T.brassShadow.withValues(alpha: 0.75),
+          ..color = T.brassShadow.withValues(alpha: 0.75 * frameAlpha),
       );
     }
     canvas.drawRect(
@@ -289,7 +306,8 @@ class _CropChromePainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = active ? 3 : 2
-        ..color = active ? T.brassHi : T.brassHi.withValues(alpha: 0.92),
+        ..color = T.brassHi
+            .withValues(alpha: (active ? 1.0 : 0.92) * frameAlpha),
     );
     // 内侧一条暗线，让框在浅色照片上也看得见（RUBRIC R7 对比度）
     canvas.drawRect(
@@ -297,7 +315,7 @@ class _CropChromePainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
-        ..color = T.woodDark.withValues(alpha: 0.55),
+        ..color = T.woodDark.withValues(alpha: 0.55 * frameAlpha),
     );
 
     // 四角 L 形铜角标由 _HandlePainter 画（它同时是命中区），
@@ -306,7 +324,10 @@ class _CropChromePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CropChromePainter old) =>
-      old.display != display || old.crop != crop || old.active != active;
+      old.display != display ||
+      old.crop != crop ||
+      old.active != active ||
+      old.dimmed != dimmed;
 }
 
 /// 单个控制点的视觉。命中区 48×48，画出来的只有中间一小块。

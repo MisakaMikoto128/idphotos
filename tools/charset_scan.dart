@@ -12,7 +12,7 @@
 ///
 /// 用法（在项目根目录）：
 /// ```
-/// dart run lib/ui/dev/charset_scan.dart
+/// dart run tools/charset_scan.dart
 /// ```
 /// 输出比对报告，并把子集字符表写到 `%TEMP%\muzhao_charset.txt` 供
 /// `pyftsubset --text-file` 使用。纯 dart:io，可在 VM 下直接跑。

@@ -31,8 +31,6 @@ class AreaBCandidates extends ConsumerWidget {
     final AppState app = ref.watch(appStateProvider);
     final WorkbenchState wb = ref.watch(workbenchProvider);
     final double aspect = app.spec.aspectRatio;
-    final bool syncRaster =
-        ref.watch(uiConfigProvider.select((UiConfig c) => c.syncRaster));
 
     final bool developing =
         app.stage == Stage.matting || app.stage == Stage.composing;
@@ -78,7 +76,6 @@ class AreaBCandidates extends ConsumerWidget {
                           selected:
                               hasResult && wb.selectedStyleId == style.id,
                           width: cardW,
-                          syncRaster: syncRaster,
                           seed: 11 + i * 13,
                           onTap: found == null
                               ? null

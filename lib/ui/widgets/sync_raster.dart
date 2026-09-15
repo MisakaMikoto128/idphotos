@@ -16,9 +16,10 @@
 /// ## 性能与适用范围
 ///
 /// 同步解码 + 网格构建是一次性成本（32 万像素 ≈ 几十毫秒），结果按字节
-/// 身份缓存。**只给截图/测试场景的小图用**（由 `UiConfig.syncRaster` 打开）；
-/// 真实用户照片（可达上千万像素）仍走 `Image.memory` 异步解码，
-/// 否则会卡住首帧。
+/// 身份缓存（LRU，上限 8 条）。**只给截图/测试场景的小图用**（注入点是
+/// `state/providers.dart` 的 `photoRasterProvider`，由 `UiConfig.syncRaster`
+/// 决定是否走本部件）；真实用户照片（可达上千万像素）仍走 `Image.memory`
+/// 异步解码，否则会卡住首帧。
 ///
 /// 势力范围：ui-woodcraft。
 library;
@@ -39,27 +40,47 @@ final class _Raster {
   const _Raster(this.width, this.height, this.vertices);
 }
 
+/// 最近使用的条目提到队尾，超出上限从队头淘汰。
+///
 /// 按**字节实例身份**缓存（不用哈希做 key，避免碰撞导致渲染错图）。
-/// 场景里的样张与候选缩略图都是进程级缓存的同一份字节，条目数 ≤ 8。
+/// 必须有上限：42 张 distinct 缩略图的场景若不淘汰，每张钉住的约 10 万
+/// 顶点（几十 MB）会随场景增长永不释放（审查 S6）。
+const int kCacheCap = 8;
 final List<(Uint8List, _Raster)> _cache = <(Uint8List, _Raster)>[];
 
 _Raster _rasterFor(Uint8List bytes) {
-  for (final (Uint8List b, _Raster r) in _cache) {
-    if (identical(b, bytes)) return r;
+  for (int i = 0; i < _cache.length; i++) {
+    final (Uint8List b, _Raster r) = _cache[i];
+    if (identical(b, bytes)) {
+      if (i != _cache.length - 1) {
+        _cache.removeAt(i);
+        _cache.add((b, r)); // 命中即提到队尾（最近使用）
+      }
+      return r;
+    }
   }
   final _Raster r = _build(bytes);
   _cache.add((bytes, r));
+  if (_cache.length > kCacheCap) _cache.removeAt(0);
   return r;
 }
 
 _Raster _build(Uint8List bytes) {
-  final img.Image? decoded = img.decodeImage(bytes);
-  if (decoded == null) {
+  img.Image? maybe = img.decodeImage(bytes);
+  if (maybe == null) {
     throw ArgumentError.value(
       bytes.length,
       'bytes',
       'SyncRaster: 无法解码的图片数据',
     );
+  }
+  // EXIF 方向必须在此摆正，与引擎 decodeToRgb 的 bakeOrientation 口径一致
+  // （审查 #4）：否则 orientation=6 的手机竖拍照在这里是横躺的，而
+  // suggestedCrop/裁剪框全在摆正后的坐标系里，框与照片对不上。
+  img.Image decoded = maybe;
+  if (decoded.exif.imageIfd.hasOrientation &&
+      decoded.exif.imageIfd.orientation != 1) {
+    decoded = img.bakeOrientation(decoded);
   }
   final Uint8List px = decoded.getBytes(order: img.ChannelOrder.rgba);
   final int w = decoded.width;

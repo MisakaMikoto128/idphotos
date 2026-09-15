@@ -8,11 +8,15 @@
 /// 势力范围：ui-woodcraft。
 library;
 
+import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
+import 'package:flutter/widgets.dart'
+    show BoxFit, FilterQuality, Image, Widget;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api.dart';
+import '../widgets/sync_raster.dart';
 
 /// 引擎入口。**必须在 ProviderScope 里 override**。
 final Provider<IdPhotoController> controllerProvider =
@@ -54,6 +58,9 @@ class UiConfig {
   /// 的帧回调，官方截图曾因此间歇性丢掉整张照片（out/VISUAL_2C.md 致命项）。
   /// 截图/测试场景必须置 true，保证首帧就含有照片像素；
   /// 真机运行保持 false——大图同步解码会卡 UI 线程。
+  ///
+  /// 本旗标的**唯一消费点**是下面的 [photoRasterProvider]（审查 A4）：
+  /// 生产 widget 不再各自穿透这个分支。
   final bool syncRaster;
 
   const UiConfig({
@@ -66,6 +73,31 @@ class UiConfig {
 
 final Provider<UiConfig> uiConfigProvider =
     Provider<UiConfig>((Ref ref) => const UiConfig());
+
+/// 照片字节 → 图片 widget 的构建器（审查 A4 的单一注入点）。
+///
+/// `UiConfig.syncRaster` 在生产代码里只被本 provider 消费：
+///
+/// * 默认（真机）：`Image.memory` 异步解码，带 `gaplessPlayback`；
+/// * 截图/测试（override 了 [uiConfigProvider] 把 syncRaster 打开）：
+///   `SyncRaster` 同步光栅，首帧即出图。
+///
+/// widget 层（区域 A / 区域 B / 裁剪框 / 候选卡）一律通过本 provider 取
+/// 渲染器，不再各自携带 `syncRaster` 分支。
+typedef PhotoRasterBuilder = Widget Function(Uint8List bytes, BoxFit fit);
+
+final Provider<PhotoRasterBuilder> photoRasterProvider =
+    Provider<PhotoRasterBuilder>((Ref ref) {
+  if (ref.watch(uiConfigProvider).syncRaster) {
+    return (Uint8List bytes, BoxFit fit) => SyncRaster(bytes: bytes, fit: fit);
+  }
+  return (Uint8List bytes, BoxFit fit) => Image.memory(
+        bytes,
+        fit: fit,
+        gaplessPlayback: true,
+        filterQuality: FilterQuality.medium,
+      );
+});
 
 /// 纯 UI 的瞬时状态（不属于引擎，不进 `AppState`）。
 class WorkbenchState {

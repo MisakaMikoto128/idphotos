@@ -39,6 +39,19 @@ class AreaASource extends ConsumerWidget {
     final double topInset = MediaQuery.paddingOf(context).top;
     final bool hasImage = app.sourceImage != null;
 
+    // 换了新照片：上一张留下的取图/保存错误立即作废（审查 L3）——
+    // 保存失败的红条不该跟着新照片走进第二轮。以 sourceImage 的**实例身份**
+    // 判断"换图"：裁剪/换规格等无关更新传的是同一份字节，不会误清。
+    // 载入失败（sourceImage 回到 null）时不清，错误提示要保持可见。
+    ref.listen<AppState>(appStateProvider, (AppState? prev, AppState next) {
+      final Uint8List? prevImg = prev?.sourceImage;
+      final Uint8List? nextImg = next.sourceImage;
+      if (nextImg == null || identical(prevImg, nextImg)) return;
+      final WorkbenchNotifier notifier = ref.read(workbenchProvider.notifier);
+      notifier.setPickError(null);
+      notifier.setSaveError(null);
+    });
+
     return SizedBox.expand(
       key: const Key('area_a'),
       child: Stack(
@@ -251,9 +264,10 @@ class _PhotoFrame extends ConsumerWidget {
         crop: crop,
         aspectRatio: app.spec.aspectRatio,
         imageBytes: bytes,
-        // 截图/测试场景用同步光栅：Image.memory 的异步解码曾让官方 S2
-        // 截图间歇性丢掉整张照片（out/VISUAL_2C.md 致命项）。
-        syncRaster: ref.watch(uiConfigProvider).syncRaster,
+        // 冲洗中（matting/composing）禁拖（审查 X6）：这时拖出的框会带着
+        // 新图 token 进 workbench，suggestedCrop 到达时被静默覆盖，
+        // 引擎的自动取景永远不出现。
+        interactive: app.stage == Stage.ready,
         activeHandle: wb.activeHandle,
         onChanged: (Rect r) {
           ref

@@ -14,8 +14,9 @@
 /// * `assets/fonts/NotoSerifSC-Subset-Regular.ttf`
 /// * `assets/fonts/NotoSerifSC-Subset-Bold.ttf`
 ///
-/// [coveredCharset] 是由 `lib/ui/dev/charset_scan.dart` 从 **`lib/` 全部**
-/// 字符串字面量（含插值内文案）里抽取后再加常用标点得到的，**新增界面文案时
+/// [coveredCharset] 是由 `tools/charset_scan.dart`（原在 lib/ui/dev/，
+/// 审查 S4 后挪到 tools/）从 **`lib/` 全部**字符串字面量（含插值内文案）
+/// 里抽取后再加常用标点得到的，**新增界面文案时
 /// 必须重新跑该扫描器并重新子集化**，否则会出豆腐块（RUBRIC 致命项 6）。
 ///
 /// ## 为什么用 [FontLoader] 而不是 pubspec 的 `fonts:` 段
@@ -72,10 +73,10 @@ abstract final class MuZhaoFonts {
   /// 子集覆盖的**非 ASCII**字符，共 384 个；此外还包含全部 ASCII 可见字符
   /// U+0020–U+007E，合计 479 个。
   ///
-  /// 这份清单由 `lib/ui/dev/charset_scan.dart`（真正的 Dart 字符串字面量
+  /// 这份清单由 `tools/charset_scan.dart`（真正的 Dart 字符串字面量
   /// 扫描器，能正确处理插值 / 转义 / 三引号 / 原始字符串）对 **`lib/` 全部
   /// 源码**自动汇总得到 —— 新增界面文案后必须重新跑一遍
-  /// `dart run lib/ui/dev/charset_scan.dart` 并同步这里，否则新字会变成
+  /// `dart run tools/charset_scan.dart` 并同步这里，否则新字会变成
   /// 豆腐块（RUBRIC 致命项 6）。跑完记得用 fontTools 重新子集化。
   ///
   /// 已知例外：U+21B3（↳）在 Noto Serif SC 源字体里就没有这个字形，离线无法

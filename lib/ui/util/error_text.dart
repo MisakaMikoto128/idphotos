@@ -20,6 +20,10 @@ import 'package:flutter/services.dart';
 
 import '../../core/api.dart';
 
+/// CONTRACTS §6 的文案以 `api.dart` 的异常常量为**唯一出处**，这里只引用
+/// 不复制（审查 A5）——契约改词时这里自动跟上，不会静默漂移。
+const UnsupportedImageException _kUnsupportedImage = UnsupportedImageException();
+
 /// 把任意异常翻成一句中文。永远返回非空字符串。
 String errorTextOf(Object error, {required String fallback}) {
   // 引擎自己的异常已经带好文案（CONTRACTS §6 的四条）
@@ -37,7 +41,7 @@ String errorTextOf(Object error, {required String fallback}) {
       case 'already_active':
         return '正在选择照片，请稍等一下';
       case 'invalid_image':
-        return '这个图片格式打不开';
+        return _kUnsupportedImage.messageZh;
       case 'multiple_request':
         return '正在选择照片，请稍等一下';
     }
