@@ -19,11 +19,23 @@ import 'crop_geometry.dart';
 ///
 /// ## 为什么需要
 ///
-/// 同一张抠图会被 7 规格 × 6 底色反复合成（一个数据项 42 次 compose），
-/// 每次调用的输出缓冲尺寸不变（规格尺寸是常量），却逐次新分配 ——
-/// 旧缓冲变成跨调用滞留的垃圾，正是 G4.7 峰值瞬时滞留的组成之一。
-/// 缓冲按「用途 + 尺寸」键控复用后，稳态下每个键只分配一次，跨图
-/// 乃至跨数据项都命中。
+/// 同一张抠图会被多底色反复合成，每次调用的输出缓冲尺寸不变（规格尺寸是
+/// 常量），却逐次新分配 —— 旧缓冲变成跨调用滞留的垃圾。缓冲按
+/// 「用途 + 尺寸」键控复用后，同一张图内每个键只分配一次。
+///
+/// ## 生命周期纪律（G4 r3 实测教训，v4 终裁）
+///
+/// 第一版池只有「按尺寸键控 + 不还字号」两条规则，没有总量边界，也没有
+/// 「换图失效」—— qa-batch v4 实测 4.7 峰值 563.1→638.9MB、4.8 回落
+/// +36.4→+135.8MB，与池的跨图滞留在时间线上吻合。所以本版加了三条硬约束：
+///
+/// 1. **总字节预算** [kMaxPoolBudget]：任何时刻池内驻留字节数不得超过它，
+///    超出即按 LRU 淘汰（[release] 时逐出最旧归还未取用的缓冲）；
+/// 2. **LRU**：`LinkedHashMap` 插入序即最近归还序，[acquire] 取用即从池中
+///    移出（使用中的缓冲不算驻留），淘汰永远先动最旧的那块；
+/// 3. **按「当前图片」失效**：合成引擎在检测到新的一张抠图时调 [clear]
+///    全池清空（见 compose_engine 的 `_cleanForegroundOf`）—— 一张图内部
+///    多次 compose 的复用收益保住，跨图滞留归零。**不依赖尺寸自然错过**。
 ///
 /// ## 防串染（上一张的残留像素泄进这一张）
 ///
@@ -38,31 +50,62 @@ import 'crop_geometry.dart';
 ///
 /// 佐证：黄金集 8 张 × 7 规格 × 3 底色 + 同尺寸双图交替（跨图同键）+
 /// 框选越界路径的输出哈希，与不复用的基线逐位一致
-/// （`lib/core/imaging/dev_pool_bitcheck.dart`）。
+/// （`lib/core/imaging/dev_pool_bitcheck.dart`）；池驻留审计见
+/// `lib/core/imaging/dev_pool_audit.dart`（20 图，驻留 ≤ 预算且不随图数增长）。
 ///
 /// 所有权：[acquire] 后缓冲**独占**交给调用方，直到 [release] 归还；
 /// 同一键在归还前再次 acquire 会得到新分配（不会双持同一块内存）。
 class WorkBufferPool {
+  /// 池内驻留字节硬上限（32MB）。超限按 LRU 淘汰，见类文档。
+  static const int kMaxPoolBudget = 32 << 20;
+
+  /// 插入序 = 最近归还序（LRU）。取用即 remove，使用中不驻留。
   final Map<String, Uint8List> _free = <String, Uint8List>{};
+
+  int _residentBytes = 0;
+
+  /// 累计 LRU 淘汰次数（审计用，不清零）。
+  int evictions = 0;
 
   /// 取出 [key] 对应的复用缓冲（长度必须恰为 [byteCount]，否则重新分配）。
   Uint8List acquire(String key, int byteCount) {
     final Uint8List? hit = _free.remove(key);
-    if (hit != null && hit.length == byteCount) {
-      return hit;
+    if (hit != null) {
+      _residentBytes -= hit.length;
+      if (hit.length == byteCount) {
+        return hit;
+      }
+      // 尺寸不符：旧块按垃圾丢弃，另配新块。
     }
     return Uint8List(byteCount);
   }
 
   /// 归还缓冲。同一键已有归还时丢弃后到者（防御性：正常流程不会发生）。
   void release(String key, Uint8List buffer) {
-    if (!_free.containsKey(key)) {
-      _free[key] = buffer;
+    if (_free.containsKey(key)) {
+      return;
+    }
+    _free[key] = buffer;
+    _residentBytes += buffer.length;
+    while (_residentBytes > kMaxPoolBudget && _free.length > 1) {
+      // LRU：淘汰最早归还且未取用的缓冲。至少保留刚归还这块本身。
+      final String first = _free.keys.first;
+      _residentBytes -= _free.remove(first)!.length;
+      evictions++;
     }
   }
 
-  /// 清空（换引擎实例 / 显式释放时调用）。
-  void clear() => _free.clear();
+  /// 清空（**换图时必须调用**，见类文档生命周期第 3 条；亦用于显式释放）。
+  void clear() {
+    _free.clear();
+    _residentBytes = 0;
+  }
+
+  /// 当前驻留字节数（不含使用中的缓冲）。池占用审计读取。
+  int get residencyBytes => _residentBytes;
+
+  /// 当前驻留键数。池占用审计读取。
+  int get residentEntries => _free.length;
 }
 
 // ---------------------------------------------------------------------------

@@ -103,10 +103,11 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
 
   /// 渲染输出缓冲池（成品 RGB / 缩略图 RGB，键控「用途 + 尺寸」）。
   ///
-  /// 一张图的 7 规格 × 6 底色合成里，输出缓冲尺寸只取决于规格（常量），
-  /// 复用后稳态下每个键只分配一次，跨图甚至跨数据项都命中 —— 消掉的是
-  /// 每次 compose 一份 w×h×3 的瞬时分配（G4.7 峰值瞬时滞留的组成之一）。
-  /// 预滤波（[MipLevel]）缓冲**刻意不进池**：它被 [_mipCache] 长期持有，
+  /// 一张图的多次合成里，输出缓冲尺寸只取决于规格（常量），复用后同一张图
+  /// 内每个键只分配一次。**生命周期（G4 r3 教训，v4 终裁 4.7/4.8 恶化）**：
+  /// 池带 32MB 总预算 + LRU 淘汰，且**换图即清空**（见 [_cleanForegroundOf]）
+  /// —— 图内复用保住，跨图滞留归零，不依赖尺寸自然错过。预滤波
+  /// （[MipLevel]）缓冲**刻意不进池**：它被 [_mipCache] 长期持有，
   /// 「归还后再发出」的语义不成立，其复用已由 mip 缓存本身承担。
   final WorkBufferPool _renderPool = WorkBufferPool();
 
@@ -118,6 +119,10 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
   /// 会走 alpha 合成分支，本画布 3 通道），缓存后同一尺寸只拷一次，
   /// 之后每次编码把成片 RGB 整块 setRange 进画布 —— 字节不变，编码结果
   /// 逐位一致。
+  ///
+  /// 生命周期：画布内容在每次编码前被**全量覆盖**，跨图持有在字节上惰性；
+  /// 但按「当前图片失效」纪律，换图时一并清空（[_cleanForegroundOf]），
+  /// 每张图重建一次的成本只有一次 w×h×3 拷贝。
   final Map<String, img.Image> _encodeCanvas = <String, img.Image>{};
 
   /// JPEG 编码器实例缓存，键为质量档。
@@ -181,6 +186,23 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
 
   /// 最近一次 [compose] 的几何诊断，供自检与调试读取。
   ComposeDiagnostics? lastDiagnostics;
+
+  // ---- 池占用审计（dev_pool_audit.dart / ml_release_memcheck 侧读取）----
+
+  /// 渲染缓冲池当前驻留字节数（不含使用中的缓冲）。
+  int get poolResidencyBytes => _renderPool.residencyBytes;
+
+  /// 渲染缓冲池当前驻留键数。
+  int get poolResidentEntries => _renderPool.residentEntries;
+
+  /// 渲染缓冲池累计 LRU 淘汰次数。
+  int get poolEvictions => _renderPool.evictions;
+
+  /// 编码画布缓存当前条目数。
+  int get encodeCanvasEntries => _encodeCanvas.length;
+
+  /// 池驻留硬预算（字节）。
+  static int get poolBudgetBytes => WorkBufferPool.kMaxPoolBudget;
 
   @override
   Future<Candidate> compose({
@@ -322,15 +344,23 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     if (cached != null && identical(_cacheKey, m)) {
       return cached;
     }
+    // ---- 换图边界：全量失效 ----
+    // 新的一张抠图到达（对象身份变化）。按「当前图片失效」纪律，把渲染
+    // 输出池与编码画布全部清空 —— 一张图内部多次 compose 的复用收益在
+    // 上一张已兑现，跨图一个字节都不留（G4 r3：池不还字号是 4.7/4.8
+    // 恶化的时间线主嫌）。mip 缓存同理（键是倍数，内容随图变）。
+    _cacheKey = m;
+    _cacheValue = null; // 先置空，防下方抛异常时留下旧图脏缓存
+    _mipCache.clear();
+    _renderPool.clear();
+    _encodeCanvas.clear();
     final CleanForeground clean = decontaminate(
       rgba: m.rgba,
       alpha: m.alpha,
       width: m.width,
       height: m.height,
     );
-    _cacheKey = m;
     _cacheValue = clean;
-    _mipCache.clear();
     return clean;
   }
 
