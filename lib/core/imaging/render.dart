@@ -12,6 +12,60 @@ import 'dart:typed_data';
 import 'crop_geometry.dart';
 
 // ---------------------------------------------------------------------------
+// 可复用工作缓冲池
+// ---------------------------------------------------------------------------
+
+/// 跨 [renderComposite] / [downscaleRgb] 调用复用的**工作缓冲**池。
+///
+/// ## 为什么需要
+///
+/// 同一张抠图会被 7 规格 × 6 底色反复合成（一个数据项 42 次 compose），
+/// 每次调用的输出缓冲尺寸不变（规格尺寸是常量），却逐次新分配 ——
+/// 旧缓冲变成跨调用滞留的垃圾，正是 G4.7 峰值瞬时滞留的组成之一。
+/// 缓冲按「用途 + 尺寸」键控复用后，稳态下每个键只分配一次，跨图
+/// 乃至跨数据项都命中。
+///
+/// ## 防串染（上一张的残留像素泄进这一张）
+///
+/// 复用正确性不靠「假定写入方写满」，而是**逐点核对过写入路径全量覆盖**：
+///
+/// - [renderComposite]：输出 RGB 每个像素在**所有分支**下都会被写
+///   （图外/低 alpha → 底色，前景 → 前景色，混合 → 加权值），没有任何
+///   「跳过写入」的 continue 路径，全图逐像素写满后才返回；
+/// - [downscaleRgb]：每个输出格子由源窗口平均得出，无跳过路径；
+/// - [MipLevel] 的预滤波缓冲**不进本池**——它被 `_mipCache` 长期持有，
+///   归还语义不成立（见 compose_engine 的说明）。
+///
+/// 佐证：黄金集 8 张 × 7 规格 × 3 底色 + 同尺寸双图交替（跨图同键）+
+/// 框选越界路径的输出哈希，与不复用的基线逐位一致
+/// （`lib/core/imaging/dev_pool_bitcheck.dart`）。
+///
+/// 所有权：[acquire] 后缓冲**独占**交给调用方，直到 [release] 归还；
+/// 同一键在归还前再次 acquire 会得到新分配（不会双持同一块内存）。
+class WorkBufferPool {
+  final Map<String, Uint8List> _free = <String, Uint8List>{};
+
+  /// 取出 [key] 对应的复用缓冲（长度必须恰为 [byteCount]，否则重新分配）。
+  Uint8List acquire(String key, int byteCount) {
+    final Uint8List? hit = _free.remove(key);
+    if (hit != null && hit.length == byteCount) {
+      return hit;
+    }
+    return Uint8List(byteCount);
+  }
+
+  /// 归还缓冲。同一键已有归还时丢弃后到者（防御性：正常流程不会发生）。
+  void release(String key, Uint8List buffer) {
+    if (!_free.containsKey(key)) {
+      _free[key] = buffer;
+    }
+  }
+
+  /// 清空（换引擎实例 / 显式释放时调用）。
+  void clear() => _free.clear();
+}
+
+// ---------------------------------------------------------------------------
 // alpha 硬化
 // ---------------------------------------------------------------------------
 
@@ -220,18 +274,46 @@ class RenderedImage {
   /// 输出画面中 alpha 硬化后仍为 1 的像素数，供自检统计。
   final int solidPixels;
 
-  const RenderedImage({
+  WorkBufferPool? _pool;
+  String? _poolKey;
+
+  RenderedImage({
     required this.rgb,
     required this.width,
     required this.height,
     required this.solidPixels,
-  });
+  })  : _pool = null,
+        _poolKey = null;
+
+  /// 位置参数顺序：rgb, width, height, solidPixels, 池, 池键。
+  RenderedImage._pooled(this.rgb, this.width, this.height, this.solidPixels,
+      this._pool, this._poolKey);
+
+  /// 若本结果的缓冲来自 [WorkBufferPool]，归还之；否则无操作。
+  ///
+  /// 调用前提：调用方不再读取 [rgb]（本引擎在 JPEG 编码完成后才归还）。
+  /// 幂等：归还后缓冲与池解绑，重复调用无操作。
+  void release() {
+    final WorkBufferPool? p = _pool;
+    final String? k = _poolKey;
+    if (p == null || k == null) {
+      return;
+    }
+    _pool = null;
+    _poolKey = null;
+    p.release(k, rgb);
+  }
 }
 
 /// 摆正 + 裁剪 + 缩放 + 换底，一次成型。
 ///
 /// [crop] 为**旋转空间**坐标；[plan] 负责旋转空间 ↔ 源图空间的换算。
 /// 裁剪框越出源图的部分采样到 alpha = 0，于是直接得到底色 —— 不会有黑边。
+///
+/// [workBuffers] 非空时输出缓冲从池里取（键 `rgb:宽 x 高`），用完由调用方
+/// 对返回值调 [RenderedImage.release] 归还；为空则照旧新分配。两种情况下
+/// 输出像素**逐位一致** —— 缓冲里每个像素都会被写入循环覆盖，池化只影响
+/// 内存来源，不影响数值（防串染依据见 [WorkBufferPool] 的文档）。
 RenderedImage renderComposite({
   required MipLevel mip,
   required int srcWidth,
@@ -241,8 +323,13 @@ RenderedImage renderComposite({
   required int outWidth,
   required int outHeight,
   required BackgroundRamp background,
+  WorkBufferPool? workBuffers,
 }) {
-  final Uint8List out = Uint8List(outWidth * outHeight * 3);
+  final String? poolKey =
+      workBuffers == null ? null : 'rgb:$outWidth x $outHeight';
+  final Uint8List out = poolKey == null
+      ? Uint8List(outWidth * outHeight * 3)
+      : workBuffers!.acquire(poolKey, outWidth * outHeight * 3);
   final List<double> pt = <double>[0.0, 0.0];
   final double sx = crop.width / outWidth;
   final double sy = crop.height / outHeight;
@@ -424,8 +511,11 @@ RenderedImage renderComposite({
     }
   }
 
-  return RenderedImage(
-      rgb: out, width: outWidth, height: outHeight, solidPixels: solid);
+  return poolKey == null
+      ? RenderedImage(
+          rgb: out, width: outWidth, height: outHeight, solidPixels: solid)
+      : RenderedImage._pooled(
+          out, outWidth, outHeight, solid, workBuffers, poolKey);
 }
 
 /// 由裁剪框与输出高度推出预滤波倍数（整数，1 表示不降采样）。
@@ -437,7 +527,12 @@ int mipFactorFor(double cropHeight, int outHeight) {
 }
 
 /// 成品缩略图：长边缩到 [maxEdge]，box 平均，纯 RGB。
-RenderedImage downscaleRgb(RenderedImage src, int maxEdge) {
+///
+/// [workBuffers] 语义同 [renderComposite]（键 `thumbRGB:宽 x 高`）。源图长边
+/// 不超过 [maxEdge] 时直接返回 [src] 本身（零分配，无缓冲可复用），
+/// 调用方的释放逻辑须以 `identical` 区分这一情形。
+RenderedImage downscaleRgb(RenderedImage src, int maxEdge,
+    {WorkBufferPool? workBuffers}) {
   final int longEdge = math.max(src.width, src.height);
   if (longEdge <= maxEdge) {
     return src;
@@ -445,7 +540,10 @@ RenderedImage downscaleRgb(RenderedImage src, int maxEdge) {
   final double s = maxEdge / longEdge;
   final int dw = math.max(1, (src.width * s).round());
   final int dh = math.max(1, (src.height * s).round());
-  final Uint8List out = Uint8List(dw * dh * 3);
+  final String? poolKey = workBuffers == null ? null : 'thumbRGB:$dw x $dh';
+  final Uint8List out = poolKey == null
+      ? Uint8List(dw * dh * 3)
+      : workBuffers!.acquire(poolKey, dw * dh * 3);
   for (int y = 0; y < dh; y++) {
     final int sy0 = y * src.height ~/ dh;
     int sy1 = (y + 1) * src.height ~/ dh;
@@ -471,6 +569,9 @@ RenderedImage downscaleRgb(RenderedImage src, int maxEdge) {
       out[o + 2] = sb ~/ n;
     }
   }
-  return RenderedImage(
-      rgb: out, width: dw, height: dh, solidPixels: src.solidPixels);
+  return poolKey == null
+      ? RenderedImage(
+          rgb: out, width: dw, height: dh, solidPixels: src.solidPixels)
+      : RenderedImage._pooled(
+          out, dw, dh, src.solidPixels, workBuffers, poolKey);
 }

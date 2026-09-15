@@ -287,6 +287,177 @@ RotHeadProbe probeHeadInRotated({
   );
 }
 
+/// [refineHeadFromMask] 的结果，坐标与输入同处**旋转空间**。
+class HeadMaskRefinement {
+  /// 是否从掩膜里读到了有效信号。false 时调用方应原样保留检测器的几何。
+  final bool valid;
+
+  /// 发顶（掩膜里头部连通前景的最高行）。
+  final double hairTopY;
+
+  /// 头部水平中心（上半头部前景质心）。
+  final double centerX;
+
+  const HeadMaskRefinement({
+    required this.valid,
+    required this.hairTopY,
+    required this.centerX,
+  });
+}
+
+/// 用 alpha 掩膜复核检测器给出的头部几何：把发顶和水平中心校到真实剪影上。
+///
+/// ## 为什么需要它（G4 真实缺陷的直接根因）
+///
+/// `FaceInfo.headTopY` 是**人体测量学推算值**（眼–嘴距离 × 系数，见
+/// yunet_decoder），不是量出来的。它在真实照片上会大幅偏离真实发际：
+///
+/// - 捧腹大笑、头后仰的人脸：透视压缩让眼–嘴距离 d 缩水，
+///   `headTopY = eyeY − 1.89·d` 落到眉弓甚至眼镜的高度；
+/// - 检测框异常肥大（把脖子/上胸框进「脸」）时，推算头顶随之掉进脸里，
+///   兜底夹紧（`min(推算值, 框顶)`）救不了推算值本身偏低的情况。
+///
+/// 按这样的 headTopY 排版，`top = headTopY − 0.09H` 会把整个画幅压低
+/// 半个额头，成片**发际被齐齐裁掉**（G4 `1979d869` 实测：检测头顶 957、
+/// 真实发顶 420，成片眼镜贴着上边缘）。
+///
+/// 两处测量都来自摆正后的真实剪影：
+///
+/// - **发顶**：从检测头顶出发，沿头部竖直轴向上走，允许 ≤ gapMax
+///   （约 0.02·头高）行的稀疏缺口（蓬松发梢），走到头为止。
+///   发丝再乱也是连通的前景，比任何系数推算都可靠。
+/// - **水平中心**：发顶往下 0.5 倍头高内的前景质心，
+///   比 [probeHeadInRotated] 的全宽行中点更抗同画面其他人干扰。
+///
+/// **下巴不修正**：MODNet 的 alpha 把头颈躯干连成整块，宽度剖面里不存在
+/// 可靠的颌颈收窄信号（G4 四张真实设备 alpha 实测），按剖面修下巴只会把
+/// 好图改坏。下巴只随头身比推导（chinY − hairTopY 反推画幅高）。
+///
+/// 所有扫描都限制在头部附近的**竖直带**里（[anchorX] ± 0.75 倍脸框宽），
+/// 合影里邻人的头不会污染信号（G4 `1979d869` 五人合影实测有效）。
+///
+/// 坐标均为**旋转空间**；[plan] 未启用时即源图空间，退化为逐点直查。
+HeadMaskRefinement refineHeadFromMask({
+  required Uint8List alpha,
+  required int width,
+  required int height,
+  required RotationPlan plan,
+  required double anchorX,
+  required double headTopY,
+  required double chinY,
+  required double faceBoxWidth,
+  int alphaThreshold = 128,
+}) {
+  final double detHeadH = chinY - headTopY;
+  if (width <= 0 ||
+      height <= 0 ||
+      alpha.length < width * height ||
+      !detHeadH.isFinite ||
+      detHeadH <= 1 ||
+      !anchorX.isFinite) {
+    return HeadMaskRefinement(
+        valid: false, hairTopY: headTopY, centerX: anchorX);
+  }
+
+  final double c = math.cos(plan.angleRad);
+  final double s = math.sin(plan.angleRad);
+  final double srcCx = plan.srcWidth / 2.0;
+  final double srcCy = plan.srcHeight / 2.0;
+  final double rotCx = plan.rotWidth / 2.0;
+  final double rotCy = plan.rotHeight / 2.0;
+
+  // 旋转空间 → 源图，取样 alpha（越界按 0）。带内逐点采样，
+  // 行数 × 带宽 ≈ 1.7·headH × 1.5·boxW，最坏 ~2e6 次，几十毫秒级。
+  bool isFg(double xr, double yr) {
+    if (!plan.enabled) {
+      final int x = xr.floor();
+      final int y = yr.floor();
+      if (x < 0 || y < 0 || x >= width || y >= height) {
+        return false;
+      }
+      return alpha[y * width + x] >= alphaThreshold;
+    }
+    final double dx = xr - rotCx;
+    final double dy = yr - rotCy;
+    final double xs = srcCx + c * dx - s * dy;
+    final double ys = srcCy + s * dx + c * dy;
+    final int x = xs.floor();
+    final int y = ys.floor();
+    if (x < 0 || y < 0 || x >= width || y >= height) {
+      return false;
+    }
+    return alpha[y * width + x] >= alphaThreshold;
+  }
+
+  final double band = math.max(4.0, faceBoxWidth * 0.75);
+  final double bandL = math.max(0.0, anchorX - band);
+  final double bandR = math.min(plan.rotWidth.toDouble(), anchorX + band);
+
+  int rowCount(int y) {
+    int n = 0;
+    for (double x = bandL; x < bandR; x += 1.0) {
+      if (isFg(x, y.toDouble())) {
+        n++;
+      }
+    }
+    return n;
+  }
+
+  // ---- 发顶：从检测头顶向上走，容忍稀疏缺口 ----
+  // 先锚定：检测头顶若悬在空里（估算偏高），向下最多 0.15·headH 找到头部。
+  double start = headTopY;
+  final double maxAnchor = headTopY + detHeadH * 0.15;
+  while (start < maxAnchor && rowCount(start.floor()) == 0) {
+    start += 1.0;
+  }
+  if (rowCount(start.floor()) == 0) {
+    // 头顶附近整段无前景：掩膜与此处人脸对不上，保守返回原几何。
+    return HeadMaskRefinement(
+        valid: false, hairTopY: headTopY, centerX: anchorX);
+  }
+  final int gapMax = math.max(4, (detHeadH * 0.02).round());
+  int emptyRun = 0;
+  double hairTop = start;
+  final double upLimit =
+      math.max(0.0, headTopY - detHeadH * 1.2);
+  for (double y = start; y >= upLimit; y -= 1.0) {
+    if (rowCount(y.floor()) > 0) {
+      hairTop = y;
+      emptyRun = 0;
+    } else {
+      emptyRun++;
+      if (emptyRun > gapMax) {
+        break;
+      }
+    }
+  }
+
+  // ---- 水平中心：发顶往下 0.5·headH 内的前景质心 ----
+  double sumX = 0.0;
+  int sumN = 0;
+  final double cxBottom = math.min(
+      plan.rotHeight.toDouble(), hairTop + detHeadH * 0.5);
+  for (double y = hairTop; y < cxBottom; y += 1.0) {
+    for (double x = bandL; x < bandR; x += 1.0) {
+      if (isFg(x, y)) {
+        sumX += x;
+        sumN++;
+      }
+    }
+  }
+  final double centerX = sumN > 0 ? sumX / sumN : anchorX;
+
+  // ---- 下巴：不做掩膜修正，原样保留检测值 ----
+  // 曾试图从宽度剖面找「脸颊宽—脖子窄—肩宽」的收窄点当地下巴，用 G4 四张
+  // 真实设备的 alpha 实测后放弃：MODNet 的 alpha 把头、颈、躯干连成一个
+  // 整块，脖子的收窄要么不存在、要么被衣物轮廓盖住，剖面里出现的「变窄」
+  // 全在脸颊中部（眼镜/发型噪声），按它修下巴只会把好图改坏。下巴出错
+  // （检测框肥大吞掉脖子）只能靠 ml-porting 把框修对。
+
+  return HeadMaskRefinement(
+      valid: true, hairTopY: hairTop, centerX: centerX);
+}
+
 /// 裁剪推算结果。
 class CropSolution {
   /// 裁剪框，**旋转空间**坐标。可能越出画布（见 [outOfBoundsFraction]）。
@@ -332,18 +503,25 @@ class CropSolution {
 /// 左边缘   left = faceCenterX − W / 2
 /// ```
 ///
-/// ## 越界策略
+/// ## 越界策略（G4 复核后修订）
 ///
-/// 这是 G2B.9 的核心。三档处理，优先保住头身比：
+/// 四条边统一处理：**画幅按头身比先定死，越出的部分一律按 alpha=0 填底色**，
+/// 越界总面积不超过 [maxOutOfBounds] 就直接用。
 ///
-/// 1. **下边界硬约束**：裁剪框底边不得超过画布底边。人像下半身之外没有内容，
-///    补底色会把肩膀凭空截断，非常难看。超了就整体上移。
-/// 2. **上 / 左 / 右 可以越界**：这些方向越出去的部分原本就是背景，
-///    合成时按 alpha=0 填底色，观感与真实背景一致。所以头顶留白和水平居中
-///    可以无条件达标，不需要牺牲比例。
-/// 3. **实在放不下**（画面总高 > 画布高，且上移后头顶留白仍无法满足，
-///    或越界比例超过 [maxOutOfBounds]）：等比缩小到能放下的最大框，
-///    此时 [shrunk] = true，头身比会偏离目标，[note] 里写明偏离量。
+/// 早期版本对底边做了硬约束（「底边压回画布内，不许凭空补肩」）。G4 真实数据
+/// （摄像头横图、人脸贴近图片底边）证明那是错的：底边压回会把整个画幅上移，
+/// 下巴被推到画面下缘（实测成片里下巴落在 0.98 倍画高处，贴边即裁）、
+/// 头顶留白从 0.09 膨胀到 0.36 —— 构图彻底失效。而底边越界的代价只是
+/// 「画面最下方一条平色」：当下巴贴近图片底边时，画面里本来就没有肩部内容
+/// 可言，向下越界填底色、头部几何精确达标，是明显更好的取舍。谁也不该在
+/// 「下巴贴边」和「胸口以下平色」之间选前者。
+///
+/// 1. **理想框**：四边越界（含底边）面积 ≤ [maxOutOfBounds] 就用，
+///    头身比、头顶留白、水平居中全部精确达标。
+/// 2. **放不下**（越界比例超限，常见于头部特写贴角）：以头顶点和人脸水平中心
+///    为**锚点**等比缩小 —— 锚点不动，头顶留白比保持不变，头在画面里的相对
+///    位置不变，只是头变大了（此时 [shrunk] = true，[note] 里写明偏离量）。
+///    旧版在这里把框钳回画布，钳完锚点就丢了，头顶留白随钳制量漂移。
 CropSolution solveAutoCrop({
   required double canvasWidth,
   required double canvasHeight,
@@ -372,16 +550,9 @@ CropSolution solveAutoCrop({
   double h = headH / headHeightRatio;
   double w = h * aspectRatio;
 
-  // ---- 第 1 档：理想框 ----
-  double top = headTopY - headTopRatio * h;
-  double left = faceCenterX - w / 2.0;
-
-  // 下边界硬约束：底边压回画布内（允许 top 变负）。
-  if (top + h > canvasHeight) {
-    top = canvasHeight - h;
-  }
-  // 顶边也不该越出太多：如果整框比画布还高，top 必为负，这是允许的。
-  // 但若 top > 0 且底边有余量，保持原值即可。
+  // ---- 第 1 档：理想框（四边均可越界，越界部分填底色） ----
+  final double top = headTopY - headTopRatio * h;
+  final double left = faceCenterX - w / 2.0;
 
   RectD rect = RectD(left, top, w, h);
   double oob = outOfBoundsFraction(rect, canvasWidth, canvasHeight);
@@ -395,20 +566,40 @@ CropSolution solveAutoCrop({
       achievedHeadTopRatio: (headTopY - top) / h,
       note: oob <= 1e-6
           ? '裁剪框完全在图内'
-          : '裁剪框向上/两侧越界 ${(oob * 100).toStringAsFixed(1)}%，'
-              '越界区域按 alpha=0 填底色',
+          : '裁剪框越界 ${(oob * 100).toStringAsFixed(1)}%（越出部分按 alpha=0 填底色）',
     );
   }
 
-  // ---- 第 3 档：等比缩小到能放下的最大框 ----
-  final double scale = math.min(canvasWidth / w, canvasHeight / h);
+  // ---- 第 2 档：以头顶点与人脸水平中心为锚点等比缩小 ----
+  // 头顶留白比与水平居中在缩放过程中不变，头身比偏离目标（头变大）。
+  // 从理想尺寸往下找第一个越界达标的尺寸；找不到就取画布内能放下的最大值。
+  final double fitScale = math.min(canvasWidth / w, canvasHeight / h);
+  double? bestScale;
+  for (double s = fitScale; s < 1.0; s += math.max(0.01, fitScale * 0.05)) {
+    final double sh = h * s;
+    final double sw = w * s;
+    final RectD r = RectD(faceCenterX - sw / 2.0, headTopY - headTopRatio * sh,
+        sw, sh);
+    if (outOfBoundsFraction(r, canvasWidth, canvasHeight) <= maxOutOfBounds) {
+      bestScale = s;
+      break;
+    }
+  }
+  final double scale = bestScale ?? math.min(fitScale, 1.0);
   w = w * scale;
   h = h * scale;
-  top = headTopY - headTopRatio * h;
-  left = faceCenterX - w / 2.0;
-  left = left.clamp(0.0, math.max(0.0, canvasWidth - w)).toDouble();
-  top = top.clamp(0.0, math.max(0.0, canvasHeight - h)).toDouble();
-  rect = RectD(left, top, w, h);
+  // 锚点放在头顶与脸上：上边缘 = headTopY − headTopRatio·h（不钳制，
+  // 越界填底色）；水平方向以人脸中心为轴。若钳回画布反而会把头推离锚点。
+  double left2 = faceCenterX - w / 2.0;
+  double top2 = headTopY - headTopRatio * h;
+  // 最后的兜底：人脸中心本身贴在画布边上时（脸有一半在图外），
+  // 锚点缩放也放不下 —— 此时按画布内最大框钳制，保住「不崩、有产出」，
+  // 构图上接受脸被裁。脸完全在图外不是几何问题，是选脸问题（ml-porting）。
+  left2 = left2.clamp(-w * 0.25, math.max(-w * 0.25, canvasWidth - w * 0.75))
+      .toDouble();
+  top2 = top2.clamp(-h * 0.75, math.max(-h * 0.75, canvasHeight - h * 0.25))
+      .toDouble();
+  rect = RectD(left2, top2, w, h);
   oob = outOfBoundsFraction(rect, canvasWidth, canvasHeight);
 
   final double achievedHead = headH / h;
@@ -417,10 +608,12 @@ CropSolution solveAutoCrop({
     outOfBoundsFraction: oob,
     shrunk: true,
     achievedHeadHeightRatio: achievedHead,
-    achievedHeadTopRatio: (headTopY - top) / h,
-    note: '人脸过于贴边/过大，裁剪框已缩到画布内最大尺寸：'
+    achievedHeadTopRatio: (headTopY - top2) / h,
+    note: '人脸过于贴边/过大，已按头顶锚点缩到越界 ≤ '
+        '${(maxOutOfBounds * 100).toStringAsFixed(0)}%：'
         '头高比 ${achievedHead.toStringAsFixed(3)}（目标 '
-        '${headHeightRatio.toStringAsFixed(3)}）',
+        '${headHeightRatio.toStringAsFixed(3)}），'
+        '越界 ${(oob * 100).toStringAsFixed(1)}% 填底色',
   );
 }
 

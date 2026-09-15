@@ -101,35 +101,86 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
   /// 预滤波金字塔缓存，键为降采样倍数。7 个规格里多个规格会命中同一倍数。
   final Map<int, MipLevel> _mipCache = <int, MipLevel>{};
 
-  /// 摆正用的掩膜头部探针缓存。同一张抠图 + 同一摆正角会被 7 规格 × 6 底色
-  /// 反复用到，探针要扫全图，算一次就够。
-  MattingResult? _probeKey;
-  double _probeAngle = double.nan;
-  RotHeadProbe? _probeValue;
+  /// 渲染输出缓冲池（成品 RGB / 缩略图 RGB，键控「用途 + 尺寸」）。
+  ///
+  /// 一张图的 7 规格 × 6 底色合成里，输出缓冲尺寸只取决于规格（常量），
+  /// 复用后稳态下每个键只分配一次，跨图甚至跨数据项都命中 —— 消掉的是
+  /// 每次 compose 一份 w×h×3 的瞬时分配（G4.7 峰值瞬时滞留的组成之一）。
+  /// 预滤波（[MipLevel]）缓冲**刻意不进池**：它被 [_mipCache] 长期持有，
+  /// 「归还后再发出」的语义不成立，其复用已由 mip 缓存本身承担。
+  final WorkBufferPool _renderPool = WorkBufferPool();
 
-  /// 最近一次 [compose] 的几何诊断，供自检与调试读取。
-  ComposeDiagnostics? lastDiagnostics;
+  /// JPEG 编码画布缓存，键 `宽 x 高`。
+  ///
+  /// `img.Image.fromBytes` 会把输入像素**逐行拷贝**进画布（image 4.9.2
+  /// image.dart 的 fromBytes 实现），每次编码白付一份 w×h×3。画布与尺寸
+  /// 一一对应且编码器只读不写（_calculateYUV 经 getPixel 只读，4 通道才
+  /// 会走 alpha 合成分支，本画布 3 通道），缓存后同一尺寸只拷一次，
+  /// 之后每次编码把成片 RGB 整块 setRange 进画布 —— 字节不变，编码结果
+  /// 逐位一致。
+  final Map<String, img.Image> _encodeCanvas = <String, img.Image>{};
 
-  RotHeadProbe _headProbeFor(
-      MattingResult m, RotationPlan plan, double headHeight) {
-    final RotHeadProbe? hit = _probeValue;
+  /// JPEG 编码器实例缓存，键为质量档。
+  ///
+  /// image 4.9.2 的 JpegEncoder 构造函数要建两张 65535 槽的霍夫曼码表
+  /// （_bitCode/_category，各 0.5MB 指针）加量化/DCT 表，每次 encodeJpg
+  /// 新建实例等于每次编码白付 ~1MB 纯垃圾 —— 42 次合成 × 每次两档编码，
+  /// 这是 compose 路径单笔最大的重复分配。实例跨 encode 复用是安全的：
+  /// encode() 只读这些表，编码期状态（位缓冲等）在 encode 开头自复位，
+  /// 输出只由 quality 与画布像素决定。
+  final Map<int, img.JpegEncoder> _jpegEncoders = <int, img.JpegEncoder>{};
+
+  /// 掩膜头部几何精化缓存（键：抠图对象 + 摆正角 + 人脸几何）。
+  /// 同一张抠图会被 7 规格 × 6 底色反复合成，全图带状扫描算一次就够。
+  MattingResult? _refineKey;
+  double _refineAngle = double.nan;
+  double _refineAnchor = double.nan;
+  double _refineTop = double.nan;
+  double _refineChin = double.nan;
+  double _refineBoxW = double.nan;
+  HeadMaskRefinement? _refineValue;
+
+  /// 掩膜头部几何精化（发顶/下巴/水平中心），结果按输入缓存。
+  HeadMaskRefinement _headRefinementFor(
+    MattingResult m,
+    RotationPlan plan,
+    double anchorX,
+    double headTopY,
+    double chinY,
+    double faceBoxWidth,
+  ) {
+    final HeadMaskRefinement? hit = _refineValue;
     if (hit != null &&
-        identical(_probeKey, m) &&
-        _probeAngle == plan.angleRad) {
+        identical(_refineKey, m) &&
+        _refineAngle == plan.angleRad &&
+        _refineAnchor == anchorX &&
+        _refineTop == headTopY &&
+        _refineChin == chinY &&
+        _refineBoxW == faceBoxWidth) {
       return hit;
     }
-    final RotHeadProbe probe = probeHeadInRotated(
+    final HeadMaskRefinement r = refineHeadFromMask(
       alpha: m.alpha,
       width: m.width,
       height: m.height,
       plan: plan,
-      headHeight: headHeight,
+      anchorX: anchorX,
+      headTopY: headTopY,
+      chinY: chinY,
+      faceBoxWidth: faceBoxWidth,
     );
-    _probeKey = m;
-    _probeAngle = plan.angleRad;
-    _probeValue = probe;
-    return probe;
+    _refineKey = m;
+    _refineAngle = plan.angleRad;
+    _refineAnchor = anchorX;
+    _refineTop = headTopY;
+    _refineChin = chinY;
+    _refineBoxW = faceBoxWidth;
+    _refineValue = r;
+    return r;
   }
+
+  /// 最近一次 [compose] 的几何诊断，供自检与调试读取。
+  ComposeDiagnostics? lastDiagnostics;
 
   @override
   Future<Candidate> compose({
@@ -192,13 +243,22 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
       outWidth: s.widthPx,
       outHeight: s.heightPx,
       background: ramp,
+      workBuffers: _renderPool,
     );
 
     final Uint8List jpeg =
-        encodeRgbJpeg(full, quality: kJpegQuality, dpi: s.dpi);
-    final RenderedImage thumb = downscaleRgb(full, kThumbMaxEdge);
+        _encodeRgbJpeg(full, quality: kJpegQuality, dpi: s.dpi);
+    final RenderedImage thumb = downscaleRgb(full, kThumbMaxEdge,
+        workBuffers: _renderPool);
     final Uint8List thumbJpeg =
-        encodeRgbJpeg(thumb, quality: kThumbJpegQuality, dpi: s.dpi);
+        _encodeRgbJpeg(thumb, quality: kThumbJpegQuality, dpi: s.dpi);
+
+    // 编码完成（缩略图是只读 full 得出的，也已完成）才把缓冲还给池。
+    // 缩略图长边不足 320 时 downscaleRgb 返回 full 本身，此时只能归还一次。
+    full.release();
+    if (!identical(thumb, full)) {
+      thumb.release();
+    }
 
     return Candidate(style: style, jpegBytes: jpeg, thumbBytes: thumbJpeg);
   }
@@ -208,6 +268,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
   /// 注意：这里刻意不含摆正——UI 上的裁剪框是画在原图上的，必须是轴对齐矩形。
   /// [compose] 内部若判定需要摆正（`|rollDeg| > 3°`），成片会比这个框略微转正，
   /// 属于预期行为。
+  @override
   Rect suggestedCropInSourcePx({
     required int imageWidth,
     required int imageHeight,
@@ -284,6 +345,37 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     return level;
   }
 
+  /// [encodeRgbJpeg] 的引擎内缓存版：编码画布与编码器实例跨调用复用
+  /// （见 [_encodeCanvas] / [_jpegEncoders] 的文档）。输出与 [encodeRgbJpeg]
+  /// **逐位一致**——画布里的像素与 [encodeRgbJpeg] 每次新拷进去的完全相同，
+  /// 编码器输出只由 quality 与画布像素决定。
+  Uint8List _encodeRgbJpeg(RenderedImage image,
+      {required int quality, required int dpi}) {
+    final String key = '${image.width} x ${image.height}';
+    img.Image? canvas = _encodeCanvas[key];
+    if (canvas == null) {
+      canvas = img.Image.fromBytes(
+        width: image.width,
+        height: image.height,
+        bytes: image.rgb.buffer,
+        numChannels: 3,
+        order: img.ChannelOrder.rgb,
+      );
+      _encodeCanvas[key] = canvas;
+    } else {
+      // 画布数据恰好 w×h×3（fromBytes 以 rowStride == dataStride 逐行满拷），
+      // 长度按 image.rgb 钳制，防御包实现引入行填充。
+      final Uint8List dst =
+          Uint8List.view(canvas.data!.buffer, 0, image.rgb.length);
+      dst.setRange(0, dst.length, image.rgb);
+    }
+    final img.JpegEncoder encoder = _jpegEncoders.putIfAbsent(
+        quality, () => img.JpegEncoder(quality: quality));
+    final Uint8List bytes =
+        encoder.encode(canvas, chroma: img.JpegChroma.yuv444);
+    return writeJpegDpi(bytes, dpi);
+  }
+
   CropSolution _solveCrop({
     required MattingResult matting,
     required RotationPlan plan,
@@ -331,12 +423,15 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
 
     final List<double> p = <double>[0.0, 0.0];
     double headTopYr;
+    double chinYr;
     double faceCxr;
     double headH = face.headHeightPx;
+    final double faceBoxW = face.box.width;
 
     if (!plan.enabled) {
       // 不摆正：源图坐标即旋转空间坐标，直接用。
       headTopYr = face.headTopY;
+      chinYr = face.chinY;
       faceCxr = face.box.center.dx;
     } else {
       // 摆正：`headTopY` 是**投影到竖直方向**的量，摆正后头轴转正，
@@ -346,32 +441,41 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
         headH = headH / cosA;
       }
 
-      // 人脸框的 x 不可靠（见 probeHeadInRotated 的注释）：先用掩膜在旋转
-      // 空间里量出头部真实水平中心 Xc，再按仿射逆关系解出「源图 y 恰为
-      // face.headTopY」的那条旋转空间行 Yt：
+      // 人脸框的 x 不可靠（见 probeHeadInRotated 的注释）：先把人脸框中心
+      // 映进旋转空间当锚点，掩膜精化（下面）会在锚点附近量出头部真实
+      // 水平中心 Xc，再按仿射逆关系解出「源图 y 恰为 face.headTopY」的
+      // 那条旋转空间行 Yt：
       //
       //   srcY = srcCy + sinθ·(Xc − rotCx) + cosθ·(Yt − rotCy) = headTopY
       //   ⇒ Yt = rotCy + (headTopY − srcCy − sinθ·(Xc − rotCx)) / cosθ
       //
       // θ 只出现在 sinθ·Δx 与 cosθ 里，正负角完全对称，不会再出现
       // 「−10° 完美、+10° 头顶被裁掉」这种单侧偏差。
-      final RotHeadProbe probe = _headProbeFor(matting, plan, headH);
-      if (probe.valid && cosA > 1e-3) {
-        faceCxr = probe.centerX;
-        final double sinA = math.sin(plan.angleRad);
-        final double srcCy = plan.srcHeight / 2.0;
-        final double rotCx = plan.rotWidth / 2.0;
-        final double rotCy = plan.rotHeight / 2.0;
-        headTopYr = rotCy +
-            (face.headTopY - srcCy - sinA * (faceCxr - rotCx)) /
-                math.cos(plan.angleRad);
-      } else {
-        // 掩膜探针失效（全透明 / 尺寸异常）时退回朴素换算，至少不崩。
-        plan.toRotated(face.box.center.dx, face.headTopY, p);
-        headTopYr = p[1];
-        plan.toRotated(face.box.center.dx, face.box.center.dy, p);
-        faceCxr = p[0];
+      plan.toRotated(face.box.center.dx, face.box.center.dy, p);
+      final double anchorX = p[0];
+      final double sinA = math.sin(plan.angleRad);
+      final double srcCy = plan.srcHeight / 2.0;
+      final double rotCx = plan.rotWidth / 2.0;
+      final double rotCy = plan.rotHeight / 2.0;
+      headTopYr = rotCy +
+          (face.headTopY - srcCy - sinA * (anchorX - rotCx)) /
+              math.cos(plan.angleRad);
+      chinYr = headTopYr + headH;
+      faceCxr = anchorX;
+    }
+
+    // ---- 掩膜精化：headTopY 是人体测量学推算值，不是量出来的 ----
+    // 头后仰大笑或检测框肥大时，推算头顶会掉进脸里（G4 1979d869：检测头顶
+    // 957、真实发顶 420，成片发际被齐齐裁掉）。用 alpha 剪影向上量出真实
+    // 发顶（只允许向上修，不允许往下压），水平中心换成分带质心。
+    // 掩膜对不上（头顶附近无前景）时原样保留检测器几何。
+    final HeadMaskRefinement ref = _headRefinementFor(
+        matting, plan, faceCxr, headTopYr, chinYr, faceBoxW);
+    if (ref.valid) {
+      if (ref.hairTopY < headTopYr) {
+        headTopYr = ref.hairTopY;
       }
+      faceCxr = ref.centerX;
     }
 
     return solveAutoCrop(
@@ -379,7 +483,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
       canvasHeight: ch,
       aspectRatio: spec.aspectRatio,
       headTopY: headTopYr,
-      chinY: headTopYr + headH,
+      chinY: chinYr,
       faceCenterX: faceCxr,
       headTopRatio: spec.headTopRatio,
       headHeightRatio: spec.headHeightRatio,
@@ -423,7 +527,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
 
 /// 把 RGB 缓冲编码成 JPEG 并写入 DPI。
 ///
-/// 单独抽出来是为了让自检脚本能直接复用同一条编码路径 ——
+/// 单独抽出来是为了让自检脚本直接复用同一条编码路径 ——
 /// 自检测的必须是真正交付的那串字节，不是另一条近似路径。
 Uint8List encodeRgbJpeg(RenderedImage image,
     {required int quality, required int dpi}) {
