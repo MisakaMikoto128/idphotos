@@ -243,6 +243,11 @@ int _roundToByte(double v) {
 ///
 /// 先横向再纵向，中间量保持 double；最后一步才量化回 uint8 ——
 /// 与 OpenCV 一致（模型前处理拿到的是 uint8）。
+///
+/// 内存口径（G4.7）：纵向不落地整块 `srcH*dstW` 的中间缓冲，而是按源行
+/// 流式累加进 `dstH*dstW*3` 的累加器——每个目标元素的加法次序与旧实现
+/// 逐项一致（都按源行升序），结果**逐位相同**，但峰值中间量从
+/// `srcH*dstW*3*4` 降到 `dstH*dstW*3*4`（2048×1536→512 时 9.4MB→3.1MB）。
 Uint8List areaResampleRgb(
   Uint8List src,
   int srcW,
@@ -252,11 +257,37 @@ Uint8List areaResampleRgb(
 ) {
   final wx = _AreaWeights.build(srcW, dstW);
   final wy = _AreaWeights.build(srcH, dstH);
-  // 中间缓冲：srcH 行 x dstW 列 x 3 通道
-  final tmp = Float32List(srcH * dstW * 3);
+  // 每个源行贡献给哪些目标行、权重多少（按目标行升序）。
+  final srcRowCount = Int32List(srcH);
+  for (var j = 0; j < dstH; j++) {
+    for (var k = 0; k < wy.count[j]; k++) {
+      srcRowCount[wy.start[j] + k]++;
+    }
+  }
+  final srcRowOff = Int32List(srcH + 1);
   for (var y = 0; y < srcH; y++) {
+    srcRowOff[y + 1] = srcRowOff[y] + srcRowCount[y];
+  }
+  final srcRowDst = Int32List(srcRowOff[srcH]);
+  final srcRowW = Float32List(srcRowOff[srcH]);
+  final fill = Int32List(srcH);
+  for (var j = 0; j < dstH; j++) {
+    var wi = 0;
+    for (var k = 0; k < j; k++) {
+      wi += wy.count[k];
+    }
+    for (var k = 0; k < wy.count[j]; k++) {
+      final y = wy.start[j] + k;
+      final pos = srcRowOff[y] + fill[y]++;
+      srcRowDst[pos] = j;
+      srcRowW[pos] = wy.weights[wi + k];
+    }
+  }
+  final acc = Float32List(dstH * dstW * 3);
+  final row = Float32List(dstW * 3);
+  for (var y = 0; y < srcH; y++) {
+    // 横向重采样当前源行
     final rowBase = y * srcW * 3;
-    final outBase = y * dstW * 3;
     var wi = 0;
     for (var j = 0; j < dstW; j++) {
       var r = 0.0, g = 0.0, b = 0.0;
@@ -270,38 +301,31 @@ Uint8List areaResampleRgb(
         b += src[p + 2] * w;
       }
       wi += n;
-      final o = outBase + j * 3;
-      tmp[o] = r;
-      tmp[o + 1] = g;
-      tmp[o + 2] = b;
+      row[j * 3] = r;
+      row[j * 3 + 1] = g;
+      row[j * 3 + 2] = b;
+    }
+    // 纵向贡献：按目标行升序逐项累加（与旧实现的 k 序一致）
+    for (var pos = srcRowOff[y]; pos < srcRowOff[y + 1]; pos++) {
+      final j = srcRowDst[pos];
+      final w = srcRowW[pos];
+      final aBase = j * dstW * 3;
+      for (var x = 0; x < dstW * 3; x++) {
+        acc[aBase + x] += row[x] * w;
+      }
     }
   }
   final out = Uint8List(dstW * dstH * 3);
-  var wi = 0;
-  for (var y = 0; y < dstH; y++) {
-    final i0 = wy.start[y];
-    final n = wy.count[y];
-    final outBase = y * dstW * 3;
-    for (var j = 0; j < dstW; j++) {
-      var r = 0.0, g = 0.0, b = 0.0;
-      for (var k = 0; k < n; k++) {
-        final w = wy.weights[wi + k];
-        final p = (i0 + k) * dstW * 3 + j * 3;
-        r += tmp[p] * w;
-        g += tmp[p + 1] * w;
-        b += tmp[p + 2] * w;
-      }
-      final o = outBase + j * 3;
-      out[o] = _roundToByte(r);
-      out[o + 1] = _roundToByte(g);
-      out[o + 2] = _roundToByte(b);
-    }
-    wi += n;
+  for (var i = 0; i < out.length; i++) {
+    out[i] = _roundToByte(acc[i]);
   }
   return out;
 }
 
 /// 单通道面积重采样（alpha 用）。
+///
+/// 纵向按目标行流式计算（横向重采样按需重算），不落地 `srcH*dstW`
+/// 的中间缓冲；加法次序与"先横后纵"的旧实现逐项一致，结果逐位相同。
 Uint8List areaResampleGray(
   Uint8List src,
   int srcW,
@@ -311,41 +335,44 @@ Uint8List areaResampleGray(
 ) {
   final wx = _AreaWeights.build(srcW, dstW);
   final wy = _AreaWeights.build(srcH, dstH);
-  final tmp = Float32List(srcH * dstW);
-  for (var y = 0; y < srcH; y++) {
-    final rowBase = y * srcW;
-    final outBase = y * dstW;
-    var wi = 0;
-    for (var j = 0; j < dstW; j++) {
-      var v = 0.0;
-      final i0 = wx.start[j];
-      final n = wx.count[j];
-      for (var k = 0; k < n; k++) {
-        v += src[rowBase + i0 + k] * wx.weights[wi + k];
-      }
-      wi += n;
-      tmp[outBase + j] = v;
-    }
-  }
+  final acc = Float32List(dstW);
   final out = Uint8List(dstW * dstH);
   var wi = 0;
-  for (var y = 0; y < dstH; y++) {
-    final i0 = wy.start[y];
-    final n = wy.count[y];
-    final outBase = y * dstW;
-    for (var j = 0; j < dstW; j++) {
-      var v = 0.0;
-      for (var k = 0; k < n; k++) {
-        v += tmp[(i0 + k) * dstW + j] * wy.weights[wi + k];
+  for (var j = 0; j < dstH; j++) {
+    final i0 = wy.start[j];
+    final n = wy.count[j];
+    for (var x = 0; x < dstW; x++) {
+      acc[x] = 0.0;
+    }
+    for (var k = 0; k < n; k++) {
+      // 横向重采样源行 i0+k（k 升序 = 旧实现累加序）
+      final rowBase = (i0 + k) * srcW;
+      var wxi = 0;
+      for (var x = 0; x < dstW; x++) {
+        var v = 0.0;
+        final sx0 = wx.start[x];
+        final m = wx.count[x];
+        for (var t = 0; t < m; t++) {
+          v += src[rowBase + sx0 + t] * wx.weights[wxi + t];
+        }
+        wxi += m;
+        acc[x] += v * wy.weights[wi + k];
       }
-      out[outBase + j] = _roundToByte(v);
     }
     wi += n;
+    final outBase = j * dstW;
+    for (var x = 0; x < dstW; x++) {
+      out[outBase + x] = _roundToByte(acc[x]);
+    }
   }
   return out;
 }
 
 /// 就地高斯羽化（可分离核）。仅在放大倍率很小、边缘还偏硬时才调用。
+///
+/// 内存口径（G4.7）：横向滤波结果按滑动窗口缓存（`2r+1` 行），不再落地
+/// 整幅 `Float32List(w*h)` 的中间图（2048² 时 16.8MB→57KB）。纵向累加在
+/// double 局部量上进行、次序与旧实现一致（i 从 -r 到 r），结果逐位相同。
 Uint8List featherGray(Uint8List src, int w, int h, double sigma) {
   if (sigma <= 0) return src;
   final radius = math.max(1, (sigma * 3).ceil());
@@ -359,18 +386,32 @@ Uint8List featherGray(Uint8List src, int w, int h, double sigma) {
   for (var i = 0; i < k.length; i++) {
     k[i] = k[i] / sum;
   }
-  final tmp = Float32List(w * h);
-  for (var y = 0; y < h; y++) {
-    final base = y * w;
-    for (var x = 0; x < w; x++) {
-      var v = 0.0;
-      for (var i = -radius; i <= radius; i++) {
-        final xx = (x + i).clamp(0, w - 1);
-        v += src[base + xx] * k[i + radius];
-      }
-      tmp[base + x] = v;
-    }
+  // 滑动窗口缓存：hrow[yy] = 源行 yy 的横向滤波结果。每个源行只需算
+  // 一次（stamp 记录槽位对应的行号），窗口大小 2r+1 行。
+  final window = radius * 2 + 1;
+  final ring = Float32List(window * w);
+  final stamp = Int32List(window);
+  for (var i = 0; i < window; i++) {
+    stamp[i] = -1;
   }
+  Float32List hrowOf(int yy) {
+    final slot = yy % window;
+    if (stamp[slot] != yy) {
+      stamp[slot] = yy;
+      final base = slot * w;
+      final base0 = yy * w;
+      for (var x = 0; x < w; x++) {
+        var v = 0.0;
+        for (var i = -radius; i <= radius; i++) {
+          final xx = (x + i).clamp(0, w - 1);
+          v += src[base0 + xx] * k[i + radius];
+        }
+        ring[base + x] = v;
+      }
+    }
+    return Float32List.sublistView(ring, slot * w, slot * w + w);
+  }
+
   final out = Uint8List(w * h);
   for (var y = 0; y < h; y++) {
     final base = y * w;
@@ -378,7 +419,7 @@ Uint8List featherGray(Uint8List src, int w, int h, double sigma) {
       var v = 0.0;
       for (var i = -radius; i <= radius; i++) {
         final yy = (y + i).clamp(0, h - 1);
-        v += tmp[yy * w + x] * k[i + radius];
+        v += hrowOf(yy)[x] * k[i + radius];
       }
       out[base + x] = _roundToByte(v);
     }

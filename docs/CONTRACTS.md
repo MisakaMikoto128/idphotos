@@ -136,6 +136,13 @@ ui-woodcraft **只依赖 `IdPhotoController` 和 `AppState`**，阶段 2 用 `Fa
 |---|---|
 | MattingException | 抠图失败了，换一张试试吧 |
 | NoFaceException（仅提示，不阻断） | 没找到人脸，请手动框选 |
+
+**语义扩展记录（G4，主会话授权）**：ml-porting 的 G4.3 修复在 `removeBackground`
+入口加了人脸门槛——非人像输入（无人脸）**作为阻断性拒绝抛出 NoFaceException**，
+而不是产出碎片拼贴的"伪成功"候选（item 60 电路板案例，详见 out/GATE_G4_r1.md）。
+"NoFace 仅提示不阻断"的原始语义保留在 detectFace 返回 null 的路径上；
+异常类本身在"管线主动拒绝"场景复用同一文案（"没找到人脸，请手动框选"），
+controller 错误通道不变。
 | UnsupportedImageException | 这个图片格式打不开 |
 | ImageTooLargeException | 图片太大了，请用小于 8000px 的照片 |
 

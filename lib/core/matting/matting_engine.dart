@@ -38,6 +38,15 @@ mixin MattingEngineMixin {
   Future<void>? _warmUp;
   SessionFactory? _factory;
 
+  /// 单槽人脸缓存（G4.3 人像门槛 + G4.7 内存）：key 是**同一实例**的输入
+  /// bytes。controller/批量 runner 对同一张图先 removeBackground（内部要跑
+  /// 人像门槛）再 detectFace，第二次直接命中缓存，省一次解码 + 一次 YuNet
+  /// 推理；key 用 identical() 保证绝不会把 A 图的脸配给 B 图。缓存值可能是
+  /// null（确实没有合格人脸），所以用 [_faceCacheValid] 区分"没缓存过"。
+  Uint8List? _faceCacheKey;
+  FaceInfo? _faceCacheValue;
+  bool _faceCacheValid = false;
+
   /// 已生效的执行提供者，形如 `xnnpack` / `nnapi` / `cpu`。仅供排查。
   String? get mattingProvider => _mattingProvider;
   String? _mattingProvider;
@@ -100,9 +109,23 @@ mixin MattingEngineMixin {
   /// - 解不开的文件 → [UnsupportedImageException]
   /// - 长边 > [kMaxImageEdgePx] → [ImageTooLargeException]（读文件头即抛，
   ///   不先解码）
-  /// - 其它失败（含"图里根本没有人"）→ [MattingException]
+  /// - 检不到合格人脸（非人像或主脸过小，门槛见 matting_worker.dart）→
+  ///   [NoFaceException]（"没找到人脸，请手动框选"）；alpha 呈碎片状 →
+  ///   [MattingException]
   Future<MattingResult> removeBackground(Uint8List imageBytes) async {
     final session = await _requireSession(true);
+    // 人像门槛裁决优先吃缓存：同一 bytes 实例上次已检过脸，直接用结论，
+    // 连解码都可以省（检不过的图在这儿就抛，不再进解码/推理管线）。
+    // 缓存值在本 await 之前就拷进局部量，避免并发调用中途换条目。
+    final gateKnown = identical(_faceCacheKey, imageBytes) && _faceCacheValid;
+    final gatePassed = gateKnown && _faceCacheValue != null;
+    if (gateKnown && !gatePassed) {
+      throw const NoFaceException(cause: 'face gate (cached): no face');
+    }
+    // 会话常驻，热路径上 faceSession 非空；空则本轮跳过门槛（不抛），
+    // 保持"会话异常不改变拒绝语义"的旧兜底行为。
+    final faceSession = _faceSession;
+    final runGate = !gateKnown && faceSession != null;
     try {
       // 头部预扫与降采样解码都在**宿主** isolate 做：instantiateImageCodec
       // 是异步原生解码，不卡 UI 线程；后台 isolate 能否用 dart:ui 解码
@@ -119,21 +142,49 @@ mixin MattingEngineMixin {
           rgba = decoded.rgba;
         }
       }
-      final payload = await Isolate.run(() {
+      // 两条路径拆成两个闭包：闭包只捕获自己真正引用的变量。合并写法会把
+      // imageBytes 一并拷进降采样路径的 worker isolate（一次全文件大小的
+      // 无谓拷贝，G4.7 瞬时滞留的直接来源之一）。
+      final MattingPayload payload;
+      if (rgba != null && plan != null) {
         final r = rgba;
-        if (r != null && plan != null) {
-          return runMattingFromRgb(
-              rgbaToDecoded(
-                r,
-                plan.width,
-                plan.height,
-                sourceWidth: plan.sourceWidth,
-                sourceHeight: plan.sourceHeight,
-              ),
-              session);
+        final p = plan;
+        payload = await Isolate.run(() {
+          // alpha-only 路径：worker 只回 alpha（+人像门槛的检脸结果），
+          // rgba 缓冲留在宿主，就地强制 A=255 后直接作为结果——不跨
+          // isolate 搬运、不重建 w*h*4 大缓冲（G4.7 瞬时滞留压缩）。
+          return runMattingAlphaOnly(
+            rgbaToDecoded(
+              r,
+              p.width,
+              p.height,
+              sourceWidth: p.sourceWidth,
+              sourceHeight: p.sourceHeight,
+            ),
+            session,
+            faceSessionAddress: runGate ? faceSession : null,
+          );
+        });
+      } else {
+        payload = await Isolate.run(() {
+          return runMattingSync(imageBytes, session,
+              maxEdge: kEngineMaxEdge,
+              faceSessionAddress: runGate ? faceSession : null);
+        });
+      }
+      if (runGate) {
+        // 只有真正跑过检脸才更新缓存，门槛被跳过时保留旧结论。
+        _faceCacheKey = imageBytes;
+        _faceCacheValue = payload.subjectFace;
+        _faceCacheValid = true;
+      }
+      if (payload.alphaOnly) {
+        // 宿主自己持有的 rgba，就地改写 alpha 字节（契约：A 恒 255）。
+        for (var i = 3; i < rgba!.length; i += 4) {
+          rgba[i] = 255;
         }
-        return runMattingSync(imageBytes, session, maxEdge: kEngineMaxEdge);
-      });
+        return payload.materialize(rgbaOverride: rgba);
+      }
       return payload.materialize();
     } on IdPhotoException {
       rethrow;
@@ -151,7 +202,13 @@ mixin MattingEngineMixin {
   /// 图片本身打不开仍会抛 [UnsupportedImageException] / [ImageTooLargeException]
   /// ——那是"图有问题"，不是"没有人脸"。推理层面的意外失败翻译成
   /// [MattingException]；这里刻意不吞异常，否则模型坏掉会伪装成"这张图没人脸"。
+  ///
+  /// 对与最近一次检脸**同一实例**的输入直接命中单槽缓存（removeBackground
+  /// 的人像门槛已对它检过），不再解码、不再推理。
   Future<FaceInfo?> detectFace(Uint8List imageBytes) async {
+    if (identical(_faceCacheKey, imageBytes) && _faceCacheValid) {
+      return _faceCacheValue;
+    }
     final session = await _requireSession(false);
     try {
       final plan = planWorkingSize(imageBytes);
@@ -163,14 +220,24 @@ mixin MattingEngineMixin {
           rgba = decoded.rgba;
         }
       }
-      return await Isolate.run(() {
+      // 与 removeBackground 同理：闭包只捕获所需变量，未命中降采样路径时
+      // 不把 imageBytes 拷进 worker。
+      final FaceInfo? result;
+      if (rgba != null && plan != null) {
         final r = rgba;
-        if (r != null && plan != null) {
-          return runFaceFromRgb(
-              rgbaToDecoded(r, plan.width, plan.height), session);
-        }
-        return runFaceSync(imageBytes, session, maxEdge: kEngineMaxEdge);
-      });
+        final p = plan;
+        result = await Isolate.run(() {
+          return runFaceFromRgb(rgbaToDecoded(r, p.width, p.height), session);
+        });
+      } else {
+        result = await Isolate.run(() {
+          return runFaceSync(imageBytes, session, maxEdge: kEngineMaxEdge);
+        });
+      }
+      _faceCacheKey = imageBytes;
+      _faceCacheValue = result;
+      _faceCacheValid = true;
+      return result;
     } on IdPhotoException {
       rethrow;
     } catch (e) {
@@ -187,6 +254,9 @@ mixin MattingEngineMixin {
     _faceSession = null;
     _warmUp = null;
     _factory = null;
+    _faceCacheKey = null;
+    _faceCacheValue = null;
+    _faceCacheValid = false;
     if (matting != null) releaseSession(matting);
     if (face != null) releaseSession(face);
     // 会话全部释放后再关工厂，worker 里的 ReleaseEnv 才是安全的。
