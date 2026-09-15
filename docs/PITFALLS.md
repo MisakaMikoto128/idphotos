@@ -409,3 +409,182 @@
 误判 FAIL（第 1 轮误诊为"dumpsys 采样时序"，第 2 轮才取证实锤：全新安装首次启动 2s 内
 即 resumed）。匹配请用公共子串 `ResumedActivity`。证据：`out/GATE_dumpsys_raw.txt`、
 `out/GATE_c1_f*.png`（gate_G3.dart 内已固化注释）。
+
+## [qa-batch] G4 第 1 轮设备端批量回归的 4 个环境坑（编排脚本已固化解法）
+- adb push 到模拟器目录时 **Git Bash MSYS 路径改写**：`adb push x /data/local/tmp/...` 的目标路径会被
+  MSYS 改写成 `C:/DevTools/Git/data/local/tmp/...`，push 静默失败（旧配置残留导致 app 按 stale 配置跑）。
+  Git Bash 里跑 adb push 带绝对 POSIX 路径必须 `export MSYS2_ARG_CONV_EXCL="*"`，或改用 python subprocess。
+- 本 API 34 AVD 上 **untrusted_app 对 /data/local/tmp 只写不进**（SELinux 拒，chmod 777 无用；
+  读可以）——与早前 gatekeeper "App 能在里面新建文件"的条目矛盾，疑与镜像/时点有关。
+  输出一律改走 App 私有 cache（`/data/user/0/<pkg>/cache/...`），host 侧用
+  `adb exec-out run-as <pkg> tar -cf - -C cache qa_out` 二进制流拉回，python tarfile 解包。
+- **adb devices 第一个 "device" 不一定是你启动的模拟器**：本轮模拟器启动参数错误秒退后，
+  编排脚本抓到开发机新接入的**用户真机**（Xiaomi 2201122C）把回归跑上去了。任何 adb 编排必须
+  钉死 `emulator-*` serial 前缀，非 emulator 设备在线时只告警不使用。
+- `run-as rm -rf cache/qa_out` 清目录后，设备端测量代码用 `File.writeAsString` 写 marker/jsonl
+  **不会自建父目录**（`File.create(recursive:true)` 才会），写失败 → 进程挂着无任何产出。
+  清完必须 `run-as <pkg> mkdir -p cache/qa_out` 再启动 app。
+- 顺带：AVD 用 `-no-snapshot-load` 冷启动，但 userdata 分区**跨次启动持久**——上次的
+  qa_config.json、已装 APK、App cache 都还在，编排每阶段前要显式清态。
+
+## [imaging] 底边「硬约束」在人脸贴底时会把构图整体推垮；推算头顶必须用掩膜复核
+- 现象：G4 r1 两类真实构图缺陷。(1) 摄像头横图、人脸贴近图片底边（1280×720，
+  下巴离底边 14px）：`solveAutoCrop` 的「底边压回画布」把整个画幅上移，
+  成片下巴落在 0.98 倍画高处（贴边即裁），头顶留白从 0.09 膨胀到 0.36。
+  (2) 五人合影选边缘人：成片发际齐着眼镜被裁——由成片反推出部署时实际用的
+  FaceInfo 是 headTopY≈957、chinY≈2364，而 alpha 里真实发顶在 420。
+- 原因：(1) 把「底边不许凭空补肩」当硬约束——脸贴底时画面下方本来就没有肩
+  可保，压回画幅的代价是头部几何全毁，怎么选都是输，不如保头身比。
+  (2) `FaceInfo.headTopY` 是**人体测量学推算值**（eyeY − 1.89·d，见
+  yunet_decoder），头后仰大笑压缩 d、检测框肥大把脖子框进脸时，推算值会掉进
+  脸里；`min(推算值, 框顶)` 的兜底救不了推算值本身偏低。
+- 解法：(a) `solveAutoCrop` 四条边统一策略——画幅按头身比定死，越界（含底边）
+  面积 ≤45% 直接接受、填底色；缩小档改成以头顶点+人脸水平中心为**锚点**等比
+  缩小，绝不钳回画布（钳了锚点就丢，头顶留白随钳制量漂移）。
+  (b) compose 里用 alpha 剪影**向上量真实发顶**（头部带状扫描，容忍 ~2% 头高
+  的稀疏发梢缺口），headTopY 只允许向上修、不允许往下压；水平中心换成上半头
+  分带质心，比全宽行中点抗合影干扰。见 `crop_geometry.dart` 的
+  `refineHeadFromMask`。(c) **不要试图从宽度剖面修下巴**：MODNet 的 alpha 把
+  头颈躯干连成整块，「脸颊宽—脖子窄—肩宽」的收窄信号在真实设备 alpha 上
+  不存在（实测四张，剖面里的变窄全在脸颊中部，是眼镜/发型噪声），按它修
+  下巴会把好图改坏——下巴错只能等 ml-porting 把检测框修对。
+- 复测台：`lib/core/imaging/dev_repro_g4.dart`（qa-batch 拉回的真实设备 alpha +
+  复刻检测值 × 真实 compose 路径，带几何断言），成片在 `out/tmp/g4_repro/`。
+  配准取证手法：把候选成片的前景色模板（屏蔽底色）对源图做 masked SQDIFF
+  多尺度匹配，可从成片反推当时实际用的裁剪框（a14 实测与本地复算差 ≤2px）。
+- 顺带：检测值的「脸框肥大」样本（部署版 a4）修后头身比精确达标但人在画面里
+  偏小——headTopY 修到真实发顶后 chinY(2364) 还是胸口，这是检测端问题；
+  ml-porting 修好选脸/框后自然消失。
+
+## [ml-porting] image 包 4.9.2 与 dart:ui 都会烘焙 EXIF orientation——别再手工 bake，头部解析必须返回摆正后尺寸
+- 现象：为 G4.7 降采样方案做解码器语义探针时发现，`img.decodeJpg` 对带
+  orientation=6 的 JPEG 返回的已是**旋转后**的像素（64×128 原片解成 128×64），
+  且 `exif.imageIfd.orientation` 被**置空**；`dart:ui.instantiateImageCodec`
+  行为相同（顺带：同时给 targetWidth/targetHeight 时输出恰好是该尺寸、
+  不保宽高比，等比尺寸必须自己算好传进去）。
+- 依据源码：image 4.9.2 的 JPEG 解码在 `_jpeg_quantize_io.dart` 的
+  `getImageFromJpeg` 里按 orientation 重排像素并 `orientation = null`——
+  所以 `decodeToRgb` 里的 `bakeOrientation` 对 JPEG 是死代码（真正兜底的是
+  "tag 还在"的其它格式）。风险：**将来 image 包升级若把烘焙挪回显式调用，
+  这里的双重烘焙会静默变单次/零次**，orientation≥5 的链路目前数据集零覆盖，
+  不会报错只会出横躺图。
+- 探针：`native/bench/ui_decode_probe_test.dart`、`image_pkg_exif_probe_test.dart`
+  （手工拼 APP1/EXIF 的手法在里面，想造带 orientation 的样张直接抄）。
+- 结论落地：`lib/core/matting/image_header.dart` 的头部解析与两个解码器
+  对齐——**返回摆正后尺寸**；dart:ui 降采样解码只用于 orientation<5 的图，
+  5–8 走 image 包兜底（Windows 探针结论不外推到 Android）。
+
+## [ml-porting] Isolate.run 的闭包会把整条作用域链发过去——engine 别被闭包"沾"上
+- 现象：A/B 台里 `Isolate.run(() => runMattingSync(bytes, session))` 报
+  `object is unsendable - _Future@... <- _warmUp in Instance of '_Engine'`，
+  尽管闭包字面上只引用了 bytes 和 session。
+- 原因：Dart 闭包捕获的是**词法作用域链**，外层函数作用域里的 `engine`
+  变量（带 `_warmUp` Future 字段）跟着上下文一起序列化，Future 不可发送。
+- 解法：跨 isolate 的计算入口放**顶层函数**，参数只传值（bench 的
+  `_measureLegacyPeak` 就是为此搬出测试体的）。同坑变体：类方法闭包捕获
+  `this` 同样会带上全部字段。
+
+## [qa-batch] 小米真机 adb install 报 INSTALL_FAILED_USER_RESTRICTED，不是授权问题
+- 现象：`adb -s 1e01895d install -r xxx.apk` 稳定失败 `Failure [INSTALL_FAILED_USER_RESTRICTED: Install canceled by user]`，重试同样。设备 `adb devices` 是 device 状态（调试授权正常）。
+- 原因：MIUI/澎湃OS 的"USB 安装"安全开关（开发者选项里独立于 USB 调试），默认要求每次安装在手机屏幕上人工确认；息屏/未确认即自动拒绝。host 侧无任何 adb 手段绕过（这是故意的安全设计，别试）。
+- 解法：需要用户在手机上 开发者选项 → 开启"USB 安装"（可能还要求插着 SIM 卡/登录小米账号），或安装弹窗出现时手动点确认。G4 真机优先通道（4.6/4.7/4.8）在此开关打开前无法执行；qa-batch r2 的真机补测因此只完成了前置检查即中止，未在真机上留下任何残留（pm path 确认无包、无 push 文件）。
+
+## [gatekeeper] release runner 编排三连坑：non-debuggable run-as 失效、QA_DIR 烤死、读 r2 残留配置跑错模式
+- 现象（2026-09-15，G4 r1 release 口径复测）：(1) `run-as com.muzhao.muzhao` 对 release 包一律
+  `package not debuggable`，cache/qa_out 清理与拉取全失效；(2) release runner 的 `QA_DIR` 是
+  构建期 dart-define 烤死的（libapp.so strings 实证 = `/data/local/tmp/muzhao_qa_tmp/in`），
+  运行期 qa_config.json 推到别处会被静默忽略；(3) 忽略后 runner 读到 qa-batch r2 残留的
+  perf 配置，app 跑了 75 分钟"perf"（每秒 Explicit GC 的 logcat 长相像死循环，其实是
+  空转 + 引擎 housekeeping），host 还在傻等 done_batch。
+- 解法：AVD 非 playstore 镜像 `adb root` 可用（`restarting adbd as root`）——私有目录
+  清理/读取全部改走 root shell（mkdir 后记得 chown 回 `u0_a191:u0_a191_cache`，否则
+  untrusted_app 写不进）；qa_config.json 必须推到烤死路径，且每阶段前先
+  `am force-stop`（app 只在启动时读一次配置）。已在 `tools/gate/g4_release_memcheck.py` 固化。
+- 附带：release APK 的 lib/ 三 ABI 齐（arm64-v8a/armeabi-v7a/x86_64），x86_64 模拟器可直接装。
+
+## [qa-batch] 真机 release 包跑设备端测量：run-as 全线失效，输出必须走应用自有外部目录
+- 现象：release APK 装上真机后，`run-as <pkg> ...` 一律报 `run-as: package not debuggable`——
+  模拟器上跑 debug 包用得好好的 run-as marker 轮询 / tar 拉回通道在 release 包上整个不存在；
+  编排脚本每个阶段都空等满 deadline 且拿不到任何结果。
+- 解法：输出目录改用**应用自有外部目录** `/storage/emulated/0/Android/data/<pkg>/files/qa_out`：
+  App 用 `File/Directory.create(recursive:true)` 免权限可写（**必须由 App 自建目录**，
+  shell 建的目录属主是 shell，App 可能写不进）；adb shell 对该路径可读、`adb pull` 可拉。
+  代价：`/data/user/0/<pkg>/cache` 那套私有目录方案只在 debug 包上可用。
+  已落地在 `test/batch/batch_runner.dart`（启动时 create qa_out）+ `test/batch/run_realdevice.py` v2。
+- 附带：MIUI「USB 安装」开关状态不稳（开关存在但安装仍被
+  `INSTALL_FAILED_USER_RESTRICTED` 瞬时拒绝，疑似自动重置），adb 侧无法查询/干预；
+  备选路径是把 APK 推给用户在文件管理器里侧载，然后 `QA_SKIP_INSTALL=1` 跑测量。
+
+## [ml-porting] "碎片化连通域"杀不掉连贯伪主体 —— 非人像优雅失败的真正分界是人脸，不是 alpha 形状
+- 现象（2026-09-15，G4 r1 4.3）：电路板截图（item 60）被 MODNet 抠出"主体"，6 底色候选全是
+  碎片拼贴。直觉以为 alpha 是碎的，上连通域门槛就行；但 88 张全量校准（out/frag_calib_raw.jsonl，
+  native/bench/frag_gate_calib_test.dart）显示：item 60 的最大连通域前景占比高达 **0.91**（比多数
+  真人还"连贯"），地球仪 0.98、风景大块主体 0.97 —— 反而是五人合影只有 **0.497**（人之间自然
+  留空隙）。纯 alpha 几何判据两头不讨好：阈值高杀合影，阈值低放过伪主体。
+- 解法：门槛必须落在"这是不是人"上，与 detectFace 完全同口径（YuNet + pickSubjectFace +
+  kMinFaceAreaRatio=0.03）放进 removeBackground：校准集上 22 张真图（黄金 8 + 人像 14）主脸
+  面积 ≥0.066、置信度 ≥0.93；21 张伪成功非人像要么无脸要么主脸 ≤0.019（面积差 3.4 倍），
+  一刀切干净。碎片化连通域（膨胀 4 轮 + lg_fg<0.35）保留作兜底，但别指望它当主判据。
+- 附带：把检脸挪进 removeBackground 后，controller 的"removeBackground → detectFace"第二次
+  调用可用单槽 identical() 缓存直接命中，全流程反而少一次解码 + 一次推理 —— 顺手收了 4.6/4.8 的余量。
+
+## [ml-porting] dumpsys meminfo 的 "Unknown" 类别 = 大块 native 分配的去向，瞬时滞留要看它不是 Native Heap
+- 现象（2026-09-15，G4 r1 4.7）：release batch 峰值 487.5MB，floor 340 达标，+135MB 峰值点落在
+  638 字节的截图输入上。拆 memdump：Native Heap 稳定在 251-274MB，涨的全在 **Unknown** 类别
+  （46→220MB）——匿名 mmap 页。Dart VM 的 external typed data（image 包解码缓冲、>几百 KB 的
+  Uint8List 走 scudo secondary = 匿名 mmap）全记在这里，Native Heap 看不出任何异常。
+- 判据：峰值 - floor 的差值 ≈ 没被 GC 的垃圾 + 在途缓冲；同一份内存在 leak 曲线上"冲高 ~1s 后
+  回落"就是 GC 滞后而非泄漏。压法不是手动 GC（AOT 没有 API），是减单张瞬时缓冲：
+  闭包别把整个文件 bytes 捕进 Isolate.run（拆闭包）、rgba 就地强制 A=255 复用别再重建一份、
+  同一张图的两次解码合并成一次。
+
+## [ml-porting] flutter build apk --release 换 --target 时 Windows 增量构建保留旧入口点：APK 是旧的 main + 新的代码
+- 现象（2026-09-15，G4 r2 期间）：先构建 batch_runner 入口，再 `flutter build apk --release
+  --target=native/bench/ml_probe_main.dart`，增量构建 26-54s 完成、安装成功，但跑起来仍是
+  batch_runner（logcat 出现 batch_items.jsonl，而 probe 的 PROBE 行一条没有）；且栈帧行号是
+  **新代码**的（_mattingCore）。也就是说 kernel/libapp 重编了，唯独入口 main 没换 —— APK
+  "半新半旧"，且无任何警告。构建时长正常（20-60s）完全看不出异常。
+- 解法：**换 --target 必须先 `flutter clean`**（clean 后 probe 构建 54s、行为正确）。构建完
+  先用 `python -c "import zipfile; print(zipfile.ZipFile(apk).read('lib/x86_64/libapp.so').count(b'特征串'))"`
+  验证入口点（batch runner 特征 = `batch_items.jsonl`，probe 特征 = `PROBE `），再上设备。
+- 附带：多次 full build 期间 `flutter test`（host 测试）与 `flutter build` 并发会抢 file lock，
+  串行执行即可，不必清缓存。
+
+## [ml-porting] G4.8 的 after20 回落读数受 Dart idle-GC 时机支配，单次读数可能虚高 3 倍
+- 现象（2026-09-15，G4 r2 修复后自测）：同一份代码连续两轮 leak 20 轮复测，Δ 分别为 60.3MB 和
+  236.9MB。后者的曲线形态：最后一轮结束时 PSS 冲高到 521MB 后**平台 8s+ 不动**（leak 协议最后
+  一轮后 app 只 sleep 不分配，AOT 无手动 GC 入口，major GC 不被触发），采样窗正好落在平台上。
+  同一轮 batch 80 项跑完的尾部读数只有 ~340MB（若真泄漏 237MB，batch 尾部不可能正常）。
+- 判据：分辨"泄漏"与"GC 时机"看三处——① batch 曲线尾部是否回归 floor；② 平台是否在后续
+  分配恢复后立即回落；③ 多次复测的 Δ 方差。建议 4.8 复测读数窗内安排一次微小分配（或对
+  Δ>阈值的样本复测一次）再判 FAIL。
+
+## [imaging] image 包 4.9.2 的 encodeJpg 每次调用白付 ~1.5MB 纯垃圾；fromBytes 是逐行拷贝
+- 现象（2026-09-15，G4 r2 4.7 压瞬时滞留时剖析）：`img.encodeJpg` 内部
+  `JpegEncoder` 是**每次调用新建实例**，构造函数要建 `_bitCode`/`_category`
+  两张 65535 槽表（各 0.5MB 指针数组）+ RGB→YUV 表 + 量化/DCT 表；
+  `encodeJpg` 又不提供实例复用入口。一次 compose（成品+缩略图两档编码）
+  就是 ~2MB 垃圾，一个数据项 42 次合成 × 2 次编码 ≈ 90MB 纯垃圾 ——
+  这是 compose 路径单笔最大的重复分配，且全在 >100KB 的 external typed
+  data（scudo secondary = 匿名 mmap，dumpsys 记 "Unknown"）。
+- 另一处：`img.Image.fromBytes` **逐行拷贝**输入字节进自建 data 缓冲
+  （image.dart 的 fromBytes 实现，rowStride == dataStride 满拷，无零拷贝
+  选项）——把 RGB 喂给编码器还要再付一份 w×h×3。
+- 解法：JpegEncoder 实例**跨 encode 复用是安全的**（encode() 只读码表，
+  位缓冲等编码期状态在 encode 开头 `_resetBits` 自复位，输出只由
+  quality 与像素决定），按 quality 档缓存实例；编码画布按 (宽,高) 缓存
+  一次 fromBytes，之后把成片 RGB `Uint8List.view(canvas.data!.buffer)`
+  整块 setRange 进去。已落地在 `compose_engine.dart` 的 `_encodeRgbJpeg`，
+  黄金集 190 个输出哈希与逐次新建的基线**逐位一致**
+  （`lib/core/imaging/dev_pool_bitcheck.dart`）。
+- 附带：`RenderedImage` 若加非 final 字段就不能再有 const 构造函数
+  （analyzer 会拦）；渲染输出缓冲的池化键控与防串染依据写在
+  `render.dart` 的 `WorkBufferPool` 文档里（所有输出像素在所有分支下
+  都被写入循环覆盖，复用不影响数值）。
+
+## [主会话] 宿主机内存是全局约束——起模拟器前必跑预检
+- 现象：G2C 期间 AVD 连崩 3 次疑似内存问题；G4 期间 commit 一度 40.5/52.6GB，可用物理内存掉到 2.6GB。
+- 原因：模拟器 4GB + Gradle daemon + flutter tool + 多 agent 并发的 dart 进程叠加；用户明确这台电脑装不下更多东西。
+- 解法：`python tools/hostmem.py`（判据：可用物理 <4GB 或 commit>80% 即拒绝起模拟器）。
+  超限先 `cd android && ./gradlew --stop`、杀残留 dart/qemu。**模拟器同时最多 1 台（用户指令，时间换空间）**。
+  各 agent 派发时写明；gatekeeper/qa-batch 的编排脚本已按此执行。
