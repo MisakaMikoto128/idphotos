@@ -55,7 +55,10 @@ class SessionFactory {
   Future<SendPort> _spawn() async {
     final completer = Completer<SendPort>();
     final ready = ReceivePort();
-    final isolate = await Isolate.spawn(_factoryMain, ready.sendPort);
+    // bench 钩子快照随孵化带过去（全局量跨 isolate 不共享，见
+    // ort_runtime.dart 的 debugBenchFlags 注记）。
+    final isolate = await Isolate.spawn(
+        _factoryMain, <Object>[ready.sendPort, debugBenchFlags()]);
     _isolate = isolate;
     SendPort? send;
     final subscription = ready.listen(
@@ -156,9 +159,10 @@ class SessionFactoryDeadException implements Exception {
 ///
 /// env 的创建走 [createSession] → `OrtSession.fromBuffer` 的懒初始化，
 /// 只会发生一次：这个 isolate 活多久，env 就只存在一份。
-Future<void> _factoryMain(SendPort ready) async {
+Future<void> _factoryMain(List<Object> init) async {
+  applyDebugBenchFlags(init[1] as Map<Object?, Object?>);
   final port = ReceivePort();
-  ready.send(port.sendPort);
+  (init[0] as SendPort).send(port.sendPort);
   // env 在工厂启动时**显式**创建，生命周期与工厂一致；此后 createSession
   // 内部的 _ensureEnv 成为幂等空操作，成功/失败两条路径都能如实上报
   // 同一个 env 地址（"每进程一个 env"可被 bench 逐轮断言）。

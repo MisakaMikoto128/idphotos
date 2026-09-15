@@ -128,14 +128,15 @@ mixin MattingEngineMixin {
     final runGate = !gateKnown && faceSession != null;
     try {
       // 头部预扫与降采样解码都在**宿主** isolate 做：instantiateImageCodec
-      // 是异步原生解码，不卡 UI 线程；后台 isolate 能否用 dart:ui 解码
-      // 未探针钉死，不押注。plan 为 null 或解码失败时，兜底路径在
-      // worker isolate 里全尺寸解码后立即降采样。
+      // 是异步原生解码，不卡 UI 线程；后台 isolate 的 dart:ui 解码实测
+      // 不可用（ml_probe2_main P2，恒返回 null）。orientation 5–8 也走
+      // dart:ui：设备端已验证它烘焙 EXIF（ml_probe2_main P1，orientation=6
+      // 样张摆正后顶边带出现在右侧），而 image_header 的宽高本来就按摆正后
+      // 口径给出，目标尺寸直接传即可。plan 为 null 或解码失败时，兜底路径
+      // 在 worker isolate 里全尺寸解码后立即降采样。
       final plan = planWorkingSize(imageBytes);
       Uint8List? rgba;
-      if (plan != null &&
-          plan.downsampled &&
-          plan.orientation < 5) {
+      if (plan != null && plan.downsampled) {
         final decoded =
             await decodeDownsampledUi(imageBytes, plan.width, plan.height);
         if (decoded != null) {
@@ -213,7 +214,7 @@ mixin MattingEngineMixin {
     try {
       final plan = planWorkingSize(imageBytes);
       Uint8List? rgba;
-      if (plan != null && plan.downsampled && plan.orientation < 5) {
+      if (plan != null && plan.downsampled) {
         final decoded =
             await decodeDownsampledUi(imageBytes, plan.width, plan.height);
         if (decoded != null) {

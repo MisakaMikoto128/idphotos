@@ -38,8 +38,9 @@ class WorkingSizePlan {
   final int sourceWidth;
   final int sourceHeight;
 
-  /// 原始 EXIF orientation（1–8）。dart:ui 降采样解码只用于 <5 的图，
-  /// 5–8（旋转类）走 image 包兜底路径，规避解码器平台差异。
+  /// 原始 EXIF orientation（1–8）。dart:ui 降采样解码对 5–8 同样适用
+  /// （它烘焙 EXIF，Android 设备端已实测；见 ml_probe2_main P1），
+  /// orientation 字段保留供诊断与 bench 使用。
   final int orientation;
 
   bool get downsampled => width != sourceWidth || height != sourceHeight;

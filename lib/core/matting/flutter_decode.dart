@@ -15,8 +15,10 @@
 ///    规划值传入，畸变 ≤1px）；
 /// 3. 同传两个 target 不会保持宽高比，因此**必须**自己算好等比尺寸。
 ///
-/// 这里刻意不处理 orientation ≥5 的入参——调用方（matting_engine）对这类
-/// 图走 image 包兜底路径，避免 Windows 探针结论外推到 Android 的风险。
+/// 这里不按 orientation 分流：调用方对**所有** orientation 传摆正后的
+/// 目标尺寸。dart:ui 烘焙 EXIF 已在 Android 设备端实测（ml_probe2_main
+/// 的 P1：orientation=6 样张解出 128×64 且顶边带出现在右侧），不再是
+/// "Windows 探针结论不外推"的悬案；后台 isolate 解码不可用（P2）。
 library;
 
 import 'dart:typed_data';
