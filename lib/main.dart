@@ -11,6 +11,7 @@
 library;
 
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,9 +24,18 @@ import 'ui/state/providers.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final IdPhotoEngineImpl engine = IdPhotoEngineImpl();
-  // 预热模型：后台进行，不阻塞首帧。loadImage 内部也会 await warmUp
-  // （MattingEngineMixin 的 warmUp 幂等且并发共享同一个 Future），这里是双保险。
-  unawaited(engine.warmUp());
+  // 预取（prefetch）：初始化本身由 warmUp 的幂等共享 Future 保证
+  // （MattingEngineMixin 内部 _requireSession 会 await 同一个 Future），
+  // 这里只是让模型在用户选图前就开始加载，不阻塞首帧。
+  // 失败不致命：首次 loadImage 会重新 await warmUp 并以中文提示呈现；
+  // 监听错误是为了不让启动期的拒绝变成未处理 zone 错误，并留下诊断。
+  unawaited(engine.warmUp().then(
+    (_) {},
+    onError: (Object e, StackTrace st) {
+      developer.log('引擎预热失败（将在首次载入照片时重试）',
+          name: 'muzhao.main', error: e, stackTrace: st);
+    },
+  ));
   runApp(
     ProviderScope(
       overrides: [

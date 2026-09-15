@@ -4,12 +4,22 @@
 /// 编排 [IdPhotoEngine] 的抠图 → 检脸 → 自动裁剪 → 合成流水线，
 /// 并按 CONTRACTS 第 6 节把所有异常翻译成中文文案。
 ///
+/// 并发与失效模型（`/code-review` 后定型，见 `out/REVIEW_G3.md`）：
+/// - 所有状态写入走 [_emit] 单一路径，不存在绕过广播的直接 `_state =` 赋值。
+/// - 每个异步编排体由 [_guarded] 包裹：代数守卫（[_checkGen]）+ 异常统一翻译。
+///   被更新的请求（[_Superseded]）静默退出，不产出错误态。
+/// - [loadImage] 入口即取消去抖计时器并**清空上一张图的缓存**——
+///   加载失败后绝不允许用旧像素合成新图（审查 X1：会把 A 图的脸存成 B 图）。
+/// - [_composeAll] 在入口对 crop/spec/face 做快照，合成途中用户拖拽不影响
+///   本批候选的一致性（审查 L1）。
+///
 /// 势力范围：主会话（CLAUDE.md §4 接线层）。本文件只做**编排**：
 /// 推理在 `lib/core/matting/`、几何与合成在 `lib/core/imaging/`、
 /// 交互呈现由 `lib/ui/` 通过 [AppState] 观察 —— 这里不写任何一层的领域逻辑。
 library;
 
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' show Rect;
@@ -18,7 +28,6 @@ import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'api.dart';
-import 'engine_impl.dart';
 import 'specs/photo_specs.dart';
 
 /// 保存失败。CONTRACTS 第 6 节的异常表只覆盖引擎侧，落盘/相册写入的失败
@@ -27,24 +36,18 @@ class SaveException extends IdPhotoException {
   const SaveException({super.cause}) : super('保存失败了，请再试一次');
 }
 
+/// 内部哨兵：当前编排体已被更新的请求作废。绝不逃出 [_guarded]。
+class _Superseded implements Exception {
+  const _Superseded();
+}
+
 /// [IdPhotoController] 的真实实现。
-///
-/// - 抠图/检脸结果按"当前图片"缓存，`setCrop` / `setSpec` 只触发重新合成，
-///   不重跑模型。
-/// - `setCrop` 在拖拽过程中会被高频调用（UI 每个拖拽帧都转发），
-///   因此**去抖 300ms** 后才重新合成；预览由 UI 本地实时绘制，
-///   候选图在用户停手后跟上。
-/// - 每个异步阶段带代数（[_gen]）：新请求会让旧请求的结果作废，
-///   避免乱序返回把旧候选覆盖到新图上。
 class MuZhaoController implements IdPhotoController {
   /// 创建即持有引擎。同一进程只应有一个实例（见 `lib/main.dart`）。
   MuZhaoController(this._engine, {PhotoSpec? initialSpec})
       : _state = AppState(spec: initialSpec ?? defaultPhotoSpec);
 
-  /// 引擎字段用具体实现类型：`suggestedCropInSourcePx` 是 ComposeEngineMixin
-  /// 提供的公开方法、不在 `IdPhotoEngine` 抽象面上 —— 自动推算属于几何层能力，
-  /// 控制器作为接线层直接依赖接线层的 engine_impl 是合理的。
-  final IdPhotoEngineImpl _engine;
+  final IdPhotoEngine _engine;
   final StreamController<AppState> _out =
       StreamController<AppState>.broadcast();
 
@@ -65,13 +68,60 @@ class MuZhaoController implements IdPhotoController {
   @override
   Stream<AppState> get state => _out.stream;
 
+  // ---------------------------------------------------------------------------
+  // 状态与失效基建
+  // ---------------------------------------------------------------------------
+
+  /// **唯一**的状态写入路径。任何状态变更必须经此广播。
   void _emit(AppState s) {
     _state = s;
     if (!_out.isClosed) _out.add(s);
   }
 
+  /// 代数守卫：不匹配（被更新的请求作废）或流已关时抛 [_Superseded]。
+  void _checkGen(int gen) {
+    if (gen != _gen || _out.isClosed) {
+      throw const _Superseded();
+    }
+  }
+
+  /// 统一的失败出口。只有当前代仍在位时才落错误态。
+  void _fail(int gen, IdPhotoException e) {
+    if (gen != _gen || _out.isClosed) return;
+    _emit(_state.copyWith(stage: Stage.error, errorMessage: e.messageZh));
+  }
+
+  /// 统一包装所有异步编排体：代数守卫 + 异常→中文翻译（CONTRACTS §6）。
+  Future<void> _guarded(int gen, Future<void> Function() body) async {
+    try {
+      await body();
+    } on _Superseded {
+      // 被更新的请求接管了状态，静默退出。
+    } on IdPhotoException catch (e) {
+      _fail(gen, e);
+    } catch (e, st) {
+      // 契约第 6 节：任何异常都不许穿透到 UI，统一按抠图失败呈现；
+      // 原始错误挂进 cause 便于排查。
+      _fail(gen, MattingException(cause: '$e\n$st'));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 流水线编排
+  // ---------------------------------------------------------------------------
+
   @override
   Future<void> loadImage(Uint8List bytes) async {
+    // 新图入场三件事（审查 X1/X2）：
+    // 1. 取消未触发的去抖计时器——否则它会在下方 await 期间触发
+    //    _recompose 的 ++_gen，把本次加载整体作废，UI 卡在"B 图 + A 候选"；
+    // 2. 立即清空上一张图的缓存——加载失败后绝不允许 setCrop 用
+    //    旧像素 + 新坐标合成出"别人的脸"；
+    // 3. 代数前进，让一切在途请求作废。
+    _debounce?.cancel();
+    _debounce = null;
+    _matting = null;
+    _face = null;
     _cropOverride = null;
     final int gen = ++_gen;
     _emit(_state.copyWith(
@@ -81,9 +131,9 @@ class MuZhaoController implements IdPhotoController {
       clearSuggestedCrop: true,
       clearError: true,
     ));
-    try {
+    await _guarded(gen, () async {
       final MattingResult mat = await _engine.removeBackground(bytes);
-      if (gen != _gen) return;
+      _checkGen(gen);
       _matting = mat;
 
       // 检脸失败（引擎内部错误）按"无人脸"降级处理，不阻断流程：
@@ -95,14 +145,16 @@ class MuZhaoController implements IdPhotoController {
       } on IdPhotoException {
         face = null;
       }
-      if (gen != _gen) return;
+      _checkGen(gen);
       _face = face;
 
+      // 坐标链（G4.7 降采样后）：face 是引擎工作分辨率坐标；
+      // suggestedCrop 必须在**原图（摆正后）**空间——UI 的框画在原图上。
       final Rect suggested = _engine.suggestedCropInSourcePx(
-        imageWidth: mat.width,
-        imageHeight: mat.height,
+        imageWidth: mat.srcWidth,
+        imageHeight: mat.srcHeight,
         spec: _state.spec,
-        face: face,
+        face: _scaledFace(face, mat, toSource: true),
       );
       _emit(_state.copyWith(
         stage: Stage.composing,
@@ -111,74 +163,104 @@ class MuZhaoController implements IdPhotoController {
       ));
 
       final List<Candidate> candidates = await _composeAll();
-      if (gen != _gen) return;
-      _emit(_state.copyWith(
+      _checkGen(gen);
+      // 用显式构造而不是 copyWith：errorMessage 的语义是"从当前事实重算"
+      //（无人脸 → 提示；有人脸 → 无），copyWith 的 null 保留语义做不到。
+      _emit(AppState(
+        sourceImage: _state.sourceImage,
+        suggestedCrop: _state.suggestedCrop,
         candidates: candidates,
+        spec: _state.spec,
         stage: Stage.ready,
-        // 无人脸是提示不是错误：候选照常产出，用户可手动框选。
         errorMessage:
             face == null ? const NoFaceException().messageZh : null,
       ));
-    } on UnsupportedImageException catch (e) {
-      _fail(gen, e);
-    } on ImageTooLargeException catch (e) {
-      _fail(gen, e);
-    } on IdPhotoException catch (e) {
-      _fail(gen, e);
-    } catch (e, st) {
-      // 契约第 6 节：任何异常都不许穿透到 UI，统一翻成中文。
-      // 未预期异常按抠图失败呈现；原始错误挂在 cause 里便于排查。
-      _fail(gen, MattingException(cause: '$e\n$st'));
-    }
+    });
   }
 
-  void _fail(int gen, IdPhotoException e) {
-    if (gen != _gen || _out.isClosed) return;
-    _emit(_state.copyWith(stage: Stage.error, errorMessage: e.messageZh));
+  /// 坐标换算（G4.7）：FaceInfo 的 box/chinY/headTopY 是线性量，按
+  /// `srcWidth/width` 等比缩放；rollDeg/confidence 是无量纲量，原样保留。
+  /// [toSource] true = 工作分辨率 → 原图（放大），false = 反向（缩小）。
+  FaceInfo? _scaledFace(FaceInfo? f, MattingResult m, {required bool toSource}) {
+    if (f == null) return null;
+    final double k = toSource
+        ? m.srcWidth / m.width
+        : m.width / m.srcWidth;
+    if (k == 1.0) return f;
+    return FaceInfo(
+      box: Rect.fromLTRB(
+        f.box.left * k, f.box.top * k, f.box.right * k, f.box.bottom * k,
+      ),
+      chinY: f.chinY * k,
+      headTopY: f.headTopY * k,
+      rollDeg: f.rollDeg,
+      confidence: f.confidence,
+    );
+  }
+
+  /// 坐标换算（G4.7）：cropOverride 由 UI 以**原图坐标**送入
+  /// （[IdPhotoController.setCrop] 契约），compose 需要工作分辨率坐标。
+  Rect? _cropInWorkingSpace(Rect? r, MattingResult m) {
+    if (r == null) return null;
+    final double k = m.width / m.srcWidth;
+    if (k == 1.0) return r;
+    return Rect.fromLTRB(
+      r.left * k, r.top * k, r.right * k, r.bottom * k,
+    );
   }
 
   /// 用当前缓存的抠图结果 + 规格，为 6 种内置底色各合成一张候选。
   /// 顺序即 CONTRACTS 第 5 节锁定的展示顺序。
+  ///
+  /// 入口对 matting/spec/face/crop 做**快照**：合成 6 张是顺序异步，
+  /// 途中用户拖拽（改 [_cropOverride]）或换规格不得让同一批候选
+  /// 混用两种几何（审查 L1）。
   Future<List<Candidate>> _composeAll() async {
     final MattingResult mat = _matting!;
+    final PhotoSpec spec = _state.spec;
+    // face 本就是工作分辨率坐标（detectFace 契约），compose 直接可用；
+    // cropOverride 是原图坐标，换算到工作分辨率。
+    final FaceInfo? face = _face;
+    final Rect? cropOverride = _cropInWorkingSpace(_cropOverride, mat);
     final List<Candidate> out = <Candidate>[];
     for (final BackgroundStyle style in kBuiltInBackgrounds) {
       out.add(await _engine.compose(
         matting: mat,
-        spec: _state.spec,
+        spec: spec,
         style: style,
-        face: _face,
-        cropOverride: _cropOverride,
+        face: face,
+        cropOverride: cropOverride,
       ));
     }
     return out;
   }
 
-  /// 重新合成当前图。保留 [_matting] / [_face] 缓存，只重跑 compose。
+  /// 重新合成当前图（保留 [_matting] / [_face] 缓存，只重跑 compose）。
   Future<void> _recompose({required bool showProgress}) async {
     final int gen = ++_gen;
     if (showProgress) {
       _emit(_state.copyWith(stage: Stage.composing, clearError: true));
     }
-    try {
+    await _guarded(gen, () async {
       final List<Candidate> candidates = await _composeAll();
-      if (gen != _gen || _out.isClosed) return;
-      _emit(_state.copyWith(candidates: candidates, stage: Stage.ready));
-    } on IdPhotoException catch (e) {
-      if (gen != _gen || _out.isClosed) return;
-      _emit(_state.copyWith(stage: Stage.error, errorMessage: e.messageZh));
-    } catch (e, st) {
-      if (gen != _gen || _out.isClosed) return;
-      _emit(_state.copyWith(
-        stage: Stage.error,
-        errorMessage: MattingException(cause: '$e\n$st').messageZh,
+      _checkGen(gen);
+      // 成功即重算 errorMessage（审查 X3）：此前失败的红色提示不能在
+      // 恢复正常后残留；无人脸的提示则随事实保持。
+      _emit(AppState(
+        sourceImage: _state.sourceImage,
+        suggestedCrop: _state.suggestedCrop,
+        candidates: candidates,
+        spec: _state.spec,
+        stage: Stage.ready,
+        errorMessage:
+            _face == null ? const NoFaceException().messageZh : null,
       ));
-    }
+    });
   }
 
   @override
   void setCrop(Rect rectInSourcePx) {
-    if (_matting == null) return; // 还没有图，忽略
+    if (_matting == null) return; // 无图或在加载中：忽略
     _cropOverride = rectInSourcePx;
     // 拖拽是高频事件：去抖后合成，用户停手 300ms 出候选。
     _debounce?.cancel();
@@ -189,21 +271,27 @@ class MuZhaoController implements IdPhotoController {
 
   @override
   void setSpec(PhotoSpec spec) {
-    if (spec.id == _state.spec.id) return;
-    // 规格变了宽高比就变了，用户旧框按新比例解释没有意义，作废回自动推算。
+    // 调校表替换（CONTRACTS §2 / photo_specs.dart 头注：接线层职责）。
+    // 否则 UI 抽屉里的 api.dart 常量（未调校）会让同一规格 id 在
+    // 首帧与切换后给出不同的头身比（审查 #2/L5）。
+    final PhotoSpec tuned = tunedSpecFor(spec);
+    if (tuned.id == _state.spec.id) return;
+    // 宽高比变了，用户旧框按新比例解释没有意义：作废回自动推算。
     _cropOverride = null;
-    _state = _state.copyWith(spec: spec);
+    _debounce?.cancel();
     if (_matting == null) {
-      _emit(_state);
+      // 无图（含加载中）：只更新规格，等 loadImage 走完后按新规格出图。
+      _emit(_state.copyWith(spec: tuned));
       return;
     }
     final Rect suggested = _engine.suggestedCropInSourcePx(
-      imageWidth: _matting!.width,
-      imageHeight: _matting!.height,
-      spec: spec,
-      face: _face,
+      imageWidth: _matting!.srcWidth,
+      imageHeight: _matting!.srcHeight,
+      spec: tuned,
+      face: _scaledFace(_face, _matting!, toSource: true),
     );
     _emit(_state.copyWith(
+      spec: tuned,
       suggestedCrop: suggested,
       stage: Stage.composing,
       clearError: true,
@@ -230,6 +318,14 @@ class MuZhaoController implements IdPhotoController {
     try {
       await Gal.putImageBytes(c.jpegBytes, album: '木照');
     } on GalException catch (e) {
+      // 审查 X4：相册写入失败时清掉已落的私有文件——失败的保存不能把
+      // 全分辨率用户照片永久留在 temp 目录。
+      try {
+        await file.delete();
+      } on FileSystemException catch (cleanupError) {
+        developer.log('清理失败保存的临时文件未成功: $cleanupError',
+            name: 'muzhao.controller');
+      }
       throw SaveException(cause: e);
     }
     return file.path;

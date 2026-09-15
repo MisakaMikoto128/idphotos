@@ -89,7 +89,9 @@ class PhotoSpec {
   String toString() => 'PhotoSpec($id, ${widthPx}x$heightPx@$dpi)';
 }
 
-/// 抠图结果。[rgba] 与 [alpha] 同分辨率，均为原图尺寸。
+/// 抠图结果。[rgba] 与 [alpha] 同分辨率，均为**引擎工作分辨率**：
+/// 原图（摆正后）等比降采样到引擎上限，原图本就不超过上限时两者相同
+/// （G4.7 内存修复引入，ml-porting）。
 class MattingResult {
   /// 原图 RGBA，长度恒为 `width * height * 4`。
   final Uint8List rgba;
@@ -97,20 +99,36 @@ class MattingResult {
   /// 单通道 mask，长度恒为 `width * height`。0 = 背景，255 = 前景。
   final Uint8List alpha;
 
+  /// 引擎工作分辨率（[rgba]/[alpha] 的实际尺寸）。
   final int width;
   final int height;
+
+  /// 原图（摆正后）尺寸。null = 未降采样（与 [width]/[height] 相同）。
+  /// 与工作分辨率的比值是唯一的坐标换算系数，见 [srcWidth]/[srcHeight]。
+  final int? sourceWidth;
+  final int? sourceHeight;
 
   const MattingResult({
     required this.rgba,
     required this.alpha,
     required this.width,
     required this.height,
+    this.sourceWidth,
+    this.sourceHeight,
   });
+
+  /// 原图（摆正后）宽。恒 ≥ [width]。
+  int get srcWidth => sourceWidth ?? width;
+
+  /// 原图（摆正后）高。恒 ≥ [height]。
+  int get srcHeight => sourceHeight ?? height;
 }
 
 /// 人脸信息。用于自动裁剪推算与框选初始值。
 ///
-/// 所有坐标均为**原图像素坐标**，不是归一化值，也不是显示坐标。
+/// 坐标为**引擎工作分辨率**（与 [MattingResult] 同一坐标系，G4.7 降采样后
+/// 由 ml-porting 如此返回）。需要原图坐标时由调用方按
+/// `MattingResult.srcWidth / MattingResult.width` 等比换算。
 class FaceInfo {
   /// 人脸框，原图像素坐标。
   final Rect box;
@@ -392,14 +410,37 @@ abstract class IdPhotoEngine {
 
   /// 按规格裁剪 + 换底 + 编码。
   ///
-  /// [cropOverride] 非 null 时用用户框选的区域（原图像素坐标），
-  /// 否则用 [face] 自动推算；两者皆无时退化为居中最大内接框。
+  /// [cropOverride] 非 null 时用用户框选的区域，否则用 [face] 自动推算；
+  /// 两者皆无时退化为居中最大内接框。
+  ///
+  /// **坐标系**：[face] 与 [cropOverride] 与 [matting] 同一坐标系
+  /// （引擎工作分辨率）。controller 负责把原图坐标的用户框选换算进来
+  /// （G4.7 降采样后；未降采样时即原图坐标）。
   Future<Candidate> compose({
     required MattingResult matting,
     required PhotoSpec spec,
     required BackgroundStyle style,
     FaceInfo? face,
     Rect? cropOverride,
+  });
+
+  /// 自动推算的裁剪框，用作 [AppState.suggestedCrop]。
+  ///
+  /// 纯几何计算，无模型依赖。阶段 3 起提升到契约面（审查 A3）：
+  /// 此前它只存在于 ComposeEngineMixin 上，导致 controller 为调用它
+  /// 不得不依赖具体实现类而无法注入假引擎。
+  ///
+  /// **坐标系**：与传入的 [imageWidth]/[imageHeight]/[face] 一致。
+  /// controller 传原图（摆正后）尺寸与原图坐标的 face，返回原图坐标的
+  /// 矩形——UI 的裁剪框画在原图上，必须是原图空间的轴对齐矩形。
+  ///
+  /// 不含摆正——`compose` 内部若判定需要摆正，成片会比这个框略微转正，
+  /// 属预期。
+  Rect suggestedCropInSourcePx({
+    required int imageWidth,
+    required int imageHeight,
+    required PhotoSpec spec,
+    FaceInfo? face,
   });
 
   /// 释放模型与 native 资源。

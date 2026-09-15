@@ -78,6 +78,10 @@ abstract class IdPhotoEngine {
 **归属**：`removeBackground` / `detectFace` / `warmUp` → ml-porting；`compose` 及所有规格计算 → imaging。
 两者各自实现一个 mixin，主会话在阶段 3 合成为 `IdPhotoEngineImpl`。
 
+**阶段 3 后追加（主会话，审查 A3）**：`suggestedCropInSourcePx` 已提升到 `IdPhotoEngine`
+抽象面（`lib/core/api.dart`）——它是纯几何、无模型依赖，此前只存在于 ComposeEngineMixin
+迫使 controller 依赖具体实现类、无法注入假引擎。mixin 实现不变。
+
 ## 3. UI 侧唯一入口（`lib/ui` 只能看到这个）
 
 ```dart
