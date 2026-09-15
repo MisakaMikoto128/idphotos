@@ -107,3 +107,19 @@
 
 ## 最终账目（5/8 角度交付：共 29 条 + 2 流程观察）
 主会话修：X1(HIGH) X2 X3 X4 #2 #5+A6 A2+S1+S2+S3 A3 ｜ ui-woodcraft：#4 A5 S6 S4 X6 ｜ ml-porting：X5+B1 ｜ gatekeeper：B3 ｜ /simplify：A1 A4 S5 B2 ｜ 流程：C1/C2（已回应）
+
+---
+
+## 补充发现 5（逐行扫描角度，6 条；6/8 角度交付）
+
+| # | 严重度 | 位置 | 问题 | 处置 |
+|---|---|---|---|---|
+| L1 | MEDIUM | controller.dart:151 | `_composeAll` 每次迭代读可变 `_cropOverride`：合成 6 张是顺序异步，中途用户开拖 → setCrop 立即改字段 → 候选条前 N 张旧裁剪、后 6-N 张新裁剪，一屏内构图打架 | 主会话修（入口快照 _cropOverride） |
+| L2 | MEDIUM | e2e_eval_test.dart:263 | testWidgets 30min 超时 < 内部预算总和（loadImage 12min + 7 规格×8min + 42 次全分辨率解码）：慢设备上测试先被杀、reportData 没写、gate 误报 3.1/3.2/3.3 FAIL | 回派 gatekeeper（它自己的测试） |
+| L3 | LOW/MED | providers.dart:174 | saveError 换图不清除：保存失败红条在换新照片后永久残留（成功条 2.2s 自动消失，失败条无消失路径） | 回派 ui-woodcraft（UI 态归它；controller 无法触达 WorkbenchState） |
+| L4 | 确认 | controller.dart:185 | = #1/X2，加重细节：Timer 触发后 B 的 matting 完成时 `gen != _gen` 在 `_matting = mat` **之前**返回，缓存永滞 A | 已在主会话修复队列 |
+| L5 | 确认 | controller.dart:195 | = #2，加重细节：默认一寸用调校值 0.64，但用户切二寸再切回一寸后变 0.62——**同一规格 id 首帧与切换后取景差 ~3%** | 已在队列 |
+| L6 | 确认 | main.dart:28 | = #5/B4 | 已在队列 |
+
+## 最终账目（6/8 角度交付：35 条 + 2 流程观察）
+主会话修（9→11 项）：X1(HIGH) X2 X3 X4 #2 #5+A6 A2+S1+S2+S3 A3 **L1** ｜ ui-woodcraft：#4 A5 S6 S4 X6 **L3** ｜ ml-porting：X5+B1 ｜ gatekeeper：B3 **L2** ｜ /simplify：A1 A4 S5 B2 ｜ 流程：C1/C2
