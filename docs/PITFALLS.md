@@ -390,3 +390,22 @@
 - 教训：任何 agent 在 `lib/` 里新增含中文的字符串（哪怕只是异常消息）之后，必须重跑 charset_scan +
   重新 pyftsubset + 同步 `fonts.dart` 的 coveredCharset 三件套；CI/门禁若只在"UI 文案变更"时触发
   字体检查，就会漏掉这一类。另外 `pyftsubset` 对同字符集重跑是幂等安全的，发现缺字直接补跑即可。
+
+## [gatekeeper] 宿主 GPU 损坏机器上，Impeller GLES 渲染真实 UI 的 App 会直接杀死 qemu 宿主进程 —— 直启 APK 必须带 `--ez enable-impeller false`
+- 现象（2026-09-14，G3 冷启动测量，5 次复现）：release/profile APK 用普通 `am start` 直启 → qemu 宿主进程**秒死**（无 WER、无 minidump、guest logcat 无任何痕迹、Settings 等非 Flutter 应用正常）；debug（JIT）main.dart App 能过 am start 但 ~45s 内同样死。2 台 AVD、4096/2560MB 客户机内存、有无旧数据都一样。同一 APK 用 `flutter drive --no-enable-impeller`（工具启动）则稳定跑完。Skia 下同一 App 完全稳定。
+- 原因：Impeller 的 OpenGLES 后端在本机已损坏的 host GL/SwiftShader 栈上首次真实渲染即把宿主 qemu 进程带走。debug 之前"看起来没事"只是因为 JIT 慢/测试目标不渲染真实 UI。
+- 解法：`am start` 直启时手动带 intent extra：`adb shell am start -W --ez enable-impeller false -n <pkg>/.MainActivity` —— 这正是 flutter 工具 `drive/run --no-enable-impeller` 在 Android 上的注入方式（flutter_tools `android_device.dart` 的 `--ez enable-impeller false`，可 grep 实证）。注意 `flutter build apk --no-enable-impeller` 不存在（exit 64），build 阶段关不掉，只能在启动 intent 上带。G3.4/G5.6 任何需要直启测量的场景都要照做。
+
+## [gatekeeper] 设备端冷启动探针的两个坑：/proc/uptime 被 SELinux 拒读；pumpWidget 之后 await endOfFrame 会挂死
+- 现象一：`File('/proc/uptime').readAsStringSync()` 在 App 内抛 `PathAccessException errno=13`，avc denied `{ getattr } for path="/proc/uptime" ... scontext=u:r:untrusted_app`。Android 10+ 的 SELinux 策略不给 untrusted_app 读 proc_uptime，"进程创建→首帧"的完整口径在设备端测不了。
+- 现象二：`await tester.pumpWidget(...)` 之后 `await binding.endOfFrame` 永远不完成（测试 5 分钟超时）。endOfFrame 等的是**下一帧**的结束，而 pumpWidget 已经把当前帧 flush 掉了，此后没有新帧被调度。
+- 解法：探针退化用 `Stopwatch`（CLOCK_MONOTONIC）量 "Dart main 进点→首帧"，首帧完成点用 `await tester.pump(Duration(milliseconds:100))`（live binding 会真实调度并等一帧）；进程创建→首帧的权威数字仍由 host 侧 `am start -W TotalTime` 提供，探针只用于拆分 Dart 侧占比。G3 实测拆分：真实工作台 main→首帧仅 ~0.5s，am start TotalTime 的大头（~7s）是进程/引擎启动段，与 G1 骨架 App 的 5988ms 基线一致，属模拟器环境固有开销。
+
+## [gatekeeper][2026-09-14] dumpsys 在 Android 14 镜像上没有 mResumedActivity 字段（G3.4 可交互验证误报）
+
+`dumpsys activity activities` 在 API 34 (Android 14, extension level 7) 镜像上已不输出旧字段
+`mResumedActivity`（实测全文 0 次出现），新字段名为 `topResumedActivity=` 与
+`ResumedActivity:`。G3.4 的"可交互"交叉验证最初用旧字段名匹配，从未命中过，造成两轮
+误判 FAIL（第 1 轮误诊为"dumpsys 采样时序"，第 2 轮才取证实锤：全新安装首次启动 2s 内
+即 resumed）。匹配请用公共子串 `ResumedActivity`。证据：`out/GATE_dumpsys_raw.txt`、
+`out/GATE_c1_f*.png`（gate_G3.dart 内已固化注释）。

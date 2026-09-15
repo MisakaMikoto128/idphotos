@@ -1,0 +1,44 @@
+{
+  "gate": "G3",
+  "generatedAt": "2026-09-14T15:21:32.350016",
+  "items": [
+    {
+      "id": "3.4",
+      "description": "冷启动 ≤2000ms（2026-09-14 人工授权修订口径）：Dart main() → 真实工作台首帧（探针 integration_test/coldstart_probe_test.dart，profile AOT + Skia）3 轮取中位数；进程级 am start -W TotalTime 仍测量、只记录作参考不判定；mResumedActivity + 截图非纯黑交叉验证可交互",
+      "expected": "探针中位数 ≤ 2000ms 且界面可交互",
+      "actual": "探针各轮 第1轮: 5114ms, 第2轮: 452ms, 第3轮: 460ms → 中位数 460 ms；TotalTime 参考（不判定）: 第1轮: 未解析到 TotalTime（Starting: Intent { cmp=com.muzhao.muzhao/.MainActivity (has extras) }\r\nStatus: timeout\r\nLaunchState: UNKNOWN (-1)\r\nActivity: com.muzhao.muzhao/.MainActivity\r\nWaitTime: 10210\r\nComplete）, 第2轮: 9921ms, 第3轮: 8159ms → 中位 9921ms；可交互交叉验证: 通过（out/GATE_G3_coldstart.png）",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "3.1",
+      "description": "真实照片跑通全链路：黄金集第一张，真实 IdPhotoEngineImpl + MuZhaoController，7 规格 × 6 底色 = 42 张全部产出（含底色 id 与 CONTRACTS 第 5 节锁定顺序一致）",
+      "expected": "42/42 张产出且全部可解码",
+      "actual": "42/42 张产出（可解码 42 张；loadImage 8117ms，逐规格重合成见 out/gate_G3.json）",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "3.2",
+      "description": "42 张产出合法性：2B.1 像素尺寸精确匹配 CONTRACTS 第 4 节 + 2B.2 JFIF DPI 回读=300 + 2B.6 绿底溢色=0（真实照片采用\"绿底减白底逐像素基线校正\"口径，见文件头注释）",
+      "expected": "42/42 尺寸精确 + 42/42 DPI=300 + 7/7 规格绿底溢色=0",
+      "actual": "测量候选 42 张；尺寸不达标 无；DPI 不达标 无；溢色不达标 无",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "3.3",
+      "description": "保存：controller.save() 落盘路径存在且文件可被重新解码（真实 controller，含 Gal 写相册链路）",
+      "expected": "返回路径存在 + JPEG 可重新解码；无异常",
+      "actual": "path=/data/user/0/com.muzhao.muzhao/cache/muzhao_1789435243888_white.jpg exists=true byteLen=68049 decoded=true (600x600)；run-as 不可用（stdout:\n\nstderr:\nrun-as: unknown package: com.muzhao.muzhao\r\n），仅设备端验证",
+      "pass": true,
+      "manual": false
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "manual": 0
+  },
+  "pass": true
+}
