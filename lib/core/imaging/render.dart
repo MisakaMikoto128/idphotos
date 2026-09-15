@@ -10,7 +10,6 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'crop_geometry.dart';
-import 'mem_ledger.dart';
 
 // ---------------------------------------------------------------------------
 // 可复用工作缓冲池
@@ -63,26 +62,6 @@ class WorkBufferPool {
   /// 插入序 = 最近归还序（LRU）。取用即 remove，使用中不驻留。
   final Map<String, Uint8List> _free = <String, Uint8List>{};
 
-  // 记账（ImagingLedger）：池内每键的累计在账字节数。池缓冲的设计存续期是
-  // 「整项」（换图 clear 时归还），所以 alloc 在 acquire、free 在
-  // 淘汰/clear，而不是 RenderedImage.release（归还进池 ≠ 释放）。
-  final Map<String, int> _ledgerLive = <String, int>{};
-
-  static String _ledgerTag(String key) =>
-      key.startsWith('thumb') ? 'thumb.rgb' : 'render.rgb';
-
-  void _ledgerAlloc(String key, int bytes) {
-    ImagingLedger.alloc(_ledgerTag(key), bytes);
-    _ledgerLive[key] = (_ledgerLive[key] ?? 0) + bytes;
-  }
-
-  void _ledgerFreeKey(String key) {
-    final int? b = _ledgerLive.remove(key);
-    if (b != null) {
-      ImagingLedger.free(_ledgerTag(key), b);
-    }
-  }
-
   int _residentBytes = 0;
 
   /// 累计 LRU 淘汰次数（审计用，不清零）。
@@ -94,11 +73,10 @@ class WorkBufferPool {
     if (hit != null) {
       _residentBytes -= hit.length;
       if (hit.length == byteCount) {
-        return hit; // 复用：不产生新分配，记账不变。
+        return hit;
       }
-      _ledgerFreeKey(key); // 尺寸不符：旧块按垃圾丢弃，另配新块。
+      // 尺寸不符：旧块按垃圾丢弃，另配新块。
     }
-    _ledgerAlloc(key, byteCount);
     return Uint8List(byteCount);
   }
 
@@ -113,16 +91,12 @@ class WorkBufferPool {
       // LRU：淘汰最早归还且未取用的缓冲。至少保留刚归还这块本身。
       final String first = _free.keys.first;
       _residentBytes -= _free.remove(first)!.length;
-      _ledgerFreeKey(first);
       evictions++;
     }
   }
 
   /// 清空（**换图时必须调用**，见类文档生命周期第 3 条；亦用于显式释放）。
   void clear() {
-    for (final String key in _ledgerLive.keys.toList()) {
-      _ledgerFreeKey(key);
-    }
     _free.clear();
     _residentBytes = 0;
   }
@@ -212,15 +186,6 @@ double _lumaOf(double r, double g, double b) =>
 
 /// 预乘图层的整数倍 box 降采样。降采样倍数取自裁剪框到输出尺寸的缩放比，
 /// 少了这一步，大图缩到 295×413 会出现严重摩尔纹与噪点。
-///
-/// ## 区域版（G4 r5）
-///
-/// [cellX0] / [cellY0] 是本金字塔**在源图整幅网格里的单元格起点**。整幅
-/// 网格的第 (i, j) 格覆盖源图像素 `[i·f, (i+1)·f) × [j·f, (j+1)·f)`；
-/// 本结构只存网格的一个子矩形 `[cellX0, cellX0+width) × [cellY0, cellY0+height)`。
-/// 整幅版（boxDownsample）即 cellX0 = cellY0 = 0。单元格值只取决于自己的
-/// 源窗口，与区域划分无关 —— 这是「区域裁剪不改变数值」的依据，
-/// 也是黄金集逐位一致的依据。
 class MipLevel {
   final Uint8List premul;
 
@@ -234,18 +199,12 @@ class MipLevel {
   /// 相对原始分辨率的缩小倍数（整数）。
   final int factor;
 
-  /// 本区域在整幅网格中的单元格起点（整幅版为 0）。
-  final int cellX0;
-  final int cellY0;
-
   const MipLevel({
     required this.premul,
     required this.alphaMax,
     required this.width,
     required this.height,
     required this.factor,
-    this.cellX0 = 0,
-    this.cellY0 = 0,
   });
 }
 
@@ -255,10 +214,6 @@ MipLevel boxDownsample(Uint8List premul, int width, int height, int factor) {
   final int dh = f == 1 ? height : math.max(1, height ~/ f);
   final Uint8List out = f == 1 ? premul : Uint8List(dw * dh * 4);
   final Uint8List amax = Uint8List(dw * dh);
-  // 记账：预滤波金字塔，被 _mipCache 整项持有（compose_engine 换图时归还）。
-  if (f > 1) {
-    ImagingLedger.alloc('mip.f$f', out.length + amax.length);
-  }
 
   for (int y = 0; y < dh; y++) {
     final int sy0 = y * f;
@@ -302,168 +257,7 @@ MipLevel boxDownsample(Uint8List premul, int width, int height, int factor) {
     }
   }
   return MipLevel(
-    premul: out,
-    alphaMax: amax,
-    width: dw,
-    height: dh,
-    factor: f,
-  );
-}
-
-// ---------------------------------------------------------------------------
-// 区域预滤波（行带流式，G4 r5）
-// ---------------------------------------------------------------------------
-
-/// 从「行带缓冲」计算单元格行 [cellY] 在列 `[cellX0, cellX1)` 的 box 平均与
-/// alphaMax，写入 [outPremul] / [outAlphaMax] 的第 [outRow] 行。
-///
-/// [buf] 含源行 `[bufRow0, bufRow1)` 的**预乘**数据（行距 bufW×4 字节）。
-/// 调用方必须保证平均窗口 `[cellY·f, min(srcHeight,(cellY+1)·f))` 与
-/// alphaMax 外扩窗口 `[max(0,cellY·f−1), min(srcHeight,(cellY+1)·f+1))`
-/// 都完整落在缓冲行内。
-///
-/// **算术与 [boxDownsample] 逐语句相同**（整数和与 max 与遍历次序无关，
-/// 逐位一致）；f==1 时退化为单像素直拷，与 boxDownsample 的 `out = premul`
-/// 别名路径等值。
-void _mipCellRowFromStrip({
-  required Uint8List buf,
-  required int bufRow0,
-  required int bufW,
-  required int srcHeight,
-  required int factor,
-  required int cellY,
-  required int cellX0,
-  required int cellX1,
-  required Uint8List outPremul,
-  required Uint8List outAlphaMax,
-  required int outCellW,
-  required int outRow,
-}) {
-  final int f = factor < 1 ? 1 : factor;
-  final int sy0 = cellY * f;
-  final int sy1 = math.min(srcHeight, sy0 + f);
-  final int my0 = math.max(0, sy0 - 1);
-  final int my1 = math.min(srcHeight, sy1 + 1);
-  for (int x = cellX0; x < cellX1; x++) {
-    final int sx0 = x * f;
-    final int sx1 = math.min(bufW, sx0 + f);
-    final int o = (outRow * outCellW + (x - cellX0)) * 4;
-    if (f > 1) {
-      int sr = 0, sg = 0, sb = 0, sa = 0, n = 0;
-      for (int sy = sy0; sy < sy1; sy++) {
-        int p = ((sy - bufRow0) * bufW + sx0) * 4;
-        for (int sx = sx0; sx < sx1; sx++) {
-          sr += buf[p];
-          sg += buf[p + 1];
-          sb += buf[p + 2];
-          sa += buf[p + 3];
-          n++;
-          p += 4;
-        }
-      }
-      outPremul[o] = sr ~/ n;
-      outPremul[o + 1] = sg ~/ n;
-      outPremul[o + 2] = sb ~/ n;
-      outPremul[o + 3] = sa ~/ n;
-    } else {
-      final int p = ((sy0 - bufRow0) * bufW + sx0) * 4;
-      outPremul[o] = buf[p];
-      outPremul[o + 1] = buf[p + 1];
-      outPremul[o + 2] = buf[p + 2];
-      outPremul[o + 3] = buf[p + 3];
-    }
-    final int mx0 = math.max(0, sx0 - 1);
-    final int mx1 = math.min(bufW, sx1 + 1);
-    int mx = 0;
-    for (int sy = my0; sy < my1; sy++) {
-      int p = ((sy - bufRow0) * bufW + mx0) * 4 + 3;
-      for (int sx = mx0; sx < mx1; sx++) {
-        final int v = buf[p];
-        if (v > mx) mx = v;
-        p += 4;
-      }
-    }
-    outAlphaMax[outRow * outCellW + (x - cellX0)] = mx;
-  }
-}
-
-/// 行带流式的**区域**预滤波构建（compose 生产路径）。
-///
-/// [cleanRows] 是行带供给回调：`cleanRows(y0, y1, out)` 须把源行 `[y0, y1)`
-/// 的去色边预乘 RGBA 写进 [out]（行 y0 在偏移 0；即 matte_clean 的
-/// [decontaminateRows]）。本函数按「单元格行」推进：第 j 单元格行需要源行
-/// `[max(0, j·f−1), min(srcHeight, (j+1)·f+1))`（平均窗口与 alphaMax 外扩
-/// 窗口的并集，至多 f+2 行），去色边一行带立即降采样一行带 —— 任何时刻
-/// 驻留的干净像素只有 (f+2)×srcWidth，全尺寸 w×h×4 的 premul 缓冲
-/// **自始至终不存在**。
-///
-/// 单元格值只取决于自己的源窗口，与「哪些单元格被构建」无关，因此：
-/// - 与整幅版 [boxDownsample] 逐位一致（黄金集哈希回归验证）；
-/// - 区域按需 union 重建时，重叠单元格的值不变。
-MipLevel buildRegionMip({
-  required void Function(int y0, int y1, Uint8List out) cleanRows,
-  required int srcWidth,
-  required int srcHeight,
-  required int factor,
-  required int cellX0,
-  required int cellY0,
-  required int cellX1,
-  required int cellY1,
-}) {
-  final int f = factor < 1 ? 1 : factor;
-  final int dw = math.max(0, cellX1 - cellX0);
-  final int dh = math.max(0, cellY1 - cellY0);
-  final int cw = math.max(1, dw);
-  final int ch = math.max(1, dh);
-  final Uint8List out = Uint8List(cw * ch * 4);
-  final Uint8List amax = Uint8List(cw * ch);
-  ImagingLedger.alloc('mip.f$f', out.length + amax.length);
-  if (dw <= 0 || dh <= 0) {
-    // 退化区域（裁剪框完全在图外）：渲染采样不会发生，给一个占位格。
-    return MipLevel(
-      premul: out,
-      alphaMax: amax,
-      width: cw,
-      height: ch,
-      factor: f,
-      cellX0: math.max(0, cellX0),
-      cellY0: math.max(0, cellY0),
-    );
-  }
-  final Uint8List strip = Uint8List((f + 2) * srcWidth * 4);
-  ImagingLedger.alloc('clean.strip', strip.length);
-  for (int j = cellY0; j < cellY1; j++) {
-    final int y0 = math.max(0, j * f - 1);
-    final int y1 = math.min(srcHeight, (j + 1) * f + 1);
-    if (y1 <= y0) {
-      continue;
-    }
-    cleanRows(y0, y1, strip);
-    _mipCellRowFromStrip(
-      buf: strip,
-      bufRow0: y0,
-      bufW: srcWidth,
-      srcHeight: srcHeight,
-      factor: f,
-      cellY: j,
-      cellX0: cellX0,
-      cellX1: cellX1,
-      outPremul: out,
-      outAlphaMax: amax,
-      outCellW: dw,
-      outRow: j - cellY0,
-    );
-  }
-  ImagingLedger.free('clean.strip', strip.length);
-  return MipLevel(
-    premul: out,
-    alphaMax: amax,
-    width: dw,
-    height: dh,
-    factor: f,
-    cellX0: cellX0,
-    cellY0: cellY0,
-  );
+      premul: out, alphaMax: amax, width: dw, height: dh, factor: f);
 }
 
 // ---------------------------------------------------------------------------
@@ -531,18 +325,12 @@ class RenderedImage {
     required this.width,
     required this.height,
     required this.solidPixels,
-  }) : _pool = null,
-       _poolKey = null;
+  })  : _pool = null,
+        _poolKey = null;
 
   /// 位置参数顺序：rgb, width, height, solidPixels, 池, 池键。
-  RenderedImage._pooled(
-    this.rgb,
-    this.width,
-    this.height,
-    this.solidPixels,
-    this._pool,
-    this._poolKey,
-  );
+  RenderedImage._pooled(this.rgb, this.width, this.height, this.solidPixels,
+      this._pool, this._poolKey);
 
   /// 若本结果的缓冲来自 [WorkBufferPool]，归还之；否则无操作。
   ///
@@ -565,10 +353,6 @@ class RenderedImage {
 /// [crop] 为**旋转空间**坐标；[plan] 负责旋转空间 ↔ 源图空间的换算。
 /// 裁剪框越出源图的部分采样到 alpha = 0，于是直接得到底色 —— 不会有黑边。
 ///
-/// [mip] 可以是**区域版**（cellX0/cellY0 ≠ 0，只覆盖整幅网格的一个子矩形，
-/// 见 [buildRegionMip]）：采样点恒落在裁剪框的源图 AABB 附近，区域构建时
-/// 已按 ±2 格余量覆盖，钳制语义与全帧版逐位一致。
-///
 /// [workBuffers] 非空时输出缓冲从池里取（键 `rgb:宽 x 高`），用完由调用方
 /// 对返回值调 [RenderedImage.release] 归还；为空则照旧新分配。两种情况下
 /// 输出像素**逐位一致** —— 缓冲里每个像素都会被写入循环覆盖，池化只影响
@@ -584,9 +368,8 @@ RenderedImage renderComposite({
   required BackgroundRamp background,
   WorkBufferPool? workBuffers,
 }) {
-  final String? poolKey = workBuffers == null
-      ? null
-      : 'rgb:$outWidth x $outHeight';
+  final String? poolKey =
+      workBuffers == null ? null : 'rgb:$outWidth x $outHeight';
   final Uint8List out = poolKey == null
       ? Uint8List(outWidth * outHeight * 3)
       : workBuffers!.acquire(poolKey, outWidth * outHeight * 3);
@@ -595,14 +378,6 @@ RenderedImage renderComposite({
   final double sy = crop.height / outHeight;
   final int mw = mip.width;
   final int mh = mip.height;
-  // 区域网格边界（单元格坐标）。整幅版 mip 的 cellX0/cellY0 为 0，此时
-  // 与旧的全帧钳制完全一致；区域版只覆盖整幅网格的一个子矩形 —— 采样点
-  // 恒在裁剪框的源图 AABB ±2 格内（compose_engine 构建区域时已保证），
-  // 因此钳到区域边与旧代码钳到全帧边，在所有可达路径上取到同一格。
-  final int gxMin = mip.cellX0;
-  final int gyMin = mip.cellY0;
-  final int gxMax = mip.cellX0 + mw - 1;
-  final int gyMax = mip.cellY0 + mh - 1;
   final Uint8List mp = mip.premul;
   final Uint8List ma = mip.alphaMax;
   final double f = mip.factor.toDouble();
@@ -643,30 +418,25 @@ RenderedImage renderComposite({
       final int y0 = gy.floor();
       final double fx = gx - x0;
       final double fy = gy - y0;
-      final int x0c = x0 < gxMin ? gxMin : (x0 > gxMax ? gxMax : x0);
-      final int x1c = (x0 + 1) < gxMin
-          ? gxMin
-          : ((x0 + 1) > gxMax ? gxMax : x0 + 1);
-      final int y0c = y0 < gyMin ? gyMin : (y0 > gyMax ? gyMax : y0);
-      final int y1c = (y0 + 1) < gyMin
-          ? gyMin
-          : ((y0 + 1) > gyMax ? gyMax : y0 + 1);
+      final int x0c = x0 < 0 ? 0 : (x0 >= mw ? mw - 1 : x0);
+      final int x1c = (x0 + 1) < 0 ? 0 : ((x0 + 1) >= mw ? mw - 1 : x0 + 1);
+      final int y0c = y0 < 0 ? 0 : (y0 >= mh ? mh - 1 : y0);
+      final int y1c = (y0 + 1) < 0 ? 0 : ((y0 + 1) >= mh ? mh - 1 : y0 + 1);
       final double w00 = (1 - fx) * (1 - fy);
       final double w01 = fx * (1 - fy);
       final double w10 = (1 - fx) * fy;
       final double w11 = fx * fy;
-      final int i00 = ((y0c - gyMin) * mw + (x0c - gxMin)) * 4;
-      final int i01 = ((y0c - gyMin) * mw + (x1c - gxMin)) * 4;
-      final int i10 = ((y1c - gyMin) * mw + (x0c - gxMin)) * 4;
-      final int i11 = ((y1c - gyMin) * mw + (x1c - gxMin)) * 4;
+      final int i00 = (y0c * mw + x0c) * 4;
+      final int i01 = (y0c * mw + x1c) * 4;
+      final int i10 = (y1c * mw + x0c) * 4;
+      final int i11 = (y1c * mw + x1c) * 4;
 
       // 落点所在的 mip 格（其窗口已向外扩过 1 个源像素）里的 alpha 最大值。
-      final int cellX = (xs / f).floor().clamp(gxMin, gxMax);
-      final int cellY = (ys / f).floor().clamp(gyMin, gyMax);
-      final int amx = ma[(cellY - gyMin) * mw + (cellX - gxMin)];
+      final int cellX = (xs / f).floor().clamp(0, mw - 1);
+      final int cellY = (ys / f).floor().clamp(0, mh - 1);
+      final int amx = ma[cellY * mw + cellX];
 
-      final double pa =
-          mp[i00 + 3] * w00 +
+      final double pa = mp[i00 + 3] * w00 +
           mp[i01 + 3] * w01 +
           mp[i10 + 3] * w10 +
           mp[i11 + 3] * w11;
@@ -679,13 +449,11 @@ RenderedImage renderComposite({
       }
       final double pr =
           mp[i00] * w00 + mp[i01] * w01 + mp[i10] * w10 + mp[i11] * w11;
-      final double pg =
-          mp[i00 + 1] * w00 +
+      final double pg = mp[i00 + 1] * w00 +
           mp[i01 + 1] * w01 +
           mp[i10 + 1] * w10 +
           mp[i11 + 1] * w11;
-      final double pb =
-          mp[i00 + 2] * w00 +
+      final double pb = mp[i00 + 2] * w00 +
           mp[i01 + 2] * w01 +
           mp[i10 + 2] * w10 +
           mp[i11 + 2] * w11;
@@ -788,19 +556,9 @@ RenderedImage renderComposite({
 
   return poolKey == null
       ? RenderedImage(
-          rgb: out,
-          width: outWidth,
-          height: outHeight,
-          solidPixels: solid,
-        )
+          rgb: out, width: outWidth, height: outHeight, solidPixels: solid)
       : RenderedImage._pooled(
-          out,
-          outWidth,
-          outHeight,
-          solid,
-          workBuffers,
-          poolKey,
-        );
+          out, outWidth, outHeight, solid, workBuffers, poolKey);
 }
 
 /// 由裁剪框与输出高度推出预滤波倍数（整数，1 表示不降采样）。
@@ -816,11 +574,8 @@ int mipFactorFor(double cropHeight, int outHeight) {
 /// [workBuffers] 语义同 [renderComposite]（键 `thumbRGB:宽 x 高`）。源图长边
 /// 不超过 [maxEdge] 时直接返回 [src] 本身（零分配，无缓冲可复用），
 /// 调用方的释放逻辑须以 `identical` 区分这一情形。
-RenderedImage downscaleRgb(
-  RenderedImage src,
-  int maxEdge, {
-  WorkBufferPool? workBuffers,
-}) {
+RenderedImage downscaleRgb(RenderedImage src, int maxEdge,
+    {WorkBufferPool? workBuffers}) {
   final int longEdge = math.max(src.width, src.height);
   if (longEdge <= maxEdge) {
     return src;
@@ -859,17 +614,7 @@ RenderedImage downscaleRgb(
   }
   return poolKey == null
       ? RenderedImage(
-          rgb: out,
-          width: dw,
-          height: dh,
-          solidPixels: src.solidPixels,
-        )
+          rgb: out, width: dw, height: dh, solidPixels: src.solidPixels)
       : RenderedImage._pooled(
-          out,
-          dw,
-          dh,
-          src.solidPixels,
-          workBuffers,
-          poolKey,
-        );
+          out, dw, dh, src.solidPixels, workBuffers, poolKey);
 }

@@ -8,10 +8,10 @@
 ///
 /// ```
 /// MattingResult(rgba + alpha)
-///   ├─ estimateCleanFields() 推挽外推背景色/局部前景色（低分辨率网格） ← 缓存
+///   ├─ estimateBackground()  推挽外推出原背景色（低分辨率网格）
+///   ├─ decontaminate()       反解真前景色，得到预乘 RGBA          ← 缓存
 ///   ├─ planRotation()        |rollDeg| > 3° 时建立摆正变换
 ///   ├─ solveAutoCrop()       由头顶/下巴反推裁剪框
-///   ├─ buildRegionMip()      行带去色边 + 区域预滤波（流式，无全图缓冲）
 ///   ├─ renderComposite()     摆正+裁剪+缩放+alpha 二值化+换底
 ///   └─ encodeJpg + writeJpegDpi
 /// ```
@@ -27,7 +27,6 @@ import '../api.dart';
 import 'crop_geometry.dart';
 import 'jpeg_dpi.dart';
 import 'matte_clean.dart';
-import 'mem_ledger.dart';
 import 'render.dart';
 
 /// 成品 JPEG 质量。95 是「肉眼无损」与体积的常规平衡点。
@@ -94,19 +93,12 @@ class ComposeDiagnostics {
 
 /// [IdPhotoEngine.compose] 的实现。
 mixin ComposeEngineMixin implements IdPhotoEngine {
-  /// 推挽字段缓存（背景色估计 + 局部实心前景估计）。同一张 [MattingResult]
-  /// 会被 7 规格 × 6 底色反复合成，字段只和抠图结果有关，算一次就够。
-  /// 字段跑在长边 192 的低分辨率网格上，只有 ~1–2MB。
-  ///
-  /// **G4 r5 起不再缓存整图去色边 premul**（w×h×4，12MP 即 48.8MB）：
-  /// 去色边改成行带流式（[decontaminateRows]），在构建区域预滤波时按
-  /// f+2 行一组现算现用，见 [_mipFor]。
+  /// 去色边结果缓存。同一张 [MattingResult] 会被 7 规格 × 6 底色反复合成，
+  /// 去色边只和抠图结果有关，算一次就够。
   MattingResult? _cacheKey;
-  CleanFields? _cacheFields;
+  CleanForeground? _cacheValue;
 
-  /// 区域预滤波缓存，键为降采样倍数。7 个规格里多个规格会命中同一倍数；
-  /// 同倍数但裁剪区域不同时按 union 重建（[MipLevel] 只存整幅网格的子矩形，
-  /// 单元格值与区域无关，重建不改变已有数值）。
+  /// 预滤波金字塔缓存，键为降采样倍数。7 个规格里多个规格会命中同一倍数。
   final Map<int, MipLevel> _mipCache = <int, MipLevel>{};
 
   /// 渲染输出缓冲池（成品 RGB / 缩略图 RGB，键控「用途 + 尺寸」）。
@@ -228,7 +220,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     // 却按 0.09 裁，任何对着入参做断言的调用方（包括验收脚本）都会判它错。
     final PhotoSpec s = spec;
 
-    final CleanFields fields = _fieldsFor(matting);
+    final CleanForeground clean = _cleanForegroundOf(matting);
 
     final RotationPlan plan = planRotation(
       srcWidth: matting.width,
@@ -262,17 +254,12 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     );
 
     final MipLevel mip = _mipFor(
-      matting,
-      fields,
-      mipFactorFor(solution.rect.height, s.heightPx),
-      solution.rect,
-      plan,
-    );
+        clean, mipFactorFor(solution.rect.height, s.heightPx));
 
     final RenderedImage full = renderComposite(
       mip: mip,
-      srcWidth: matting.width,
-      srcHeight: matting.height,
+      srcWidth: clean.width,
+      srcHeight: clean.height,
       plan: plan,
       crop: solution.rect,
       outWidth: s.widthPx,
@@ -281,21 +268,12 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
       workBuffers: _renderPool,
     );
 
-    final Uint8List jpeg = _encodeRgbJpeg(
-      full,
-      quality: kJpegQuality,
-      dpi: s.dpi,
-    );
-    final RenderedImage thumb = downscaleRgb(
-      full,
-      kThumbMaxEdge,
-      workBuffers: _renderPool,
-    );
-    final Uint8List thumbJpeg = _encodeRgbJpeg(
-      thumb,
-      quality: kThumbJpegQuality,
-      dpi: s.dpi,
-    );
+    final Uint8List jpeg =
+        _encodeRgbJpeg(full, quality: kJpegQuality, dpi: s.dpi);
+    final RenderedImage thumb = downscaleRgb(full, kThumbMaxEdge,
+        workBuffers: _renderPool);
+    final Uint8List thumbJpeg =
+        _encodeRgbJpeg(thumb, quality: kThumbJpegQuality, dpi: s.dpi);
 
     // 编码完成（缩略图是只读 full 得出的，也已完成）才把缓冲还给池。
     // 缩略图长边不足 320 时 downscaleRgb 返回 full 本身，此时只能归还一次。
@@ -322,10 +300,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     final PhotoSpec s = spec;
     final RectD r = face == null
         ? centeredMaxRect(
-            imageWidth.toDouble(),
-            imageHeight.toDouble(),
-            s.aspectRatio,
-          )
+            imageWidth.toDouble(), imageHeight.toDouble(), s.aspectRatio)
         : solveAutoCrop(
             canvasWidth: imageWidth.toDouble(),
             canvasHeight: imageHeight.toDouble(),
@@ -339,12 +314,10 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     // UI 的拖拽框不能跑到图外，这里钳一次；compose 内部用的是未钳的版本。
     final double w = math.min(r.width, imageWidth.toDouble());
     final double h = math.min(r.height, imageHeight.toDouble());
-    final double left = r.left
-        .clamp(0.0, math.max(0.0, imageWidth - w))
-        .toDouble();
-    final double top = r.top
-        .clamp(0.0, math.max(0.0, imageHeight - h))
-        .toDouble();
+    final double left =
+        r.left.clamp(0.0, math.max(0.0, imageWidth - w)).toDouble();
+    final double top =
+        r.top.clamp(0.0, math.max(0.0, imageHeight - h)).toDouble();
     return Rect.fromLTWH(left, top, w, h);
   }
 
@@ -366,182 +339,48 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     }
   }
 
-  /// 推挽字段缓存（**换图边界：全量失效**）。
-  ///
-  /// 新的一张抠图到达（对象身份变化）时，把字段、区域预滤波、渲染输出池
-  /// 与编码画布全部清空 —— 一张图内部多次 compose 的复用收益在上一张已
-  /// 兑现，跨图一个字节都不留（G4 r3：池不还字号是 4.7/4.8 恶化的时间线
-  /// 主嫌）。
-  CleanFields _fieldsFor(MattingResult m) {
-    final CleanFields? cached = _cacheFields;
+  CleanForeground _cleanForegroundOf(MattingResult m) {
+    final CleanForeground? cached = _cacheValue;
     if (cached != null && identical(_cacheKey, m)) {
       return cached;
     }
+    // ---- 换图边界：全量失效 ----
+    // 新的一张抠图到达（对象身份变化）。按「当前图片失效」纪律，把渲染
+    // 输出池与编码画布全部清空 —— 一张图内部多次 compose 的复用收益在
+    // 上一张已兑现，跨图一个字节都不留（G4 r3：池不还字号是 4.7/4.8
+    // 恶化的时间线主嫌）。mip 缓存同理（键是倍数，内容随图变）。
     _cacheKey = m;
-    final CleanFields? oldFields = _cacheFields;
-    _cacheFields = null; // 先置空，防下方抛异常时留下旧图脏缓存
-    for (final MipLevel l in _mipCache.values) {
-      ImagingLedger.free(
-        'mip.f${l.factor}',
-        l.premul.length + l.alphaMax.length,
-      );
-    }
+    _cacheValue = null; // 先置空，防下方抛异常时留下旧图脏缓存
     _mipCache.clear();
     _renderPool.clear();
-    for (final img.Image canvas in _encodeCanvas.values) {
-      ImagingLedger.free('encode.canvas', canvas.data!.length);
-    }
     _encodeCanvas.clear();
-    final CleanFields fields = estimateCleanFields(
+    final CleanForeground clean = decontaminate(
       rgba: m.rgba,
       alpha: m.alpha,
       width: m.width,
       height: m.height,
     );
-    if (oldFields != null) {
-      ImagingLedger.free('clean.fields', oldFields.ledgerBytes);
-    }
-    ImagingLedger.alloc('clean.fields', fields.ledgerBytes);
-    _cacheFields = fields;
-    return fields;
+    _cacheValue = clean;
+    return clean;
   }
 
-  /// 取（或按需构建）本次合成需要的**区域**预滤波。
-  ///
-  /// ## 为什么是区域版而不是整幅版（G4 r5 内存归因）
-  ///
-  /// 整幅预滤波对 4958×7017 的扫描件是 f2 一份 43.5MB、f3 一份 19.3MB，
-  /// 整项存续；f==1 时还会把全尺寸 premul 整个占住（作为别名）。但渲染
-  /// 采样只会落在裁剪框附近 —— 7 个规格的裁剪框都以同一张人脸为锚，
-  /// union 后仍远小于全幅。区域版把这份整项开销从 O(整图) 压到
-  /// O(裁剪框/f²)，配合行带去色边（[decontaminateRows]），全尺寸 premul
-  /// 缓冲自始至终不存在。
-  ///
-  /// ## 覆盖判定与 union 重建
-  ///
-  /// 先由本次裁剪框算出**需要的单元格范围**（见下），缓存命中（同倍数且
-  /// 已覆盖）直接用；否则对「旧区域 ∪ 新区域」重建。单元格值只取决于源
-  /// 窗口（[buildRegionMip]），重建后重叠区域的数值不变。
-  ///
-  /// ## 需要范围的余量推导
-  ///
-  /// 渲染采样点满足 xr ∈ crop（旋转空间），映回源图落在四角 AABB 内
-  /// （toSource 是仿射映射）。对采样点 xs ∈ [ax0, ax1)：双线性取格
-  /// `floor(xs/f − 0.5)` 及其 +1 邻格，alphaMax 取 `floor(xs/f)`。邻格最多
-  /// 越过 AABB 边缘约 1 格（`gx < ax1/f + 0.5` 的取整），左/上留 2 格、
-  /// 右/下留 3 格余量后，区域钳制与旧的全帧钳制在所有可达路径上取到同一格
-  /// （黄金集逐位一致回归验证）。
-  MipLevel _mipFor(
-    MattingResult m,
-    CleanFields fields,
-    int factor,
-    RectD cropRot,
-    RotationPlan plan,
-  ) {
-    final int mw = math.max(1, m.width ~/ factor);
-    final int mh = math.max(1, m.height ~/ factor);
-
-    // 裁剪框四角映回源图取 AABB。
-    double minX = double.infinity, maxX = double.negativeInfinity;
-    double minY = double.infinity, maxY = double.negativeInfinity;
-    final List<double> pt = <double>[0.0, 0.0];
-    final bool finite =
-        cropRot.left.isFinite &&
-        cropRot.top.isFinite &&
-        cropRot.width.isFinite &&
-        cropRot.height.isFinite;
-    if (finite) {
-      const List<List<double>> corners = <List<double>>[
-        <double>[0.0, 0.0],
-        <double>[1.0, 0.0],
-        <double>[1.0, 1.0],
-        <double>[0.0, 1.0],
-      ];
-      for (final List<double> c in corners) {
-        plan.toSource(
-          cropRot.left + c[0] * cropRot.width,
-          cropRot.top + c[1] * cropRot.height,
-          pt,
-        );
-        if (pt[0] < minX) minX = pt[0];
-        if (pt[0] > maxX) maxX = pt[0];
-        if (pt[1] < minY) minY = pt[1];
-        if (pt[1] > maxY) maxY = pt[1];
-      }
-    }
-
-    // 需要的单元格范围。裁剪框与源图无交集（或几何非法）时退化为 1×1
-    // 占位 —— 此时渲染逐像素走「图外填底色」分支，不会采样 mip。
-    int cx0 = 0, cy0 = 0, cx1 = math.min(mw, 1), cy1 = math.min(mh, 1);
-    if (finite && maxX > 0 && maxY > 0 && minX < m.width && minY < m.height) {
-      final int ax0 = minX.floor().clamp(0, m.width);
-      final int ax1 = maxX.ceil().clamp(0, m.width);
-      final int ay0 = minY.floor().clamp(0, m.height);
-      final int ay1 = maxY.ceil().clamp(0, m.height);
-      if (ax1 > ax0 && ay1 > ay0) {
-        cx0 = math.max(0, (ax0 ~/ factor) - 2);
-        cy0 = math.max(0, (ay0 ~/ factor) - 2);
-        cx1 = math.min(mw, ((ax1 - 1) ~/ factor) + 3);
-        cy1 = math.min(mh, ((ay1 - 1) ~/ factor) + 3);
-      }
-    }
-
+  MipLevel _mipFor(CleanForeground clean, int factor) {
     final MipLevel? hit = _mipCache[factor];
-    if (hit != null &&
-        hit.cellX0 <= cx0 &&
-        hit.cellY0 <= cy0 &&
-        hit.cellX0 + hit.width >= cx1 &&
-        hit.cellY0 + hit.height >= cy1) {
+    if (hit != null) {
       return hit;
     }
-
-    // union 重建：旧区域 ∪ 新区域（重叠单元格的值不变，见 buildRegionMip）。
-    int ux0 = cx0, uy0 = cy0, ux1 = cx1, uy1 = cy1;
-    if (hit != null) {
-      ux0 = math.min(ux0, hit.cellX0);
-      uy0 = math.min(uy0, hit.cellY0);
-      ux1 = math.max(ux1, hit.cellX0 + hit.width);
-      uy1 = math.max(uy1, hit.cellY0 + hit.height);
-    }
-
-    final MipLevel built = buildRegionMip(
-      cleanRows: (int y0, int y1, Uint8List out) => decontaminateRows(
-        rgba: m.rgba,
-        alpha: m.alpha,
-        width: m.width,
-        height: m.height,
-        fields: fields,
-        y0: y0,
-        y1: y1,
-        out: out,
-      ),
-      srcWidth: m.width,
-      srcHeight: m.height,
-      factor: factor,
-      cellX0: ux0,
-      cellY0: uy0,
-      cellX1: ux1,
-      cellY1: uy1,
-    );
-    if (hit != null) {
-      ImagingLedger.free(
-        'mip.f$factor',
-        hit.premul.length + hit.alphaMax.length,
-      );
-    }
-    _mipCache[factor] = built;
-    return built;
+    final MipLevel level =
+        boxDownsample(clean.premul, clean.width, clean.height, factor);
+    _mipCache[factor] = level;
+    return level;
   }
 
   /// [encodeRgbJpeg] 的引擎内缓存版：编码画布与编码器实例跨调用复用
   /// （见 [_encodeCanvas] / [_jpegEncoders] 的文档）。输出与 [encodeRgbJpeg]
   /// **逐位一致**——画布里的像素与 [encodeRgbJpeg] 每次新拷进去的完全相同，
   /// 编码器输出只由 quality 与画布像素决定。
-  Uint8List _encodeRgbJpeg(
-    RenderedImage image, {
-    required int quality,
-    required int dpi,
-  }) {
+  Uint8List _encodeRgbJpeg(RenderedImage image,
+      {required int quality, required int dpi}) {
     final String key = '${image.width} x ${image.height}';
     img.Image? canvas = _encodeCanvas[key];
     if (canvas == null) {
@@ -552,26 +391,18 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
         numChannels: 3,
         order: img.ChannelOrder.rgb,
       );
-      ImagingLedger.alloc('encode.canvas', canvas.data!.length);
       _encodeCanvas[key] = canvas;
     } else {
       // 画布数据恰好 w×h×3（fromBytes 以 rowStride == dataStride 逐行满拷），
       // 长度按 image.rgb 钳制，防御包实现引入行填充。
-      final Uint8List dst = Uint8List.view(
-        canvas.data!.buffer,
-        0,
-        image.rgb.length,
-      );
+      final Uint8List dst =
+          Uint8List.view(canvas.data!.buffer, 0, image.rgb.length);
       dst.setRange(0, dst.length, image.rgb);
     }
     final img.JpegEncoder encoder = _jpegEncoders.putIfAbsent(
-      quality,
-      () => img.JpegEncoder(quality: quality),
-    );
-    final Uint8List bytes = encoder.encode(
-      canvas,
-      chroma: img.JpegChroma.yuv444,
-    );
+        quality, () => img.JpegEncoder(quality: quality));
+    final Uint8List bytes =
+        encoder.encode(canvas, chroma: img.JpegChroma.yuv444);
     return writeJpegDpi(bytes, dpi);
   }
 
@@ -605,7 +436,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
         note: oob <= 1e-6
             ? '使用用户框选的裁剪区域'
             : '使用用户框选的裁剪区域，摆正后有 '
-                  '${(oob * 100).toStringAsFixed(1)}% 转出画布，按 alpha=0 填底色',
+                '${(oob * 100).toStringAsFixed(1)}% 转出画布，按 alpha=0 填底色',
       );
     }
 
@@ -656,8 +487,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
       final double srcCy = plan.srcHeight / 2.0;
       final double rotCx = plan.rotWidth / 2.0;
       final double rotCy = plan.rotHeight / 2.0;
-      headTopYr =
-          rotCy +
+      headTopYr = rotCy +
           (face.headTopY - srcCy - sinA * (anchorX - rotCx)) /
               math.cos(plan.angleRad);
       chinYr = headTopYr + headH;
@@ -670,13 +500,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     // 发顶（只允许向上修，不允许往下压），水平中心换成分带质心。
     // 掩膜对不上（头顶附近无前景）时原样保留检测器几何。
     final HeadMaskRefinement ref = _headRefinementFor(
-      matting,
-      plan,
-      faceCxr,
-      headTopYr,
-      chinYr,
-      faceBoxW,
-    );
+        matting, plan, faceCxr, headTopYr, chinYr, faceBoxW);
     if (ref.valid) {
       if (ref.hairTopY < headTopYr) {
         headTopYr = ref.hairTopY;
@@ -727,11 +551,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     final List<double> p = <double>[0.0, 0.0];
     plan.toRotated(r.center.dx, r.center.dy, p);
     return RectD(
-      p[0] - r.width / 2.0,
-      p[1] - r.height / 2.0,
-      r.width,
-      r.height,
-    );
+        p[0] - r.width / 2.0, p[1] - r.height / 2.0, r.width, r.height);
   }
 }
 
@@ -739,11 +559,8 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
 ///
 /// 单独抽出来是为了让自检脚本直接复用同一条编码路径 ——
 /// 自检测的必须是真正交付的那串字节，不是另一条近似路径。
-Uint8List encodeRgbJpeg(
-  RenderedImage image, {
-  required int quality,
-  required int dpi,
-}) {
+Uint8List encodeRgbJpeg(RenderedImage image,
+    {required int quality, required int dpi}) {
   final img.Image encoded = img.Image.fromBytes(
     width: image.width,
     height: image.height,

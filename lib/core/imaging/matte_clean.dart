@@ -33,8 +33,6 @@ library;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'mem_ledger.dart';
-
 /// alpha 低于此值的像素视为「确定背景」，用来喂 push-pull 的种子。
 const double kBgSeedAlpha = 0.10;
 
@@ -63,9 +61,6 @@ class BackgroundEstimate {
   final int srcWidth;
   final int srcHeight;
 
-  /// 本图全部层级的字节占用（记账用，见 mem_ledger.dart）。
-  final int ledgerBytes;
-
   BackgroundEstimate({
     required this.gridWidth,
     required this.gridHeight,
@@ -74,13 +69,14 @@ class BackgroundEstimate {
     required this.b,
     required this.srcWidth,
     required this.srcHeight,
-    this.ledgerBytes = 0,
   });
 
   /// 在源图像素坐标 (x, y) 处双线性采样，结果写入 [out]（长度 ≥ 3，0–255）。
   void sampleAt(int x, int y, Float32List out) {
-    final double gx = (x + 0.5) * gridWidth / srcWidth - 0.5;
-    final double gy = (y + 0.5) * gridHeight / srcHeight - 0.5;
+    final double gx =
+        (x + 0.5) * gridWidth / srcWidth - 0.5;
+    final double gy =
+        (y + 0.5) * gridHeight / srcHeight - 0.5;
     final int x0 = gx.floor();
     final int y0 = gy.floor();
     final double fx = gx - x0;
@@ -111,10 +107,10 @@ class _Level {
   final Float32List b;
   final Float32List wt;
   _Level(this.w, this.h)
-    : r = Float32List(w * h),
-      g = Float32List(w * h),
-      b = Float32List(w * h),
-      wt = Float32List(w * h);
+      : r = Float32List(w * h),
+        g = Float32List(w * h),
+        b = Float32List(w * h),
+        wt = Float32List(w * h);
 }
 
 /// 从 alpha 很低的像素出发，推挽外推出整幅背景估计。
@@ -124,15 +120,16 @@ BackgroundEstimate estimateBackground({
   required int width,
   required int height,
   int gridMaxDim = kBgGridMaxDim,
-}) => _pushPullField(
-  rgba: rgba,
-  alpha: alpha,
-  width: width,
-  height: height,
-  gridMaxDim: gridMaxDim,
-  seedBelow: true,
-  seedAlpha: (kBgSeedAlpha * 255).round(),
-);
+}) =>
+    _pushPullField(
+      rgba: rgba,
+      alpha: alpha,
+      width: width,
+      height: height,
+      gridMaxDim: gridMaxDim,
+      seedBelow: true,
+      seedAlpha: (kBgSeedAlpha * 255).round(),
+    );
 
 /// 同一套推挽插值，种子换成「确定前景」像素，得到一张平滑的
 /// **局部实心前景色**图。用于色度去溢：它回答「这个边缘像素附近，
@@ -143,15 +140,16 @@ BackgroundEstimate estimateSolidForeground({
   required int width,
   required int height,
   int gridMaxDim = kBgGridMaxDim,
-}) => _pushPullField(
-  rgba: rgba,
-  alpha: alpha,
-  width: width,
-  height: height,
-  gridMaxDim: gridMaxDim,
-  seedBelow: false,
-  seedAlpha: (kFgSeedAlpha * 255).round(),
-);
+}) =>
+    _pushPullField(
+      rgba: rgba,
+      alpha: alpha,
+      width: width,
+      height: height,
+      gridMaxDim: gridMaxDim,
+      seedBelow: false,
+      seedAlpha: (kFgSeedAlpha * 255).round(),
+    );
 
 BackgroundEstimate _pushPullField({
   required Uint8List rgba,
@@ -218,13 +216,11 @@ BackgroundEstimate _pushPullField({
 
   // ---- push：逐级下采样，权重即「已知程度」----
   final List<_Level> levels = <_Level>[base];
-  int levelBytes = base.r.length * 16 + cnt.length * 4; // r/g/b/wt + cnt
   while (levels.last.w > 1 || levels.last.h > 1) {
     final _Level c = levels.last;
     final int pw = math.max(1, (c.w + 1) >> 1);
     final int ph = math.max(1, (c.h + 1) >> 1);
     final _Level p = _Level(pw, ph);
-    levelBytes += pw * ph * 16;
     for (int y = 0; y < ph; y++) {
       for (int x = 0; x < pw; x++) {
         double sr = 0, sg = 0, sb = 0, sw = 0;
@@ -314,53 +310,8 @@ BackgroundEstimate _pushPullField({
     b: base.b,
     srcWidth: width,
     srcHeight: height,
-    ledgerBytes: levelBytes,
   );
 }
-
-/// 推挽字段（背景估计 + 局部实心前景估计）。
-///
-/// 两个字段都跑在长边 192 的低分辨率网格上，与全图尺寸无关 —— 这是去色边
-/// 链路里**唯一**必须整图扫描的部分，但产物只有 ~1–2MB。拿到字段后，
-/// 去色边的逐像素反解就是纯行内函数（见 [decontaminateRows]），可以按行带
-/// 流式执行，全尺寸 premul 缓冲不再需要整项存续。
-class CleanFields {
-  final BackgroundEstimate background;
-  final BackgroundEstimate solidForeground;
-
-  const CleanFields({required this.background, required this.solidForeground});
-
-  /// 两个字段的字节占用（记账用）。
-  int get ledgerBytes => background.ledgerBytes + solidForeground.ledgerBytes;
-}
-
-/// 一次性算好去色边需要的两个推挽字段（各整图扫描一遍）。
-CleanFields estimateCleanFields({
-  required Uint8List rgba,
-  required Uint8List alpha,
-  required int width,
-  required int height,
-  int gridMaxDim = kBgGridMaxDim,
-}) => CleanFields(
-  background: _pushPullField(
-    rgba: rgba,
-    alpha: alpha,
-    width: width,
-    height: height,
-    gridMaxDim: gridMaxDim,
-    seedBelow: true,
-    seedAlpha: (kBgSeedAlpha * 255).round(),
-  ),
-  solidForeground: _pushPullField(
-    rgba: rgba,
-    alpha: alpha,
-    width: width,
-    height: height,
-    gridMaxDim: gridMaxDim,
-    seedBelow: false,
-    seedAlpha: (kFgSeedAlpha * 255).round(),
-  ),
-);
 
 /// 去色边后的图层：**预乘 RGBA**（R·a, G·a, B·a, a），长度 = w·h·4。
 ///
@@ -378,7 +329,7 @@ class CleanForeground {
   });
 }
 
-/// 去色边主过程（整图版，保留给自检工装与降级路径）。
+/// 去色边主过程。
 ///
 /// 对每个像素：
 /// - `a >= kFgSolidAlpha`：实心前景，F = C；
@@ -387,12 +338,6 @@ class CleanForeground {
 ///
 /// 反解会把误差放大 1/a 倍，因此结果一律钳到 0–255；这既避免溢出，
 /// 也天然抑制了背景估计不准时的过冲。
-///
-/// **生产路径不再走这里**：整图 premul 输出是 w×h×4 的整项存续大缓冲
-/// （G4 r5 归因：compose 段 +65.6MB 瞬态的大头）。compose 现在用
-/// [estimateCleanFields] + [decontaminateRows] 按行带流式喂给区域预滤波
-/// （见 render.dart 的 [buildRegionMip]），全尺寸缓冲不再存在。两条路径
-/// 的逐像素数学完全一致（本函数就是 [decontaminateRows] 的全行循环）。
 CleanForeground decontaminate({
   required Uint8List rgba,
   required Uint8List alpha,
@@ -400,79 +345,26 @@ CleanForeground decontaminate({
   required int height,
   BackgroundEstimate? background,
 }) {
-  final CleanFields fields = background == null
-      ? estimateCleanFields(
-          rgba: rgba,
-          alpha: alpha,
-          width: width,
-          height: height,
-        )
-      : CleanFields(
-          background: background,
-          solidForeground: estimateSolidForeground(
-            rgba: rgba,
-            alpha: alpha,
-            width: width,
-            height: height,
-          ),
-        );
+  final BackgroundEstimate bg = background ??
+      estimateBackground(
+          rgba: rgba, alpha: alpha, width: width, height: height);
+  final BackgroundEstimate fgField = estimateSolidForeground(
+      rgba: rgba, alpha: alpha, width: width, height: height);
   final Uint8List out = Uint8List(width * height * 4);
-  // 记账：整图版才有的整项存续缓冲；流式路径（decontaminateRows）没有它。
-  ImagingLedger.alloc('clean.premul', out.length);
-  decontaminateRows(
-    rgba: rgba,
-    alpha: alpha,
-    width: width,
-    height: height,
-    fields: fields,
-    y0: 0,
-    y1: height,
-    out: out,
-  );
-  return CleanForeground(premul: out, width: width, height: height);
-}
-
-/// 去色边的**行带版**：把源行 `[y0, y1)` 反解成预乘 RGBA，写入 [out]
-/// （布局与整图版相同，但第 y0 行写在 out 的偏移 0 处；`out` 长度必须
-/// ≥ (y1−y0)·width·4）。
-///
-/// 逐像素数学与 [decontaminate] 完全一致（同一段代码）：每个输出像素只依赖
-/// **同一行**的输入像素与两个全局字段（[CleanFields]，与行无关），因此
-/// 任意行带划分下输出逐位相同 —— 这是行带流式可行性的依据。
-void decontaminateRows({
-  required Uint8List rgba,
-  required Uint8List alpha,
-  required int width,
-  required int height,
-  required CleanFields fields,
-  required int y0,
-  required int y1,
-  required Uint8List out,
-}) {
-  final BackgroundEstimate bg = fields.background;
-  final BackgroundEstimate fgField = fields.solidForeground;
   final Float32List bgc = Float32List(3);
   final Float32List fgc = Float32List(3);
   const double solid = kFgSolidAlpha;
 
-  for (int y = y0; y < y1; y++) {
+  for (int y = 0; y < height; y++) {
     final int rowA = y * width;
     final int rowP = rowA * 4;
-    final int outRow = (y - y0) * width * 4;
     for (int x = 0; x < width; x++) {
       final int ai = rowA + x;
       final int av = alpha[ai];
       final int p = rowP + x * 4;
-      final int o = outRow + x * 4;
       if (av == 0) {
-        // 预乘后整像素为 0。**四个通道都必须写**：行带缓冲是跨单元格行
-        // 复用的，只写 alpha 会把上一行的 RGB 残留泄进 box 平均
-        // （整图版整缓冲 fresh 时恰为 0，掩盖了这个约定——区域流式版首跑
-        // 就撞上，g03/g06 的 mip 平均值被污染）。
-        out[o] = 0;
-        out[o + 1] = 0;
-        out[o + 2] = 0;
-        out[o + 3] = 0;
+        // 预乘全 0，颜色无关紧要。
+        out[p + 3] = 0;
         continue;
       }
       final double a = av / 255.0;
@@ -550,10 +442,11 @@ void decontaminateRows({
           fb = fb * keep + fgc[2] * wt;
         }
       }
-      out[o] = (fr * a + 0.5).toInt();
-      out[o + 1] = (fg * a + 0.5).toInt();
-      out[o + 2] = (fb * a + 0.5).toInt();
-      out[o + 3] = av;
+      out[p] = (fr * a + 0.5).toInt();
+      out[p + 1] = (fg * a + 0.5).toInt();
+      out[p + 2] = (fb * a + 0.5).toInt();
+      out[p + 3] = av;
     }
   }
+  return CleanForeground(premul: out, width: width, height: height);
 }

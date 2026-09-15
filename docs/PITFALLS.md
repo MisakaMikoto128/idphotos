@@ -588,3 +588,105 @@
 - 解法：`python tools/hostmem.py`（判据：可用物理 <4GB 或 commit>80% 即拒绝起模拟器）。
   超限先 `cd android && ./gradlew --stop`、杀残留 dart/qemu。**模拟器同时最多 1 台（用户指令，时间换空间）**。
   各 agent 派发时写明；gatekeeper/qa-batch 的编排脚本已按此执行。
+
+## [imaging] WorkBufferPool 第一版被 G4 r3 实测证伪：池没有生命周期纪律就是泄漏
+- 现象（2026-09-15，G4 r3 v4 终裁）：加了「按尺寸键控复用」的缓冲池后，
+  4.7 峰值 563.1→638.9MB（恶化 +75.8，阈值 450）、4.8 回落 +36.4→+135.8MB，
+  Private Other +100MB，时间线与池提交吻合。bitcheck 逐位一致没问题
+  —— **错的是生命周期，不是正确性**。
+- 设计假设的两个漏洞：① 只按「用途+尺寸」键控，尺寸没变过的键永不归还
+  （规格尺寸恰恰是常量 → 每个键钉死一份）；② 没有「换图失效」，复用范围
+  从「图内」悄悄变成了「跨图」，输入尺寸各异的 batch 把滞留放大。
+- 解法（A，已落地 `render.dart`）：池加 32MB 总字节硬预算 + LRU 淘汰
+  （LinkedHashMap 插入序即最近归还序，acquire 即移出池、使用中不算驻留）
+  + **换图即 clear 全池**（compose_engine `_cleanForegroundOf` 缓存未命中
+  即新图边界，同时清 `_encodeCanvas`/`_mipCache`）——图内复用收益保住，
+  跨图滞留归零。JpegEncoder 实例缓存保留（键控 quality，只读码表，与图无关）。
+- 审计工装：`lib/core/imaging/dev_pool_audit.dart`（20 张尺寸各异合成图
+  连续 compose，逐图读 `poolResidencyBytes`，断言 ≤ 预算、不随图数增长）；
+  逐位一致性复验：`dev_pool_bitcheck.dart` 改动前后哈希 diff。
+- 元教训：**「复用」必须与「失效」成对设计**。只写 acquire/release 不写
+  失效时机的池，稳态驻留就是它见过的所有键的总和；凡是"按尺寸键控"的池，
+  先问一句"尺寸会不会永不变化"。
+
+## [ml-porting] ORT 1.15.1 上 XNNPACK 与「共享 arena / 关 arena」组合必崩：floor 压缩的 arena 杠杆在设备上不可用
+- 现象（2026-09-15，G4 r5 4.7）：release 包首次推理即 SIGSEGV（SEGV_ACCERR，写在页尾越界 8 字节，
+  全部落在 libonnxruntime.so 同一地址），且与 EP 尝试顺序无关地复现。
+- 原因：C API 没有 `SessionOptionsSetArenaCfg`，给 CPU arena 配 kSameAsRequested 的唯一官方路径是
+  `CreateAndRegisterAllocator(env, mem_info, cfg)` + 会话 config entry `session.use_env_allocators=1`。
+  实测矩阵（native/bench/ml_probe2_main.dart，逐变体单进程）：注册+选入+XNNPACK=崩；
+  注册不选入+XNNPACK=稳；选入+纯CPU=稳但瞬态峰值反而更高（4032 图 +75MB vs XNNPACK +23MB）；
+  DisableCpuMemArena+XNNPACK=也崩。即 XNNPACK EP 在这版 ORT 上只吃默认 arena 配置。
+- 解法：生产保持默认配置（FFI 建会话层保留、arena 政策默认关闭、留 bench 开关）；Windows host 的
+  CPU-EP 探针显示 kSameAsRequested 确实省（固定负载 +303MB→+151MB、输出逐位一致）， arm64 真机
+  无法在本机验证，按有坑处理。另注意 `CreateArenaCfg` 出来的 cfg 别提前 Release（所有权语义不明，
+  留活到进程结束）；bench 的全局开关是 per-isolate 副本，必须随 Isolate.spawn 显式带进工厂
+  isolate（debugBenchFlags），否则 A/B 台所有变体都在静默跑同一份生产配置——第一轮矩阵的
+  "全部崩溃"就是这么来的，差点误诊成预存 bug。
+- 教训：给 ORT 换任何 allocator 配置，先建"逐变体单进程"矩阵台，别在生产配置上直接 A/B。
+
+## [ml-porting] r4 的 "+65.6MB 全分辨率解码" 归因不成立：引擎解码瞬态实测只有 ~22MB，别照单全收
+- 现象（2026-09-15，G4 r5 设备实测，release/模拟器）：removeBackground 全链路对 4032×3024
+  输入的进程 RSS 峰值增量 +22~26MB（4032 JPEG、4958×7017 扫描件 +39~41MB）；
+  image 包全解码兜底路径（decodeToRgb maxEdge）也只 +21.3MB——都不是 4032×3024 RGBA 的 48.8MB。
+- 原因：r4 memdump 里 Private Other +65.6MB 被归因为"全分辨率解码"，但引擎侧每段峰值都对不上；
+  疑似来自 compose 段（成片/候选工作集，imaging 的 WorkBufferPool 相关）或多缓冲叠加，
+  归属不在 matting 解码路径。
+- 解法/证据：探针 native/bench/ml_probe2_main.dart（PROBE2 日志，20ms RSS 采样、峰值取 3 轮最小）。
+  后续谁再压 4.7 瞬态，先跑它分段归因，别重复"48.8MB 解码"这个站不住的假设。
+- 顺带钉死两个事实：dart:ui 在 Android 上确实烘焙 EXIF（orientation=6 样张解出摆正像素，P1）；
+  dart:ui 解码在后台 isolate（Isolate.run）恒失败（P2）——解码必须留宿主 isolate。
+
+## [imaging] 去色边行带流式化：av==0 分支只写 alpha 不写 RGB，行带缓冲复用后残留泄进 box 平均
+- 现象（2026-09-15，G4 r5 compose 段瞬态改造）：把 decontaminate 拆成
+  decontaminateRows（行带版）后，黄金集 bitcheck 首跑 g03/g06 的部分规格
+  哈希变了。分层定位（行带 vs 整图去色边 = 0 差；区域 vs 整幅 mip = 仅
+  premul 平均值差、alphaMax 全同）后锁定：decontaminate 的 `av == 0`
+  分支历来只写 `out[a] = 0`，RGB 不写 —— 整图版整缓冲 fresh（恰为全 0）
+  掩盖了这个隐含约定；行带版缓冲跨单元格行**复用**，上一行的 RGB 残留
+  被当成「零 alpha 像素的颜色」算进 box 平均。
+- 修复：av==0 分支四通道全写 0。**教训：凡是「跳过写入」的分支，在整图
+  一次性缓冲里无害，改成复用缓冲后就是串染**；复用缓冲的写入方必须
+  全通道全像素覆盖（与 WorkBufferPool 防串染同一纪律）。
+- 顺带：f==1 时 boxDownsample 的 alphaMax 是 w×h 字节（12MP 即 12.2MB），
+  且 mip.premul 与 clean.premul 是**同一块内存的别名** —— r4 的 memdump
+  归因清单里这一块是隐形的，compose 段 +65.6MB 用「48.8 premul + 12.2
+  amax + 画布/池」刚好对上，别再漏算别名。
+
+## [imaging] compose 段瞬态终改：全图 premul 与整幅 mip 全部消灭，黄金集 190 哈希逐位一致
+- 改造（2026-09-15，G4 r5，4.7 真机贴线）：① 去色边改行带流式
+  （estimateCleanFields 全图扫两遍出 ~1.4MB 低分辨率字段 → decontaminateRows
+  按 f+2 行现算现喂）；② 预滤波从「整幅」改「区域」——MipLevel 加
+  cellX0/cellY0，只存裁剪框源图 AABB ±2/+3 格的子矩形，同倍数多规格按
+  union 重建（单元格值只取决于源窗口，与区域划分无关，这是逐位一致的依据）。
+  改造前整项存续：12MP = 48.8 premul + 12.2 amax；35MP 扫描件 = 139.2
+  premul + 43.5(f2) + 19.3(f3)。改造后整项存续仅字段 1.4MB + 区域 mip
+  ≤2.7MB/份 + 池 5.7 + 画布 5.7；dev_compose_memprofile 记账峰值
+  12MP 60.2→14.3MB、35MP 213.4→15.3MB。
+- 工装：`lib/core/imaging/mem_ledger.dart`（大缓冲记账，enabled 默认关）、
+  `dev_compose_memprofile.dart`（host 剖面：ledger 精确字节 + ProcessInfo RSS
+  对照）。回归：dev_pool_bitcheck 190 哈希与改造前逐位一致、dev_selfcheck
+  2B 九项 9/9、dev_pool_audit 20 图驻留不增长。
+- 不可流式项：推挽字段（需要全图 alpha 分布做种子与补洞，但产物只有
+  ~1.4MB）；JPEG 编码器码表/画布缓存（<4MB，已缓存复用）。编码画布 13 份
+  5.7MB 是剩余最大的整项块，若真机仍贴线可按「缩略图画布用完即弃」再压 1.4MB。
+
+## [qa-batch] vivo X21A 真机测量三连坑：am start -W 间歇挂死 / dumpsys 采样空 / 设备时钟漂移
+- 现象一：`am start -W ...` 间歇性 120-180s 无返回（同设备此前可秒起），force-stop + 唤醒重试仍超时；多会话复现。锁屏与否无关（已验证亮屏解锁同样挂）。疑似 Funtouch 自启动管控/活动空闲回调丢失。规避：am start 超时后改用 `am start`（不带 -W）+ 轮询 `pidof` 代偿"等启动完成"，或干脆弃机。
+- 现象二：`dumpsys meminfo <pkg>` 在 vivo 上对运行中进程也可能返回慢/被上一条 adb 串行阻塞，host 侧 1s 间隔采样若单次调用抛 TimeoutExpired 会整线程静默死亡——采样循环必须逐次 try/except（已在 run_realdevice.py 修复），且必须验证 samples 非空再用于判定。
+- 现象三：vivo 系统时钟会被 NTP 拉动（观测到在 2026-09-15 与 2025-08-24 之间跳变）。所有"设备 epoch（logcat -v epoch / app DateTime）↔ 宿主 epoch（python time.time()）"的时间窗匹配（如 leak 基线/回落窗口）都会因此全空。必须每阶段计算 device-host 偏移量换算，或干脆用"阶段内相对时间窗"代替绝对 marker 时间。
+- 结论：vivo X21A（Android 9/Funtouch）做长时间无人值守内存测量的可靠性显著低于 MIUI 小米机（后者只卡安装确认，测量本身稳定）。r5 真机终裁因此未产出，模拟器口径兜底。
+
+## [imaging] 内存优化的「记账口径」不能当验收口径——记账降了、进程 PSS 反升（c669d36 回退实录）
+- 现象（2026-09-15，G4 r5 终测）：compose 流式化 c669d36 把"单时刻最大未释放大分配"
+  从 60.2→14.3MB（12MP 记账口径），申报 4.7 收官；但设备实测 4.7 峰值 570.4→663.5MB、
+  4.8 回落 +42.3→+87.9MB，**双破线且双双恶化**——优化在申报口径上是赢、在验收口径上是输。
+- 根因：把"单点大缓冲"拆成"更多小缓冲"后，记账只看单笔分配，看不到
+  ① scudo/分配器碎片化（小块更碎、驻留更久）② 多个行带缓冲并发存活叠加
+  ③ leak 路径上多滞留一份。Private Other 与 Native Heap 两类目同时抬升即为证据。
+- 教训：**4.7/4.8 的唯一验收口径是进程 PSS（dumpsys），记账（mem_ledger）只配当
+  定位工装（归因"这笔分配是谁"），绝不配当"达标证明"**。任何"拆大缓冲"类优化
+  在上设备前，先用 dev_pool_audit/dev_compose_memprofile 打 RSS 对照，别只报记账峰值。
+- 处置：c669d36 已整体回退到 1dcd35c 行为（r4 为当前最优已验证态），工装文件
+  mem_ledger.dart / dev_compose_memprofile.dart 保留；bitcheck 190 哈希与 1dcd35c
+  基线逐位一致，2B 9/9。复测口径 = qa-batch QA_ROUND 重跑。
