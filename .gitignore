@@ -28,3 +28,4 @@ desktop.ini
 # env-setup: 参考环境（仅开发机，不进 App，不提交）
 .venv_ref/
 .ref_hivision/
+out/tmp_*/

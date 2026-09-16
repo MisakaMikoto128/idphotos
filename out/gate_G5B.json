@@ -1,0 +1,98 @@
+{
+  "gate": "G5B",
+  "generatedAt": "2026-09-16T05:12:19.831242",
+  "items": [
+    {
+      "item": "5B.1",
+      "expected": "icon_512.png 512×512 含 alpha 通道",
+      "actual": "512×512, alpha通道=true",
+      "pass": true
+    },
+    {
+      "item": "5B.2",
+      "expected": "mipmap-{m,h,xh,xxh,xxxh}dpi 五套 ic_launcher 尺寸 48/72/96/144/192",
+      "actual": "五套齐备且尺寸正确",
+      "pass": true
+    },
+    {
+      "item": "5B.3",
+      "expected": "非透明像素外接框四边留白 ≥17%（中心 66% 安全区），@xxxhdpi",
+      "actual": "前景=@mipmap/ic_launcher_foreground 背景=@drawable/ic_launcher_background 留白=32.3%/26.6%/28.6%/23.4%",
+      "pass": true
+    },
+    {
+      "item": "5B.4",
+      "expected": "缩到 48×48 后非背景色像素占比 ≥0.12",
+      "actual": "ratio=0.3207（distinct=739/total=2304，背景色=[80, 55, 36]）",
+      "pass": true
+    },
+    {
+      "item": "5B.5",
+      "expected": "feature_graphic.png 恰好 1024×500",
+      "actual": "1024×500",
+      "pass": true
+    },
+    {
+      "item": "5B.6",
+      "expected": "zh/en 各 ≥5 张且全部 1080×1920",
+      "actual": "张数={zh: 6, en: 6}；问题=无",
+      "pass": true
+    },
+    {
+      "item": "5B.7",
+      "expected": "宣传截图基于 out/shots/ 真实界面合成，非手绘",
+      "actual": "MANUAL —— 由 gatekeeper 人工抽查，见 out/GATE_G5B_r1.md；本 JSON 不把它算作通过",
+      "pass": false,
+      "manual": true
+    },
+    {
+      "item": "5B.8.zh",
+      "expected": "简短 ≤80 字符；完整 ≤4000 字符",
+      "actual": "简短=39，完整=505",
+      "pass": true
+    },
+    {
+      "item": "5B.8.en",
+      "expected": "简短 ≤80 字符；完整 ≤4000 字符",
+      "actual": "简短=80，完整=1315",
+      "pass": true
+    },
+    {
+      "item": "5B.9",
+      "expected": "文案中每个功能均可在 lib/ 找到对应实现",
+      "actual": "MANUAL —— gatekeeper 抽查 3 条并留锚点，见 out/GATE_G5B_r1.md",
+      "pass": false,
+      "manual": true
+    },
+    {
+      "item": "5B.10",
+      "expected": "zh/en 隐私政策齐备且明确含「不收集/不传输/无网络权限」三点",
+      "actual": "两版齐备，三点齐备",
+      "pass": true
+    },
+    {
+      "item": "5B.11",
+      "expected": "store/PRIVACY_HOSTING.md 存在",
+      "actual": "存在（1976 字节）",
+      "pass": true
+    },
+    {
+      "item": "5B.12",
+      "expected": "COMPLIANCE.md 与 CHECKLIST.md 存在；CHECKLIST 区分「已自动完成/需用户手动」",
+      "actual": "两文件存在，CHECKLIST 含区分",
+      "pass": true
+    },
+    {
+      "item": "5B.13",
+      "expected": "冷启动帧（splash_check 全部 PNG 含 frames_sheet 各面板）无全白帧",
+      "actual": "检查 8 个面板，无全白帧（sheet=6 面板 + 2 单帧）。注：46 帧原始录屏未随交付保留，可机读证据为 6 面板抽样 + 2 单帧，另经 gatekeeper 目检 sheet 无全白帧，证据局限在报告 r1 中注明",
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 14,
+    "passed": 12,
+    "manual": 2
+  },
+  "pass": false
+}

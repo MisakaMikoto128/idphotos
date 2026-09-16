@@ -1,0 +1,66 @@
+{
+  "gate": "G5",
+  "generatedAt": "2026-09-16T05:14:11.714742",
+  "items": [
+    {
+      "item": "5.1",
+      "expected": "merged manifest 无 android.permission.INTERNET（=0）",
+      "actual": "INTERNET 出现 0 次（out/GATE_official_artifacts/app-release.official.apk xmltree）",
+      "pass": true
+    },
+    {
+      "item": "5.1.aab_cross",
+      "expected": "AAB 中同样无 INTERNET（辅助证据，主证据为 APK xmltree）",
+      "actual": "AAB 全文件扫描 INTERNET=0 READ_EXTERNAL_STORAGE=0",
+      "pass": true
+    },
+    {
+      "item": "5.2",
+      "expected": "平台权限 ⊆ {READ_MEDIA_IMAGES, WRITE_EXTERNAL_STORAGE(≤32)}；androidx.core 注入的应用私有 DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION 按裁决不违规（见文件头裁决记录），其余自定义权限一律违规",
+      "actual": "平台权限=[{name: android.permission.READ_MEDIA_IMAGES, maxSdk: null}, {name: android.permission.WRITE_EXTERNAL_STORAGE, maxSdk: 32}]；自定义权限=[com.muzhao.idphoto.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION]；判定外违规=[]",
+      "pass": true
+    },
+    {
+      "item": "5.2.adjudication",
+      "expected": "留痕：DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION 为 androidx.core 自动注入的应用私有 signature 保护权限（<permission> 声明 + <uses-permission> 使用 = 名字出现 2 次），非平台危险权限，裁决不违规",
+      "actual": "uses-permission 条目=1，<permission> 声明存在=true，名字出现 4 次（protectionLevel=0x2 signature 见 out/GATE_g5_apk_manifest.txt）",
+      "pass": true
+    },
+    {
+      "item": "5.3",
+      "expected": "gradlew :app:dependencies 全配置输出无 play-services/firebase/mlkit/crashlytics",
+      "actual": "命中: []（0 命中即通过；com.google.android:annotations 为纯注解包，非运行时 SDK，不在判定模式内）",
+      "pass": true
+    },
+    {
+      "item": "5.4",
+      "expected": ".aab 与 .apk 均存在",
+      "actual": "apk=true(63232974B) aab=true(59336593B) (@out/GATE_official_artifacts/app-release.official.apk / @out/GATE_official_artifacts/app-release.official.aab)",
+      "pass": true
+    },
+    {
+      "item": "5.5",
+      "expected": "aab ≤ 60000000 字节",
+      "actual": "59336593 字节（56.59 MiB）",
+      "pass": true
+    },
+    {
+      "item": "5.6",
+      "expected": "安装退出 0 / resumed / 选真实照片 / ≥6 候选 / MediaStore 保存 / 拉回可解码 / 三张证据 PNG 存在且非纯黑",
+      "actual": "evidence=out/GATE_G5_e2e_result.json; coldStartTotalMs=5506; candidates=6; 问题项=无",
+      "pass": true
+    },
+    {
+      "item": "5.7",
+      "expected": "key.properties / *.jks 被 gitignore；仓库无被跟踪密钥文件；被跟踪文件无明文口令",
+      "actual": "gitignore 覆盖 + 无跟踪 + 无明文口令",
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "manual": 0
+  },
+  "pass": true
+}

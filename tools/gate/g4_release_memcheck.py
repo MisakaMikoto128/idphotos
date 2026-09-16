@@ -34,7 +34,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 OUT = os.path.join(ROOT, "out")
 DEV_IN = os.path.join(ROOT, "test", "batch", "device_in")
 APK = os.path.join(OUT, "app-release-runner.apk")
-PKG = "com.muzhao.muzhao"
+# G4 runner APK（out/app-release-runner.apk）构建于阶段 5 包名变更之前，
+# 其 applicationId 仍是 com.muzhao.muzhao —— 默认值必须与被驱动产物的实际包名
+# 一致，不能跟着生产 App 的新 applicationId（com.muzhao.idphoto）走。
+# 若将来用新包名重打 runner，设环境变量 MUZHAO_RUNNER_PKG=新包名 即可覆盖。
+PKG = os.environ.get("MUZHAO_RUNNER_PKG", "com.muzhao.muzhao")
 ACT = f"{PKG}/.MainActivity"
 AVD = "Pixel_3a_API_34_extension_level_7_x86_64"
 EMU_EXE = r"C:\Users\liuyu\AppData\Local\Android\Sdk\emulator\emulator.exe"
