@@ -1,0 +1,103 @@
+{
+ "per_class": {
+  "screenshot": {
+   "n": 37,
+   "success": 11,
+   "graceful_error": 26,
+   "other": 0,
+   "success_rate": 0.2973,
+   "graceful_rate": 1.0,
+   "matting_p50_ms": 963,
+   "matting_p95_ms": 2037.9999999999977,
+   "total_p50_ms": 2767,
+   "total_p95_ms": 5045.799999999997,
+   "fail_paths": []
+  },
+  "portrait": {
+   "n": 11,
+   "success": 11,
+   "graceful_error": 0,
+   "other": 0,
+   "success_rate": 1.0,
+   "graceful_rate": 1.0,
+   "matting_p50_ms": 920,
+   "matting_p95_ms": 1781.5,
+   "total_p50_ms": 3215,
+   "total_p95_ms": 5373.0,
+   "fail_paths": []
+  },
+  "landscape": {
+   "n": 16,
+   "success": 10,
+   "graceful_error": 6,
+   "other": 0,
+   "success_rate": 0.625,
+   "graceful_rate": 1.0,
+   "matting_p50_ms": 1444.5,
+   "matting_p95_ms": 2380.75,
+   "total_p50_ms": 4008.5,
+   "total_p95_ms": 6528.75,
+   "fail_paths": []
+  },
+  "multi_face": {
+   "n": 3,
+   "success": 3,
+   "graceful_error": 0,
+   "other": 0,
+   "success_rate": 1.0,
+   "graceful_rate": 1.0,
+   "matting_p50_ms": 1947,
+   "matting_p95_ms": 2023.5,
+   "total_p50_ms": 5781,
+   "total_p95_ms": 6068.099999999999,
+   "fail_paths": []
+  },
+  "non_image": {
+   "n": 13,
+   "success": 0,
+   "graceful_error": 13,
+   "other": 0,
+   "success_rate": 0.0,
+   "graceful_rate": 1.0,
+   "matting_p50_ms": 4,
+   "matting_p95_ms": 30.79999999999996,
+   "total_p50_ms": 24,
+   "total_p95_ms": 59.399999999999935,
+   "fail_paths": []
+  }
+ },
+ "portrait_union": {
+  "n": 14,
+  "success": 14,
+  "rate": 1.0
+ },
+ "non_portrait_union": {
+  "n": 66,
+  "graceful": 45,
+  "rate": 0.6818181818181818,
+  "fail_paths": [
+   "C:\\Users\\liuyu\\Pictures\\)T@WU8]6Q}21RVC5RUROQ]G.jpeg",
+   "C:\\Users\\liuyu\\Pictures\\)T@WU8]6Q}21RVC5RUROQ]G.png",
+   "C:\\Users\\liuyu\\Pictures\\dan5njb-28279924-59e5-4094-8d16-d410efcf2acc.jpg",
+   "C:\\Users\\liuyu\\Pictures\\fwebp.webp",
+   "C:\\Users\\liuyu\\Pictures\\Globe_High.png",
+   "C:\\Users\\liuyu\\Pictures\\IMG_20230115_130634.jpg",
+   "C:\\Users\\liuyu\\Pictures\\IMG_20230115_130941.jpg",
+   "C:\\Users\\liuyu\\Pictures\\IMG_20230115_133511.jpg",
+   "C:\\Users\\liuyu\\Pictures\\QQ截图20230528124945.jpg",
+   "C:\\Users\\liuyu\\Pictures\\微信图片_2025-11-11_211809_101.jpg",
+   "C:\\Users\\liuyu\\Pictures\\微信图片_20250423221504.jpg",
+   "C:\\Users\\liuyu\\Pictures\\微信图片_202504232215041.jpg",
+   "C:\\Users\\liuyu\\Pictures\\微信图片_20250423221513.jpg",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-09-09 105351.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-10-21 203504.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-10-21 210032.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-01-26 112901.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-10-16 121748.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-10 234413.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-21 134949.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-08-12 154339.png"
+  ]
+ },
+ "peak_mem_mb": 563.1
+}

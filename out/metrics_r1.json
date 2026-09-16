@@ -1,0 +1,153 @@
+{
+ "device": "Pixel_3a_API_34_extension_level_7_x86_64 (emulator-5554, -gpu guest -feature -Vulkan, RAM 4096)",
+ "n_items": 80,
+ "per_class": {
+  "landscape": {
+   "n": 16,
+   "results": {
+    "graceful_error": 6,
+    "hint_ready": 10
+   },
+   "success_or_contract_rate": 1.0,
+   "matting_p50_ms": 1618.0,
+   "matting_p95_ms": 16204.25,
+   "compose_p50_ms": 198.5,
+   "compose_p95_ms": 774.3000000000005,
+   "total_p50_ms": 5331.0,
+   "total_p95_ms": 29949.0
+  },
+  "multi_face": {
+   "n": 3,
+   "results": {
+    "success": 3
+   },
+   "success_or_contract_rate": 1.0,
+   "matting_p50_ms": 7476,
+   "matting_p95_ms": 7497.599999999999,
+   "compose_p50_ms": 779,
+   "compose_p95_ms": 1049.0,
+   "total_p50_ms": 19981,
+   "total_p95_ms": 20624.5
+  },
+  "non_image": {
+   "n": 13,
+   "results": {
+    "graceful_error": 13
+   },
+   "success_or_contract_rate": 1.0,
+   "matting_p50_ms": 4,
+   "matting_p95_ms": 28.800000000000008,
+   "compose_p50_ms": null,
+   "compose_p95_ms": null,
+   "total_p50_ms": 25,
+   "total_p95_ms": 58.60000000000001
+  },
+  "portrait": {
+   "n": 11,
+   "results": {
+    "success": 11
+   },
+   "success_or_contract_rate": 1.0,
+   "matting_p50_ms": 907,
+   "matting_p95_ms": 5037.5,
+   "compose_p50_ms": 146,
+   "compose_p95_ms": 1332.0,
+   "total_p50_ms": 3174,
+   "total_p95_ms": 14955.0
+  },
+  "screenshot": {
+   "n": 37,
+   "results": {
+    "hint_ready": 11,
+    "graceful_error": 26
+   },
+   "success_or_contract_rate": 1.0,
+   "matting_p50_ms": 953,
+   "matting_p95_ms": 2412.0000000000027,
+   "compose_p50_ms": 140,
+   "compose_p95_ms": 687.5,
+   "total_p50_ms": 2667,
+   "total_p95_ms": 6492.600000000001
+  }
+ },
+ "G4_1_crash_anr": {
+  "fatal": 0,
+  "anr": 0,
+  "note": "logcat_chunk0-3/leak/perf 全量扫描 FATAL EXCEPTION / ANR in com.muzhao = 0；80 项进程存活跑完"
+ },
+ "G4_2_portrait": {
+  "n": 14,
+  "success": 14,
+  "rate": 1.0
+ },
+ "G4_3_non_portrait": {
+  "n": 66,
+  "graceful_error_stage": 45,
+  "hint_ready_contract_compliant": 21,
+  "note": "NoFaceException 契约为仅提示不阻断（CONTRACTS 错误表）；hint_ready = stage=ready+6候选+中文提示到达。诡异性视觉证据见 out/grid_r1_nonportrait_weird.png：4 行证据里 3 行产出语义连贯的主体证件照，1 行(红色电路板截图 item 60)产出碎片状诡异结果",
+  "weird_visual_examples": [
+   "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-10-16 121748.png"
+  ]
+ },
+ "G4_6_matting_512_p95_ms": {
+  "p50": 848,
+  "p95": 933.4,
+  "n": 25,
+  "min": 768,
+  "max": 969,
+  "threshold": 1500,
+  "all_ms": [
+   856,
+   906,
+   787,
+   828,
+   843,
+   832,
+   848,
+   843,
+   938,
+   969,
+   803,
+   875,
+   880,
+   876,
+   831,
+   915,
+   880,
+   831,
+   835,
+   888,
+   868,
+   910,
+   768,
+   779,
+   776
+  ]
+ },
+ "G4_7_peak_mem": {
+  "peak_mb": 814.6,
+  "threshold_mb": 450,
+  "peak_at_item": 22,
+  "peak_item_path": "C:/Users/liuyu/Pictures/Online Verification Report of Student Record_LIU YUANLIN_00.jpg (4958x7017)",
+  "top_samples_mb": [
+   814.6,
+   809.2,
+   775.0,
+   770.5,
+   767.5,
+   766.7,
+   763.1,
+   759.2,
+   757.4,
+   755.2
+  ]
+ },
+ "G4_8_leak": {
+  "n_rounds": 20,
+  "baseline_mb": 507.0,
+  "settle_mb": 534.7,
+  "delta_mb": 27.6,
+  "peak_during_mb": 751.5,
+  "threshold_delta_mb": 80
+ }
+}

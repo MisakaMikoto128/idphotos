@@ -52,7 +52,7 @@
 
 - 无回派。3.1–3.4 全部达标。
 - 给主会话：G3 PASS，可打 phase3 tag 并提交（建议 commit message 含 `G3 PASS`），进入阶段 4。
-- 给主会话转达用户：宿主 GPU 驱动维修建议仍有效——修复后 TotalTime 参考口径才有真机代表性；阶段 4 的 4.6（真机 p95）仍将面临无真机问题，请提前决策。
+- 给主会话转达用户：宿主 GPU 驱动维修建议仍有效——修复后 TotalTime 参考口径才有真机代表性；~~阶段 4 的 4.6（真机 p95）仍将面临无真机问题~~ **【15:35 更新】用户已接入真机：小米 12（zeus，2201122C），序列号 1e01895d，状态 device，Android 15，abilist=arm64-v8a,armeabi-v7a,armeabi。4.6/4.7/4.8 的真机前提已满足。** abi 核查：`android/app/build.gradle.kts` 注释确认 onnxruntime 插件 jniLibs 原生带 arm64-v8a/armeabi-v7a（x86_64 才是手工补的开发期库），真机安装无需改构建配置；gatekeeper 未在真机上执行任何测量（G3 已关，真机留待阶段 4 按验收口径使用）。
 
 ## 本轮执行备注
 

@@ -1,0 +1,17 @@
+{
+ "generatedAt": "2026-09-16T03:12:18",
+ "device": "5bc6e093 (vivo X21A, Android 9, arm64-v8a)",
+ "sourceRefereeFile": "out/metrics_r1_realdevice.json (v8, HEAD=25bd1f0, churn 全 workload 15/15)",
+ "mapping": "4.6: G4_6_perf.p95_ms->matting512P95Ms（4.6 授权口径=模拟器，本真机数字不作为 4.6 判定源）；4.7: G4_7_peak.peak_mb->peakMemoryMb（全 workload churn 15/15 条目 1s PSS 采样最大值 571.7；VmHWM 因 vivo SELinux 拒读 /proc 不可用）；4.8: G4_8_leak baseline_mb/settle_min_mb->leakBaselineMb/leakAfter20Mb (Δ-2.1)",
+ "matting512P95Ms": 2353.0,
+ "matting512Samples": 25,
+ "peakMemoryMb": 571.7,
+ "leakBaselineMb": 432.6,
+ "leakAfter20Mb": 430.5,
+ "coldStartRealDeviceTotalMs": [
+  3197,
+  569,
+  502
+ ],
+ "gatekeeperAdjudicationNote": "571.7 > 550 的噪声判读由 gatekeeper 在 out/GATE_G4_r3.md 裁决；本 ref 只做忠实映射，不预写结论。"
+}

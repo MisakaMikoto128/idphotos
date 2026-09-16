@@ -1,0 +1,49 @@
+{
+ "portrait_union": {
+  "n": 14,
+  "success": 14,
+  "rate": 1.0
+ },
+ "non_portrait": {
+  "n": 66,
+  "graceful": 66,
+  "rate": 1.0,
+  "fail_paths": []
+ },
+ "peak_mem_mb": 587.3,
+ "peak_breakdown": {
+  "peak_mb": 587.3,
+  "peak_t": 1789562539.1,
+  "peak_item_index": 4,
+  "peak_item_path": "C:\\Users\\liuyu\\Pictures\\1979d869c783fcc849d4e05b81eb809e.png",
+  "top10_samples_mb": [
+   587.3,
+   531.7,
+   527.4,
+   524.6,
+   519.8,
+   509.4,
+   508.9,
+   504.8,
+   504.5,
+   503.4
+  ],
+  "pss_at_peak_item_begin_kb": 453280,
+  "dumpsys_at_peak": {
+   "file": "seq0002_t1789562539.txt",
+   "delta_t_s": 0.09999990463256836,
+   "categories_kb": {
+    "Java Heap": 6756,
+    "Native Heap": 286272,
+    "Code": 29964,
+    "Stack": 1388,
+    "Graphics": 0,
+    "Private Other": 266380,
+    "TOTAL PSS": 601382
+   }
+  }
+ },
+ "leak_delta_kb": 93790,
+ "perf_p95": 897.6,
+ "crash_files": {}
+}

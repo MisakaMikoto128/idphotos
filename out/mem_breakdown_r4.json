@@ -1,0 +1,32 @@
+{
+ "peak_mb": 570.4,
+ "peak_t": 1789492804.2,
+ "peak_item_index": 4,
+ "peak_item_path": "C:\\Users\\liuyu\\Pictures\\1979d869c783fcc849d4e05b81eb809e.png",
+ "top10_samples_mb": [
+  570.4,
+  566.7,
+  560.7,
+  558.1,
+  544.6,
+  536.0,
+  533.7,
+  531.3,
+  530.6,
+  528.0
+ ],
+ "pss_at_peak_item_begin_kb": 509805,
+ "dumpsys_at_peak": {
+  "file": "seq0003_t1789492804.txt",
+  "delta_t_s": 0.20000004768371582,
+  "categories_kb": {
+   "Java Heap": 6704,
+   "Native Heap": 290412,
+   "Code": 29708,
+   "Stack": 1312,
+   "Graphics": 0,
+   "Private Other": 245660,
+   "TOTAL PSS": 584307
+  }
+ }
+}

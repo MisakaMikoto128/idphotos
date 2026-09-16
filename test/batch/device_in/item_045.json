@@ -1,0 +1,485 @@
+{
+  "Version": 5,
+  "Scenarios": [
+    {
+      "Hints": [
+        {
+          "HintPositionInPixel": {
+            "X": 2450,
+            "Y": 1100
+          },
+          "HintName": "Add powerful cinematic effects",
+          "HelpInfo": "Amplify contrasts to create a captivating visual narrative",
+          "HintType": "filter",
+          "HintFilter": "ComplexBleachAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 1600,
+            "Y": 2250
+          },
+          "HintName": "Сreate expressive palettes",
+          "HelpInfo": "Сontrol the intensity of colors in a photo",
+          "HintType": "filter",
+          "HintFilter": "ExtendedColorAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 130,
+            "Y": 100
+          },
+          "HintName": "Replace the sky",
+          "HelpInfo": "Seamlessly transform a plain sky into an extraordinary one",
+          "HintType": "filter",
+          "HintFilter": "SkyReplacementAdjustmentLayer"
+        }
+      ],
+      "Name": "Dramatic",
+      "ImageFileName": "Dramatic tutorial before.jpeg",
+      "OriginalFileName": "Dramatic tutorial.jpeg",
+      "Id": 1
+    },
+    {
+      "Name": "Dramatic",
+      "ImageFileName": "Dramatic tutorial after.jpeg",
+      "OriginalFileName": "Dramatic tutorial.jpeg",
+      "ImageFileState": "e3e09027-5c82-4e94-8a72-457c9a3c4db4",
+      "StateResources": [ "0AAB210D-9F16-4E3F-9BB3-6DF27AEAB61F.jpg" ],
+      "Id": 2
+    },
+    {
+      "Hints": [
+        {
+          "HintPositionInPixel": {
+            "X": 2600,
+            "Y": 2000
+          },
+          "HintName": "Give your image a dreamy look",
+          "HelpInfo": "Increase contrast and add a creative glow",
+          "HintType": "filter",
+          "HintFilter": "ImageRadianceAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 800,
+            "Y": 1400
+          },
+          "HintName": "Boost with one slider",
+          "HelpInfo": "Improve overall quality with AI",
+          "HintType": "filter",
+          "HintFilter": "AIEnhanceAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 1300,
+            "Y": 100
+          },
+          "HintName": "Replace the sky",
+          "HelpInfo": "Seamlessly transform a plain sky into an extraordinary one",
+          "HintType": "filter",
+          "HintFilter": "SkyReplacementAdjustmentLayer"
+        }
+      ],
+      "Name": "Sky AI",
+      "ImageFileName": "Sky tutorial before.jpeg",
+      "OriginalFileName": "Sky tutorial.jpeg",
+      "Id": 3
+    },
+    {
+      "Name": "Sky AI",
+      "ImageFileName": "Sky tutorial after.jpeg",
+      "OriginalFileName": "Sky tutorial.jpeg",
+      "ImageFileState": "785eda7c-e003-4bed-956e-ff9fb02f0c6d",
+      "StateResources": [ "4F55E59A-D20A-4991-9E97-FBA51DFD7D9D.jpg" ],
+      "Id": 4
+    },
+    {
+      "Hints": [
+        {
+          "HintPositionInPixel": {
+            "X": 2450,
+            "Y": 100
+          },
+          "HintName": "Achieve an analog film look",
+          "HelpInfo": "Easily give your photo a retro feel",
+          "HintType": "filter",
+          "HintFilter": "GrainNewAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 900,
+            "Y": 1300
+          },
+          "HintName": "Add an artistic effect with lighting",
+          "HelpInfo": "Play with Soft Focus or the Orton Effect",
+          "HintType": "filter",
+          "HintFilter": "GlowOrtonAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 130,
+            "Y": 100
+          },
+          "HintName": "Get bright, high-contrast images",
+          "HelpInfo": "Emulate the look achieved by high-key lighting",
+          "HintType": "filter",
+          "HintFilter": "HighKeyAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 130,
+            "Y": 2250
+          },
+          "HintName": "Transform into monochrome",
+          "HelpInfo": "Easily convert a colored photo to a black-and-white one",
+          "HintType": "filter",
+          "HintFilter": "BWChannels_v1_Effect"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 2250,
+            "Y": 2250
+          },
+          "HintName": "Spark your imagination",
+          "HelpInfo": "Work with multiple images in a layers workflow",
+          "HintType": "layer"
+        }
+      ],
+      "Name": "BW",
+      "ImageFileName": "BW tutorial before.jpeg",
+      "OriginalFileName": "BW tutorial.jpeg",
+      "Id": 5
+    },
+    {
+      "Name": "BW",
+      "ImageFileName": "BW tutorial after.jpeg",
+      "OriginalFileName": "BW tutorial.jpeg",
+      "ImageFileState": "7177730a-694e-46c0-a64d-7ce8526988a6",
+      "StateResources": [ "5D8D3048-9550-4482-A97D-AEB07668666A.jpg", "160B8755-899D-470A-A88B-B066FD63B26F.jpg" ],
+      "Id": 6
+    },
+    {
+      "Hints": [
+        {
+          "HintPositionInPixel": {
+            "X": 2000,
+            "Y": 2000
+          },
+          "HintName": "Eliminate distractions with AI",
+          "HelpInfo": "Erase unwanted elements replacing them with generated visuals",
+          "HintType": "generase"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 400,
+            "Y": 330
+          },
+          "HintName": "Сreate expressive palettes",
+          "HelpInfo": "Сontrol the intensity of colors in a photo",
+          "HintType": "filter",
+          "HintFilter": "ExtendedColorAdjustmentLayer"
+        }
+      ],
+      "Name": "GenErase",
+      "ImageFileName": "Generase tutorial before.jpeg",
+      "Id": 7
+    },
+    {
+      "Name": "GenErase",
+      "ImageFileName": "Generase tutorial after.jpeg",
+      "ImageFileState": "a7077e98-2f0d-4d85-98ae-5ed246339750",
+      "Id": 8
+    },
+    {
+      "Hints": [
+        {
+          "HintPositionInPixel": {
+            "X": 500,
+            "Y": 2200
+          },
+          "HintName": "Unlock detail and clarity",
+          "HelpInfo": "Make every detail pop",
+          "HintType": "filter",
+          "HintFilter": "AIStructureEffect"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 100,
+            "Y": 150
+          },
+          "HintName": "Get rid of noise",
+          "HelpInfo": "Remove noise, while keeping all the details intact",
+          "HintType": "filter",
+          "HintFilter": "DenoiseAI"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 2150,
+            "Y": 1400
+          },
+          "HintName": "Fix underexposed photos",
+          "HelpInfo": "Add light and get realistic results with full control over exposure",
+          "HintType": "filter",
+          "HintFilter": "VirtualFlashLightEffect"
+        }
+      ],
+      "Name": "Noiseless",
+      "ImageFileName": "Noiseless tutorial before.jpeg",
+      "OriginalFileName": "Noiseless tutorial.jpeg",
+      "Id": 9
+    },
+    {
+      "Name": "Noiseless",
+      "ImageFileName": "Noiseless tutorial after.jpeg",
+      "OriginalFileName": "Noiseless tutorial.jpeg",
+      "ImageFileState": "2bb7879e-69c5-4ec3-8a5d-bc8a05426e09",
+      "Id": 10
+    },
+    {
+      "Hints": [
+        {
+          "HintPositionInPixel": {
+            "X": 130,
+            "Y": 100
+          },
+          "HintName": "Create a dreamy bokeh effect",
+          "HelpInfo": "Make the person stand out thanks to an out-of-focus background",
+          "HintType": "filter",
+          "HintFilter": "AIBokehEffect"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 100,
+            "Y": 2200
+          },
+          "HintName": "Get the right tonal harmony",
+          "HelpInfo": "Correct brightness and contrast for a balanced image",
+          "HintType": "filter",
+          "HintFilter": "ColorToningAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 2300,
+            "Y": 500
+          },
+          "HintName": "Enhance face features",
+          "HelpInfo": "Easily retouch the face, eyes and mouth without masking",
+          "HintType": "filter",
+          "HintFilter": "FaceEnhancer_vn0_Effect"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 2300,
+            "Y": 1800
+          },
+          "HintName": "Boost with one slider",
+          "HelpInfo": "Improve overall quality with AI",
+          "HintType": "filter",
+          "HintFilter": "AIEnhanceAdjustmentLayer"
+        }
+      ],
+      "Name": "Bokeh",
+      "ImageFileName": "Bokeh tutorial before.jpeg",
+      "OriginalFileName": "Bokeh tutorial.jpeg",
+      "Id": 11
+    },
+    {
+      "Name": "Bokeh",
+      "ImageFileName": "Bokeh tutorial after.jpeg",
+      "OriginalFileName": "Bokeh tutorial.jpeg",
+      "ImageFileState": "ea9c2b00-9ea4-4f8d-b32a-5b2078c0f1f2",
+      "Id": 12
+    },
+    {
+      "Hints": [
+        {
+          "HintPositionInPixel": {
+            "X": 2250,
+            "Y": 80
+          },
+          "HintName": "Set the right exposure",
+          "HelpInfo": "Fine-tune your image by lightening or darkening it",
+          "HintType": "mask",
+          "HintFilter": "DodgeAndBurnEffect"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 2050,
+            "Y": 2050
+          },
+          "HintName": "Emphasize your subject",
+          "HelpInfo": "Darken or lighten the edges of your image",
+          "HintType": "filter",
+          "HintFilter": "VignetteAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 500,
+            "Y": 2050
+          },
+          "HintName": "Use essential controls",
+          "HelpInfo": "Set the stage for all further adjustments",
+          "HintType": "filter",
+          "HintFilter": "DefaultEffects"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 340,
+            "Y": 100
+          },
+          "HintName": "Apply color grading in a click",
+          "HelpInfo": "Use LUTs to quickly add a new style",
+          "HintType": "filter",
+          "HintFilter": "LUTMappingEffect"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 1600,
+            "Y": 1200
+          },
+          "HintName": "Recover details from misfocus",
+          "HelpInfo": "Remove blur and get a naturally sharp photo",
+          "HintType": "filter",
+          "HintFilter": "DeblurAI"
+        }
+      ],
+      "Name": "Supersharp",
+      "ImageFileName": "Supersharp tutorial before.jpeg",
+      "OriginalFileName": "Supersharp tutorial.jpeg",
+      "Id": 13
+    },
+    {
+      "Name": "Supersharp",
+      "ImageFileName": "Supersharp tutorial after.jpeg",
+      "OriginalFileName": "Supersharp tutorial.jpeg",
+      "ImageFileState": "f74ef399-7f33-4924-8d17-b2bf5b21c251",
+      "StateResources": [ "8B1C7248-712B-4F0F-A193-E7C92AADCCD5.cube", "14eb4da9-6292-4915-aa62-a73ed375e49b.msk", "f72a92bc-c9ff-4266-a6fa-90bb5f037e90.msk", "9ee2ec86-3664-4b44-bb01-f6ad4d129b18.gre" ],
+      "Id": 14
+    },
+    {
+      "Hints": [
+        {
+          "HintPositionInPixel": {
+            "X": 100,
+            "Y": 130
+          },
+          "HintName": "Boost with one slider",
+          "HelpInfo": "Improve overall quality with AI",
+          "HintType": "filter",
+          "HintFilter": "AIEnhanceAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 2150,
+            "Y": 2300
+          },
+          "HintName": "Unlock detail and clarity",
+          "HelpInfo": "Make every detail pop",
+          "HintType": "filter",
+          "HintFilter": "AIStructureEffect"
+        }
+      ],
+      "Name": "Enhance",
+      "ImageFileName": "Enhance tutorial before.jpeg",
+      "OriginalFileName": "Enhance tutorial.jpeg",
+      "Id": 15
+    },
+    {
+      "Name": "Enhance",
+      "ImageFileName": "Enhance tutorial after.jpeg",
+      "OriginalFileName": "Enhance tutorial.jpeg",
+      "ImageFileState": "4f87bf5c-b06f-46bd-b1a4-fdec4dfa6b1e",
+      "Id": 16
+    },
+    {
+      "Hints": [
+        {
+          "HintPositionInPixel": {
+            "X": 100,
+            "Y": 2200
+          },
+          "HintName": "Fully control contrast",
+          "HelpInfo": "Adjust tonal contrast with maximum precision",
+          "HintType": "filter",
+          "HintFilter": "ProContrastAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 2150,
+            "Y": 2300
+          },
+          "HintName": "Improve your landscape",
+          "HelpInfo": "Dehaze, enhance foliage or add a golden hour effect",
+          "HintType": "filter",
+          "HintFilter": "LandscapeEnhancerAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 150,
+            "Y": 150
+          },
+          "HintName": "Add a new light source",
+          "HelpInfo": "Control the position, warmth, and the amount of glow of sun rays",
+          "HintType": "filter",
+          "HintFilter": "SunLightRaysAdjustmentLayer"
+        }
+      ],
+      "Name": "Sunrays",
+      "ImageFileName": "Sunrays tutorial before.jpeg",
+      "OriginalFileName": "Sunrays tutorial.jpeg",
+      "Id": 17
+    },
+    {
+      "Name": "Sunrays",
+      "ImageFileName": "Sunrays tutorial after.jpeg",
+      "OriginalFileName": "Sunrays tutorial.jpeg",
+      "ImageFileState": "38fa059e-fdbc-4edc-bb50-f5fed803450f",
+      "Id": 18
+    },
+    {
+      "Hints": [
+        {
+          "HintPositionInPixel": {
+            "X": 100,
+            "Y": 800
+          },
+          "HintName": "Replace the sky",
+          "HelpInfo": "Seamlessly transform a plain sky into an extraordinary one",
+          "HintType": "filter",
+          "HintFilter": "SkyReplacementAdjustmentLayer"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 1600,
+            "Y": 2100
+          },
+          "HintName": "Apply a Preset from For this Photo",
+          "HelpInfo": "Bring out a fresh style recommended by AI",
+          "HintType": "template"
+        },
+        {
+          "HintPositionInPixel": {
+            "X": 3000,
+            "Y": 150
+          },
+          "HintName": "Export your photo",
+          "HelpInfo": "Choose settings and share with the world",
+          "HintType": "export"
+        }
+      ],
+      "Name": "Presets",
+      "ImageFileName": "Presets tutorial before.jpeg",
+      "OriginalFileName": "Presets tutorial.jpeg",
+      "Id": 19
+    },
+    {
+      "Name": "Presets",
+      "ImageFileName": "Presets tutorial after.jpeg",
+      "OriginalFileName": "Presets tutorial.jpeg",
+      "ImageFileState": "9b269b6f-ccda-443e-ae24-6060d873d720",
+      "StateResources": [ "E06223F3-875A-45B6-96EC-02AE515308D6.jpg", "A31CD347-5B99-4148-ADCC-CEED62418CC5.CUBE" ],
+      "Id": 20
+    }
+  ]
+}
+  

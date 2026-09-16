@@ -1,0 +1,11 @@
+{
+ "generatedAt": "2026-09-16T03:12:18",
+ "device": "Pixel_3a_API_34 (emulator-5554, -gpu guest, RAM 4096) — qa-batch r8 全量轮, HEAD=25bd1f0",
+ "sourceRefereeFile": "out/perf_r8.json (4.6) + out/metrics_r8.json (4.7) + out/leak_r8.json (4.8)",
+ "mapping": "perf_r8.p95_ms->matting512P95Ms (n=25); metrics_r8.peak_mem_mb->peakMemoryMb; leak_r8 baseline_kb/settle_min_kb->leakBaselineMb/leakAfter20Mb。注意：r8 锚定 Δ=+91.8 为基线锚定伪影（leak_begin±8s 窗口踩预热期 140->391，见 qa-batch r8 报告§2 与 docs/PITFALLS.md [qa-batch] 条目）；gate 的 4.8 判定源=真机优先，本模拟器 leak 数字仅作交叉参考注记。稳态斜率判读 r8=+2.4MB/20轮（噪声带内）。",
+ "matting512P95Ms": 766.2,
+ "matting512Samples": 25,
+ "peakMemoryMb": 579.7,
+ "leakBaselineMb": 402.5,
+ "leakAfter20Mb": 494.2
+}

@@ -738,3 +738,8 @@
 - 附带：debug APK 没有 libapp.so（JIT 走 assets/flutter_assets/kernel_blob.bin），换
   --target 后的入口点验证对 debug 包要查 kernel_blob.bin 里的特征串，对 release 包查
   lib/x86_64/libapp.so。
+
+## [qa-batch] G4.8 锚定 Δ 指标的基线伪影：leak_begin±8s 窗口会踩到预热期，轮间波动 ±60MB
+- 现象：同一相邻代码（r7 vs r8）锚定 Δ 从 -7.4MB 跳到 +91.8MB，像"回归"；逐采样曲线却显示 20 轮内无单调漂移（430-519MB 振荡）。
+- 原因：baseline 取 leak_begin marker ±8s 窗口中位，而 App 在该窗口内仍在 warmUp（首样可低至 140MB，warmup 后即到 390-460）——锚点踩在预热期就比稳态低 30-60MB，Δ 全盘虚高。r3 的 +135.8/-9.1 斜率是真回归，r8 的 +91.8/+2.4 斜率是伪影。
+- 解法：4.8 判读改双指标——(1) 稳态段（leak_begin+15s 后）线性回归斜率（MB/20轮，r4-r8 全部 ±7 内 = 无泄漏）；(2) 峰值完整回落检查（曲线内峰值 vs 末值）。绝对 Δ 只作参考。已在 r8 报告给出全轮斜率表。

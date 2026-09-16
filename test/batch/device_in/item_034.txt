@@ -1,0 +1,109 @@
+不是的，就是说我希望这个轮询是类似于这样调用的：while(true){serial_port.poll();//do others poll}
+ChatGPT
+明白了，您希望在一个循环中调用serial_port.poll()进行非阻塞的轮询，并且能够在每次轮询之间执行其他任务。下面是修改后的示例代码：
+
+cpp
+Copy code
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <fcntl.h>
+#include <unistd.h>
+#include <termios.h>
+
+#define SERIAL_PORT "/dev/ttyUSB0"  // 串口设备路径，请根据实际情况修改
+#define BAUD_RATE B9600             // 波特率，请根据实际情况修改
+
+class SerialPort {
+public:
+    SerialPort(const char* port, int baud_rate)
+    {
+        serial_port_ = open(port, O_RDWR | O_NONBLOCK);
+        if (serial_port_ < 0) {
+            perror("Error opening serial port");
+            return;
+        }
+
+        struct termios tty;
+        memset(&tty, 0, sizeof(tty));
+        if (tcgetattr(serial_port_, &tty) != 0) {
+            perror("Error getting serial port attributes");
+            close(serial_port_);
+            return;
+        }
+
+        cfsetospeed(&tty, baud_rate);
+        cfsetispeed(&tty, baud_rate);
+        tty.c_cflag &= ~PARENB;  // 无奇偶校验
+        tty.c_cflag &= ~CSTOPB;  // 1位停止位
+        tty.c_cflag &= ~CSIZE;
+        tty.c_cflag |= CS8;      // 8位数据位
+        tty.c_cflag &= ~CRTSCTS; // 禁用硬件流控制
+        tty.c_cflag |= CREAD | CLOCAL; // 启用接收和忽略控制线
+        tty.c_iflag &= ~(IXON | IXOFF | IXANY); // 禁用软件流控制
+        tty.c_lflag = 0;        // 非规范模式
+        tty.c_oflag = 0;        // 输出模式
+        tty.c_cc[VTIME] = 0;    // 读取无超时
+        tty.c_cc[VMIN] = 0;     // 设置读取非阻塞
+
+        if (tcsetattr(serial_port_, TCSANOW, &tty) != 0) {
+            perror("Error setting serial port attributes");
+            close(serial_port_);
+            return;
+        }
+    }
+
+    ~SerialPort()
+    {
+        if (serial_port_ >= 0)
+            close(serial_port_);
+    }
+
+    bool Poll()
+    {
+        char received_data[256];
+        int bytes_read = read(serial_port_, received_data, sizeof(received_data));
+        if (bytes_read > 0) {
+            std::cout << "Received data: " << std::string(received_data, bytes_read) << std::endl;
+        }
+        else if (bytes_read < 0 && errno != EAGAIN) {
+            perror("Error reading from serial port");
+            return false;
+        }
+
+        // 返回true表示轮询成功
+        return true;
+    }
+
+    void SendData(const std::string& data)
+    {
+        write(serial_port_, data.c_str(), data.length());
+    }
+
+private:
+    int serial_port_;
+};
+
+void ReceiveCallback(const std::string& received_data)
+{
+    std::cout << "Received data: " << received_data << std::endl;
+}
+
+int main()
+{
+SerialPort serial_port(SERIAL_PORT, BAUD_RATE);
+
+    while (true) {
+        // 调用轮询函数
+        serial_port.Poll();
+
+        // 在这里执行其他任务
+        // ...
+
+        // 休眠一段时间，以控制轮询频率
+        usleep(100000); // 100毫秒
+    }
+
+    return 0;
+}
+在这个示例中，我们在一个无限循环中调用serial_port.Poll()进行非阻塞的轮询，然后执行其他任务。为了控制轮询的频率，我们在每次循环中使用usleep函数进行休眠，这里设置为100毫秒（100000微秒）。您可以根据需要调整休眠时间来满足实际的轮询需求。

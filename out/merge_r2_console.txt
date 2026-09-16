@@ -1,0 +1,71 @@
+{
+ "portrait_union": {
+  "n": 14,
+  "success": 14,
+  "rate": 1.0
+ },
+ "non_portrait": {
+  "n": 66,
+  "graceful": 45,
+  "rate": 0.6818181818181818,
+  "fail_paths": [
+   "C:\\Users\\liuyu\\Pictures\\)T@WU8]6Q}21RVC5RUROQ]G.jpeg",
+   "C:\\Users\\liuyu\\Pictures\\)T@WU8]6Q}21RVC5RUROQ]G.png",
+   "C:\\Users\\liuyu\\Pictures\\dan5njb-28279924-59e5-4094-8d16-d410efcf2acc.jpg",
+   "C:\\Users\\liuyu\\Pictures\\fwebp.webp",
+   "C:\\Users\\liuyu\\Pictures\\Globe_High.png",
+   "C:\\Users\\liuyu\\Pictures\\IMG_20230115_130634.jpg",
+   "C:\\Users\\liuyu\\Pictures\\IMG_20230115_130941.jpg",
+   "C:\\Users\\liuyu\\Pictures\\IMG_20230115_133511.jpg",
+   "C:\\Users\\liuyu\\Pictures\\QQ截图20230528124945.jpg",
+   "C:\\Users\\liuyu\\Pictures\\微信图片_2025-11-11_211809_101.jpg",
+   "C:\\Users\\liuyu\\Pictures\\微信图片_20250423221504.jpg",
+   "C:\\Users\\liuyu\\Pictures\\微信图片_202504232215041.jpg",
+   "C:\\Users\\liuyu\\Pictures\\微信图片_20250423221513.jpg",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-09-09 105351.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-10-21 203504.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-10-21 210032.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-01-26 112901.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-10-16 121748.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-10 234413.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-21 134949.png",
+   "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-08-12 154339.png"
+  ]
+ },
+ "peak_mem_mb": 563.1,
+ "peak_breakdown": {
+  "peak_mb": 563.1,
+  "peak_t": 1789471682.4,
+  "peak_item_index": 16,
+  "peak_item_path": "C:\\Users\\liuyu\\Pictures\\Globe_High.png",
+  "top10_samples_mb": [
+   563.1,
+   553.0,
+   539.8,
+   535.2,
+   516.0,
+   509.3,
+   507.5,
+   507.3,
+   505.0,
+   504.7
+  ],
+  "pss_at_peak_item_begin_kb": 552708,
+  "dumpsys_at_peak": {
+   "file": "seq0026_t1789471682.txt",
+   "delta_t_s": 0.40000009536743164,
+   "categories_kb": {
+    "Java Heap": 6704,
+    "Native Heap": 326628,
+    "Code": 30396,
+    "Stack": 1212,
+    "Graphics": 0,
+    "Private Other": 202648,
+    "TOTAL PSS": 578043
+   }
+  }
+ },
+ "leak_delta_kb": 37310,
+ "perf_p95": 909.6,
+ "crash_files": {}
+}

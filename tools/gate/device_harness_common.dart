@@ -121,10 +121,35 @@ $stubs}
 /// 写结果 JSON，必须显式 chmod 777 顶层目录（子目录/文件不需要，只有 App **新建**
 /// 文件的那一层父目录需要写权限）。
 Future<RunResult> prepareDeviceGateDir(String deviceId, String remoteDir) async {
+  // G4 r2 修复：此前某轮以 root adbd 留下过 root 属主的门禁目录，之后 shell
+  // 用户既不能在其中创建文件（push 报 "remote couldn't create file:
+  // Permission denied"）也不能 chmod —— 且 adb push 失败时仍会打印
+  // "1 file pushed" 噪声行，极难排查。
+  // 策略：先对**最深叶子目录**（push 实际落盘处）做写探针；可写则不动
+  // （避免不必要的 adbd root 重启——qemu 在本机 GPU 栈损坏环境下本就脆弱）。
+  // 探针失败（root 属主遗留）才走 adb root 深清理重建。root 状态只影响
+  // adbd，不影响被测 App 进程的测量。真机不能 adb root，探针失败会原样报错。
+  final probe = await runProcess(
+    'adb',
+    ['-s', deviceId, 'shell',
+     'mkdir -p $remoteDir && rm -rf $remoteDir/probe_dir && mkdir -p '
+         '$remoteDir/probe_dir/x && touch $remoteDir/probe_dir/x/.probe && '
+         'rm -rf $remoteDir/probe_dir'],
+    timeout: const Duration(seconds: 30),
+  );
+  if (probe.success) return probe;
+
+  await runProcess('adb', ['-s', deviceId, 'root'],
+      timeout: const Duration(seconds: 30));
+  await runProcess('adb', ['-s', deviceId, 'wait-for-device'],
+      timeout: const Duration(seconds: 60));
+  await Future<void>.delayed(const Duration(seconds: 2));
   return runProcess(
     'adb',
-    ['-s', deviceId, 'shell', 'mkdir -p $remoteDir && chmod 777 $remoteDir'],
-    timeout: const Duration(seconds: 20),
+    ['-s', deviceId, 'shell',
+     'rm -rf $remoteDir && mkdir -p $remoteDir && chmod 777 $remoteDir && '
+         'touch $remoteDir/.gate_probe && rm $remoteDir/.gate_probe'],
+    timeout: const Duration(seconds: 30),
   );
 }
 

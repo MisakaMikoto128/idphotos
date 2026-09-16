@@ -1,0 +1,5 @@
+Applications Memory Usage (in Kilobytes):
+Uptime: 20602711 Realtime: 20602711
+
+** MEMINFO in pid 10416 [com.muzhao.muzhao] **
+Got RemoteException! android.os.DeadObjectException

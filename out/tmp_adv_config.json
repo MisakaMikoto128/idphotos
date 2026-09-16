@@ -1,0 +1,1 @@
+{"mode": "cases", "cases": ["q01_load_during_load", "q02_spec_during_matting", "q03_crop_during_load", "q04_rapid_spec7", "q05_extreme_crops", "q06_save_x20", "q07_corrupt_then_valid", "q08_valid_corrupt_recover", "q09_stress_30"], "out_dir": "/data/user/0/com.muzhao.muzhao/cache/adv_out"}

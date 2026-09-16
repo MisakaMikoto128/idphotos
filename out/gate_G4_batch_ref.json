@@ -1,0 +1,731 @@
+{
+ "generatedAt": "2026-09-16T03:12:18",
+ "sourceRefereeFile": "out/batch_r8.json (qa-batch r8 全量 80 项, HEAD=25bd1f0) + out/crash_r8.json (6 份 logcat FATAL/ANR 全扫)",
+ "mapping": "result success->ok, graceful_error->graceful_fail; message_zh CJK 检测->chineseError; candidates->candidateCount; weird 原样透传。r7 ref 同一映射规则；r8 全部 80 项为 success(14)/graceful_error(66)，无 hint_ready 形态。crash_r8 六份 logcat 扫描计数合计 fatal=0",
+ "totalItems": 80,
+ "ranItems": 80,
+ "crashes": 0,
+ "anrs": 0,
+ "items": [
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\)T@WU8]6Q}21RVC5RUROQ]G.jpeg",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\)T@WU8]6Q}21RVC5RUROQ]G.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\1 (2).jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\18.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\1979d869c783fcc849d4e05b81eb809e.png",
+   "class": "multi_face",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\2.jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\20240710193717_7c99.jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\29EDA59B982FA8339335D50B00CCD096.jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\4e84ef7b8a910c776acd0eebb8293ee9.png",
+   "class": "multi_face",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\8D861A29F86CE7464865EFEB3C9B4124 (自定义).jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\8D861A29F86CE7464865EFEB3C9B4124.jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\a.jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\dan5njb-28279924-59e5-4094-8d16-d410efcf2acc.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\desktop.ini",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\e9168d2cfe9045d07fac74e68419d211.png",
+   "class": "multi_face",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\fwebp.webp",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Globe_High.png",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\IMG_20230115_130634.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\IMG_20230115_130941.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\IMG_20230115_132101.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\IMG_20230115_133511.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Online Verification Report of Student Record_LIU YUANLIN_00.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\QQ截图20230115131411.jpg",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\QQ截图20230115132012.jpg",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\QQ截图20230528124945.jpg",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\W}4M@N_DCBQUON5NZ{{QZ%W.png",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Y{0T[9S[]P$MV9_W)W5U{}P.png",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\吴港+通信工程+532128200107160711.jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\微信图片_2025-11-11_211809_101.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\微信图片_20250423221504.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\微信图片_202504232215041.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\微信图片_20250423221513.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\报名照片.jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\拼多多128固态硬盘测试结果.jpg",
+   "class": "landscape",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\新文件 27.txt",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\desktop.ini",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\WIN_20230522_00_19_11_Pro.jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\WIN_20230522_00_19_21_Pro.jpg",
+   "class": "portrait",
+   "outcome": "ok",
+   "chineseError": false,
+   "candidateCount": 6,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Lightroom\\Lightroom Catalog.lrcat",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Lightroom\\Lightroom Catalog Helper.lrdata\\helper.db",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Lightroom\\Lightroom Catalog Previews.lrdata\\previews.db",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Lightroom\\Lightroom Catalog Previews.lrdata\\root-pixels.db",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\Luminar Neo Catalog.luminarneo",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\map.dat",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\vectors.dat",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\Sample Images\\scenario.json",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Saved Pictures\\desktop.ini",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\desktop.ini",
+   "class": "non_image",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-07-26 172208.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-09-07 151043.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-09-09 105351.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-10-21 203504.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-10-21 210032.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-11-14 113737.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-01-26 112901.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-01-26 112931.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-05-06 213407.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-05-06 213412.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-09-16 193456.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-09-16 193518.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-10-16 121748.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-11-06 142831.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-11-06 142855.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-03-01 112555.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-06 170927.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-10 234413.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-11 175944.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-12 222310.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-13 112721.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-15 125826.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-20 163718.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-20 163727.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-20 163733.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-20 185612.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-21 113927.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-21 134949.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-04-24 080543.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-05-24 123944.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-07-08 104838.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  },
+  {
+   "sourcePath": "C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2025-08-12 154339.png",
+   "class": "screenshot",
+   "outcome": "graceful_fail",
+   "chineseError": true,
+   "candidateCount": 0,
+   "weird": false,
+   "logcatFingerprint": null
+  }
+ ]
+}

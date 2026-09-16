@@ -1,0 +1,32 @@
+{
+ "peak_mb": 663.5,
+ "peak_t": 1789502893.3,
+ "peak_item_index": 17,
+ "peak_item_path": "C:\\Users\\liuyu\\Pictures\\IMG_20230115_130634.jpg",
+ "top10_samples_mb": [
+  663.5,
+  577.4,
+  528.6,
+  520.3,
+  514.3,
+  511.2,
+  507.7,
+  506.7,
+  506.6,
+  505.8
+ ],
+ "pss_at_peak_item_begin_kb": 523495,
+ "dumpsys_at_peak": {
+  "file": "seq0021_t1789502893.txt",
+  "delta_t_s": 0.2999999523162842,
+  "categories_kb": {
+   "Java Heap": 6700,
+   "Native Heap": 340644,
+   "Code": 30552,
+   "Stack": 1396,
+   "Graphics": 0,
+   "Private Other": 304312,
+   "TOTAL PSS": 693963
+  }
+ }
+}

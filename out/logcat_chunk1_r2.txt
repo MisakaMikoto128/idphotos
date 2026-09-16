@@ -1,0 +1,1321 @@
+--------- beginning of main
+09-15 11:28:21.014   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+--------- beginning of system
+09-15 11:28:21.160   574  1889 D ActivityManager: freezer override set to true
+09-15 11:28:21.160   574  1889 D ActivityManager: sync unfroze 2031 com.android.printspooler for 19
+09-15 11:28:21.161   574  1889 D ActivityManager: sync unfroze 2727 com.google.android.webview:webview_service for 19
+09-15 11:28:21.162   574  1889 D ActivityManager: sync unfroze 2651 com.google.android.apps.photos for 19
+09-15 11:28:21.163   574  1889 D ActivityManager: sync unfroze 2311 com.google.android.apps.messaging for 19
+09-15 11:28:21.163   574  1889 D ActivityManager: freezer override set to false
+09-15 11:28:21.171  2311  2362 W Bugle   : TextClassifierLibManagerImpl: Reclaiming memory at level: 40
+09-15 11:28:21.172   574  1889 W ActivityTaskManager: callingPackage for (uid=2000, pid=4957) has no WPC
+09-15 11:28:21.174   574  1889 D CompatibilityChangeReporter: Compat change id reported: 265464455; UID 10191; state: DISABLED
+09-15 11:28:21.174   574  1889 D CompatibilityChangeReporter: Compat change id reported: 265452344; UID 10191; state: DISABLED
+09-15 11:28:21.174   574  1889 D CompatibilityChangeReporter: Compat change id reported: 266124927; UID 10191; state: DISABLED
+09-15 11:28:21.174   574  1889 D CompatibilityChangeReporter: Compat change id reported: 265451093; UID 10191; state: DISABLED
+09-15 11:28:21.175   574  1889 D CompatibilityChangeReporter: Compat change id reported: 265456536; UID 10191; state: DISABLED
+09-15 11:28:21.175   574  1889 D CompatibilityChangeReporter: Compat change id reported: 255940284; UID 10191; state: DISABLED
+09-15 11:28:21.175   574  1889 D CompatibilityChangeReporter: Compat change id reported: 236283604; UID 10191; state: DISABLED
+09-15 11:28:21.175   574  1889 D CompatibilityChangeReporter: Compat change id reported: 263959004; UID 10191; state: DISABLED
+09-15 11:28:21.176   574  1889 D CompatibilityChangeReporter: Compat change id reported: 264304459; UID 10191; state: DISABLED
+09-15 11:28:21.176   574  1889 D CompatibilityChangeReporter: Compat change id reported: 264301586; UID 10191; state: DISABLED
+09-15 11:28:21.176   574  1889 D CompatibilityChangeReporter: Compat change id reported: 254631730; UID 10191; state: DISABLED
+09-15 11:28:21.176   574  1889 D CompatibilityChangeReporter: Compat change id reported: 273509367; UID 10191; state: DISABLED
+09-15 11:28:21.177   574  1889 D CompatibilityChangeReporter: Compat change id reported: 263259275; UID 10191; state: DISABLED
+09-15 11:28:21.177   574  1889 D CompatibilityChangeReporter: Compat change id reported: 174042980; UID 10191; state: DISABLED
+09-15 11:28:21.177   574  1889 D CompatibilityChangeReporter: Compat change id reported: 174042936; UID 10191; state: DISABLED
+09-15 11:28:21.177   574  1889 D CompatibilityChangeReporter: Compat change id reported: 181136395; UID 10191; state: DISABLED
+09-15 11:28:21.178   574  1889 D CompatibilityChangeReporter: Compat change id reported: 194480991; UID 10191; state: ENABLED
+09-15 11:28:21.181   574  1889 D CompatibilityChangeReporter: Compat change id reported: 184838306; UID 10191; state: DISABLED
+09-15 11:28:21.181   574  1889 D CompatibilityChangeReporter: Compat change id reported: 185004937; UID 10191; state: DISABLED
+09-15 11:28:21.183   574  1889 D CompatibilityChangeReporter: Compat change id reported: 205907456; UID 10191; state: ENABLED
+09-15 11:28:21.185   807   840 V WindowManagerShell: Transition requested: android.os.BinderProxy@43e8872 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=330 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=149184 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@65f04c3} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{bbaa140 com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 11:28:21.186   574  1889 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity (has extras)} with LAUNCH_SINGLE_TOP from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+09-15 11:28:21.190   574   598 D CompatibilityChangeReporter: Compat change id reported: 135634846; UID 10191; state: DISABLED
+09-15 11:28:21.190   574   608 D CompatibilityChangeReporter: Compat change id reported: 143937733; UID 10191; state: ENABLED
+09-15 11:28:21.191   574   917 D CompatibilityChangeReporter: Compat change id reported: 168419799; UID 10191; state: DISABLED
+09-15 11:28:21.205   574   917 D CompatibilityChangeReporter: Compat change id reported: 273564678; UID 10191; state: DISABLED
+09-15 11:28:21.210   449   449 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+09-15 11:28:21.223   574   663 D CompatibilityChangeReporter: Compat change id reported: 265195908; UID 10191; state: ENABLED
+09-15 11:28:21.226   382   382 D Zygote  : Forked child process 4960
+09-15 11:28:21.227   574   608 I ActivityManager: Start proc 4960:com.muzhao.muzhao/u0a191 for next-top-activity {com.muzhao.muzhao/com.muzhao.muzhao.MainActivity}
+09-15 11:28:21.252  1045  1775 D EGL_emulation: app_time_stats: avg=578.58ms min=7.59ms max=4474.41ms count=8
+09-15 11:28:21.253   807   856 D SplashScreenView: Build android.window.SplashScreenView{a72b3ca V.E...... ......ID 0,0-0,0}
+09-15 11:28:21.253   807   856 D SplashScreenView: Icon: view: android.widget.ImageView{dda493b V.ED..... ......I. 0,0-0,0 #10204f0 android:id/splashscreen_icon_view} drawable: com.android.wm.shell.startingsurface.SplashscreenIconDrawableFactory$ImmobileIconDrawable@6e35858 size: 440
+09-15 11:28:21.253   807   856 D SplashScreenView: Branding: view: android.view.View{fc79db1 G.ED..... ......I. 0,0-0,0 #10204ef android:id/splashscreen_branding_view} drawable: null size w: 0 h: 0
+09-15 11:28:21.255   574   917 D CoreBackPreview: Window{63a65f8 u0 Splash Screen com.muzhao.muzhao}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@b486037, mPriority=0, mIsAnimationCallback=false}
+09-15 11:28:21.262  4960  4960 I m.muzhao.muzhao: Late-enabling -Xcheck:jni
+09-15 11:28:21.312   574   595 V WindowManager: Sent Transition #8 createdAt=09-15 11:28:21.178 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=330 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=149184 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{88ffc10 Task{e4c050c #330 type=standard I=com.muzhao.muzhao/.MainActivity}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{87b6309 com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 11:28:21.313   574   595 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+09-15 11:28:21.313   574   595 V WindowManager:     info={id=8 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{88ffc10 Task{e4c050c #330 type=standard I=com.muzhao.muzhao/.MainActivity}}} m=OPEN f=NONE leash=Surface(name=Task=330)/@0xcabe9a4 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{RemoteToken{894ae25 Task{5e5f84e #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xc13ccd1 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 11:28:21.313   807   840 V WindowManagerShell: onTransitionReady android.os.BinderProxy@43e8872: {id=8 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@c950e6e} m=OPEN f=NONE leash=Surface(name=Task=330)/@0x8faa4b3 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@cf0d90f} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x658da70 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 11:28:21.314   807   840 V WindowManagerShell: Playing animation for (#8)android.os.BinderProxy@43e8872@0
+09-15 11:28:21.314   807   840 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultMixedHandler@87d1d5f
+09-15 11:28:21.314   807   840 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@2b2a3ac
+09-15 11:28:21.314   807   840 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@6f64875
+09-15 11:28:21.315   807   840 V WindowManagerShell:  try handler com.android.wm.shell.recents.RecentsTransitionHandler@6eb00a
+09-15 11:28:21.315   807   840 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+09-15 11:28:21.315   807   840 V WindowManagerShell:  try handler com.android.wm.shell.pip.PipTransition@a80307b
+09-15 11:28:21.315   807   840 V WindowManagerShell:  try handler com.android.wm.shell.splitscreen.StageCoordinator@17c4e98
+09-15 11:28:21.315   807   840 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@36ff6f1
+09-15 11:28:21.315   807   840 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=8 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@c950e6e} m=OPEN f=NONE leash=Surface(name=Task=330)/@0x8faa4b3 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@cf0d90f} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x658da70 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 11:28:21.315   807   840 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@34fc2d6, appThread = android.app.IApplicationThread$Stub$Proxy@dd75957, debugName = LauncherToDream }}
+09-15 11:28:21.315   807   840 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@233bc44, appThread = android.app.IApplicationThread$Stub$Proxy@3fc112d, debugName = QuickstepLaunchHome }}
+09-15 11:28:21.315   807   840 V WindowManagerShell:  Delegate animation for #8 to null
+09-15 11:28:21.316   807   840 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@55d3662
+09-15 11:28:21.316   807   840 V WindowManagerShell: start default transition animation, info = {id=8 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@c950e6e} m=OPEN f=NONE leash=Surface(name=Task=330)/@0x8faa4b3 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@cf0d90f} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x658da70 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 11:28:21.316   807   840 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@eb623a5 animAttr=0x13 type=OPEN isEntrance=false
+09-15 11:28:21.324   807   840 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@80a5521 animAttr=0x12 type=OPEN isEntrance=true
+09-15 11:28:21.325  4960  4960 I m.muzhao.muzhao: Using CollectorTypeCC GC.
+09-15 11:28:21.326  4960  4960 W m.muzhao.muzhao: Unexpected CPU variant for x86: x86_64.
+09-15 11:28:21.326  4960  4960 W m.muzhao.muzhao: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+09-15 11:28:21.328   574  1854 W ActivityTaskManager: takeTaskSnapshot: taskId=319 not found or not visible
+09-15 11:28:21.328   807   840 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@55d3662
+09-15 11:28:21.329   574  1845 W ActivityTaskManager: takeTaskSnapshot: taskId=327 not found or not visible
+09-15 11:28:21.358   381  4973 I resolv  : GetAddrInfoHandler::run: {100 983140 100 983140 1073 1}
+09-15 11:28:21.360   381  4975 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+09-15 11:28:21.360   381  4975 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x75992138fdd0
+09-15 11:28:21.360   381  4975 I resolv  : doQuery: rcode=0, ancount=8, return value=261
+09-15 11:28:21.362   381  4976 I resolv  : res_nmkquery: (QUERY, IN, A)
+09-15 11:28:21.362   381  4976 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x7597c13924d0
+09-15 11:28:21.362   807   873 D EGL_emulation: app_time_stats: avg=511.90ms min=6.34ms max=4529.97ms count=9
+09-15 11:28:21.363   381  4976 I resolv  : doQuery: rcode=0, ancount=8, return value=165
+09-15 11:28:21.364   921  4914 D TrafficStats: tagSocket(69) with statsTag=0xffffff81, statsUid=-1
+09-15 11:28:21.382   464   481 I adbd    : jdwp connection from 4960
+09-15 11:28:21.402  4960  4960 D CompatibilityChangeReporter: Compat change id reported: 171979766; UID 10191; state: ENABLED
+09-15 11:28:21.405  4960  4960 D CompatibilityChangeReporter: Compat change id reported: 242716250; UID 10191; state: ENABLED
+09-15 11:28:21.410   574  2003 D CompatibilityChangeReporter: Compat change id reported: 170503758; UID 10191; state: ENABLED
+09-15 11:28:21.414  4960  4960 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+09-15 11:28:21.414  4960  4960 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+09-15 11:28:21.424  4960  4960 W ziparchive: Unable to open '/data/app/~~dZbZyV2qbeW2KxAo9ZC5Zg==/com.muzhao.muzhao-ENz0fPlY8IsvRItMjf_5wg==/base.dm': No such file or directory
+09-15 11:28:21.424  4960  4960 W ziparchive: Unable to open '/data/app/~~dZbZyV2qbeW2KxAo9ZC5Zg==/com.muzhao.muzhao-ENz0fPlY8IsvRItMjf_5wg==/base.dm': No such file or directory
+09-15 11:28:21.581   807   873 D EGL_emulation: app_time_stats: avg=214.36ms min=1.51ms max=3237.49ms count=17
+09-15 11:28:21.638  4960  4960 D nativeloader: Configuring clns-6 for other apk /data/app/~~dZbZyV2qbeW2KxAo9ZC5Zg==/com.muzhao.muzhao-ENz0fPlY8IsvRItMjf_5wg==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~dZbZyV2qbeW2KxAo9ZC5Zg==/com.muzhao.muzhao-ENz0fPlY8IsvRItMjf_5wg==/lib/x86_64:/data/app/~~dZbZyV2qbeW2KxAo9ZC5Zg==/com.muzhao.muzhao-ENz0fPlY8IsvRItMjf_5wg==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.muzhao.muzhao
+09-15 11:28:21.638   807   840 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#8)android.os.BinderProxy@43e8872@0
+09-15 11:28:21.640   574   595 V WindowManager: Finish Transition #8: created at 09-15 11:28:21.178 collect-started=0.065ms request-sent=6.123ms started=8.802ms ready=124.634ms sent=127.144ms finished=461.31ms
+09-15 11:28:21.642   807   840 V WindowManagerShell: Track 0 became idle
+09-15 11:28:21.642   807   840 V WindowManagerShell: All active transition animations finished
+09-15 11:28:21.655  4960  4960 V GraphicsEnvironment: Currently set values for:
+09-15 11:28:21.656  4960  4960 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+09-15 11:28:21.656  4960  4960 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+09-15 11:28:21.656  4960  4960 V GraphicsEnvironment: ANGLE GameManagerService for com.muzhao.muzhao: false
+09-15 11:28:21.656  4960  4960 V GraphicsEnvironment: com.muzhao.muzhao is not listed in per-application setting
+09-15 11:28:21.657  4960  4960 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+09-15 11:28:21.700   574  2003 I ActivityManager: Flag disabled. Ignoring finishAttachApplication from uid: 10191. pid: 4960
+09-15 11:28:21.711  4960  4985 D libEGL  : loaded /vendor/lib64/egl/libEGL_emulation.so
+09-15 11:28:21.713  4960  4985 D libEGL  : loaded /vendor/lib64/egl/libGLESv1_CM_emulation.so
+09-15 11:28:21.715  4960  4985 D libEGL  : loaded /vendor/lib64/egl/libGLESv2_emulation.so
+09-15 11:28:21.740  4960  4960 I FlutterActivityAndFragmentDelegate: If you are attempting to set --enable-impeller= via Intent extras to launch a Flutter component outside of using the Flutter CLI, note that support for setting engine flags on Android via Intent will soon be dropped; see https://github.com/flutter/flutter/issues/180686 for more information on this breaking change. To migrate, set --enable-impeller= or any other flags specified via Intent extras on the command line instead or see https://github.com/flutter/flutter/blob/main/docs/engine/Flutter-Android-Engine-Flags.md for alternative methods.
+09-15 11:28:21.760  4960  4987 I ResourceExtractor: Found extracted resources res_timestamp-1-1789471605554
+09-15 11:28:21.761  4960  4986 D FlutterJNI: Beginning load of flutter...
+09-15 11:28:21.789  4960  4986 D FlutterJNI: flutter (null) was loaded normally!
+09-15 11:28:21.800  4960  4988 D skia    : [SkFontMgr Android Parser] '/product/etc/fonts_customization.xml' could not be opened
+09-15 11:28:21.844  4960  4960 W m.muzhao.muzhao: type=1400 audit(0.0:22): avc:  denied  { read } for  name="max_map_count" dev="proc" ino=55562 scontext=u:r:untrusted_app:s0:c191,c256,c512,c768 tcontext=u:object_r:proc_max_map_count:s0 tclass=file permissive=0 app=com.muzhao.muzhao
+09-15 11:28:21.851  4960  4960 I flutter : [IMPORTANT:flutter/shell/common/shell.cc(528)] [Action Required]: Impeller opt-out deprecated.
+09-15 11:28:21.851  4960  4960 I flutter :     The application opted out of Impeller by either using the
+09-15 11:28:21.851  4960  4960 I flutter :     `--no-enable-impeller` flag or the
+09-15 11:28:21.851  4960  4960 I flutter :     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
+09-15 11:28:21.851  4960  4960 I flutter :     These options are going to go away in an upcoming Flutter release. Remove
+09-15 11:28:21.851  4960  4960 I flutter :     the explicit opt-out. If you need to opt-out, please report a bug describing
+09-15 11:28:21.851  4960  4960 I flutter :     the issue.
+09-15 11:28:21.851  4960  4960 I flutter : 
+09-15 11:28:21.851  4960  4960 I flutter :     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+09-15 11:28:21.851  4960  4960 I flutter : 
+09-15 11:28:22.022   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:22.034  4960  4995 I flutter : The Dart VM service is listening on http://127.0.0.1:33671/JIapNsa3qys=/
+09-15 11:28:22.075  2311  4124 I BugleRcsEngine: [76] bscf.run: delay time out, reset attempts 1 and process SIM event
+09-15 11:28:22.076  2311  4124 W BugleRcsEngine: [76] bscd.a: (Sim): process intent: android.intent.action.SIM_STATE_CHANGED
+09-15 11:28:22.085  2311  4124 I BugleRcsEngine: [76] bscd.o: (Sim): Processing an intent
+09-15 11:28:22.086  2311  4124 I BugleRcsEngine: [76] bscd.z: (Sim): Ignoring duplicate SIM state: LOADED
+09-15 11:28:22.292  4960  4960 W m.muzhao.muzhao: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (unsupported,test-api, reflection, allowed)
+09-15 11:28:22.292  4960  4960 W m.muzhao.muzhao: Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (unsupported, reflection, allowed)
+09-15 11:28:22.292  4960  4960 W m.muzhao.muzhao: Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (unsupported, reflection, allowed)
+09-15 11:28:22.293  4960  4960 W m.muzhao.muzhao: Accessing hidden method Landroid/util/LongArray;->get(I)J (unsupported, reflection, allowed)
+09-15 11:28:22.301  4960  4960 D AccessibilityBridge: Setting not found: accessibility_display_inversion_enabled, using default: 0
+09-15 11:28:22.323  4960  4960 D FlutterRenderer: Width is zero. 0,0
+09-15 11:28:22.347  4960  4960 D CompatibilityChangeReporter: Compat change id reported: 237531167; UID 10191; state: DISABLED
+09-15 11:28:22.349  4960  4960 W OpenGLRenderer: Unknown dataspace 0
+09-15 11:28:22.453   574   672 D ActivityManager: freezing 3295 com.android.imsserviceentitlement
+09-15 11:28:22.454   574   672 D ActivityManager: freezing 3355 com.android.camera2
+09-15 11:28:22.454   574   672 D ActivityManager: freezing 2883 com.google.android.dialer
+09-15 11:28:22.455   574   672 D ActivityManager: freezing 2069 com.google.android.adservices.api
+09-15 11:28:22.455   574   672 D ActivityManager: freezing 1231 com.google.android.cellbroadcastreceiver
+09-15 11:28:22.495   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:22.591   574   917 D OomAdjuster: Not killing cached processes
+09-15 11:28:22.596   807   873 D EGL_emulation: app_time_stats: avg=15.19ms min=7.11ms max=22.35ms count=61
+09-15 11:28:22.610  4960  4960 I Choreographer: Skipped 54 frames!  The application may be doing too much work on its main thread.
+09-15 11:28:22.738  4960  4960 D FlutterRenderer: Width is zero. 0,0
+09-15 11:28:22.739   574   917 D CoreBackPreview: Window{caabed u0 com.muzhao.muzhao/com.muzhao.muzhao.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@e59e10f, mPriority=0, mIsAnimationCallback=false}
+09-15 11:28:22.752  4960  4960 D FlutterJNI: Sending viewport metrics to the engine.
+09-15 11:28:22.755  4960  4983 W OpenGLRenderer: Failed to initialize 101010-2 format, error = EGL_SUCCESS
+09-15 11:28:22.766   184   184 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+09-15 11:28:22.766  4960  4989 I Gralloc4: mapper 4.x is not supported
+--------- beginning of kernel
+09-15 11:28:22.744     0     0 I servicemanager: Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+09-15 11:28:23.272   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:23.274   574   917 D ActivityManager: sync unfroze 3295 com.android.imsserviceentitlement for 19
+09-15 11:28:23.275   574   917 D ActivityManager: sync unfroze 3355 com.android.camera2 for 19
+09-15 11:28:23.276   574   917 D ActivityManager: sync unfroze 2883 com.google.android.dialer for 19
+09-15 11:28:23.279   574   917 D ActivityManager: sync unfroze 2069 com.google.android.adservices.api for 19
+09-15 11:28:23.281   574   917 D ActivityManager: sync unfroze 1231 com.google.android.cellbroadcastreceiver for 19
+09-15 11:28:23.283  4960  4960 I Choreographer: Skipped 32 frames!  The application may be doing too much work on its main thread.
+09-15 11:28:23.357  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 14151(1032KB) AllocSpace objects, 0(0B) LOS objects, 49% free, 2701KB/5403KB, paused 646us,59us total 17.184ms
+09-15 11:28:23.408   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:23.413  4960  4960 D FlutterJNI: Sending viewport metrics to the engine.
+09-15 11:28:24.037   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:24.739   574   672 D ActivityManager: freezing 2106 com.android.localtransport
+09-15 11:28:24.740   574   672 D ActivityManager: freezing 1941 com.android.keychain
+09-15 11:28:24.740   574   672 D ActivityManager: freezing 3103 com.android.externalstorage
+09-15 11:28:24.741   574   672 D ActivityManager: freezing 3376 com.android.dynsystem
+09-15 11:28:24.742   574   672 D ActivityManager: freezing 2685 android.process.media
+09-15 11:28:24.742   574   672 D ActivityManager: freezing 3414 com.android.dynsystem:dynsystem
+09-15 11:28:24.743   574   672 D ActivityManager: freezing 2801 com.google.android.apps.wallpaper
+09-15 11:28:24.743   574   672 D ActivityManager: freezing 3500 com.google.android.apps.docs
+09-15 11:28:24.744   574   672 D ActivityManager: freezing 1778 com.google.android.deskclock
+09-15 11:28:24.746   574   672 D ActivityManager: freezing 3444 com.android.providers.calendar
+09-15 11:28:24.747   574   672 D ActivityManager: freezing 1497 com.google.android.apps.wellbeing
+09-15 11:28:24.749   574   672 D ActivityManager: freezing 1034 com.android.settings
+09-15 11:28:25.033   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:25.083  1375  3072 I CastDatabase: Saving the database
+09-15 11:28:25.091  1375  3072 I SQLiteCastStore: [CastNetworkInfo] saved: 0, skipped: 0, [CastDeviceInfo]: saved 0, skipped 0, [Paired Guest Mode DeviceInfo] saved: 0, skipped: 0. [ProbedNetworks]: saved 0, skipped: 0, [ProbedSocketAddress]: saved 0, skipped: 0, [Network-Device pairs]: saved: 0
+09-15 11:28:25.200   574  1730 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+09-15 11:28:25.496   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:25.497   574   917 D ActivityManager: sync unfroze 2106 com.android.localtransport for 19
+09-15 11:28:25.497   574   917 D ActivityManager: sync unfroze 1941 com.android.keychain for 19
+09-15 11:28:25.498   574   917 D ActivityManager: sync unfroze 3103 com.android.externalstorage for 19
+09-15 11:28:25.498   574   917 D ActivityManager: sync unfroze 3376 com.android.dynsystem for 19
+09-15 11:28:25.498   574   917 D ActivityManager: sync unfroze 2685 android.process.media for 19
+09-15 11:28:25.498   574   917 D ActivityManager: sync unfroze 3414 com.android.dynsystem:dynsystem for 19
+09-15 11:28:25.498   574   917 D ActivityManager: sync unfroze 2801 com.google.android.apps.wallpaper for 19
+09-15 11:28:25.499   574   917 D ActivityManager: sync unfroze 3500 com.google.android.apps.docs for 19
+09-15 11:28:25.499   574   917 D ActivityManager: sync unfroze 1778 com.google.android.deskclock for 19
+09-15 11:28:25.502   574   917 D ActivityManager: sync unfroze 3444 com.android.providers.calendar for 19
+09-15 11:28:25.502   574   917 D ActivityManager: sync unfroze 1497 com.google.android.apps.wellbeing for 19
+09-15 11:28:25.503   574   917 D ActivityManager: sync unfroze 1034 com.android.settings for 19
+09-15 11:28:25.544  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3840(182KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2711KB/5422KB, paused 501us,45us total 9.024ms
+09-15 11:28:25.570   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:26.019  1729  1729 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.safetynet.service.START pkg=com.google.android.gms }
+09-15 11:28:26.521   574   672 D ActivityManager: freezing 1443 android.process.acore
+09-15 11:28:26.522   574   672 D ActivityManager: freezing 2208 com.google.process.gapps
+09-15 11:28:26.998   574   672 D ActivityManager: freezing 2495 com.google.android.onetimeinitializer
+09-15 11:28:26.999   574   672 D ActivityManager: freezing 2088 com.google.android.projection.gearhead:shared
+09-15 11:28:27.000   574   672 D ActivityManager: freezing 3554 com.google.android.configupdater
+09-15 11:28:27.001   574   672 D ActivityManager: freezing 3781 com.google.android.rkpdapp
+09-15 11:28:27.002   574   672 D ActivityManager: freezing 3722 com.google.android.partnersetup
+09-15 11:28:27.003   574   672 D ActivityManager: freezing 975 com.google.android.permissioncontroller
+09-15 11:28:27.004   574   672 D ActivityManager: freezing 1814 com.google.android.as.oss
+09-15 11:28:27.043   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:27.661   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:27.662  4960  5020 D ProfileInstaller: Installing profile for com.muzhao.muzhao
+09-15 11:28:27.662   574   917 D ActivityManager: sync unfroze 2495 com.google.android.onetimeinitializer for 19
+09-15 11:28:27.662   574   917 D ActivityManager: sync unfroze 2088 com.google.android.projection.gearhead:shared for 19
+09-15 11:28:27.663   574   917 D ActivityManager: sync unfroze 3554 com.google.android.configupdater for 19
+09-15 11:28:27.663   574   917 D ActivityManager: sync unfroze 3781 com.google.android.rkpdapp for 19
+09-15 11:28:27.663   574   917 D ActivityManager: sync unfroze 3722 com.google.android.partnersetup for 19
+09-15 11:28:27.664   574   917 D ActivityManager: sync unfroze 975 com.google.android.permissioncontroller for 19
+09-15 11:28:27.664   574   917 D ActivityManager: sync unfroze 2208 com.google.process.gapps for 19
+09-15 11:28:27.664   574   917 D ActivityManager: sync unfroze 1814 com.google.android.as.oss for 19
+09-15 11:28:27.664   574   917 D ActivityManager: sync unfroze 1443 android.process.acore for 19
+09-15 11:28:27.705  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3718(165KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2705KB/5411KB, paused 337us,46us total 7.613ms
+09-15 11:28:27.732   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:28.360   921  4915 D TrafficStats: tagSocket(6) with statsTag=0xffffff81, statsUid=-1
+09-15 11:28:28.814  4960  4960 I Choreographer: Skipped 47 frames!  The application may be doing too much work on its main thread.
+09-15 11:28:29.051   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:29.078   574   672 D ActivityManager: freezing 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+09-15 11:28:29.079   574   672 D ActivityManager: freezing 2550 com.google.android.tts
+09-15 11:28:29.079   574   672 D ActivityManager: freezing 1908 com.google.android.youtube
+09-15 11:28:29.081   574   672 D ActivityManager: freezing 1802 com.google.android.apps.youtube.music
+09-15 11:28:29.084   574   672 D ActivityManager: freezing 3677 com.google.android.gm
+09-15 11:28:29.085   574   672 D ActivityManager: freezing 3193 com.android.chrome:privileged_process0
+09-15 11:28:29.086   574   672 D ActivityManager: freezing 2940 com.android.chrome
+09-15 11:28:29.087   574   672 D ActivityManager: freezing 4152 com.android.emergency
+09-15 11:28:29.087   574   672 D ActivityManager: freezing 2371 com.android.traceur
+09-15 11:28:29.088   574   672 D ActivityManager: freezing 4229 com.google.android.healthconnect.controller
+09-15 11:28:29.088   574   672 D ActivityManager: freezing 3927 com.google.android.settings.intelligence
+09-15 11:28:29.089   574   672 D ActivityManager: freezing 4196 com.google.android.gms.ui
+09-15 11:28:29.091   574   672 D ActivityManager: freezing 3626 com.google.android.contacts
+09-15 11:28:29.817   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:29.817   574   917 D ActivityManager: sync unfroze 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 for 19
+09-15 11:28:29.818   574   917 D ActivityManager: sync unfroze 2550 com.google.android.tts for 19
+09-15 11:28:29.819   574   917 D ActivityManager: sync unfroze 1908 com.google.android.youtube for 19
+09-15 11:28:29.821   574   917 D ActivityManager: sync unfroze 1802 com.google.android.apps.youtube.music for 19
+09-15 11:28:29.821   574   917 D ActivityManager: sync unfroze 3677 com.google.android.gm for 19
+09-15 11:28:29.822   574   917 D ActivityManager: sync unfroze 3193 com.android.chrome:privileged_process0 for 19
+09-15 11:28:29.823   574   917 D ActivityManager: sync unfroze 2940 com.android.chrome for 19
+09-15 11:28:29.823   574   917 D ActivityManager: sync unfroze 4152 com.android.emergency for 19
+09-15 11:28:29.823   574   917 D ActivityManager: sync unfroze 2371 com.android.traceur for 19
+09-15 11:28:29.824   574   917 D ActivityManager: sync unfroze 4229 com.google.android.healthconnect.controller for 19
+09-15 11:28:29.824   574   917 D ActivityManager: sync unfroze 3927 com.google.android.settings.intelligence for 19
+09-15 11:28:29.824   574   917 D ActivityManager: sync unfroze 4196 com.google.android.gms.ui for 19
+09-15 11:28:29.825   574   917 D ActivityManager: sync unfroze 3626 com.google.android.contacts for 19
+09-15 11:28:29.863  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3239(145KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 338us,50us total 7.072ms
+09-15 11:28:29.889   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:29.969   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:30.004  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2832(127KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 389us,42us total 7.017ms
+09-15 11:28:30.031   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:31.059   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:31.167   574   672 D ActivityManager: freezing 2031 com.android.printspooler
+09-15 11:28:31.170   574   672 D ActivityManager: freezing 2727 com.google.android.webview:webview_service
+09-15 11:28:31.171   574   672 D ActivityManager: freezing 2651 com.google.android.apps.photos
+09-15 11:28:31.172   574   672 D ActivityManager: freezing 2311 com.google.android.apps.messaging
+09-15 11:28:31.185   574   598 W ActivityTaskManager: Launch timeout has expired, giving up wake lock!
+09-15 11:28:31.371   921  4914 D TrafficStats: tagSocket(69) with statsTag=0xffffff81, statsUid=-1
+09-15 11:28:31.399   574   598 D OomAdjuster: Not killing cached processes
+09-15 11:28:31.407  1045  2006 D OneSearchSuggestProvider: Shut down the binder channel
+09-15 11:28:31.420   574   598 W ProcessStats: Tracking association SourceState{abd12ef com.google.android.apps.nexuslauncher/10161 BFgs #3099} whose proc state 4 is better than process ProcessState{47d96f9 com.google.android.googlequicksearchbox:search/10131 pkg=com.google.android.googlequicksearchbox} proc state 5 (17 skipped)
+09-15 11:28:31.425  1045  1148 I ImeTracker: com.google.android.apps.nexuslauncher:e70bcbc4: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT
+09-15 11:28:31.426   574  1889 I ImeTracker: com.google.android.apps.nexuslauncher:e70bcbc4: onCancelled at PHASE_SERVER_SHOULD_HIDE
+09-15 11:28:31.485  4960  4960 I Choreographer: Skipped 37 frames!  The application may be doing too much work on its main thread.
+09-15 11:28:31.792   574   676 W ActivityManager: Unable to start service Intent { act=com.google.android.gms.drive.ApiService.RESET_AFTER_BOOT flg=0x4 cmp=com.google.android.gms/.drive.api.ApiService (has extras) } U=0: not found
+09-15 11:28:32.062   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:32.129   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:32.130   574   917 D ActivityManager: sync unfroze 2031 com.android.printspooler for 19
+09-15 11:28:32.130   574   917 D ActivityManager: sync unfroze 2727 com.google.android.webview:webview_service for 19
+09-15 11:28:32.131   574   917 D ActivityManager: sync unfroze 2651 com.google.android.apps.photos for 19
+09-15 11:28:32.131   574   917 D ActivityManager: sync unfroze 2311 com.google.android.apps.messaging for 19
+09-15 11:28:32.176  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3253(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 332us,45us total 7.241ms
+09-15 11:28:32.206   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:32.216  2311  2370 W Bugle   : TextClassifierLibManagerImpl: Reclaiming memory at level: 40
+09-15 11:28:32.293   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:32.331  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2833(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 374us,48us total 7.681ms
+09-15 11:28:32.358   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:32.498   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:33.409   574   672 D ActivityManager: freezing 3295 com.android.imsserviceentitlement
+09-15 11:28:33.410   574   672 D ActivityManager: freezing 3355 com.android.camera2
+09-15 11:28:33.411   574   672 D ActivityManager: freezing 2883 com.google.android.dialer
+09-15 11:28:33.411   574   672 D ActivityManager: freezing 2069 com.google.android.adservices.api
+09-15 11:28:33.412   574   672 D ActivityManager: freezing 1231 com.google.android.cellbroadcastreceiver
+09-15 11:28:34.068   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:34.443   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:34.443   574   917 D ActivityManager: sync unfroze 3295 com.android.imsserviceentitlement for 19
+09-15 11:28:34.444   574   917 D ActivityManager: sync unfroze 3355 com.android.camera2 for 19
+09-15 11:28:34.444   574   917 D ActivityManager: sync unfroze 2883 com.google.android.dialer for 19
+09-15 11:28:34.445   574   917 D ActivityManager: sync unfroze 2069 com.google.android.adservices.api for 19
+09-15 11:28:34.445   574   917 D ActivityManager: sync unfroze 1231 com.google.android.cellbroadcastreceiver for 19
+09-15 11:28:34.482  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3427(143KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 432us,43us total 7.546ms
+09-15 11:28:34.506   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:34.584   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:34.623  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2828(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 363us,58us total 7.864ms
+09-15 11:28:34.651   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:35.574   574   672 D ActivityManager: freezing 2106 com.android.localtransport
+09-15 11:28:35.574   574   672 D ActivityManager: freezing 1941 com.android.keychain
+09-15 11:28:35.575   574   672 D ActivityManager: freezing 3103 com.android.externalstorage
+09-15 11:28:35.575   574   672 D ActivityManager: freezing 3376 com.android.dynsystem
+09-15 11:28:35.576   574   672 D ActivityManager: freezing 2685 android.process.media
+09-15 11:28:35.576   574   672 D ActivityManager: freezing 3414 com.android.dynsystem:dynsystem
+09-15 11:28:35.577   574   672 D ActivityManager: freezing 2801 com.google.android.apps.wallpaper
+09-15 11:28:35.577   574   672 D ActivityManager: freezing 3500 com.google.android.apps.docs
+09-15 11:28:35.578   574   672 D ActivityManager: freezing 1778 com.google.android.deskclock
+09-15 11:28:35.578   574   672 D ActivityManager: freezing 3444 com.android.providers.calendar
+09-15 11:28:35.579   574   672 D ActivityManager: freezing 1497 com.google.android.apps.wellbeing
+09-15 11:28:35.579   574   672 D ActivityManager: freezing 1034 com.android.settings
+09-15 11:28:36.078   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:36.230   574  2003 W BatteryExternalStatsWorker: error reading Bluetooth stats: 11
+09-15 11:28:36.233   574  2003 D TelephonyManager: requestModemActivityInfo: Sending result to app: ModemActivityInfo{ mTimestamp=164233 mSleepTimeMs=0 mIdleTimeMs=164228 mActivityStatsTechSpecificInfo=[{mRat=UNKNOWN,mFrequencyRange=UNKNOWN,mTxTimeMs[]=[0, 0, 0, 0, 0],mRxTimeMs=0}]}
+09-15 11:28:36.265   381   430 I netd    : tetherGetStats() -> {[]} <2.05ms>
+09-15 11:28:36.726   574  1889 D ActivityManager: freezer override set to true
+09-15 11:28:36.726   574  1889 D ActivityManager: sync unfroze 2106 com.android.localtransport for 19
+09-15 11:28:36.727   574  1889 D ActivityManager: sync unfroze 1941 com.android.keychain for 19
+09-15 11:28:36.727   574  1889 D ActivityManager: sync unfroze 3103 com.android.externalstorage for 19
+09-15 11:28:36.727   574  1889 D ActivityManager: sync unfroze 3376 com.android.dynsystem for 19
+09-15 11:28:36.728   574  1889 D ActivityManager: sync unfroze 2685 android.process.media for 19
+09-15 11:28:36.728   574  1889 D ActivityManager: sync unfroze 3414 com.android.dynsystem:dynsystem for 19
+09-15 11:28:36.728   574  1889 D ActivityManager: sync unfroze 2801 com.google.android.apps.wallpaper for 19
+09-15 11:28:36.728   574  1889 D ActivityManager: sync unfroze 3500 com.google.android.apps.docs for 19
+09-15 11:28:36.729   574  1889 D ActivityManager: sync unfroze 1778 com.google.android.deskclock for 19
+09-15 11:28:36.729   574  1889 D ActivityManager: sync unfroze 3444 com.android.providers.calendar for 19
+09-15 11:28:36.730   574  1889 D ActivityManager: sync unfroze 1497 com.google.android.apps.wellbeing for 19
+09-15 11:28:36.730   574  1889 D ActivityManager: sync unfroze 1034 com.android.settings for 19
+09-15 11:28:36.763  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3424(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 384us,42us total 6.638ms
+09-15 11:28:36.790   574  1889 D ActivityManager: freezer override set to false
+09-15 11:28:37.080   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:37.738   574   672 D ActivityManager: freezing 2495 com.google.android.onetimeinitializer
+09-15 11:28:37.739   574   672 D ActivityManager: freezing 2088 com.google.android.projection.gearhead:shared
+09-15 11:28:37.740   574   672 D ActivityManager: freezing 3554 com.google.android.configupdater
+09-15 11:28:37.740   574   672 D ActivityManager: freezing 3781 com.google.android.rkpdapp
+09-15 11:28:37.741   574   672 D ActivityManager: freezing 3722 com.google.android.partnersetup
+09-15 11:28:37.742   574   672 D ActivityManager: freezing 975 com.google.android.permissioncontroller
+09-15 11:28:37.743   574   672 D ActivityManager: freezing 2208 com.google.process.gapps
+09-15 11:28:37.743   574   672 D ActivityManager: freezing 1814 com.google.android.as.oss
+09-15 11:28:37.744   574   672 D ActivityManager: freezing 1443 android.process.acore
+09-15 11:28:37.981   381  1544 W resolv  : SSL_connect write error 0, mark 0xf0064: Try again
+09-15 11:28:37.982   381  1544 W resolv  : TLS Handshake failed
+09-15 11:28:37.982   381  1544 W resolv  : query failed
+09-15 11:28:37.982   381  1544 W resolv  : validateDnsTlsServer returned 0 for 10.0.2.3
+09-15 11:28:37.982   381  1544 W resolv  : Validation failed
+09-15 11:28:38.085   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:38.366   921  4915 D NetworkMonitor/100: PROBE_HTTPS https://www.google.com/generate_204 Probe failed with exception java.net.SocketTimeoutException: failed to connect to www.google.com/2001::1 (port 443) from /fec0::5054:ff:fe12:3456 (port 54476) after 10000ms
+09-15 11:28:38.874   574  2003 D ActivityManager: freezer override set to true
+09-15 11:28:38.875   574  2003 D ActivityManager: sync unfroze 2495 com.google.android.onetimeinitializer for 19
+09-15 11:28:38.875   574  2003 D ActivityManager: sync unfroze 2088 com.google.android.projection.gearhead:shared for 19
+09-15 11:28:38.875   574  2003 D ActivityManager: sync unfroze 3554 com.google.android.configupdater for 19
+09-15 11:28:38.876   574  2003 D ActivityManager: sync unfroze 3781 com.google.android.rkpdapp for 19
+09-15 11:28:38.876   574  2003 D ActivityManager: sync unfroze 3722 com.google.android.partnersetup for 19
+09-15 11:28:38.877   574  2003 D ActivityManager: sync unfroze 975 com.google.android.permissioncontroller for 19
+09-15 11:28:38.877   574  2003 D ActivityManager: sync unfroze 2208 com.google.process.gapps for 19
+09-15 11:28:38.877   574  2003 D ActivityManager: sync unfroze 1814 com.google.android.as.oss for 19
+09-15 11:28:38.877   574  2003 D ActivityManager: sync unfroze 1443 android.process.acore for 19
+09-15 11:28:38.914  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3437(143KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 337us,60us total 6.385ms
+09-15 11:28:38.938   574  2003 D ActivityManager: freezer override set to false
+09-15 11:28:39.129   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:39.628   574   917 D OomAdjuster: Not killing cached processes
+09-15 11:28:39.643  4196  5068 I GMS_MM_Logger: Memory Metric Logging not allowed. Stopping.
+09-15 11:28:39.743  1729  2874 D TrafficStats: tagSocket(156) with statsTag=0x30003000, statsUid=-1
+09-15 11:28:39.894   574   672 D ActivityManager: freezing 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+09-15 11:28:39.895   574   672 D ActivityManager: freezing 2550 com.google.android.tts
+09-15 11:28:39.895   574   672 D ActivityManager: freezing 1908 com.google.android.youtube
+09-15 11:28:39.897   574   672 D ActivityManager: freezing 1802 com.google.android.apps.youtube.music
+09-15 11:28:39.898   574   672 D ActivityManager: freezing 3677 com.google.android.gm
+09-15 11:28:39.899   574   672 D ActivityManager: freezing 3193 com.android.chrome:privileged_process0
+09-15 11:28:39.899   574   672 D ActivityManager: freezing 2940 com.android.chrome
+09-15 11:28:39.900   574   672 D ActivityManager: freezing 4152 com.android.emergency
+09-15 11:28:39.900   574   672 D ActivityManager: freezing 2371 com.android.traceur
+09-15 11:28:39.901   574   672 D ActivityManager: freezing 4229 com.google.android.healthconnect.controller
+09-15 11:28:39.901   574   672 D ActivityManager: freezing 3927 com.google.android.settings.intelligence
+09-15 11:28:39.902   574   672 D ActivityManager: freezing 4196 com.google.android.gms.ui
+09-15 11:28:39.903   574   672 D ActivityManager: freezing 3626 com.google.android.contacts
+09-15 11:28:40.095   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:41.014   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:41.015   574   917 D ActivityManager: sync unfroze 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 for 19
+09-15 11:28:41.015   574   917 D ActivityManager: sync unfroze 2550 com.google.android.tts for 19
+09-15 11:28:41.016   574   917 D ActivityManager: sync unfroze 1908 com.google.android.youtube for 19
+09-15 11:28:41.016   574   917 D ActivityManager: sync unfroze 1802 com.google.android.apps.youtube.music for 19
+09-15 11:28:41.016   574   917 D ActivityManager: sync unfroze 3677 com.google.android.gm for 19
+09-15 11:28:41.017   574   917 D ActivityManager: sync unfroze 3193 com.android.chrome:privileged_process0 for 19
+09-15 11:28:41.019   574   917 D ActivityManager: sync unfroze 2940 com.android.chrome for 19
+09-15 11:28:41.019   574   917 D ActivityManager: sync unfroze 4152 com.android.emergency for 19
+09-15 11:28:41.019   574   917 D ActivityManager: sync unfroze 2371 com.android.traceur for 19
+09-15 11:28:41.019   574   917 D ActivityManager: sync unfroze 4229 com.google.android.healthconnect.controller for 19
+09-15 11:28:41.020   574   917 D ActivityManager: sync unfroze 3927 com.google.android.settings.intelligence for 19
+09-15 11:28:41.020   574   917 D ActivityManager: sync unfroze 4196 com.google.android.gms.ui for 19
+09-15 11:28:41.020   574   917 D ActivityManager: sync unfroze 3626 com.google.android.contacts for 19
+09-15 11:28:41.029  1729  1729 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.safetynet.service.START pkg=com.google.android.gms }
+09-15 11:28:41.029  1729  1729 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.safetynet.service.START pkg=com.google.android.gms }
+09-15 11:28:41.055  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3423(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 337us,42us total 5.906ms
+09-15 11:28:41.078   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:41.151   574   917 D ActivityManager: freezer override set to true
+09-15 11:28:41.185  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2828(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 412us,44us total 6.941ms
+09-15 11:28:41.209   574   917 D ActivityManager: freezer override set to false
+09-15 11:28:41.375   921  4914 D NetworkMonitor/100: PROBE_FALLBACK http://play.googleapis.com/generate_204 Probe failed with exception java.net.SocketTimeoutException: failed to connect to play.googleapis.com/2001:4860:4843:400:: (port 80) from /fec0::5054:ff:fe12:3456 (port 44192) after 10000ms
+09-15 11:28:41.376   921  4914 D NetworkMonitor/100: isCaptivePortal: isSuccessful()=false isPortal()=false RedirectUrl=null isPartialConnectivity()=false Time=23037ms
+09-15 11:28:41.377   574   730 D ConnectivityService: [100 CELLULAR] validation failed
+09-15 11:28:41.377   574   730 I ConnectivityService: Update capabilities for net 100 : -PARTIAL_CONNECTIVITY
+09-15 11:28:41.384  1665  2576 I BugleRcsEngine: [65] brqh.handleMessage: RcsEngineImpl[DUAL_REG]:[9a18bdd6-0556]>Handler: handleMessage processing message:[NOTIFY_UPTIME_IGNORE_STATE_CHANGED] with [non-null]:RcsEngineImpl reference
+09-15 11:28:41.385  1665  2121 I BugleRcsEngine: [53] bqvv.c: Connected state: [1], networkType: [MOBILE]
+09-15 11:28:41.396  1665  2576 I BugleRcsEngine: [65] brnl.h: No RCS Configuration was found in Bugle for simID: redacted-pii:sim_id[chars:20,last3:897]
+09-15 11:28:41.406   574   672 D ActivityManager: freezing 1599 com.google.process.gservices
+09-15 11:28:42.102   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:42.149   574  1889 W ProcessStats: Tracking association SourceState{b2de789 com.google.android.gms/10128 ImpBg #3111} whose proc state 6 is better than process ProcessState{60f3264 com.google.android.gms.unstable/10128 pkg=com.google.android.gms} proc state 9 (14 skipped)
+09-15 11:28:42.200  1375  1375 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.pseudonymous.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+09-15 11:28:42.200  1375  1375 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.pseudonymous.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+09-15 11:28:42.209   574   672 D ActivityManager: freezing 2031 com.android.printspooler
+09-15 11:28:42.213   574   672 D ActivityManager: freezing 2727 com.google.android.webview:webview_service
+09-15 11:28:42.216   574   672 D ActivityManager: freezing 2651 com.google.android.apps.photos
+09-15 11:28:42.216   381  5082 I resolv  : GetAddrInfoHandler::run: {100 786532 100 983140 10128 0}
+09-15 11:28:42.218   381  5083 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+09-15 11:28:42.218   381  5084 I resolv  : res_nmkquery: (QUERY, IN, A)
+09-15 11:28:42.218   381  5083 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x759921393790
+09-15 11:28:42.218   381  5083 I resolv  : doQuery: rcode=0, ancount=8, return value=264
+09-15 11:28:42.227   381  5084 I resolv  : res_nsend: used send_dg 168 terrno: 0
+09-15 11:28:42.227   381  5084 I resolv  : doQuery: rcode=0, ancount=8, return value=168
+09-15 11:28:42.229  1729  4372 D TrafficStats: tagSocket(164) with statsTag=0x30000408, statsUid=-1
+09-15 11:28:42.508   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:42.514   807   873 D EGL_emulation: app_time_stats: avg=2109.04ms min=4.89ms max=21004.23ms count=10
+09-15 11:28:43.106   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:43.289   574  1889 D ActivityManager: freezer override set to true
+09-15 11:28:43.289   574  1889 D ActivityManager: sync unfroze 2031 com.android.printspooler for 19
+09-15 11:28:43.290   574  1889 D ActivityManager: sync unfroze 2727 com.google.android.webview:webview_service for 19
+09-15 11:28:43.290   574  1889 D ActivityManager: sync unfroze 2651 com.google.android.apps.photos for 19
+09-15 11:28:43.291   574  1889 D ActivityManager: sync unfroze 1599 com.google.process.gservices for 19
+09-15 11:28:43.322  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3342(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 334us,43us total 5.926ms
+09-15 11:28:43.345   574  1889 D ActivityManager: freezer override set to false
+09-15 11:28:43.421   574  1889 D ActivityManager: freezer override set to true
+09-15 11:28:43.456  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2828(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 325us,41us total 6.256ms
+09-15 11:28:43.479   574  1889 D ActivityManager: freezer override set to false
+09-15 11:28:44.109   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:44.262  2883  3010 I DialerVvmSmsDispatcherImpl: com.android.dialer.voicemail.service.impl.sms.VvmSmsDispatcherImpl.lambda$getOmtpSmsMessage$1:83 remove sms listener: 96599061
+09-15 11:28:44.264  2883  3010 E svj     : Got more than one input Future failure. Logging failures after the first
+09-15 11:28:44.264  2883  3010 E svj     : jkr: receive status sms timeout
+09-15 11:28:44.264  2883  3010 E svj     : 	at iyx.a(PG:7)
+09-15 11:28:44.264  2883  3010 E svj     : 	at rst.a(PG:2)
+09-15 11:28:44.264  2883  3010 E svj     : 	at suk.c(PG:2)
+09-15 11:28:44.264  2883  3010 E svj     : 	at sul.run(PG:10)
+09-15 11:28:44.264  2883  3010 E svj     : 	at ocg.run(PG:1)
+09-15 11:28:44.264  2883  3010 E svj     : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 11:28:44.264  2883  3010 E svj     : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 11:28:44.264  2883  3010 E svj     : 	at oca.run(PG:19)
+09-15 11:28:44.264  2883  3010 E svj     : 	at oca.run(PG:32)
+09-15 11:28:44.264  2883  3010 E svj     : 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:28:44.264  2883  3010 E svj     : 	at ocj.run(PG:6)
+09-15 11:28:44.509   574   672 D ActivityManager: freezing 3295 com.android.imsserviceentitlement
+09-15 11:28:44.510   574   672 D ActivityManager: freezing 3355 com.android.camera2
+09-15 11:28:44.510   574   672 D ActivityManager: freezing 2883 com.google.android.dialer
+09-15 11:28:44.511   574   672 D ActivityManager: freezing 2069 com.google.android.adservices.api
+09-15 11:28:44.512   574   672 D ActivityManager: freezing 1231 com.google.android.cellbroadcastreceiver
+09-15 11:28:45.112   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:45.566   574  1857 D ActivityManager: freezer override set to true
+09-15 11:28:45.566   574  1857 D ActivityManager: sync unfroze 3295 com.android.imsserviceentitlement for 19
+09-15 11:28:45.566   574  1857 D ActivityManager: sync unfroze 3355 com.android.camera2 for 19
+09-15 11:28:45.567   574  1857 D ActivityManager: sync unfroze 2883 com.google.android.dialer for 19
+09-15 11:28:45.567   574  1857 D ActivityManager: sync unfroze 2069 com.google.android.adservices.api for 19
+09-15 11:28:45.567   574  1857 D ActivityManager: sync unfroze 1231 com.google.android.cellbroadcastreceiver for 19
+09-15 11:28:45.611  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3282(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 424us,49us total 7.556ms
+09-15 11:28:45.639   574  1857 D ActivityManager: freezer override set to false
+09-15 11:28:45.710   574  1857 D ActivityManager: freezer override set to true
+09-15 11:28:45.746  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2828(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 418us,43us total 6.962ms
+09-15 11:28:45.771   574  1857 D ActivityManager: freezer override set to false
+09-15 11:28:46.115   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:46.793   574   672 D ActivityManager: freezing 2106 com.android.localtransport
+09-15 11:28:46.794   574   672 D ActivityManager: freezing 1941 com.android.keychain
+09-15 11:28:46.794   574   672 D ActivityManager: freezing 3103 com.android.externalstorage
+09-15 11:28:46.795   574   672 D ActivityManager: freezing 3376 com.android.dynsystem
+09-15 11:28:46.795   574   672 D ActivityManager: freezing 2685 android.process.media
+09-15 11:28:46.796   574   672 D ActivityManager: freezing 3414 com.android.dynsystem:dynsystem
+09-15 11:28:46.796   574   672 D ActivityManager: freezing 2801 com.google.android.apps.wallpaper
+09-15 11:28:46.797   574   672 D ActivityManager: freezing 3500 com.google.android.apps.docs
+09-15 11:28:46.797   574   672 D ActivityManager: freezing 1778 com.google.android.deskclock
+09-15 11:28:46.798   574   672 D ActivityManager: freezing 3444 com.android.providers.calendar
+09-15 11:28:46.799   574   672 D ActivityManager: freezing 1497 com.google.android.apps.wellbeing
+09-15 11:28:46.799   574   672 D ActivityManager: freezing 1034 com.android.settings
+09-15 11:28:47.195   574  1857 D OomAdjuster: Not killing cached processes
+09-15 11:28:47.884   574  1889 D ActivityManager: freezer override set to true
+09-15 11:28:47.884   574  1889 D ActivityManager: sync unfroze 2106 com.android.localtransport for 19
+09-15 11:28:47.885   574  1889 D ActivityManager: sync unfroze 1941 com.android.keychain for 19
+09-15 11:28:47.885   574  1889 D ActivityManager: sync unfroze 3103 com.android.externalstorage for 19
+09-15 11:28:47.885   574  1889 D ActivityManager: sync unfroze 3376 com.android.dynsystem for 19
+09-15 11:28:47.886   574  1889 D ActivityManager: sync unfroze 2685 android.process.media for 19
+09-15 11:28:47.886   574  1889 D ActivityManager: sync unfroze 3414 com.android.dynsystem:dynsystem for 19
+09-15 11:28:47.886   574  1889 D ActivityManager: sync unfroze 2801 com.google.android.apps.wallpaper for 19
+09-15 11:28:47.887   574  1889 D ActivityManager: sync unfroze 3500 com.google.android.apps.docs for 19
+09-15 11:28:47.887   574  1889 D ActivityManager: sync unfroze 1778 com.google.android.deskclock for 19
+09-15 11:28:47.888   574  1889 D ActivityManager: sync unfroze 3444 com.android.providers.calendar for 19
+09-15 11:28:47.888   574  1889 D ActivityManager: sync unfroze 1497 com.google.android.apps.wellbeing for 19
+09-15 11:28:47.888   574  1889 D ActivityManager: sync unfroze 1034 com.android.settings for 19
+09-15 11:28:47.929  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3444(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 395us,49us total 7.031ms
+09-15 11:28:47.962   574  1889 D ActivityManager: freezer override set to false
+09-15 11:28:48.048   574  1889 D ActivityManager: freezer override set to true
+09-15 11:28:48.086  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2837(127KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 349us,48us total 8.305ms
+09-15 11:28:48.114   574  1889 D ActivityManager: freezer override set to false
+09-15 11:28:48.122   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:48.942   574   672 D ActivityManager: freezing 2495 com.google.android.onetimeinitializer
+09-15 11:28:48.943   574   672 D ActivityManager: freezing 2088 com.google.android.projection.gearhead:shared
+09-15 11:28:48.944   574   672 D ActivityManager: freezing 3554 com.google.android.configupdater
+09-15 11:28:48.944   574   672 D ActivityManager: freezing 3781 com.google.android.rkpdapp
+09-15 11:28:48.945   574   672 D ActivityManager: freezing 3722 com.google.android.partnersetup
+09-15 11:28:48.946   574   672 D ActivityManager: freezing 975 com.google.android.permissioncontroller
+09-15 11:28:48.947   574   672 D ActivityManager: freezing 2208 com.google.process.gapps
+09-15 11:28:48.948   574   672 D ActivityManager: freezing 1814 com.google.android.as.oss
+09-15 11:28:48.948   574   672 D ActivityManager: freezing 1443 android.process.acore
+09-15 11:28:49.126   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:50.222   574  1889 D ActivityManager: freezer override set to true
+09-15 11:28:50.222   574  1889 D ActivityManager: sync unfroze 2495 com.google.android.onetimeinitializer for 19
+09-15 11:28:50.223   574  1889 D ActivityManager: sync unfroze 2088 com.google.android.projection.gearhead:shared for 19
+09-15 11:28:50.223   574  1889 D ActivityManager: sync unfroze 3554 com.google.android.configupdater for 19
+09-15 11:28:50.223   574  1889 D ActivityManager: sync unfroze 3781 com.google.android.rkpdapp for 19
+09-15 11:28:50.223   574  1889 D ActivityManager: sync unfroze 3722 com.google.android.partnersetup for 19
+09-15 11:28:50.224   574  1889 D ActivityManager: sync unfroze 975 com.google.android.permissioncontroller for 19
+09-15 11:28:50.224   574  1889 D ActivityManager: sync unfroze 2208 com.google.process.gapps for 19
+09-15 11:28:50.224   574  1889 D ActivityManager: sync unfroze 1814 com.google.android.as.oss for 19
+09-15 11:28:50.224   574  1889 D ActivityManager: sync unfroze 1443 android.process.acore for 19
+09-15 11:28:50.268  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3383(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 447us,59us total 11.528ms
+09-15 11:28:50.309   574  1889 D ActivityManager: freezer override set to false
+09-15 11:28:50.410   574   723 E WifiScoringParams: Invalid frequency(-1), using 5G as default rssi array
+09-15 11:28:51.026   574   672 D ActivityManager: freezing 3626 com.google.android.contacts
+09-15 11:28:51.027   574   672 D ActivityManager: freezing 4196 com.google.android.gms.ui
+09-15 11:28:51.028   574   672 D ActivityManager: freezing 2940 com.android.chrome
+09-15 11:28:51.028   574   672 D ActivityManager: freezing 1908 com.google.android.youtube
+09-15 11:28:51.082   574   672 D ActivityManager: freezing 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+09-15 11:28:51.083   574   672 D ActivityManager: freezing 2550 com.google.android.tts
+09-15 11:28:51.083   574   672 D ActivityManager: freezing 1802 com.google.android.apps.youtube.music
+09-15 11:28:51.084   574   672 D ActivityManager: freezing 3677 com.google.android.gm
+09-15 11:28:51.085   574   672 D ActivityManager: freezing 3193 com.android.chrome:privileged_process0
+09-15 11:28:51.085   574   672 D ActivityManager: freezing 4152 com.android.emergency
+09-15 11:28:51.086   574   672 D ActivityManager: freezing 2371 com.android.traceur
+09-15 11:28:51.087   574   672 D ActivityManager: freezing 4229 com.google.android.healthconnect.controller
+09-15 11:28:51.087   574   672 D ActivityManager: freezing 3927 com.google.android.settings.intelligence
+09-15 11:28:51.135   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:51.479  4960  4960 I Choreographer: Skipped 30 frames!  The application may be doing too much work on its main thread.
+09-15 11:28:51.995  2311  2311 I BugleDataModel: ActionExecutorImpl: Timestamp for ACTION_EXECUTE_QUEUED_CountryCodeDetectorAction elapsedRealTime: 179995 currentTimeMillis: 1789471731995
+09-15 11:28:51.996  2311  2311 I BugleDataModel: ActionExecutorImpl: Timestamp for ACTION_EXECUTE_QUEUED_SelfParticipantsRefreshAction elapsedRealTime: 179996 currentTimeMillis: 1789471731996
+09-15 11:28:51.997  2311  4879 I BugleDataModel: ActionExecutorImpl: Timestamp for ACTION_BACKGROUND_QUEUED_CountryCodeDetectorAction elapsedRealTime: 179997 currentTimeMillis: 1789471731997
+09-15 11:28:51.997  2311  4879 I BugleDataModel: ActionExecutorImpl: Timestamp for ACTION_BACKGROUND_QUEUED_SelfParticipantsRefreshAction elapsedRealTime: 179997 currentTimeMillis: 1789471731997
+09-15 11:28:51.999  2311  5118 I Bugle   : CountryCodeDetector: updateMainDeviceCountry from default subscription network country. detected country: us
+09-15 11:28:51.999  2311  5118 I BugleDataModel: ActionExecutorImpl: Timestamp for ACTION_RESPONSE_QUEUED_CountryCodeDetectorAction elapsedRealTime: 179999 currentTimeMillis: 1789471731999
+09-15 11:28:52.002  2311  5118 I BugleDataModel: ParticipantRefresh: ContactContentObserver created
+09-15 11:28:52.003  2311  5118 I BugleDataModel: ParticipantFullRefresh: Start participant refresh. refreshMode: SELF_ONLY
+09-15 11:28:52.009  2311  5118 I BugleDataModel: SubscriptionsTracker#refreshSelfParticipantList([1])
+09-15 11:28:52.057  2311  5118 W BugleDataModel: SubscriptionsTracker: Failed to update self participants' subscription info for, subId: -1, updateCount: 0
+09-15 11:28:52.078  2311  5118 W BugleDataModel: SubscriptionsTracker: Failed to update self participants' subscription info for, subId: 1, updateCount: 0
+09-15 11:28:52.090  2311  5118 I BugleDataModel: SubscriptionsTracker bindToTrackingMap bound participants: [ParticipantId=1 subId=-1, ParticipantId=2 subId=1]
+09-15 11:28:52.139   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:52.191  2311  5118 I BugleDataModel: ParticipantFullRefresh: Number of participants refreshed: 0
+09-15 11:28:52.193  2311  5118 I BugleDataModel: ActionExecutorImpl: Timestamp for ACTION_RESPONSE_QUEUED_SelfParticipantsRefreshAction elapsedRealTime: 180193 currentTimeMillis: 1789471732193
+09-15 11:28:52.200   574  1857 D OomAdjuster: Not killing cached processes
+09-15 11:28:52.217  2311  5118 I BugleSelfIdentity: Nothing changed in MyIdentity as phone number does not change [CONTEXT sub_id=1 ]
+09-15 11:28:52.315  2919  3147 D TrafficStats: tagSocket(102) with statsTag=0x1803, statsUid=10128
+09-15 11:28:52.322  1861  2184 W A       : v2 eligibility check failed
+09-15 11:28:52.322  1861  2184 W A       : com.google.android.libraries.search.q.a.b: com.google.frameworks.client.data.android.ab: Http networking stack error
+09-15 11:28:52.322  1861  2184 W A       : 	at com.google.android.libraries.search.q.a.j.apply(PG:3)
+09-15 11:28:52.322  1861  2184 W A       : 	at com.google.apps.tiktok.tracing.eo.apply(PG:2)
+09-15 11:28:52.322  1861  2184 W A       : 	at com.google.common.util.concurrent.a.e(PG:2)
+09-15 11:28:52.322  1861  2184 W A       : 	at com.google.common.util.concurrent.c.run(PG:12)
+09-15 11:28:52.322  1861  2184 W A       : 	at com.google.android.libraries.i.ae.run(PG:1)
+09-15 11:28:52.322  1861  2184 W A       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 11:28:52.322  1861  2184 W A       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 11:28:52.322  1861  2184 W A       : 	at com.google.android.libraries.i.k.run(PG:2)
+09-15 11:28:52.322  1861  2184 W A       : 	at com.google.android.libraries.i.p.run(PG:4)
+09-15 11:28:52.322  1861  2184 W A       : 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:28:52.322  1861  2184 W A       : Caused by: com.google.frameworks.client.data.android.ab: Http networking stack error
+09-15 11:28:52.322  1861  2184 W A       : 	at com.google.frameworks.client.data.android.y.run(PG:7)
+09-15 11:28:52.322  1861  2184 W A       : 	... 6 more
+09-15 11:28:52.322  1861  2184 W A       : Caused by: iq: Exception in CronetUrlRequest: net::ERR_CONNECTION_TIMED_OUT, ErrorCode=6, InternalErrorCode=-118, Retryable=true
+09-15 11:28:52.322  1861  2184 W A       : 	at org.chromium.net.impl.CronetUrlRequest.onError(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):5)
+09-15 11:28:52.323  1861  2184 W A       : unable to retrieve gws prefs while getting consent state
+09-15 11:28:52.323  1861  2184 W A       : com.google.android.libraries.search.q.a.b: com.google.frameworks.client.data.android.ab: Http networking stack error
+09-15 11:28:52.323  1861  2184 W A       : 	at com.google.android.libraries.search.q.a.j.apply(PG:3)
+09-15 11:28:52.323  1861  2184 W A       : 	at com.google.apps.tiktok.tracing.eo.apply(PG:2)
+09-15 11:28:52.323  1861  2184 W A       : 	at com.google.common.util.concurrent.a.e(PG:2)
+09-15 11:28:52.323  1861  2184 W A       : 	at com.google.common.util.concurrent.c.run(PG:12)
+09-15 11:28:52.323  1861  2184 W A       : 	at com.google.android.libraries.i.ae.run(PG:1)
+09-15 11:28:52.323  1861  2184 W A       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 11:28:52.323  1861  2184 W A       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 11:28:52.323  1861  2184 W A       : 	at com.google.android.libraries.i.k.run(PG:2)
+09-15 11:28:52.323  1861  2184 W A       : 	at com.google.android.libraries.i.p.run(PG:4)
+09-15 11:28:52.323  1861  2184 W A       : 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:28:52.323  1861  2184 W A       : Caused by: com.google.frameworks.client.data.android.ab: Http networking stack error
+09-15 11:28:52.323  1861  2184 W A       : 	at com.google.frameworks.client.data.android.y.run(PG:7)
+09-15 11:28:52.323  1861  2184 W A       : 	... 6 more
+09-15 11:28:52.323  1861  2184 W A       : Caused by: iq: Exception in CronetUrlRequest: net::ERR_CONNECTION_TIMED_OUT, ErrorCode=6, InternalErrorCode=-118, Retryable=true
+09-15 11:28:52.323  1861  2184 W A       : 	at org.chromium.net.impl.CronetUrlRequest.onError(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):5)
+09-15 11:28:52.394   574  1857 D ActivityManager: freezer override set to true
+09-15 11:28:52.395   574  1857 D ActivityManager: sync unfroze 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 for 19
+09-15 11:28:52.395   574  1857 D ActivityManager: sync unfroze 2550 com.google.android.tts for 19
+09-15 11:28:52.396   574  1857 D ActivityManager: sync unfroze 1908 com.google.android.youtube for 19
+09-15 11:28:52.396   574  1857 D ActivityManager: sync unfroze 1802 com.google.android.apps.youtube.music for 19
+09-15 11:28:52.396   574  1857 D ActivityManager: sync unfroze 3677 com.google.android.gm for 19
+09-15 11:28:52.398   574  1857 D ActivityManager: sync unfroze 3193 com.android.chrome:privileged_process0 for 19
+09-15 11:28:52.398   574  1857 D ActivityManager: sync unfroze 2940 com.android.chrome for 19
+09-15 11:28:52.398   574  1857 D ActivityManager: sync unfroze 4152 com.android.emergency for 19
+09-15 11:28:52.399   574  1857 D ActivityManager: sync unfroze 2371 com.android.traceur for 19
+09-15 11:28:52.399   574  1857 D ActivityManager: sync unfroze 4229 com.google.android.healthconnect.controller for 19
+09-15 11:28:52.399   574  1857 D ActivityManager: sync unfroze 3927 com.google.android.settings.intelligence for 19
+09-15 11:28:52.400   574  1857 D ActivityManager: sync unfroze 4196 com.google.android.gms.ui for 19
+09-15 11:28:52.400   574  1857 D ActivityManager: sync unfroze 3626 com.google.android.contacts for 19
+09-15 11:28:52.442  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3271(143KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 442us,45us total 7.506ms
+09-15 11:28:52.468   574  1857 D ActivityManager: freezer override set to false
+09-15 11:28:52.494   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:52.556   574  1857 D ActivityManager: freezer override set to true
+09-15 11:28:52.595  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2834(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 361us,44us total 6.878ms
+09-15 11:28:52.602  1861  2184 I BistoDBWrapper: Close DB
+09-15 11:28:52.643   574  1857 D ActivityManager: freezer override set to false
+09-15 11:28:53.138   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:53.350   574   672 D ActivityManager: freezing 2031 com.android.printspooler
+09-15 11:28:53.351   574   672 D ActivityManager: freezing 2727 com.google.android.webview:webview_service
+09-15 11:28:53.352   574   672 D ActivityManager: freezing 2651 com.google.android.apps.photos
+09-15 11:28:53.352   574   672 D ActivityManager: freezing 1599 com.google.process.gservices
+09-15 11:28:54.183   574  1857 D WifiNl80211Manager: Scan result ready event
+09-15 11:28:54.183   574  1857 D WifiNative: Scan result ready event
+09-15 11:28:54.253   574   597 I DropBoxManagerService: add tag=system_server_strictmode isTagEnabled=true flags=0x2
+09-15 11:28:54.362  2919  3147 D TrafficStats: tagSocket(104) with statsTag=0x1803, statsUid=10128
+09-15 11:28:54.364  2919  3147 D TrafficStats: tagSocket(105) with statsTag=0x1803, statsUid=10128
+09-15 11:28:54.365  2919  3147 D TrafficStats: tagSocket(103) with statsTag=0x1803, statsUid=10128
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: Volley request failed for type awcn
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: efd
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at zgl.run(PG:9)
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at aosb.run(PG:3)
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at snd.run(PG:1)
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at smj.run(PG:2)
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at snu.run(PG:5)
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: Caused by: biqk: Exception in CronetUrlRequest: net::ERR_CONNECTION_TIMED_OUT, ErrorCode=6, InternalErrorCode=-118, Retryable=true
+09-15 11:28:54.372  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at org.chromium.net.impl.CronetUrlRequest.onError(PG:6)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: Could not register for notifications with InnerTube: 
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: abqx: efd
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at abqn.apply(Unknown Source:4)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at yyi.r(PG:5)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at yyi.b(PG:2)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at abqp.d(PG:4)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at agsb.c(PG:63)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at agsb.j(PG:38)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at agsb.d(PG:3)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at agrz.run(Unknown Source:2)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at smg.run(PG:2)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at snu.run(PG:5)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: Caused by: efd
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at zgl.run(PG:9)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at aosb.run(PG:3)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at snd.run(PG:1)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at smj.run(PG:2)
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	... 2 more
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: Caused by: biqk: Exception in CronetUrlRequest: net::ERR_CONNECTION_TIMED_OUT, ErrorCode=6, InternalErrorCode=-118, Retryable=true
+09-15 11:28:54.374  1802  2381 W YouTubeMusic: 	at org.chromium.net.impl.CronetUrlRequest.onError(PG:6)
+09-15 11:28:54.738   574  1857 D ActivityManager: freezer override set to true
+09-15 11:28:54.739   574  1857 D ActivityManager: sync unfroze 2031 com.android.printspooler for 19
+09-15 11:28:54.739   574  1857 D ActivityManager: sync unfroze 2727 com.google.android.webview:webview_service for 19
+09-15 11:28:54.739   574  1857 D ActivityManager: sync unfroze 2651 com.google.android.apps.photos for 19
+09-15 11:28:54.740   574  1857 D ActivityManager: sync unfroze 1599 com.google.process.gservices for 19
+09-15 11:28:54.778  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3407(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 354us,49us total 6.431ms
+09-15 11:28:54.803   574  1857 D ActivityManager: freezer override set to false
+09-15 11:28:54.896   574  1857 D ActivityManager: freezer override set to true
+09-15 11:28:54.949  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2838(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 362us,56us total 8.960ms
+09-15 11:28:54.978   574  1857 D ActivityManager: freezer override set to false
+09-15 11:28:55.642   574   672 D ActivityManager: freezing 3295 com.android.imsserviceentitlement
+09-15 11:28:55.643   574   672 D ActivityManager: freezing 3355 com.android.camera2
+09-15 11:28:55.643   574   672 D ActivityManager: freezing 2883 com.google.android.dialer
+09-15 11:28:55.644   574   672 D ActivityManager: freezing 2069 com.google.android.adservices.api
+09-15 11:28:55.644   574   672 D ActivityManager: freezing 1231 com.google.android.cellbroadcastreceiver
+09-15 11:28:56.150   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:56.412  1861  2196 W A       : v2 eligibility check failed
+09-15 11:28:56.412  1861  2196 W A       : com.google.android.libraries.search.q.a.b: com.google.frameworks.client.data.android.ab: Http networking stack error
+09-15 11:28:56.412  1861  2196 W A       : 	at com.google.android.libraries.search.q.a.j.apply(PG:3)
+09-15 11:28:56.412  1861  2196 W A       : 	at com.google.apps.tiktok.tracing.eo.apply(PG:2)
+09-15 11:28:56.412  1861  2196 W A       : 	at com.google.common.util.concurrent.a.e(PG:2)
+09-15 11:28:56.412  1861  2196 W A       : 	at com.google.common.util.concurrent.c.run(PG:12)
+09-15 11:28:56.412  1861  2196 W A       : 	at com.google.android.libraries.i.ae.run(PG:1)
+09-15 11:28:56.412  1861  2196 W A       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 11:28:56.412  1861  2196 W A       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 11:28:56.412  1861  2196 W A       : 	at com.google.android.libraries.i.k.run(PG:2)
+09-15 11:28:56.412  1861  2196 W A       : 	at com.google.android.libraries.i.p.run(PG:4)
+09-15 11:28:56.412  1861  2196 W A       : 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:28:56.412  1861  2196 W A       : Caused by: com.google.frameworks.client.data.android.ab: Http networking stack error
+09-15 11:28:56.412  1861  2196 W A       : 	at com.google.frameworks.client.data.android.y.run(PG:7)
+09-15 11:28:56.412  1861  2196 W A       : 	... 6 more
+09-15 11:28:56.412  1861  2196 W A       : Caused by: iq: Exception in CronetUrlRequest: net::ERR_CONNECTION_TIMED_OUT, ErrorCode=6, InternalErrorCode=-118, Retryable=true
+09-15 11:28:56.412  1861  2196 W A       : 	at org.chromium.net.impl.CronetUrlRequest.onError(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):5)
+09-15 11:28:56.412  1861  2194 W A       : unable to retrieve gws prefs while getting consent state
+09-15 11:28:56.412  1861  2194 W A       : com.google.android.libraries.search.q.a.b: com.google.frameworks.client.data.android.ab: Http networking stack error
+09-15 11:28:56.412  1861  2194 W A       : 	at com.google.android.libraries.search.q.a.j.apply(PG:3)
+09-15 11:28:56.412  1861  2194 W A       : 	at com.google.apps.tiktok.tracing.eo.apply(PG:2)
+09-15 11:28:56.412  1861  2194 W A       : 	at com.google.common.util.concurrent.a.e(PG:2)
+09-15 11:28:56.412  1861  2194 W A       : 	at com.google.common.util.concurrent.c.run(PG:12)
+09-15 11:28:56.412  1861  2194 W A       : 	at com.google.android.libraries.i.ae.run(PG:1)
+09-15 11:28:56.412  1861  2194 W A       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 11:28:56.412  1861  2194 W A       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 11:28:56.412  1861  2194 W A       : 	at com.google.android.libraries.i.k.run(PG:2)
+09-15 11:28:56.412  1861  2194 W A       : 	at com.google.android.libraries.i.p.run(PG:4)
+09-15 11:28:56.412  1861  2194 W A       : 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:28:56.412  1861  2194 W A       : Caused by: com.google.frameworks.client.data.android.ab: Http networking stack error
+09-15 11:28:56.412  1861  2194 W A       : 	at com.google.frameworks.client.data.android.y.run(PG:7)
+09-15 11:28:56.412  1861  2194 W A       : 	... 6 more
+09-15 11:28:56.412  1861  2194 W A       : Caused by: iq: Exception in CronetUrlRequest: net::ERR_CONNECTION_TIMED_OUT, ErrorCode=6, InternalErrorCode=-118, Retryable=true
+09-15 11:28:56.412  1861  2194 W A       : 	at org.chromium.net.impl.CronetUrlRequest.onError(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):5)
+09-15 11:28:57.058   574  1889 D ActivityManager: freezer override set to true
+09-15 11:28:57.059   574  1889 D ActivityManager: sync unfroze 3295 com.android.imsserviceentitlement for 19
+09-15 11:28:57.059   574  1889 D ActivityManager: sync unfroze 3355 com.android.camera2 for 19
+09-15 11:28:57.059   574  1889 D ActivityManager: sync unfroze 2883 com.google.android.dialer for 19
+09-15 11:28:57.059   574  1889 D ActivityManager: sync unfroze 2069 com.google.android.adservices.api for 19
+09-15 11:28:57.060   574  1889 D ActivityManager: sync unfroze 1231 com.google.android.cellbroadcastreceiver for 19
+09-15 11:28:57.097  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3317(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 457us,52us total 6.887ms
+09-15 11:28:57.130   574  1889 D ActivityManager: freezer override set to false
+09-15 11:28:57.212   574  1889 D OomAdjuster: Not killing cached processes
+09-15 11:28:57.214  1375  1375 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.pseudonymous.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+09-15 11:28:57.216   574  1857 D ActivityManager: freezer override set to true
+09-15 11:28:57.250  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2837(127KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 521us,113us total 6.796ms
+09-15 11:28:57.278   574  1857 D ActivityManager: freezer override set to false
+09-15 11:28:57.384   921  5156 D TrafficStats: tagSocket(69) with statsTag=0xffffff81, statsUid=-1
+09-15 11:28:57.384   921  5157 D TrafficStats: tagSocket(6) with statsTag=0xffffff81, statsUid=-1
+09-15 11:28:57.386   921  5157 D TrafficStats: tagSocket(6) with statsTag=0xffffff81, statsUid=-1
+09-15 11:28:57.386   921  5156 D TrafficStats: tagSocket(100) with statsTag=0xffffff81, statsUid=-1
+09-15 11:28:57.388   381  5158 I resolv  : ResNSendHandler::run: 0 / {100 983140 100 983140 1073 1}
+09-15 11:28:57.388   381  5159 I resolv  : ResNSendHandler::run: 0 / {100 983140 100 983140 1073 1}
+09-15 11:28:57.394   381  5160 I resolv  : ResNSendHandler::run: 0 / {100 983140 100 983140 1073 1}
+09-15 11:28:57.394   381  5160 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x759851385b70
+09-15 11:28:57.401   381  5161 I resolv  : ResNSendHandler::run: 0 / {100 983140 100 983140 1073 1}
+09-15 11:28:57.404   381  5161 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x7597f138b430
+09-15 11:28:57.406  1729  1729 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.safetynet.service.START pkg=com.google.android.gms }
+09-15 11:28:57.411   381  5159 I resolv  : res_nsend: used send_dg 60 terrno: 0
+09-15 11:28:57.411   381  5158 I resolv  : res_nsend: used send_dg 47 terrno: 0
+09-15 11:28:57.415   921   921 D TrafficStats: tagSocket(69) with statsTag=0xffffffff, statsUid=-1
+09-15 11:28:57.417   921   921 D TrafficStats: tagSocket(69) with statsTag=0xffffffff, statsUid=-1
+09-15 11:28:57.419   921   921 D TrafficStats: tagSocket(6) with statsTag=0xffffffff, statsUid=-1
+09-15 11:28:57.428   921  5157 D NetworkMonitor/100: PROBE_DNS connectivitycheck.gstatic.com 44ms OK 120.233.71.226
+09-15 11:28:57.428   921  5156 D NetworkMonitor/100: PROBE_DNS www.google.com 44ms OK 31.13.92.37,2001::1
+09-15 11:28:57.438   381  5163 I resolv  : GetAddrInfoHandler::run: {100 983140 100 983140 1073 1}
+09-15 11:28:57.439   381  5162 I resolv  : GetAddrInfoHandler::run: {100 983140 100 983140 1073 1}
+09-15 11:28:57.441   381  5165 I resolv  : res_nmkquery: (QUERY, IN, A)
+09-15 11:28:57.442   381  5164 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+09-15 11:28:57.442   381  5165 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x759851385b70
+09-15 11:28:57.442   381  5165 I resolv  : doQuery: rcode=0, ancount=1, return value=63
+09-15 11:28:57.442   381  5166 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+09-15 11:28:57.442   381  5166 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x759911390b10
+09-15 11:28:57.442   381  5166 I resolv  : doQuery: rcode=0, ancount=1, return value=60
+09-15 11:28:57.446   381  5167 I resolv  : res_nmkquery: (QUERY, IN, A)
+09-15 11:28:57.446   381  5167 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x7597f138b430
+09-15 11:28:57.446   381  5167 I resolv  : doQuery: rcode=0, ancount=1, return value=48
+09-15 11:28:57.448   921  5156 D TrafficStats: tagSocket(6) with statsTag=0xffffff81, statsUid=-1
+09-15 11:28:57.456   381  5164 I resolv  : res_nsend: used send_dg 47 terrno: 0
+09-15 11:28:57.458   381  5164 I resolv  : doQuery: rcode=0, ancount=0, return value=47
+09-15 11:28:57.460   921  5157 D TrafficStats: tagSocket(69) with statsTag=0xffffff81, statsUid=-1
+09-15 11:28:57.570   921  5157 D NetworkMonitor/100: PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 Probe failed with exception java.io.IOException: unexpected end of stream on com.android.okhttp.Address@ec49944c
+09-15 11:28:57.965   574   672 D ActivityManager: freezing 2106 com.android.localtransport
+09-15 11:28:57.965   574   672 D ActivityManager: freezing 1941 com.android.keychain
+09-15 11:28:57.966   574   672 D ActivityManager: freezing 3103 com.android.externalstorage
+09-15 11:28:57.966   574   672 D ActivityManager: freezing 3376 com.android.dynsystem
+09-15 11:28:57.967   574   672 D ActivityManager: freezing 2685 android.process.media
+09-15 11:28:57.967   574   672 D ActivityManager: freezing 3414 com.android.dynsystem:dynsystem
+09-15 11:28:57.968   574   672 D ActivityManager: freezing 2801 com.google.android.apps.wallpaper
+09-15 11:28:57.969   574   672 D ActivityManager: freezing 3500 com.google.android.apps.docs
+09-15 11:28:57.970   574   672 D ActivityManager: freezing 1778 com.google.android.deskclock
+09-15 11:28:57.970   574   672 D ActivityManager: freezing 3444 com.android.providers.calendar
+09-15 11:28:57.971   574   672 D ActivityManager: freezing 1497 com.google.android.apps.wellbeing
+09-15 11:28:57.971   574   672 D ActivityManager: freezing 1034 com.android.settings
+09-15 11:28:58.158   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:58.212  1443  1454 D StrictMode: StrictMode policy violation: android.os.strictmode.SqliteObjectLeakedViolation: Finalizing a Cursor that has not been deactivated or closed. database = /data/user/0/com.android.providers.contacts/databases/contacts2.db, table = raw_contacts, query = SELECT contacts_view._id AS _id, contacts_view.display_name AS display_name, contacts_view.photo_thumb_uri AS photo_thumb_uri, data1 AS number, data2 AS type, data3 AS label, contacts_view.lookup AS lookup FROM raw_contacts JOIN view_contacts as contacts_view ON (contacts_view._id = raw_contacts.contact_id) JOIN (SELECT data_id,normalized_number FROM phone_lookup WHERE (phone_lookup.min_match = '7654321')) AS lookup ON lookup.data_id=data._id JOIN data ON data.raw_contact_id=raw_contacts._id WHERE (PHONE_NUMBERS_EQUAL(data.data1, '+15551234567', 0, 7)) ORDER BY  length(lookup.normalized_number) DESC
+09-15 11:28:58.212  1443  1454 D StrictMode: 	at android.os.StrictMode.onSqliteObjectLeaked(StrictMode.java:2222)
+09-15 11:28:58.212  1443  1454 D StrictMode: 	at android.database.sqlite.SQLiteCursor.finalize(SQLiteCursor.java:282)
+09-15 11:28:58.212  1443  1454 D StrictMode: 	at java.lang.Daemons$FinalizerDaemon.doFinalize(Daemons.java:339)
+09-15 11:28:58.212  1443  1454 D StrictMode: 	at java.lang.Daemons$FinalizerDaemon.processReference(Daemons.java:324)
+09-15 11:28:58.212  1443  1454 D StrictMode: 	at java.lang.Daemons$FinalizerDaemon.runInternal(Daemons.java:300)
+09-15 11:28:58.212  1443  1454 D StrictMode: 	at java.lang.Daemons$Daemon.run(Daemons.java:145)
+09-15 11:28:58.212  1443  1454 D StrictMode: 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:28:58.214  1443  1454 D StrictMode: StrictMode policy violation: android.os.strictmode.LeakedClosableViolation: A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.os.StrictMode$AndroidCloseGuardReporter.report(StrictMode.java:1994)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at dalvik.system.CloseGuard.warnIfOpen(CloseGuard.java:336)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.database.AbstractCursor.finalize(AbstractCursor.java:531)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.database.sqlite.SQLiteCursor.finalize(SQLiteCursor.java:291)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at java.lang.Daemons$FinalizerDaemon.doFinalize(Daemons.java:339)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at java.lang.Daemons$FinalizerDaemon.processReference(Daemons.java:324)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at java.lang.Daemons$FinalizerDaemon.runInternal(Daemons.java:300)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at java.lang.Daemons$Daemon.run(Daemons.java:145)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:28:58.214  1443  1454 D StrictMode: Caused by: java.lang.Throwable: Explicit termination method 'AbstractCursor.close' not called
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at dalvik.system.CloseGuard.openWithCallSite(CloseGuard.java:288)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at dalvik.system.CloseGuard.open(CloseGuard.java:257)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.database.AbstractCursor.<init>(AbstractCursor.java:227)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.database.AbstractWindowedCursor.<init>(AbstractWindowedCursor.java:39)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.database.sqlite.SQLiteCursor.<init>(SQLiteCursor.java:98)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.database.sqlite.SQLiteDirectCursorDriver.query(SQLiteDirectCursorDriver.java:52)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.database.sqlite.SQLiteDatabase.rawQueryWithFactory(SQLiteDatabase.java:1714)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.database.sqlite.SQLiteQueryBuilder.query(SQLiteQueryBuilder.java:592)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at com.android.providers.contacts.ContactsProvider2.doQuery(ContactsProvider2.java:7543)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at com.android.providers.contacts.ContactsProvider2.queryLocal(ContactsProvider2.java:7249)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at com.android.providers.contacts.ContactsProvider2.queryCorpLookupIfNecessary(ContactsProvider2.java:7728)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at com.android.providers.contacts.ContactsProvider2.queryLookupEnterprise(ContactsProvider2.java:7867)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at com.android.providers.contacts.ContactsProvider2.queryPhoneLookupEnterprise(ContactsProvider2.java:7838)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at com.android.providers.contacts.ContactsProvider2.queryLocal(ContactsProvider2.java:7172)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at com.android.providers.contacts.ContactsProvider2.queryDirectoryIfNecessary(ContactsProvider2.java:5883)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at com.android.providers.contacts.ContactsProvider2.queryInternal(ContactsProvider2.java:5728)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at com.android.providers.contacts.ContactsProvider2.query(ContactsProvider2.java:5673)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.content.ContentProvider.query(ContentProvider.java:1692)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.content.ContentProvider$Transport.query(ContentProvider.java:292)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:107)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.os.Binder.execTransactInternal(Binder.java:1339)
+09-15 11:28:58.214  1443  1454 D StrictMode: 	at android.os.Binder.execTransact(Binder.java:1275)
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: Volley request failed for type awcn
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: eeu: biqn: Exception in CronetUrlRequest: net::ERR_QUIC_PROTOCOL_ERROR, ErrorCode=10, InternalErrorCode=-356, Retryable=false, QuicDetailedErrorCode=25
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at zgl.run(PG:8)
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at aosb.run(PG:3)
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at snd.run(PG:1)
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at smj.run(PG:2)
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at snu.run(PG:5)
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: Caused by: biqn: Exception in CronetUrlRequest: net::ERR_QUIC_PROTOCOL_ERROR, ErrorCode=10, InternalErrorCode=-356, Retryable=false, QuicDetailedErrorCode=25
+09-15 11:28:58.448  1802  1802 E GEL_DELAYED_EVENT_DEBUG: 	at org.chromium.net.impl.CronetUrlRequest.onError(PG:2)
+09-15 11:28:59.162   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:28:59.377   574  2003 D ActivityManager: freezer override set to true
+09-15 11:28:59.377   574  2003 D ActivityManager: sync unfroze 2106 com.android.localtransport for 19
+09-15 11:28:59.378   574  2003 D ActivityManager: sync unfroze 1941 com.android.keychain for 19
+09-15 11:28:59.378   574  2003 D ActivityManager: sync unfroze 3103 com.android.externalstorage for 19
+09-15 11:28:59.379   574  2003 D ActivityManager: sync unfroze 3376 com.android.dynsystem for 19
+09-15 11:28:59.379   574  2003 D ActivityManager: sync unfroze 2685 android.process.media for 19
+09-15 11:28:59.379   574  2003 D ActivityManager: sync unfroze 3414 com.android.dynsystem:dynsystem for 19
+09-15 11:28:59.380   574  2003 D ActivityManager: sync unfroze 2801 com.google.android.apps.wallpaper for 19
+09-15 11:28:59.380   574  2003 D ActivityManager: sync unfroze 3500 com.google.android.apps.docs for 19
+09-15 11:28:59.381   574  2003 D ActivityManager: sync unfroze 1778 com.google.android.deskclock for 19
+09-15 11:28:59.381   574  2003 D ActivityManager: sync unfroze 3444 com.android.providers.calendar for 19
+09-15 11:28:59.382   574  2003 D ActivityManager: sync unfroze 1497 com.google.android.apps.wellbeing for 19
+09-15 11:28:59.383   574  2003 D ActivityManager: sync unfroze 1034 com.android.settings for 19
+09-15 11:28:59.427  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3413(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 663us,52us total 7.689ms
+09-15 11:28:59.452   574  2003 D ActivityManager: freezer override set to false
+09-15 11:28:59.531   574  2003 D ActivityManager: freezer override set to true
+09-15 11:28:59.570  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2788(112KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 353us,44us total 6.400ms
+09-15 11:28:59.597   574  2003 D ActivityManager: freezer override set to false
+09-15 11:28:59.814  2919  3087 E DG      : FSC error [CONTEXT service_id=25 ]
+09-15 11:28:59.814  2919  3087 E DG      : java.io.IOException: Couldn't fetch response.
+09-15 11:28:59.814  2919  3087 E DG      : 	at afzy.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):20)
+09-15 11:28:59.814  2919  3087 E DG      : 	at afxq.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):5)
+09-15 11:28:59.814  2919  3087 E DG      : 	at afxq.b(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+09-15 11:28:59.814  2919  3087 E DG      : 	at afxx.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):49)
+09-15 11:28:59.814  2919  3087 E DG      : 	at com.google.android.gms.droidguard.DroidGuardChimeraService.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):6)
+09-15 11:28:59.814  2919  3087 E DG      : 	at com.google.android.gms.framework.tracing.wrapper.TracingIntentService.onHandleIntent(:com.google.android.gms@231818047@23.18.18 (190800-535401451):1)
+09-15 11:28:59.814  2919  3087 E DG      : 	at hdv.handleMessage(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+09-15 11:28:59.814  2919  3087 E DG      : 	at android.os.Handler.dispatchMessage(Handler.java:106)
+09-15 11:28:59.814  2919  3087 E DG      : 	at android.os.Looper.loopOnce(Looper.java:205)
+09-15 11:28:59.814  2919  3087 E DG      : 	at android.os.Looper.loop(Looper.java:294)
+09-15 11:28:59.814  2919  3087 E DG      : 	at android.os.HandlerThread.run(HandlerThread.java:67)
+09-15 11:28:59.814  2919  3087 E DG      : Caused by: java.util.concurrent.TimeoutException: Waited 60000 milliseconds (plus 1 milliseconds, 697800 nanoseconds delay) for blo@9199a03[status=PENDING, info=[tag=[avwn@e25ad80]]]
+09-15 11:28:59.814  2919  3087 E DG      : 	at blk.get(:com.google.android.gms@231818047@23.18.18 (190800-535401451):30)
+09-15 11:28:59.814  2919  3087 E DG      : 	at blp.get(:com.google.android.gms@231818047@23.18.18 (190800-535401451):2)
+09-15 11:28:59.814  2919  3087 E DG      : 	at afzy.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):18)
+09-15 11:28:59.814  2919  3087 E DG      : 	... 10 more
+09-15 11:28:59.830   381  5180 I resolv  : GetAddrInfoHandler::run: {100 786532 100 983140 10128 0}
+09-15 11:28:59.831   381  5181 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+09-15 11:28:59.831   381  5182 I resolv  : res_nmkquery: (QUERY, IN, A)
+09-15 11:28:59.831   381  5181 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x759921390d90
+09-15 11:28:59.831   381  5181 I resolv  : doQuery: rcode=0, ancount=8, return value=260
+09-15 11:28:59.851   381  5182 I resolv  : res_nsend: used send_dg 164 terrno: 0
+09-15 11:28:59.852   381  5182 I resolv  : doQuery: rcode=0, ancount=8, return value=164
+09-15 11:28:59.860  2919  3087 D TrafficStats: tagSocket(111) with statsTag=0x30001803, statsUid=-1
+09-15 11:28:59.861   381   427 E BpfHandler: Unsupported protocol: 1
+09-15 11:28:59.861  2919  3087 I TrafficStats: tagSocketFd(111, 805312515, -1) failed with errno-93
+09-15 11:29:00.028  1575  1699 I AiAiEcho: Predicting[0]: 
+09-15 11:29:00.028  1575  1699 I AiAiEcho: EchoTargets: 
+09-15 11:29:00.028  1575  1699 I AiAiEcho: Filtered by AiAi flag check: 
+09-15 11:29:00.029  1575  1699 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata: 
+09-15 11:29:00.029   807   873 D EGL_emulation: app_time_stats: avg=17515.44ms min=17515.44ms max=17515.44ms count=1
+09-15 11:29:00.032  1575  1699 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+09-15 11:29:00.039   807   807 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+09-15 11:29:00.166   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:00.314   574   672 D ActivityManager: freezing 2495 com.google.android.onetimeinitializer
+09-15 11:29:00.315   574   672 D ActivityManager: freezing 2088 com.google.android.projection.gearhead:shared
+09-15 11:29:00.316   574   672 D ActivityManager: freezing 3554 com.google.android.configupdater
+09-15 11:29:00.316   574   672 D ActivityManager: freezing 3781 com.google.android.rkpdapp
+09-15 11:29:00.317   574   672 D ActivityManager: freezing 3722 com.google.android.partnersetup
+09-15 11:29:00.318   574   672 D ActivityManager: freezing 975 com.google.android.permissioncontroller
+09-15 11:29:00.319   574   672 D ActivityManager: freezing 2208 com.google.process.gapps
+09-15 11:29:00.320   574   672 D ActivityManager: freezing 1814 com.google.android.as.oss
+09-15 11:29:00.388   381  5183 I resolv  : GetAddrInfoHandler::run: {100 983140 100 983140 1073 1}
+09-15 11:29:00.390   381  5185 I resolv  : res_nmkquery: (QUERY, IN, A)
+09-15 11:29:00.390   381  5185 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x7597c13924d0
+09-15 11:29:00.390   381  5185 I resolv  : doQuery: rcode=0, ancount=8, return value=165
+09-15 11:29:00.391   381  5184 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+09-15 11:29:00.391   381  5184 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x75992138fdd0
+09-15 11:29:00.391   381  5184 I resolv  : doQuery: rcode=0, ancount=8, return value=261
+09-15 11:29:00.393   921  5155 D TrafficStats: tagSocket(69) with statsTag=0xffffff81, statsUid=-1
+09-15 11:29:00.510  1375  5175 D TrafficStats: tagSocket(91) with statsTag=0x34000609, statsUid=10122
+09-15 11:29:00.766  1729  4705 D TrafficStats: tagSocket(161) with statsTag=0x30005500, statsUid=-1
+09-15 11:29:01.170   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:01.631  1375  4814 W CCTUploader: Clearcut transport failed to make network request after 60039 milliseconds.
+09-15 11:29:01.631  1375  4814 W CCTUploader: java.net.SocketTimeoutException
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at aakv.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):57)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at aali.b(:com.google.android.gms@231818047@23.18.18 (190800-535401451):31)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at com.google.android.gms.clearcut.uploader.QosUploaderChimeraService.g(:com.google.android.gms@231818047@23.18.18 (190800-535401451):103)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at com.google.android.gms.clearcut.uploader.QosUploaderChimeraService.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):2)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at avzs.call(:com.google.android.gms@231818047@23.18.18 (190800-535401451):4)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at aced.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):6)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at aced.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at acjn.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+09-15 11:29:01.631  1375  4814 W CCTUploader: 	at java.lang.Thread.run(Thread.java:1012)
+09-15 11:29:01.685   574  2003 D ActivityManager: freezer override set to true
+09-15 11:29:01.686   574  2003 D ActivityManager: sync unfroze 2495 com.google.android.onetimeinitializer for 19
+09-15 11:29:01.686   574  2003 D ActivityManager: sync unfroze 2088 com.google.android.projection.gearhead:shared for 19
+09-15 11:29:01.687   574  2003 D ActivityManager: sync unfroze 3554 com.google.android.configupdater for 19
+09-15 11:29:01.687   574  2003 D ActivityManager: sync unfroze 3781 com.google.android.rkpdapp for 19
+09-15 11:29:01.687   574  2003 D ActivityManager: sync unfroze 3722 com.google.android.partnersetup for 19
+09-15 11:29:01.687   574  2003 D ActivityManager: sync unfroze 975 com.google.android.permissioncontroller for 19
+09-15 11:29:01.688   574  2003 D ActivityManager: sync unfroze 2208 com.google.process.gapps for 19
+09-15 11:29:01.688   574  2003 D ActivityManager: sync unfroze 1814 com.google.android.as.oss for 19
+09-15 11:29:01.695  1375  4814 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.clearcut.uploader.QosUploaderService finished executing. cause:5 result: 2 elapsed_millis: 61871 uptime_millis: 61871 exec_start_elapsed_seconds: 127 [CONTEXT service_id=218 ]
+09-15 11:29:01.727  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3422(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 331us,44us total 6.897ms
+09-15 11:29:01.736  1375  5174 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.telephonyspam.sync.SpamListSyncTaskService started execution. cause:5 exec_start_elapsed_seconds: 189 [CONTEXT service_id=218 ]
+09-15 11:29:01.737  1729  5190 I TelephonySpamChimeraSer: Running Telephony Spam Chimera Service [CONTEXT service_id=150 ]
+09-15 11:29:01.738  1729  5190 I TelephonySpamChimeraSer: Cleaning SIP Header local table of old entries [CONTEXT service_id=150 ]
+09-15 11:29:01.739  1729  5190 I SpamListSync: Call spam module disabled. Skipping cleaning cache sip header table. [CONTEXT service_id=150 ]
+09-15 11:29:01.739  1729  5190 I TelephonySpamChimeraSer: Syncing Call Spam List [CONTEXT service_id=150 ]
+09-15 11:29:01.740  1729  5190 I SpamListSync: SpamListSyncChimeraService.syncSpamList called with tag: telephonyspam.SpamListSyncOneOffTask, extras: Bundle[{SpamList Type=0, Action=1.0}] [CONTEXT service_id=150 ]
+09-15 11:29:01.741  1729  5190 I SpamListSync: Call spam module disabled. Skipping spam list syncing. [CONTEXT service_id=150 ]
+09-15 11:29:01.743  1375  4814 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.telephonyspam.sync.SpamListSyncTaskService finished executing. cause:5 result: 1 elapsed_millis: 20 uptime_millis: 20 exec_start_elapsed_seconds: 189 [CONTEXT service_id=218 ]
+09-15 11:29:01.751   574  2003 D ActivityManager: freezer override set to false
+09-15 11:29:01.778  1375  5174 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.auth.account.be.legacy.AuthCronService started execution. cause:5 exec_start_elapsed_seconds: 189 [CONTEXT service_id=218 ]
+09-15 11:29:01.840   574  2003 D ActivityManager: freezer override set to true
+09-15 11:29:01.887  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2834(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 518us,52us total 10.282ms
+09-15 11:29:01.917   574  2003 D ActivityManager: freezer override set to false
+09-15 11:29:02.174   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:02.470   574   672 D ActivityManager: freezing 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+09-15 11:29:02.471   574   672 D ActivityManager: freezing 2550 com.google.android.tts
+09-15 11:29:02.472   574   672 D ActivityManager: freezing 1908 com.google.android.youtube
+09-15 11:29:02.474   574   672 D ActivityManager: freezing 1802 com.google.android.apps.youtube.music
+09-15 11:29:02.475   574   672 D ActivityManager: freezing 3677 com.google.android.gm
+09-15 11:29:02.476   574   672 D ActivityManager: freezing 3193 com.android.chrome:privileged_process0
+09-15 11:29:02.477   574   672 D ActivityManager: freezing 2940 com.android.chrome
+09-15 11:29:02.478   574   672 D ActivityManager: freezing 4152 com.android.emergency
+09-15 11:29:02.479   574   672 D ActivityManager: freezing 2371 com.android.traceur
+09-15 11:29:02.479   574   672 D ActivityManager: freezing 4229 com.google.android.healthconnect.controller
+09-15 11:29:02.480   574   672 D ActivityManager: freezing 3927 com.google.android.settings.intelligence
+09-15 11:29:02.481   574   672 D ActivityManager: freezing 4196 com.google.android.gms.ui
+09-15 11:29:02.482   574   672 D ActivityManager: freezing 3626 com.google.android.contacts
+09-15 11:29:02.494   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:02.750  4960  4960 I Choreographer: Skipped 37 frames!  The application may be doing too much work on its main thread.
+09-15 11:29:03.178   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:03.790   574  2003 D OomAdjuster: Not killing cached processes
+09-15 11:29:03.998   574  2003 D ActivityManager: freezer override set to true
+09-15 11:29:03.999   574  2003 D ActivityManager: sync unfroze 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 for 19
+09-15 11:29:03.999   574  2003 D ActivityManager: sync unfroze 2550 com.google.android.tts for 19
+09-15 11:29:04.000   574  2003 D ActivityManager: sync unfroze 1908 com.google.android.youtube for 19
+09-15 11:29:04.001   574  2003 D ActivityManager: sync unfroze 1802 com.google.android.apps.youtube.music for 19
+09-15 11:29:04.002   574  2003 D ActivityManager: sync unfroze 3677 com.google.android.gm for 19
+09-15 11:29:04.002   574  2003 D ActivityManager: sync unfroze 3193 com.android.chrome:privileged_process0 for 19
+09-15 11:29:04.002   574  2003 D ActivityManager: sync unfroze 2940 com.android.chrome for 19
+09-15 11:29:04.003   574  2003 D ActivityManager: sync unfroze 4152 com.android.emergency for 19
+09-15 11:29:04.003   574  2003 D ActivityManager: sync unfroze 2371 com.android.traceur for 19
+09-15 11:29:04.003   574  2003 D ActivityManager: sync unfroze 4229 com.google.android.healthconnect.controller for 19
+09-15 11:29:04.004   574  2003 D ActivityManager: sync unfroze 3927 com.google.android.settings.intelligence for 19
+09-15 11:29:04.004   574  2003 D ActivityManager: sync unfroze 4196 com.google.android.gms.ui for 19
+09-15 11:29:04.004   574  2003 D ActivityManager: sync unfroze 3626 com.google.android.contacts for 19
+09-15 11:29:04.039  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3256(143KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 351us,72us total 7.140ms
+09-15 11:29:04.070   574  2003 D ActivityManager: freezer override set to false
+09-15 11:29:04.152   574  2003 D ActivityManager: freezer override set to true
+09-15 11:29:04.186  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2833(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 681us,45us total 7.678ms
+09-15 11:29:04.210   574  2003 D ActivityManager: freezer override set to false
+09-15 11:29:04.611     0     0 W healthd : battery l=100 v=5000 t=25.0 h=2 st=2 c=900000 fc=3000000 cc=10 chg=a
+09-15 11:29:04.805   574   672 D ActivityManager: freezing 2031 com.android.printspooler
+09-15 11:29:04.806   574   672 D ActivityManager: freezing 2727 com.google.android.webview:webview_service
+09-15 11:29:05.185   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:06.190   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:06.307   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:06.308   574   917 D ActivityManager: sync unfroze 2031 com.android.printspooler for 19
+09-15 11:29:06.308   574   917 D ActivityManager: sync unfroze 2727 com.google.android.webview:webview_service for 19
+09-15 11:29:06.343  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3372(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 372us,45us total 7.369ms
+09-15 11:29:06.372   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:06.461   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:06.502  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2838(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 355us,181us total 6.930ms
+09-15 11:29:06.528   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:07.134   574   672 D ActivityManager: freezing 3295 com.android.imsserviceentitlement
+09-15 11:29:07.135   574   672 D ActivityManager: freezing 3355 com.android.camera2
+09-15 11:29:07.136   574   672 D ActivityManager: freezing 2883 com.google.android.dialer
+09-15 11:29:07.136   574   672 D ActivityManager: freezing 2069 com.google.android.adservices.api
+09-15 11:29:07.137   574   672 D ActivityManager: freezing 1231 com.google.android.cellbroadcastreceiver
+09-15 11:29:07.459   921  5156 D TrafficStats: tagSocket(6) with statsTag=0xffffff81, statsUid=-1
+09-15 11:29:08.197   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:08.202   574   672 D ActivityManager: freezing 1443 android.process.acore
+09-15 11:29:08.370  4960  4960 I Choreographer: Skipped 36 frames!  The application may be doing too much work on its main thread.
+09-15 11:29:08.612   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:08.613   574   917 D ActivityManager: sync unfroze 3295 com.android.imsserviceentitlement for 19
+09-15 11:29:08.613   574   917 D ActivityManager: sync unfroze 3355 com.android.camera2 for 19
+09-15 11:29:08.615   574   917 D ActivityManager: sync unfroze 2883 com.google.android.dialer for 19
+09-15 11:29:08.615   574   917 D ActivityManager: sync unfroze 2069 com.google.android.adservices.api for 19
+09-15 11:29:08.616   574   917 D ActivityManager: sync unfroze 1231 com.google.android.cellbroadcastreceiver for 19
+09-15 11:29:08.617   574   917 D ActivityManager: sync unfroze 1443 android.process.acore for 19
+09-15 11:29:08.654  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3267(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 344us,42us total 6.493ms
+09-15 11:29:08.677   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:08.755   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:08.799  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2833(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 582us,41us total 6.700ms
+09-15 11:29:08.830   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:09.201   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:09.454   574   672 D ActivityManager: freezing 2106 com.android.localtransport
+09-15 11:29:09.455   574   672 D ActivityManager: freezing 1941 com.android.keychain
+09-15 11:29:09.455   574   672 D ActivityManager: freezing 3103 com.android.externalstorage
+09-15 11:29:09.456   574   672 D ActivityManager: freezing 3376 com.android.dynsystem
+09-15 11:29:09.456   574   672 D ActivityManager: freezing 2685 android.process.media
+09-15 11:29:09.457   574   672 D ActivityManager: freezing 3414 com.android.dynsystem:dynsystem
+09-15 11:29:09.457   574   672 D ActivityManager: freezing 2801 com.google.android.apps.wallpaper
+09-15 11:29:09.458   574   672 D ActivityManager: freezing 3500 com.google.android.apps.docs
+09-15 11:29:09.458   574   672 D ActivityManager: freezing 1778 com.google.android.deskclock
+09-15 11:29:09.459   574   672 D ActivityManager: freezing 3444 com.android.providers.calendar
+09-15 11:29:09.459   574   672 D ActivityManager: freezing 1497 com.google.android.apps.wellbeing
+09-15 11:29:09.460   574   672 D ActivityManager: freezing 1034 com.android.settings
+09-15 11:29:10.394   921  5155 D TrafficStats: tagSocket(69) with statsTag=0xffffff81, statsUid=-1
+09-15 11:29:10.657   574   672 D ActivityManager: freezing 2651 com.google.android.apps.photos
+09-15 11:29:10.746  1375  4475 D TrafficStats: tagSocket(90) with statsTag=0x401, statsUid=10128
+09-15 11:29:10.915   574  2003 D ActivityManager: freezer override set to true
+09-15 11:29:10.915   574  2003 D ActivityManager: sync unfroze 2106 com.android.localtransport for 19
+09-15 11:29:10.916   574  2003 D ActivityManager: sync unfroze 1941 com.android.keychain for 19
+09-15 11:29:10.916   574  2003 D ActivityManager: sync unfroze 3103 com.android.externalstorage for 19
+09-15 11:29:10.916   574  2003 D ActivityManager: sync unfroze 3376 com.android.dynsystem for 19
+09-15 11:29:10.917   574  2003 D ActivityManager: sync unfroze 2685 android.process.media for 19
+09-15 11:29:10.917   574  2003 D ActivityManager: sync unfroze 3414 com.android.dynsystem:dynsystem for 19
+09-15 11:29:10.917   574  2003 D ActivityManager: sync unfroze 2801 com.google.android.apps.wallpaper for 19
+09-15 11:29:10.918   574  2003 D ActivityManager: sync unfroze 3500 com.google.android.apps.docs for 19
+09-15 11:29:10.919   574  2003 D ActivityManager: sync unfroze 1778 com.google.android.deskclock for 19
+09-15 11:29:10.919   574  2003 D ActivityManager: sync unfroze 3444 com.android.providers.calendar for 19
+09-15 11:29:10.919   574  2003 D ActivityManager: sync unfroze 1497 com.google.android.apps.wellbeing for 19
+09-15 11:29:10.920   574  2003 D ActivityManager: sync unfroze 1034 com.android.settings for 19
+09-15 11:29:10.921   574  2003 D ActivityManager: sync unfroze 2651 com.google.android.apps.photos for 19
+09-15 11:29:10.961  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3373(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 344us,43us total 6.312ms
+09-15 11:29:10.986   574  2003 D ActivityManager: freezer override set to false
+09-15 11:29:11.024   574  2003 D OomAdjuster: Not killing cached processes
+09-15 11:29:11.027  2311  2418 W Bugle   : TextClassifierLibManagerImpl: Reclaiming memory at level: 40
+09-15 11:29:11.028  1729  1729 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.safetynet.service.START pkg=com.google.android.gms }
+09-15 11:29:11.028  1729  1729 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.safetynet.service.START pkg=com.google.android.gms }
+09-15 11:29:11.069   574  1857 D ActivityManager: freezer override set to true
+09-15 11:29:11.100  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2837(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 509us,44us total 7.030ms
+09-15 11:29:11.124   574  1857 D ActivityManager: freezer override set to false
+09-15 11:29:11.754   574   672 D ActivityManager: freezing 2495 com.google.android.onetimeinitializer
+09-15 11:29:11.755   574   672 D ActivityManager: freezing 2088 com.google.android.projection.gearhead:shared
+09-15 11:29:11.755   574   672 D ActivityManager: freezing 3554 com.google.android.configupdater
+09-15 11:29:11.756   574   672 D ActivityManager: freezing 3781 com.google.android.rkpdapp
+09-15 11:29:11.756   574   672 D ActivityManager: freezing 3722 com.google.android.partnersetup
+09-15 11:29:11.757   574   672 D ActivityManager: freezing 975 com.google.android.permissioncontroller
+09-15 11:29:11.758   574   672 D ActivityManager: freezing 2208 com.google.process.gapps
+09-15 11:29:11.758   574   672 D ActivityManager: freezing 1814 com.google.android.as.oss
+09-15 11:29:12.230  1729  4372 D TrafficStats: tagSocket(164) with statsTag=0x30000408, statsUid=-1
+09-15 11:29:12.494   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:12.794  1375  4475 D TrafficStats: tagSocket(87) with statsTag=0x401, statsUid=10128
+09-15 11:29:12.796  1375  4475 D TrafficStats: tagSocket(88) with statsTag=0x401, statsUid=10128
+09-15 11:29:12.798  1375  4475 D TrafficStats: tagSocket(89) with statsTag=0x401, statsUid=10128
+09-15 11:29:13.209   574  1857 D ActivityManager: freezer override set to true
+09-15 11:29:13.210   574  1857 D ActivityManager: sync unfroze 2495 com.google.android.onetimeinitializer for 19
+09-15 11:29:13.211   574  1857 D ActivityManager: sync unfroze 2088 com.google.android.projection.gearhead:shared for 19
+09-15 11:29:13.211   574  1857 D ActivityManager: sync unfroze 3554 com.google.android.configupdater for 19
+09-15 11:29:13.211   574  1857 D ActivityManager: sync unfroze 3781 com.google.android.rkpdapp for 19
+09-15 11:29:13.212   574  1857 D ActivityManager: sync unfroze 3722 com.google.android.partnersetup for 19
+09-15 11:29:13.212   574  1857 D ActivityManager: sync unfroze 975 com.google.android.permissioncontroller for 19
+09-15 11:29:13.212   574  1857 D ActivityManager: sync unfroze 2208 com.google.process.gapps for 19
+09-15 11:29:13.213   574  1857 D ActivityManager: sync unfroze 1814 com.google.android.as.oss for 19
+09-15 11:29:13.248  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3408(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 413us,47us total 7.017ms
+09-15 11:29:13.274   574  1857 D ActivityManager: freezer override set to false
+09-15 11:29:13.356   574  1857 D ActivityManager: freezer override set to true
+09-15 11:29:13.388  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2788(112KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 551us,59us total 6.997ms
+09-15 11:29:13.418   574  1857 D ActivityManager: freezer override set to false
+09-15 11:29:13.749  4960  4960 I Choreographer: Skipped 32 frames!  The application may be doing too much work on its main thread.
+09-15 11:29:14.073   574   672 D ActivityManager: freezing 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+09-15 11:29:14.075   574   672 D ActivityManager: freezing 2550 com.google.android.tts
+09-15 11:29:14.076   574   672 D ActivityManager: freezing 1908 com.google.android.youtube
+09-15 11:29:14.078   574   672 D ActivityManager: freezing 1802 com.google.android.apps.youtube.music
+09-15 11:29:14.079   574   672 D ActivityManager: freezing 3677 com.google.android.gm
+09-15 11:29:14.080   574   672 D ActivityManager: freezing 3193 com.android.chrome:privileged_process0
+09-15 11:29:14.081   574   672 D ActivityManager: freezing 2940 com.android.chrome
+09-15 11:29:14.082   574   672 D ActivityManager: freezing 4152 com.android.emergency
+09-15 11:29:14.082   574   672 D ActivityManager: freezing 2371 com.android.traceur
+09-15 11:29:14.082   574   672 D ActivityManager: freezing 4229 com.google.android.healthconnect.controller
+09-15 11:29:14.083   574   672 D ActivityManager: freezing 3927 com.google.android.settings.intelligence
+09-15 11:29:14.084   574   672 D ActivityManager: freezing 4196 com.google.android.gms.ui
+09-15 11:29:14.084   574   672 D ActivityManager: freezing 3626 com.google.android.contacts
+09-15 11:29:15.504   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:15.504   574   917 D ActivityManager: sync unfroze 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 for 19
+09-15 11:29:15.505   574   917 D ActivityManager: sync unfroze 2550 com.google.android.tts for 19
+09-15 11:29:15.505   574   917 D ActivityManager: sync unfroze 1908 com.google.android.youtube for 19
+09-15 11:29:15.506   574   917 D ActivityManager: sync unfroze 1802 com.google.android.apps.youtube.music for 19
+09-15 11:29:15.506   574   917 D ActivityManager: sync unfroze 3677 com.google.android.gm for 19
+09-15 11:29:15.506   574   917 D ActivityManager: sync unfroze 3193 com.android.chrome:privileged_process0 for 19
+09-15 11:29:15.507   574   917 D ActivityManager: sync unfroze 2940 com.android.chrome for 19
+09-15 11:29:15.507   574   917 D ActivityManager: sync unfroze 4152 com.android.emergency for 19
+09-15 11:29:15.507   574   917 D ActivityManager: sync unfroze 2371 com.android.traceur for 19
+09-15 11:29:15.508   574   917 D ActivityManager: sync unfroze 4229 com.google.android.healthconnect.controller for 19
+09-15 11:29:15.508   574   917 D ActivityManager: sync unfroze 3927 com.google.android.settings.intelligence for 19
+09-15 11:29:15.508   574   917 D ActivityManager: sync unfroze 4196 com.google.android.gms.ui for 19
+09-15 11:29:15.508   574   917 D ActivityManager: sync unfroze 3626 com.google.android.contacts for 19
+09-15 11:29:15.565  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3302(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 389us,65us total 27.512ms
+09-15 11:29:15.595   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:16.373   574   672 D ActivityManager: freezing 2031 com.android.printspooler
+09-15 11:29:16.374   574   672 D ActivityManager: freezing 2727 com.google.android.webview:webview_service
+09-15 11:29:16.581   574   917 D OomAdjuster: Not killing cached processes
+09-15 11:29:16.581   574   917 W ProcessStats: Tracking association SourceState{e8e34d com.google.android.apps.nexuslauncher/10161 BFgs #3176} whose proc state 4 is better than process ProcessState{47d96f9 com.google.android.googlequicksearchbox:search/10131 pkg=com.google.android.googlequicksearchbox} proc state 5 (7 skipped)
+09-15 11:29:17.462   921  5156 D NetworkMonitor/100: PROBE_HTTPS https://www.google.com/generate_204 Probe failed with exception java.net.SocketTimeoutException: failed to connect to www.google.com/2001::1 (port 443) from /fec0::5054:ff:fe12:3456 (port 58652) after 10000ms
+09-15 11:29:17.686   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:17.687   574   917 D ActivityManager: sync unfroze 2031 com.android.printspooler for 19
+09-15 11:29:17.687   574   917 D ActivityManager: sync unfroze 2727 com.google.android.webview:webview_service for 19
+09-15 11:29:17.728  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3296(143KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 331us,51us total 7.798ms
+09-15 11:29:17.755   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:18.681   574   672 D ActivityManager: freezing 3295 com.android.imsserviceentitlement
+09-15 11:29:18.682   574   672 D ActivityManager: freezing 3355 com.android.camera2
+09-15 11:29:18.682   574   672 D ActivityManager: freezing 2883 com.google.android.dialer
+09-15 11:29:18.683   574   672 D ActivityManager: freezing 2069 com.google.android.adservices.api
+09-15 11:29:18.684   574   672 D ActivityManager: freezing 1231 com.google.android.cellbroadcastreceiver
+09-15 11:29:18.684   574   672 D ActivityManager: freezing 1443 android.process.acore
+09-15 11:29:19.842   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:19.843   574   917 D ActivityManager: sync unfroze 3295 com.android.imsserviceentitlement for 19
+09-15 11:29:19.843   574   917 D ActivityManager: sync unfroze 3355 com.android.camera2 for 19
+09-15 11:29:19.844   574   917 D ActivityManager: sync unfroze 2883 com.google.android.dialer for 19
+09-15 11:29:19.844   574   917 D ActivityManager: sync unfroze 2069 com.google.android.adservices.api for 19
+09-15 11:29:19.844   574   917 D ActivityManager: sync unfroze 1231 com.google.android.cellbroadcastreceiver for 19
+09-15 11:29:19.845   574   917 D ActivityManager: sync unfroze 1443 android.process.acore for 19
+09-15 11:29:19.882  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3418(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2704KB/5409KB, paused 379us,44us total 6.541ms
+09-15 11:29:19.907   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:19.984   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:20.036  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2808(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2720KB/5441KB, paused 963us,61us total 19.306ms
+09-15 11:29:20.059   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:20.398   921  5155 D NetworkMonitor/100: PROBE_FALLBACK http://play.googleapis.com/generate_204 Probe failed with exception java.net.SocketTimeoutException: failed to connect to play.googleapis.com/2001:4860:4843:400:: (port 80) from /fec0::5054:ff:fe12:3456 (port 40428) after 10000ms
+09-15 11:29:20.399   921  5155 D NetworkMonitor/100: isCaptivePortal: isSuccessful()=false isPortal()=false RedirectUrl=null isPartialConnectivity()=false Time=23018ms
+09-15 11:29:20.400   574   730 D ConnectivityService: [100 CELLULAR] validation failed
+09-15 11:29:20.990   574   672 D ActivityManager: freezing 2106 com.android.localtransport
+09-15 11:29:20.990   574   672 D ActivityManager: freezing 1941 com.android.keychain
+09-15 11:29:20.995   574   672 D ActivityManager: freezing 3103 com.android.externalstorage
+09-15 11:29:20.996   574   672 D ActivityManager: freezing 3376 com.android.dynsystem
+09-15 11:29:20.996   574   672 D ActivityManager: freezing 2685 android.process.media
+09-15 11:29:20.997   574   672 D ActivityManager: freezing 3414 com.android.dynsystem:dynsystem
+09-15 11:29:20.998   574   672 D ActivityManager: freezing 2801 com.google.android.apps.wallpaper
+09-15 11:29:20.998   574   672 D ActivityManager: freezing 3500 com.google.android.apps.docs
+09-15 11:29:20.999   574   672 D ActivityManager: freezing 1778 com.google.android.deskclock
+09-15 11:29:20.999   574   672 D ActivityManager: freezing 3444 com.android.providers.calendar
+09-15 11:29:21.000   574   672 D ActivityManager: freezing 1497 com.google.android.apps.wellbeing
+09-15 11:29:21.001   574   672 D ActivityManager: freezing 1034 com.android.settings
+09-15 11:29:21.002   574   672 D ActivityManager: freezing 2651 com.google.android.apps.photos
+09-15 11:29:21.027   574   672 D ActivityManager: freezing 2311 com.google.android.apps.messaging
+09-15 11:29:21.798  4960  4960 I Choreographer: Skipped 30 frames!  The application may be doing too much work on its main thread.
+09-15 11:29:22.145   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:22.146   574   917 D ActivityManager: sync unfroze 2106 com.android.localtransport for 19
+09-15 11:29:22.146   574   917 D ActivityManager: sync unfroze 1941 com.android.keychain for 19
+09-15 11:29:22.146   574   917 D ActivityManager: sync unfroze 3103 com.android.externalstorage for 19
+09-15 11:29:22.147   574   917 D ActivityManager: sync unfroze 3376 com.android.dynsystem for 19
+09-15 11:29:22.147   574   917 D ActivityManager: sync unfroze 2685 android.process.media for 19
+09-15 11:29:22.147   574   917 D ActivityManager: sync unfroze 3414 com.android.dynsystem:dynsystem for 19
+09-15 11:29:22.148   574   917 D ActivityManager: sync unfroze 2801 com.google.android.apps.wallpaper for 19
+09-15 11:29:22.148   574   917 D ActivityManager: sync unfroze 3500 com.google.android.apps.docs for 19
+09-15 11:29:22.148   574   917 D ActivityManager: sync unfroze 1778 com.google.android.deskclock for 19
+09-15 11:29:22.148   574   917 D ActivityManager: sync unfroze 3444 com.android.providers.calendar for 19
+09-15 11:29:22.149   574   917 D ActivityManager: sync unfroze 1497 com.google.android.apps.wellbeing for 19
+09-15 11:29:22.149   574   917 D ActivityManager: sync unfroze 1034 com.android.settings for 19
+09-15 11:29:22.151   574   917 D ActivityManager: sync unfroze 2311 com.google.android.apps.messaging for 19
+09-15 11:29:22.151   574   917 D ActivityManager: sync unfroze 2651 com.google.android.apps.photos for 19
+09-15 11:29:22.190  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3312(161KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2703KB/5407KB, paused 598us,45us total 7.261ms
+09-15 11:29:22.215   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:22.223  2311  2364 W Bugle   : TextClassifierLibManagerImpl: Reclaiming memory at level: 40
+09-15 11:29:22.496   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:23.256   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:23.277   574   672 D ActivityManager: freezing 2495 com.google.android.onetimeinitializer
+09-15 11:29:23.278   574   672 D ActivityManager: freezing 2088 com.google.android.projection.gearhead:shared
+09-15 11:29:23.278   574   672 D ActivityManager: freezing 3554 com.google.android.configupdater
+09-15 11:29:23.279   574   672 D ActivityManager: freezing 3781 com.google.android.rkpdapp
+09-15 11:29:23.279   574   672 D ActivityManager: freezing 3722 com.google.android.partnersetup
+09-15 11:29:23.280   574   672 D ActivityManager: freezing 975 com.google.android.permissioncontroller
+09-15 11:29:23.281   574   672 D ActivityManager: freezing 2208 com.google.process.gapps
+09-15 11:29:23.281   574   672 D ActivityManager: freezing 1814 com.google.android.as.oss
+09-15 11:29:24.262   807   807 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 11:29:24.299   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:24.299   574   917 D ActivityManager: sync unfroze 2495 com.google.android.onetimeinitializer for 19
+09-15 11:29:24.300   574   917 D ActivityManager: sync unfroze 2088 com.google.android.projection.gearhead:shared for 19
+09-15 11:29:24.300   574   917 D ActivityManager: sync unfroze 3554 com.google.android.configupdater for 19
+09-15 11:29:24.300   574   917 D ActivityManager: sync unfroze 3781 com.google.android.rkpdapp for 19
+09-15 11:29:24.300   574   917 D ActivityManager: sync unfroze 3722 com.google.android.partnersetup for 19
+09-15 11:29:24.301   574   917 D ActivityManager: sync unfroze 975 com.google.android.permissioncontroller for 19
+09-15 11:29:24.301   574   917 D ActivityManager: sync unfroze 2208 com.google.process.gapps for 19
+09-15 11:29:24.301   574   917 D ActivityManager: sync unfroze 1814 com.google.android.as.oss for 19
+09-15 11:29:24.342  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3377(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2703KB/5407KB, paused 737us,47us total 6.662ms
+09-15 11:29:24.370   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:24.448   574   917 D ActivityManager: freezer override set to true
+09-15 11:29:24.484  4960  4978 I m.muzhao.muzhao: Explicit concurrent copying GC freed 2833(128KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2703KB/5407KB, paused 402us,41us total 6.311ms
+09-15 11:29:24.507   574   917 D ActivityManager: freezer override set to false
+09-15 11:29:25.332  4960  4960 I Choreographer: Skipped 32 frames!  The application may be doing too much work on its main thread.
+09-15 11:29:25.597   574   672 D ActivityManager: freezing 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+09-15 11:29:25.597   574   672 D ActivityManager: freezing 2550 com.google.android.tts
+09-15 11:29:25.598   574   672 D ActivityManager: freezing 1908 com.google.android.youtube
+09-15 11:29:25.600   574   672 D ActivityManager: freezing 1802 com.google.android.apps.youtube.music
+09-15 11:29:25.601   574   672 D ActivityManager: freezing 3677 com.google.android.gm
+09-15 11:29:25.601   574   672 D ActivityManager: freezing 3193 com.android.chrome:privileged_process0
+09-15 11:29:25.602   574   672 D ActivityManager: freezing 2940 com.android.chrome
+09-15 11:29:25.602   574   672 D ActivityManager: freezing 4152 com.android.emergency
+09-15 11:29:25.603   574   672 D ActivityManager: freezing 2371 com.android.traceur
+09-15 11:29:25.603   574   672 D ActivityManager: freezing 4229 com.google.android.healthconnect.controller
+09-15 11:29:25.603   574   672 D ActivityManager: freezing 3927 com.google.android.settings.intelligence
+09-15 11:29:25.604   574   672 D ActivityManager: freezing 4196 com.google.android.gms.ui
+09-15 11:29:25.605   574   672 D ActivityManager: freezing 3626 com.google.android.contacts
+09-15 11:29:25.745   574  1857 I ActivityManager: Process com.muzhao.muzhao (pid 4960) has died: fg  TOP 
+09-15 11:29:25.746   574   609 I libprocessgroup: Successfully killed process cgroup uid 10191 pid 4960 in 0ms
+09-15 11:29:25.749   574  1880 I WindowManager: WIN DEATH: Window{caabed u0 com.muzhao.muzhao/com.muzhao.muzhao.MainActivity}
+09-15 11:29:25.749   382   382 I Zygote  : Process 4960 exited cleanly (0)
+09-15 11:29:25.749   574  1880 W InputManager-JNI: Input channel object 'caabed com.muzhao.muzhao/com.muzhao.muzhao.MainActivity (client)' was disposed without first being removed with the input manager!
+09-15 11:29:25.755   574  1857 W ActivityTaskManager: Force removing ActivityRecord{6c3a83f u0 com.muzhao.muzhao/.MainActivity t330}: app died, no saved state
+09-15 11:29:25.756   574   596 D DisplayManagerService: Drop pending events for gone uid 10191
+09-15 11:29:25.756   574  1857 D CompatibilityChangeReporter: Compat change id reported: 197654537; UID 10191; state: ENABLED
+09-15 11:29:25.757   807   840 V WindowManagerShell: Transition requested: android.os.BinderProxy@44759d7 TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=330 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=149393 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@30af2c4} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{93945ad com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 11:29:25.807   807   840 W Looper  : Slow dispatch took 50ms wmshell.main h=android.os.Handler c=com.android.wm.shell.transition.Transitions$TransitionPlayerImpl$$ExternalSyntheticLambda1@16b90e2 m=0
+09-15 11:29:25.807   807   840 W Looper  : Slow delivery took 50ms wmshell.main h=android.os.Handler c=com.android.wm.shell.pip.PinnedStackListenerForwarder$PinnedTaskListenerImpl$$ExternalSyntheticLambda1@1bdbc73 m=0
+09-15 11:29:25.807   807   840 W Looper  : Drained
+09-15 11:29:25.809   574  1857 D OomAdjuster: Not killing cached processes
+09-15 11:29:25.811   574  1660 W AppSearchIcing: icing-search-engine.cc:283: Error: 5, Message: Document (com.google.android.googlequicksearchbox$OneSearchZeroStateGoogleSuggestions/default, zp) not found.
+09-15 11:29:25.812  1575  1699 I AiAiEcho: Predicting[0]: 
+09-15 11:29:25.813  1575  1699 I AiAiEcho: EchoTargets: 
+09-15 11:29:25.813  1575  1699 I AiAiEcho: Filtered by AiAi flag check: 
+09-15 11:29:25.813  1045  2006 D OneSearchSuggestProvider: Created the binder channel successfully for end point service =com.google.android.apps.search.googleapp.search.suggest.plugins.onesearch.server.OneSearchSuggestService , mChannel=z1{delegate=s1{logId=9, target=directaddress:///AndroidComponentAddress%5BIntent%20%7B%20act=grpc.io.action.BIND%20cmp=com.google.android.googlequicksearchbox/com.google.android.apps.search.googleapp.search.suggest.plugins.onesearch.server.OneSearchSuggestService%20%7D%5D}} , mOneSearchConnection=X1.T@d702065
+09-15 11:29:25.813  1575  1699 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata: 
+09-15 11:29:25.817   574   598 W ActivityManager: setHasOverlayUi called on unknown pid: 4960
+09-15 11:29:25.823  1575  1699 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+09-15 11:29:25.831   449   449 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+09-15 11:29:25.833   997  1194 D BtGatt.ScanManager: uid 10128 isForeground true scanMode 1
+09-15 11:29:25.842   997  1194 D BtGatt.ScanManager: uid 10128 isForeground true scanMode -1
+09-15 11:29:25.869  1861  1861 W A       : Can't get WAA status for Mavatar!
+09-15 11:29:25.869  1861  1861 W A       : java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Class java.lang.Object.getClass()' on a null object reference
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.apps.tiktok.dataservice.z.b(PG:1)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.apps.tiktok.dataservice.at.a(PG:1)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.apps.tiktok.tracing.ec.a(PG:2)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.aj.a(PG:2)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.ac.apply(PG:1)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.h.e(PG:2)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.j.run(PG:9)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.bf.execute(PG:1)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.d.i(PG:1)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.d.iq(PG:5)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.j.h(PG:2)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.ax.d(PG:1)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.apps.tiktok.dataservice.au.a(PG:5)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.apps.tiktok.dataservice.dr.c(PG:5)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.apps.tiktok.dataservice.dp.run(PG:6)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.apps.tiktok.concurrent.ak.run(PG:6)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.apps.tiktok.tracing.ei.run(PG:2)
+09-15 11:29:25.869  1861  1861 W A       : 	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.dy.a(PG:1)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.cv.run(PG:4)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.google.common.util.concurrent.dz.run(PG:1)
+09-15 11:29:25.869  1861  1861 W A       : 	at android.os.Handler.handleCallback(Handler.java:958)
+09-15 11:29:25.869  1861  1861 W A       : 	at android.os.Handler.dispatchMessage(Handler.java:99)
+09-15 11:29:25.869  1861  1861 W A       : 	at android.os.Looper.loopOnce(Looper.java:205)
+09-15 11:29:25.869  1861  1861 W A       : 	at android.os.Looper.loop(Looper.java:294)
+09-15 11:29:25.869  1861  1861 W A       : 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+09-15 11:29:25.869  1861  1861 W A       : 	at java.lang.reflect.Method.invoke(Native Method)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+09-15 11:29:25.869  1861  1861 W A       : 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+09-15 11:29:25.911   807   840 V WindowManagerShell: onTransitionReady android.os.BinderProxy@44759d7: {id=9 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@4a5a3a} m=CLOSE f=NONE leash=Surface(name=Task=330)/@0xcb5d92e sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@a0246eb} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x92daccf sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{819551f token=android.os.Binder@500b0be})/@0xa33d65c sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 11:29:25.911   807   840 V WindowManagerShell: Playing animation for (#9)android.os.BinderProxy@44759d7@0
+09-15 11:29:25.912   807   840 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultMixedHandler@87d1d5f
+09-15 11:29:25.912   807   840 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@2b2a3ac
+09-15 11:29:25.912   807   840 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@6f64875
+09-15 11:29:25.912   807   840 V WindowManagerShell:  try handler com.android.wm.shell.recents.RecentsTransitionHandler@6eb00a
+09-15 11:29:25.912   574   595 V WindowManager: Sent Transition #9 createdAt=09-15 11:29:25.755 via request=TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=330 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=149393 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{88ffc10 Task{e4c050c #330 type=standard I=com.muzhao.muzhao/.MainActivity}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{87b6309 com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 11:29:25.912   807   840 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+09-15 11:29:25.912   574   595 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+09-15 11:29:25.912   807   840 V WindowManagerShell:  try handler com.android.wm.shell.pip.PipTransition@a80307b
+09-15 11:29:25.912   807   840 V WindowManagerShell:  try handler com.android.wm.shell.splitscreen.StageCoordinator@17c4e98
+09-15 11:29:25.912   574   595 V WindowManager:     info={id=9 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{88ffc10 Task{e4c050c #330 type=standard I=com.muzhao.muzhao/.MainActivity}}} m=CLOSE f=NONE leash=Surface(name=Task=330)/@0xcabe9a4 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{RemoteToken{894ae25 Task{5e5f84e #1 type=home}}} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xc13ccd1 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{819551f token=android.os.Binder@500b0be})/@0x35bdb5b sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 11:29:25.913   807   840 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@36ff6f1
+09-15 11:29:25.913   807   840 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=9 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@4a5a3a} m=CLOSE f=NONE leash=Surface(name=Task=330)/@0xcb5d92e sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@a0246eb} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x92daccf sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{819551f token=android.os.Binder@500b0be})/@0xa33d65c sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 11:29:25.913   807   840 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@34fc2d6, appThread = android.app.IApplicationThread$Stub$Proxy@dd75957, debugName = LauncherToDream }}
+09-15 11:29:25.913   807   840 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@233bc44, appThread = android.app.IApplicationThread$Stub$Proxy@3fc112d, debugName = QuickstepLaunchHome }}
+09-15 11:29:25.913   807   840 V WindowManagerShell:  Delegate animation for #9 to null
+09-15 11:29:25.913   807   840 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@55d3662
+09-15 11:29:25.914   807   840 V WindowManagerShell: start default transition animation, info = {id=9 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@4a5a3a} m=CLOSE f=NONE leash=Surface(name=Task=330)/@0xcb5d92e sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@a0246eb} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x92daccf sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{819551f token=android.os.Binder@500b0be})/@0xa33d65c sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 11:29:25.915   807   840 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@42a8ae1 animAttr=0x10 type=CLOSE isEntrance=true
+09-15 11:29:25.916   807   840 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@6f294f4 animAttr=0x11 type=CLOSE isEntrance=false
+09-15 11:29:25.920   807   840 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@55d3662
+09-15 11:29:25.932   574  2001 I ImeTracker: com.google.android.apps.nexuslauncher:2bdcbe5c: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+09-15 11:29:25.933   574  2001 I ImeTracker: com.google.android.apps.nexuslauncher:2bdcbe5c: onCancelled at PHASE_SERVER_SHOULD_HIDE
+09-15 11:29:25.935  1477  1477 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3227 
+09-15 11:29:25.938  1477  1477 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 0, unlocked = true
+09-15 11:29:25.938  1477  1477 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.google.android.apps.nexuslauncher fieldId=0 fieldName=null extras=null}, false)
+09-15 11:29:25.938  1477  1477 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4008 ShouldHideHeaderOnInitialState = false
+09-15 11:29:25.939  1477  1477 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 2, unlocked = true
+09-15 11:29:25.945   807   855 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda17@1f04296
+09-15 11:29:25.946   574  1857 W InputManager-JNI: Input channel object '63a65f8 Splash Screen com.muzhao.muzhao (client)' was disposed without first being removed with the input manager!
+09-15 11:29:25.948   574  2001 W WindowManager: Failed looking up window session=Session{585d95a 807:u0a10167} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:6034 com.android.server.wm.Session.setOnBackInvokedCallbackInfo:944 android.view.IWindowSession$Stub.onTransact:1145 
+09-15 11:29:25.948   574  2001 I WindowManager: setOnBackInvokedCallback(): No window state for package:com.android.systemui
+09-15 11:29:25.977   807   873 D EGL_emulation: app_time_stats: avg=25947.27ms min=25947.27ms max=25947.27ms count=1
+09-15 11:29:26.084   807   873 D EGL_emulation: app_time_stats: avg=1617.46ms min=1.47ms max=62807.93ms count=39
+09-15 11:29:26.159   807   840 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#9)android.os.BinderProxy@44759d7@0
+09-15 11:29:26.161   574   595 V WindowManager: Finish Transition #9: created at 09-15 11:29:25.755 collect-started=0.057ms request-sent=0.699ms started=51.399ms ready=51.359ms sent=153.822ms finished=404.742ms
+09-15 11:29:26.165   807   840 V WindowManagerShell: Track 0 became idle
+09-15 11:29:26.165   807   840 V WindowManagerShell: All active transition animations finished
+09-15 11:29:26.609   574  1857 D ActivityManager: freezer override set to true
+09-15 11:29:26.610   574  1857 D ActivityManager: sync unfroze 3274 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 for 19
+09-15 11:29:26.611   574  1857 D ActivityManager: sync unfroze 2550 com.google.android.tts for 19
+09-15 11:29:26.615   574  1857 D ActivityManager: sync unfroze 1908 com.google.android.youtube for 19
+09-15 11:29:26.616   574  1857 D ActivityManager: sync unfroze 1802 com.google.android.apps.youtube.music for 19
+09-15 11:29:26.617   574  1857 D ActivityManager: sync unfroze 3677 com.google.android.gm for 19
+09-15 11:29:26.618   574  1857 D ActivityManager: sync unfroze 3193 com.android.chrome:privileged_process0 for 19
+09-15 11:29:26.619   574  1857 D ActivityManager: sync unfroze 2940 com.android.chrome for 19
+09-15 11:29:26.619   574  1857 D ActivityManager: sync unfroze 4152 com.android.emergency for 19
+09-15 11:29:26.620   574  1857 D ActivityManager: sync unfroze 2371 com.android.traceur for 19
+09-15 11:29:26.620   574  1857 D ActivityManager: sync unfroze 4229 com.google.android.healthconnect.controller for 19
+09-15 11:29:26.620   574  1857 D ActivityManager: sync unfroze 3927 com.google.android.settings.intelligence for 19
+09-15 11:29:26.621   574  1857 D ActivityManager: sync unfroze 4196 com.google.android.gms.ui for 19
+09-15 11:29:26.622   574  1857 D ActivityManager: sync unfroze 3626 com.google.android.contacts for 19
+09-15 11:29:26.623  1729  1729 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.safetynet.service.START pkg=com.google.android.gms }
+09-15 11:29:26.624   574  2001 W ProcessStats: Tracking association SourceState{abd12ef com.google.android.apps.nexuslauncher/10161 BTop #3187} whose proc state 2 is better than process ProcessState{47d96f9 com.google.android.googlequicksearchbox:search/10131 pkg=com.google.android.googlequicksearchbox} proc state 5 (19 skipped)
+09-15 11:29:26.641   574  1857 D ActivityManager: freezer override set to false
+09-15 11:29:27.094   807   873 D EGL_emulation: app_time_stats: avg=4.69ms min=1.51ms max=32.83ms count=59
+09-15 11:29:27.758   574   672 D ActivityManager: freezing 2031 com.android.printspooler
+09-15 11:29:27.759   574   672 D ActivityManager: freezing 2727 com.google.android.webview:webview_service
+09-15 11:29:27.865     0     0 I logd    : logdr: UID=2000 GID=2000 PID=5297 n tail=0 logMask=99 pid=0 start=0ns deadline=0ns

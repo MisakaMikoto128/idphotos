@@ -1,0 +1,60 @@
+{
+ "generatedAt": "2026-09-15T03:45:05",
+ "device": "Pixel_3a_API_34_extension_level_7_x86_64 (emulator, -gpu guest -feature -Vulkan, RAM 4096) | build=release (out/app-release-runner.apk, batch_runner 入口)",
+ "matting512P95Ms": 750,
+ "matting512Samples": 25,
+ "peakMemoryMb": 487.5,
+ "leakBaselineMb": 280.8,
+ "leakAfter20Mb": 341.4,
+ "build": "release",
+ "note": "G4 r1 构建口径修正复测：qa-batch r2 的模拟器度量为 debug 构建，本文件为 release 口径正式判定源；qa-batch debug 数字记为参考",
+ "gateReleaseDetail": {
+  "generatedAt": "2026-09-15T03:33:36",
+  "device": "Pixel_3a_API_34_extension_level_7_x86_64 (emulator, -gpu guest -feature -Vulkan, RAM 4096)",
+  "build": "release (out/app-release-runner.apk, batch_runner 入口)",
+  "note": "G4 r1 构建口径修正复测：qa-batch r2 的模拟器度量为 debug 构建，本文件为 release 口径正式判定源；qa-batch debug 数字记为参考",
+  "batchPhase": {
+   "wall_s": 184.8,
+   "peak_mb": 487.5,
+   "n_samples": 165
+  },
+  "leakPhase": {
+   "baseline_mb": 280.8,
+   "after20_mb": 341.4,
+   "delta_mb": 60.6,
+   "peak_during_mb": 479.3
+  },
+  "perfPhase": {
+   "n": 25,
+   "all_ms": [
+    643,
+    720,
+    622,
+    632,
+    599,
+    586,
+    750,
+    623,
+    625,
+    614,
+    638,
+    593,
+    658,
+    580,
+    716,
+    646,
+    649,
+    624,
+    629,
+    615,
+    647,
+    636,
+    779,
+    573,
+    615
+   ],
+   "p50_ms": 629,
+   "p95_ms": 750
+  }
+ }
+}

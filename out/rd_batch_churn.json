@@ -1,0 +1,764 @@
+[
+ {
+  "event": "begin",
+  "i": 0,
+  "t": 1756120416197
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 0,
+   "path": "C:\\Users\\liuyu\\Pictures\\1 (2).jpg",
+   "class": "portrait",
+   "device_file": "item_002.jpg",
+   "file_bytes": 1749977,
+   "engine": {
+    "matting_ms": 2567,
+    "matting_size": "888x1536",
+    "fg_ratio": 0.6019378753753754,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.946635713905531,
+    "face_order_ok": true,
+    "compose_ms": 520,
+    "compose_bytes": 31644,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 3230,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 31644,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     0.0,
+     98.78113744513394,
+     2880.0,
+     4883.218862554866
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 6395,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120422596
+  }
+ },
+ {
+  "event": "begin",
+  "i": 1,
+  "t": 1756120422596
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 1,
+   "path": "C:\\Users\\liuyu\\Pictures\\1979d869c783fcc849d4e05b81eb809e.png",
+   "class": "multi_face",
+   "device_file": "item_004.png",
+   "file_bytes": 2382552,
+   "engine": {
+    "matting_ms": 3847,
+    "matting_size": "1536x1152",
+    "fg_ratio": 0.3647189670138889,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.9335138538364615,
+    "face_order_ok": true,
+    "compose_ms": 493,
+    "compose_bytes": 32465,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 4585,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 32465,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     827.2207953331038,
+     685.482606815503,
+     1670.3695665603552,
+     2338.517393184497
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 8999,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120431598
+  }
+ },
+ {
+  "event": "begin",
+  "i": 2,
+  "t": 1756120431599
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 2,
+   "path": "C:\\Users\\liuyu\\Pictures\\2.jpg",
+   "class": "portrait",
+   "device_file": "item_005.jpg",
+   "file_bytes": 250822,
+   "engine": {
+    "matting_ms": 3762,
+    "matting_size": "1080x1415",
+    "fg_ratio": 0.5556915672734882,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.943936136695284,
+    "face_order_ok": true,
+    "compose_ms": 559,
+    "compose_bytes": 33494,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 4444,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 33494,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     15.994556437284928,
+     0.0,
+     1032.6680185291148,
+     1415.0
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 8837,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120440439
+  }
+ },
+ {
+  "event": "begin",
+  "i": 3,
+  "t": 1756120440440
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 3,
+   "path": "C:\\Users\\liuyu\\Pictures\\20240710193717_7c99.jpg",
+   "class": "portrait",
+   "device_file": "item_006.jpg",
+   "file_bytes": 72562,
+   "engine": {
+    "matting_ms": 2543,
+    "matting_size": "480x640",
+    "fg_ratio": 0.6893229166666667,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.9381707197277607,
+    "face_order_ok": true,
+    "compose_ms": 285,
+    "compose_bytes": 38263,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 3041,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 38263,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     0.0,
+     0.0,
+     480.0,
+     640.0
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 5943,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120446386
+  }
+ },
+ {
+  "event": "begin",
+  "i": 4,
+  "t": 1756120446386
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 4,
+   "path": "C:\\Users\\liuyu\\Pictures\\29EDA59B982FA8339335D50B00CCD096.jpg",
+   "class": "portrait",
+   "device_file": "item_007.jpg",
+   "file_bytes": 187463,
+   "engine": {
+    "matting_ms": 5101,
+    "matting_size": "1282x1920",
+    "fg_ratio": 0.6004867601246106,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.948503239823706,
+    "face_order_ok": true,
+    "compose_ms": 656,
+    "compose_bytes": 35566,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 5952,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 35566,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     246.9718356508613,
+     89.76159584811406,
+     837.1936444483995,
+     1172.0711022277592
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 11780,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120458170
+  }
+ },
+ {
+  "event": "begin",
+  "i": 5,
+  "t": 1756120458171
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 5,
+   "path": "C:\\Users\\liuyu\\Pictures\\4e84ef7b8a910c776acd0eebb8293ee9.png",
+   "class": "multi_face",
+   "device_file": "item_008.png",
+   "file_bytes": 2313039,
+   "engine": {
+    "matting_ms": 3877,
+    "matting_size": "1536x1152",
+    "fg_ratio": 0.3680103443287037,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.9403653836027456,
+    "face_order_ok": true,
+    "compose_ms": 523,
+    "compose_bytes": 35487,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 4776,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 35487,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     846.2370585908618,
+     741.001914611063,
+     1540.5509761591495,
+     2156.7713666228096
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 9250,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120467424
+  }
+ },
+ {
+  "event": "begin",
+  "i": 6,
+  "t": 1756120467425
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 6,
+   "path": "C:\\Users\\liuyu\\Pictures\\8D861A29F86CE7464865EFEB3C9B4124 (自定义).jpg",
+   "class": "portrait",
+   "device_file": "item_009.jpg",
+   "file_bytes": 70456,
+   "engine": {
+    "matting_ms": 2622,
+    "matting_size": "483x800",
+    "fg_ratio": 0.6393388429752066,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.943766251741099,
+    "face_order_ok": true,
+    "compose_ms": 237,
+    "compose_bytes": 30768,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 3095,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 30768,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     0.0,
+     0.0,
+     483.0,
+     800.0
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 6024,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120473451
+  }
+ },
+ {
+  "event": "begin",
+  "i": 7,
+  "t": 1756120473452
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 7,
+   "path": "C:\\Users\\liuyu\\Pictures\\8D861A29F86CE7464865EFEB3C9B4124.jpg",
+   "class": "portrait",
+   "device_file": "item_010.jpg",
+   "file_bytes": 279996,
+   "engine": {
+    "matting_ms": 4732,
+    "matting_size": "1159x1920",
+    "fg_ratio": 0.6406824712643678,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.9438734852607393,
+    "face_order_ok": true,
+    "compose_ms": 631,
+    "compose_bytes": 30277,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 5681,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 30277,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     0.0,
+     0.0,
+     1159.0,
+     1920.0
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 11113,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120484568
+  }
+ },
+ {
+  "event": "begin",
+  "i": 8,
+  "t": 1756120484568
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 8,
+   "path": "C:\\Users\\liuyu\\Pictures\\a.jpg",
+   "class": "portrait",
+   "device_file": "item_011.jpg",
+   "file_bytes": 71949,
+   "engine": {
+    "matting_ms": 2470,
+    "matting_size": "483x604",
+    "fg_ratio": 0.6286464889715944,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.9317804069054335,
+    "face_order_ok": true,
+    "compose_ms": 219,
+    "compose_bytes": 24243,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 3093,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 24243,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     0.0,
+     0.0,
+     483.0,
+     604.0
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 5845,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120490417
+  }
+ },
+ {
+  "event": "begin",
+  "i": 9,
+  "t": 1756120490417
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 9,
+   "path": "C:\\Users\\liuyu\\Pictures\\e9168d2cfe9045d07fac74e68419d211.png",
+   "class": "multi_face",
+   "device_file": "item_014.png",
+   "file_bytes": 2308516,
+   "engine": {
+    "matting_ms": 3776,
+    "matting_size": "1536x1152",
+    "fg_ratio": 0.3514539930555556,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.9353544746062389,
+    "face_order_ok": true,
+    "compose_ms": 563,
+    "compose_bytes": 33598,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 4647,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 33598,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     803.8584032668091,
+     639.0529412380237,
+     1590.6620193693207,
+     2226.926827117049
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 9061,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120499482
+  }
+ },
+ {
+  "event": "begin",
+  "i": 10,
+  "t": 1756120499482
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 10,
+   "path": "C:\\Users\\liuyu\\Pictures\\Online Verification Report of Student Record_LIU YUANLIN_00.jpg",
+   "class": "landscape",
+   "device_file": "item_021.jpg",
+   "file_bytes": 1892441,
+   "engine": {
+    "matting_ms": 1057,
+    "matting_error": "NoFaceException: 没找到人脸，请手动框选",
+    "matting_error_type": "NoFaceException",
+    "message_zh": "没找到人脸，请手动框选",
+    "matting_stack_head": "#0      runMattingPrecomputed (package:muzhao/core/matting/matting_worker.dart:297) | #1      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171) | #2      _RemoteRunner._run (dart:isolate:1234) | #3      _RemoteRunner._remoteExecute (dart:isolate:1228)"
+   },
+   "controller": {
+    "load_ms": 882,
+    "stage": "error",
+    "error_message": "没找到人脸，请手动框选",
+    "error_message_cjk": true,
+    "candidates": 0,
+    "suggested_crop": null
+   },
+   "result": "graceful_error",
+   "weird": false,
+   "total_ms": 1946,
+   "t_done": 1756120501429
+  }
+ },
+ {
+  "event": "begin",
+  "i": 11,
+  "t": 1756120501430
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 11,
+   "path": "C:\\Users\\liuyu\\Pictures\\吴港+通信工程+532128200107160711.jpg",
+   "class": "portrait",
+   "device_file": "item_027.jpg",
+   "file_bytes": 29623,
+   "engine": {
+    "matting_ms": 2514,
+    "matting_size": "480x640",
+    "fg_ratio": 0.55484375,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.9443912363200302,
+    "face_order_ok": true,
+    "compose_ms": 231,
+    "compose_bytes": 41766,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 3114,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 41766,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     58.49697829126444,
+     58.44234667225144,
+     355.4726342988188,
+     497.66168801834624
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 5944,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120507379
+  }
+ },
+ {
+  "event": "begin",
+  "i": 12,
+  "t": 1756120507379
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 12,
+   "path": "C:\\Users\\liuyu\\Pictures\\报名照片.jpg",
+   "class": "portrait",
+   "device_file": "item_032.jpg",
+   "file_bytes": 8380,
+   "engine": {
+    "matting_ms": 2401,
+    "matting_size": "295x413",
+    "fg_ratio": 0.5809511434511434,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.9401689841396995,
+    "face_order_ok": true,
+    "compose_ms": 202,
+    "compose_bytes": 34364,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 2715,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 34364,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     0.0,
+     0.0,
+     292.9313217179356,
+     410.1038504051098
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 5386,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120512768
+  }
+ },
+ {
+  "event": "begin",
+  "i": 13,
+  "t": 1756120512768
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 13,
+   "path": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\WIN_20230522_00_19_11_Pro.jpg",
+   "class": "portrait",
+   "device_file": "item_036.jpg",
+   "file_bytes": 158374,
+   "engine": {
+    "matting_ms": 2290,
+    "matting_size": "1280x720",
+    "fg_ratio": 0.2068576388888889,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.9286003173205226,
+    "face_order_ok": true,
+    "compose_ms": 349,
+    "compose_bytes": 26320,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 3152,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 26320,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     472.67672312489043,
+     0.0,
+     563.9957816554925,
+     720.0
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 5857,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120518629
+  }
+ },
+ {
+  "event": "begin",
+  "i": 14,
+  "t": 1756120518629
+ },
+ {
+  "event": "item",
+  "rec": {
+   "i": 14,
+   "path": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\WIN_20230522_00_19_21_Pro.jpg",
+   "class": "portrait",
+   "device_file": "item_037.jpg",
+   "file_bytes": 135515,
+   "engine": {
+    "matting_ms": 2518,
+    "matting_size": "1272x716",
+    "fg_ratio": 0.2516601665436914,
+    "face_ms": 0,
+    "face_found": true,
+    "face_conf": 0.9074699809492637,
+    "face_order_ok": true,
+    "compose_ms": 379,
+    "compose_bytes": 27958,
+    "compose_decoded": true,
+    "compose_w": 295,
+    "compose_h": 413
+   },
+   "controller": {
+    "load_ms": 3191,
+    "stage": "ready",
+    "error_message": null,
+    "error_message_cjk": false,
+    "candidates": 6,
+    "cand0_decoded": true,
+    "cand0_w": 295,
+    "cand0_h": 413,
+    "cand0_bytes": 27958,
+    "cand0_size_ok": true,
+    "suggested_crop": [
+     441.34509521347366,
+     0.0,
+     571.127533109544,
+     716.0
+    ]
+   },
+   "result": "success",
+   "weird": false,
+   "total_ms": 6154,
+   "artifact_error": "PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)",
+   "t_done": 1756120524788
+  }
+ }
+]

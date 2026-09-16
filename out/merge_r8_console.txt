@@ -1,0 +1,49 @@
+{
+ "portrait_union": {
+  "n": 14,
+  "success": 14,
+  "rate": 1.0
+ },
+ "non_portrait": {
+  "n": 66,
+  "graceful": 66,
+  "rate": 1.0,
+  "fail_paths": []
+ },
+ "peak_mem_mb": 579.7,
+ "peak_breakdown": {
+  "peak_mb": 579.7,
+  "peak_t": 1789557434.1,
+  "peak_item_index": 37,
+  "peak_item_path": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\WIN_20230522_00_19_21_Pro.jpg",
+  "top10_samples_mb": [
+   579.7,
+   536.0,
+   514.8,
+   503.6,
+   498.3,
+   493.2,
+   490.0,
+   481.0,
+   479.0,
+   476.2
+  ],
+  "pss_at_peak_item_begin_kb": 490481,
+  "dumpsys_at_peak": {
+   "file": "seq0017_t1789557434.txt",
+   "delta_t_s": 0.09999990463256836,
+   "categories_kb": {
+    "Java Heap": 6696,
+    "Native Heap": 268448,
+    "Code": 24784,
+    "Stack": 1320,
+    "Graphics": 0,
+    "Private Other": 281384,
+    "TOTAL PSS": 593129
+   }
+  }
+ },
+ "leak_delta_kb": 93990,
+ "perf_p95": 766.2,
+ "crash_files": {}
+}

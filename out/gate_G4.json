@@ -1,0 +1,132 @@
+{
+  "gate": "G4",
+  "generatedAt": "2026-09-16T03:33:42.344903",
+  "items": [
+    {
+      "id": "4.9",
+      "description": "lib/ 下 TODO/FIXME/throw UnimplementedError 计数 = 0（gate 直接 grep，不依赖裁判）",
+      "expected": "见 ACCEPTANCE.md",
+      "actual": "lib/ 全部 .dart 文件计数 = 0",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "AC.1",
+      "description": "防作弊1：baseline-p4..HEAD 无实现类 agent 越界写入 test/tools-gate/ACCEPTANCE/RUBRIC（golden 与 dataset.json 任何人不得动）",
+      "expected": "命中 = 0 / 无越界",
+      "actual": "无越界变更；合法范围变更: docs/ACCEPTANCE.md(主会话独占，溯源见 AC.6)",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "AC.2",
+      "description": "防作弊2：tools/gate/ 脚本 SHA256 与 out/hashes_prev.txt 比对（tools/gate/ 为 gatekeeper 独占，其哈希变化归因 gatekeeper 本轮修订并在报告留痕；ACCEPTANCE/RUBRIC 的哈希变化在 AC.6 溯源）",
+      "expected": "命中 = 0 / 无越界",
+      "actual": "无非 gatekeeper 哈希变化",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "AC.3",
+      "description": "防作弊3：test/ 与 integration_test/ 无 skip:/@Skip/skip tag",
+      "expected": "命中 = 0 / 无越界",
+      "actual": "0 命中",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "AC.4",
+      "description": "防作弊4：test/golden/ 文件数未减少（src≥8 且与 ref 一一对应）",
+      "expected": "命中 = 0 / 无越界",
+      "actual": "src=8 ref=8；上一轮快照 src=8 ref=8",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "AC.5",
+      "description": "防作弊5：无 catch (_) {} / catch (e) {} 空实现吞异常",
+      "expected": "命中 = 0 / 无越界",
+      "actual": "0 命中；r1 裁定白名单(工件导出 side-path): test\\adversarial\\adversarial_runner.dart:189: } catch (_) {}",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "AC.6",
+      "description": "防作弊6：ACCEPTANCE/RUBRIC 哈希未变化（或变化可溯源授权提交）",
+      "expected": "命中 = 0 / 无越界",
+      "actual": "docs/ACCEPTANCE.md 与 docs/RUBRIC.md 相对 out/hashes_prev.txt 无变化",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "4.1",
+      "description": "Pictures 全量跑完，崩溃=0 且 ANR=0（qa-batch out/batch_r1.json 含 logcat 取证；gate 另随机抽 ≥5 项在自己的设备会话里复跑核对，不许只信裁判汇总）",
+      "expected": "见 ACCEPTANCE.md",
+      "actual": "裁判数据: total=80 ran=80 crashes=0 anrs=0 outcomes={graceful_fail: 66, ok: 14}；gate 抽查: 13 项复跑，全部与裁判记录一致",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "4.2",
+      "description": "人像类（portrait/multi_face）成功率 100%（人像子集由 qa-batch 分类并冻结，不得增删）",
+      "expected": "见 ACCEPTANCE.md",
+      "actual": "裁判: 人像 14 项，100% ok 且候选>0；gate 抽查人像子项全部 ready 且候选可解码",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "4.3",
+      "description": "非人像类（screenshot/landscape/non_image）100% 优雅失败：中文提示到达、不崩溃、不产出诡异结果（gate 抽查核实产出为失败态而非成功态）",
+      "expected": "见 ACCEPTANCE.md",
+      "actual": "裁判: 非人像 66 项，100% graceful_fail + 中文提示；gate 抽查非人像子项均为契约优雅口径（落定 + 中文提示到达）",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "4.4",
+      "description": "对抗用例全部 0 崩溃、0 数据损坏、0 无响应>5s（adversarial 裁判数据 + gate 抽查复跑）",
+      "expected": "见 ACCEPTANCE.md",
+      "actual": "裁判: 三计数=0，逐用例三标记全 false；gate 抽查 8 个对抗用例复跑：无崩溃、全部在时限内落定",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "4.5",
+      "description": "视觉评分：visual-critic 总分 ≥8.0/10 且致命项 = 0（机读 out/VISUAL_G4_r1.md，按 RUBRIC 固定格式）",
+      "expected": "见 ACCEPTANCE.md",
+      "actual": "总分 10.0，致命项 0，结论 PASS",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "4.6",
+      "description": "设备端 512×512 抠图 p95 ≤1500ms（2026-09-14 人工授权口径：模拟器（AEHD, RAM 4096）设备端实测；真机数字只作参考）；判定源 metrics + gate 自己复测一轮，两者都 ≤1500",
+      "expected": "见 ACCEPTANCE.md",
+      "actual": "裁判(device=Pixel_3a_API_34 (emulator-5554, -gpu guest, RAM 4096) — qa-batch r8 全量轮, HEAD=25bd1f0) p95=766.2ms(samples=25) 达标；gate 复测 p95=1087.0ms (达标)；交叉参考·真机(不判定): p95=2353.0ms peak=571.7MB leak=-2.1MB；真机冷启动 TotalTime 参考(不判定，G3.4 已关闭): [3197, 569, 502]ms",
+      "pass": true,
+      "manual": false
+    },
+    {
+      "id": "4.7",
+      "description": "峰值内存 ≤550MB（2026-09-15 人工授权，设备端口径真机优先；判定源 metrics 真机优先；模拟器数字与 gate 模拟器复测只作参考）",
+      "expected": "见 ACCEPTANCE.md",
+      "actual": "裁判(device=5bc6e093 (vivo X21A, Android 9, arm64-v8a)) 峰值=571.7MB 超阈值；gate 模拟器复测未完成: 未知；交叉参考·模拟器(不判定): p95=766.2ms peak=579.7MB leak=91.7MB；真机冷启动 TotalTime 参考(不判定，G3.4 已关闭): [3197, 569, 502]ms",
+      "pass": false,
+      "manual": false
+    },
+    {
+      "id": "4.8",
+      "description": "内存泄漏：连续处理 20 张后内存回落到基线 +80MB 以内（判定源 metrics 真机优先 + gate 自己 20 张 churn 复测：设备侧 VmRSS 直测为准，host dumpsys 窗口作参考）",
+      "expected": "见 ACCEPTANCE.md",
+      "actual": "裁判(device=5bc6e093 (vivo X21A, Android 9, arm64-v8a)) Δ=-2.1MB (baseline=432.6 after=430.5) 达标；gate 复测[设备侧 VmRSS 直测] 20 张后 Δ=53.8MB (达标)；交叉参考·模拟器(不判定): p95=766.2ms peak=579.7MB leak=91.7MB；真机冷启动 TotalTime 参考(不判定，G3.4 已关闭): [3197, 569, 502]ms",
+      "pass": true,
+      "manual": false
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "passed": 14,
+    "manual": 0
+  },
+  "pass": false
+}

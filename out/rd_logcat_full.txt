@@ -1,0 +1,25 @@
+--------- beginning of main
+         1789485295.509  6367  6367 I flutter : [IMPORTANT:flutter/shell/common/shell.cc(528)] [Action Required]: Impeller opt-out deprecated.
+         1789485295.509  6367  6367 I flutter :     The application opted out of Impeller by either using the
+         1789485295.509  6367  6367 I flutter :     `--no-enable-impeller` flag or the
+         1789485295.509  6367  6367 I flutter :     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
+         1789485295.509  6367  6367 I flutter :     These options are going to go away in an upcoming Flutter release. Remove
+         1789485295.509  6367  6367 I flutter :     the explicit opt-out. If you need to opt-out, please report a bug describing
+         1789485295.509  6367  6367 I flutter :     the issue.
+         1789485295.509  6367  6367 I flutter : 
+         1789485295.509  6367  6367 I flutter :     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+         1789485295.509  6367  6367 I flutter : 
+         1789485295.625  6367  6367 I flutter : QA_OUT_CREATE_FAIL: /dev/null_unused -> PathAccessException: Creation failed, path = '/dev/null_unused' (OS Error: Permission denied, errno = 13)
+         1789485295.625  6367  6367 I flutter : QA_MARKER|qa_started_perf
+         1789485315.019  6367  6367 I flutter : QA_JSONL|perf_ms.json|1789485315019001|0/1|{"input":"/data/local/tmp/muzhao_qa_tmp/in/perf_512.jpg","n":25,"ms":[666,662,682,696,688,681,699,710,694,702,697,716,687,704,698,700,701,684,705,701,713,690,698,698,707]}
+         1789485315.019  6367  6367 I flutter : QA_MARKER|done_perf
+         1789485322.497  6792  6792 I flutter : [IMPORTANT:flutter/shell/common/shell.cc(528)] [Action Required]: Impeller opt-out deprecated.
+         1789485322.497  6792  6792 I flutter :     The application opted out of Impeller by either using the
+         1789485322.497  6792  6792 I flutter :     `--no-enable-impeller` flag or the
+         1789485322.497  6792  6792 I flutter :     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
+         1789485322.497  6792  6792 I flutter :     These options are going to go away in an upcoming Flutter release. Remove
+         1789485322.497  6792  6792 I flutter :     the explicit opt-out. If you need to opt-out, please report a bug describing
+         1789485322.497  6792  6792 I flutter :     the issue.
+         1789485322.497  6792  6792 I flutter : 
+         1789485322.497  6792  6792 I flutter :     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+         1789485322.497  6792  6792 I flutter : 

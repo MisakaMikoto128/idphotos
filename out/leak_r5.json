@@ -1,0 +1,189 @@
+{
+ "n_rounds": 20,
+ "baseline_kb": 431605,
+ "settle_min_kb": 521583,
+ "peak_during_kb": 556127,
+ "delta_settle_kb": 89978,
+ "rounds": [
+  {
+   "round": 0,
+   "path": "C:\\Users\\liuyu\\Pictures\\1 (2).jpg",
+   "class": "portrait",
+   "load_ms": 2768,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789502978150
+  },
+  {
+   "round": 1,
+   "path": "C:\\Users\\liuyu\\Pictures\\1979d869c783fcc849d4e05b81eb809e.png",
+   "class": "multi_face",
+   "load_ms": 3129,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789502983807
+  },
+  {
+   "round": 2,
+   "path": "C:\\Users\\liuyu\\Pictures\\2.jpg",
+   "class": "portrait",
+   "load_ms": 2032,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789502988363
+  },
+  {
+   "round": 3,
+   "path": "C:\\Users\\liuyu\\Pictures\\20240710193717_7c99.jpg",
+   "class": "portrait",
+   "load_ms": 1274,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789502992160
+  },
+  {
+   "round": 4,
+   "path": "C:\\Users\\liuyu\\Pictures\\29EDA59B982FA8339335D50B00CCD096.jpg",
+   "class": "portrait",
+   "load_ms": 2824,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789502997506
+  },
+  {
+   "round": 5,
+   "path": "C:\\Users\\liuyu\\Pictures\\4e84ef7b8a910c776acd0eebb8293ee9.png",
+   "class": "multi_face",
+   "load_ms": 3141,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503003173
+  },
+  {
+   "round": 6,
+   "path": "C:\\Users\\liuyu\\Pictures\\8D861A29F86CE7464865EFEB3C9B4124 (自定义).jpg",
+   "class": "portrait",
+   "load_ms": 1278,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503006976
+  },
+  {
+   "round": 7,
+   "path": "C:\\Users\\liuyu\\Pictures\\8D861A29F86CE7464865EFEB3C9B4124.jpg",
+   "class": "portrait",
+   "load_ms": 2595,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503012094
+  },
+  {
+   "round": 8,
+   "path": "C:\\Users\\liuyu\\Pictures\\a.jpg",
+   "class": "portrait",
+   "load_ms": 1192,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503015810
+  },
+  {
+   "round": 9,
+   "path": "C:\\Users\\liuyu\\Pictures\\e9168d2cfe9045d07fac74e68419d211.png",
+   "class": "multi_face",
+   "load_ms": 3267,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503021602
+  },
+  {
+   "round": 10,
+   "path": "C:\\Users\\liuyu\\Pictures\\吴港+通信工程+532128200107160711.jpg",
+   "class": "portrait",
+   "load_ms": 1242,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503025368
+  },
+  {
+   "round": 11,
+   "path": "C:\\Users\\liuyu\\Pictures\\报名照片.jpg",
+   "class": "portrait",
+   "load_ms": 1161,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503029052
+  },
+  {
+   "round": 12,
+   "path": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\WIN_20230522_00_19_11_Pro.jpg",
+   "class": "portrait",
+   "load_ms": 1133,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503032707
+  },
+  {
+   "round": 13,
+   "path": "C:\\Users\\liuyu\\Pictures\\Camera Roll\\WIN_20230522_00_19_21_Pro.jpg",
+   "class": "portrait",
+   "load_ms": 1217,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503036448
+  },
+  {
+   "round": 14,
+   "path": "C:\\Users\\liuyu\\Pictures\\1 (2).jpg",
+   "class": "portrait",
+   "load_ms": 2709,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503041680
+  },
+  {
+   "round": 15,
+   "path": "C:\\Users\\liuyu\\Pictures\\1979d869c783fcc849d4e05b81eb809e.png",
+   "class": "multi_face",
+   "load_ms": 3170,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503047373
+  },
+  {
+   "round": 16,
+   "path": "C:\\Users\\liuyu\\Pictures\\2.jpg",
+   "class": "portrait",
+   "load_ms": 1892,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503051791
+  },
+  {
+   "round": 17,
+   "path": "C:\\Users\\liuyu\\Pictures\\20240710193717_7c99.jpg",
+   "class": "portrait",
+   "load_ms": 1250,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503055564
+  },
+  {
+   "round": 18,
+   "path": "C:\\Users\\liuyu\\Pictures\\29EDA59B982FA8339335D50B00CCD096.jpg",
+   "class": "portrait",
+   "load_ms": 2600,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503060686
+  },
+  {
+   "round": 19,
+   "path": "C:\\Users\\liuyu\\Pictures\\4e84ef7b8a910c776acd0eebb8293ee9.png",
+   "class": "multi_face",
+   "load_ms": 3129,
+   "stage": "ready",
+   "candidates": 6,
+   "t": 1789503066339
+  }
+ ]
+}

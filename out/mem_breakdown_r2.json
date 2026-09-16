@@ -1,0 +1,32 @@
+{
+ "peak_mb": 563.1,
+ "peak_t": 1789471682.4,
+ "peak_item_index": 16,
+ "peak_item_path": "C:\\Users\\liuyu\\Pictures\\Globe_High.png",
+ "top10_samples_mb": [
+  563.1,
+  553.0,
+  539.8,
+  535.2,
+  516.0,
+  509.3,
+  507.5,
+  507.3,
+  505.0,
+  504.7
+ ],
+ "pss_at_peak_item_begin_kb": 552708,
+ "dumpsys_at_peak": {
+  "file": "seq0026_t1789471682.txt",
+  "delta_t_s": 0.40000009536743164,
+  "categories_kb": {
+   "Java Heap": 6704,
+   "Native Heap": 326628,
+   "Code": 30396,
+   "Stack": 1212,
+   "Graphics": 0,
+   "Private Other": 202648,
+   "TOTAL PSS": 578043
+  }
+ }
+}

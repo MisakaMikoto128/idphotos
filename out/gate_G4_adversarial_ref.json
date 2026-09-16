@@ -1,0 +1,544 @@
+{
+ "generatedAt": "2026-09-15T16:20:07",
+ "sourceRefereeFile": "out/ADVERSARIAL_r1.json (59 用例全量) + out/ADVERSARIAL_r2.json (q01-q09 序列在 b2cb15d 修复后复验 20/20)",
+ "coverageNote": "adversarial r2 之后落地的 301434f(人脸门槛)/imaging 池化与回退/08144ab(解码) 未被对抗全套复验——gatekeeper 以 5 个针对性用例(c03/c05/c06/e09_lie_o6/m13)+随机 3 例在 HEAD 上设备复跑补覆盖（gate_G4.dart kTargetedAdversarialIds）。",
+ "mapping": "result done -> 三标记 false；result!=done -> crash/dataCorruption 记 true（宁误报不漏报）；序列用例无单一输入文件 -> spotRunnable=false; q04/q05/q09 的 no_response_over_5s 按 G4 r1 裁定映射 false（批量累计耗时口径，见各 case note）",
+ "totalCases": 59,
+ "crashes": 0,
+ "dataCorruptions": 0,
+ "unresponsiveOver5s": 0,
+ "r2SequenceReverifyCases": 9,
+ "cases": [
+  {
+   "caseId": "m01",
+   "sourcePath": "test/adversarial/fixtures/m01_zero_byte.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m02",
+   "sourcePath": "test/adversarial/fixtures/m02_text_as_jpg.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m03",
+   "sourcePath": "test/adversarial/fixtures/m03_truncated_jpg.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m04",
+   "sourcePath": "test/adversarial/fixtures/m04_png_corrupt_idat.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m05",
+   "sourcePath": "test/adversarial/fixtures/m05_png_bomb_header.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m06",
+   "sourcePath": "test/adversarial/fixtures/m06_png_bomb_7900.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m07",
+   "sourcePath": "test/adversarial/fixtures/m07_cmyk.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m08",
+   "sourcePath": "test/adversarial/fixtures/m08_16bit.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m09",
+   "sourcePath": "test/adversarial/fixtures/m09_anim.gif",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m10",
+   "sourcePath": "test/adversarial/fixtures/m10_anim.webp",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m11",
+   "sourcePath": "test/adversarial/fixtures/m11_multi.tif",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m12",
+   "sourcePath": "test/adversarial/fixtures/m12_fake.heic",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m13",
+   "sourcePath": "test/adversarial/fixtures/m13_jpg_trailing_garbage.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m14",
+   "sourcePath": "test/adversarial/fixtures/m14_png_as_jpg.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m15",
+   "sourcePath": "test/adversarial/fixtures/m15_exe_as_png.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "m16",
+   "sourcePath": "test/adversarial/fixtures/m16_中文文件名🙂.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s01",
+   "sourcePath": "test/adversarial/fixtures/s01_1x1.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s02",
+   "sourcePath": "test/adversarial/fixtures/s02_1x1.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s03",
+   "sourcePath": "test/adversarial/fixtures/s03_strip_20x8000.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s04",
+   "sourcePath": "test/adversarial/fixtures/s04_strip_8000x20.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s05",
+   "sourcePath": "test/adversarial/fixtures/s05_strip_1x8000.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s06",
+   "sourcePath": "test/adversarial/fixtures/s06_8000x6000.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s07",
+   "sourcePath": "test/adversarial/fixtures/s07_8001x100.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s08",
+   "sourcePath": "test/adversarial/fixtures/s08_12000x9000.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s09",
+   "sourcePath": "test/adversarial/fixtures/s09_square_600x600.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s10",
+   "sourcePath": "test/adversarial/fixtures/s10_2x3.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "s11",
+   "sourcePath": "test/adversarial/fixtures/s11_2049x2049.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c01",
+   "sourcePath": "test/adversarial/fixtures/c01_all_black.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c02",
+   "sourcePath": "test/adversarial/fixtures/c02_all_white.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c03",
+   "sourcePath": "test/adversarial/fixtures/c03_pure_noise.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c04",
+   "sourcePath": "test/adversarial/fixtures/c04_noisy_portrait.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c05",
+   "sourcePath": "test/adversarial/fixtures/c05_group.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c06",
+   "sourcePath": "test/adversarial/fixtures/c06_upside_down.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c07",
+   "sourcePath": "test/adversarial/fixtures/c07_half_face_edge.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c08",
+   "sourcePath": "test/adversarial/fixtures/c08_tiny_person.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c09",
+   "sourcePath": "test/adversarial/fixtures/c09_skin_tone.png",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c10",
+   "sourcePath": "test/adversarial/fixtures/c10_grayscale.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "c11",
+   "sourcePath": "test/adversarial/fixtures/c11_pale_portrait.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "g01",
+   "sourcePath": "test/adversarial/fixtures/g01.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e01_o1",
+   "sourcePath": "test/adversarial/fixtures/e01_o1.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e02_o2",
+   "sourcePath": "test/adversarial/fixtures/e02_o2.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e03_o3",
+   "sourcePath": "test/adversarial/fixtures/e03_o3.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e04_o4",
+   "sourcePath": "test/adversarial/fixtures/e04_o4.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e05_o5",
+   "sourcePath": "test/adversarial/fixtures/e05_o5.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e06_o6",
+   "sourcePath": "test/adversarial/fixtures/e06_o6.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e07_o7",
+   "sourcePath": "test/adversarial/fixtures/e07_o7.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e08_o8",
+   "sourcePath": "test/adversarial/fixtures/e08_o8.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e09_lie_o6",
+   "sourcePath": "test/adversarial/fixtures/e09_lie_o6.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e10_lie_o8",
+   "sourcePath": "test/adversarial/fixtures/e10_lie_o8.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "e11_o9_invalid",
+   "sourcePath": "test/adversarial/fixtures/e11_o9_invalid.jpg",
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": true,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "q01_load_during_load",
+   "sourcePath": null,
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": false,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "q02_spec_during_matting",
+   "sourcePath": null,
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": false,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "q03_crop_during_load",
+   "sourcePath": null,
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": false,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "q04_rapid_spec7",
+   "sourcePath": null,
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": false,
+   "note": "G4 r1 裁定：no_response_over_5s 标记是序列批量累计耗时口径（如 rapid_spec 7 次切规格共 5.7s），单操作均 <=4.0s（adversarial r1 报告分析），非单条无响应>5s。维持 r1 裁定。"
+  },
+  {
+   "caseId": "q05_extreme_crops",
+   "sourcePath": null,
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": false,
+   "note": "G4 r1 裁定：no_response_over_5s 标记是序列批量累计耗时口径（如 rapid_spec 7 次切规格共 5.7s），单操作均 <=4.0s（adversarial r1 报告分析），非单条无响应>5s。维持 r1 裁定。"
+  },
+  {
+   "caseId": "q06_save_x20",
+   "sourcePath": null,
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": false,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "q07_corrupt_then_valid",
+   "sourcePath": null,
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": false,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "q08_valid_corrupt_recover",
+   "sourcePath": null,
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": false,
+   "note": "r1 全量"
+  },
+  {
+   "caseId": "q09_stress_30",
+   "sourcePath": null,
+   "crash": false,
+   "dataCorruption": false,
+   "unresponsiveOver5s": false,
+   "spotRunnable": false,
+   "note": "G4 r1 裁定：no_response_over_5s 标记是序列批量累计耗时口径（如 rapid_spec 7 次切规格共 5.7s），单操作均 <=4.0s（adversarial r1 报告分析），非单条无响应>5s。维持 r1 裁定。"
+  }
+ ]
+}

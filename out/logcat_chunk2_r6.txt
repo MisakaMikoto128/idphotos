@@ -1,0 +1,472 @@
+--------- beginning of system
+09-15 20:48:04.913   576   878 D CompatibilityChangeReporter: Compat change id reported: 161252188; UID 10191; state: DISABLED
+09-15 20:48:04.913   576   878 W ActivityTaskManager: callingPackage for (uid=2000, pid=5078) has no WPC
+09-15 20:48:04.914   576   878 D CompatibilityChangeReporter: Compat change id reported: 265464455; UID 10191; state: DISABLED
+09-15 20:48:04.914   576   878 D CompatibilityChangeReporter: Compat change id reported: 265452344; UID 10191; state: DISABLED
+09-15 20:48:04.915   576   878 D CompatibilityChangeReporter: Compat change id reported: 266124927; UID 10191; state: DISABLED
+09-15 20:48:04.915   576   878 D CompatibilityChangeReporter: Compat change id reported: 265451093; UID 10191; state: DISABLED
+09-15 20:48:04.915   576   878 D CompatibilityChangeReporter: Compat change id reported: 265456536; UID 10191; state: DISABLED
+09-15 20:48:04.915   576   878 D CompatibilityChangeReporter: Compat change id reported: 255940284; UID 10191; state: DISABLED
+09-15 20:48:04.915   576   878 D CompatibilityChangeReporter: Compat change id reported: 236283604; UID 10191; state: DISABLED
+09-15 20:48:04.915   576   878 D CompatibilityChangeReporter: Compat change id reported: 263959004; UID 10191; state: DISABLED
+09-15 20:48:04.916   576   878 D CompatibilityChangeReporter: Compat change id reported: 264304459; UID 10191; state: DISABLED
+09-15 20:48:04.916   576   878 D CompatibilityChangeReporter: Compat change id reported: 264301586; UID 10191; state: DISABLED
+09-15 20:48:04.916   576   878 D CompatibilityChangeReporter: Compat change id reported: 254631730; UID 10191; state: DISABLED
+09-15 20:48:04.916   576   878 D CompatibilityChangeReporter: Compat change id reported: 273509367; UID 10191; state: DISABLED
+09-15 20:48:04.916   576   878 D CompatibilityChangeReporter: Compat change id reported: 263259275; UID 10191; state: DISABLED
+09-15 20:48:04.916   576   878 D CompatibilityChangeReporter: Compat change id reported: 174042980; UID 10191; state: DISABLED
+09-15 20:48:04.916   576   878 D CompatibilityChangeReporter: Compat change id reported: 174042936; UID 10191; state: DISABLED
+09-15 20:48:04.917   576   878 D CompatibilityChangeReporter: Compat change id reported: 181136395; UID 10191; state: DISABLED
+09-15 20:48:04.917   576   878 D CompatibilityChangeReporter: Compat change id reported: 194480991; UID 10191; state: ENABLED
+09-15 20:48:04.920   576   878 D CompatibilityChangeReporter: Compat change id reported: 184838306; UID 10191; state: DISABLED
+09-15 20:48:04.920   576   878 D CompatibilityChangeReporter: Compat change id reported: 185004937; UID 10191; state: DISABLED
+09-15 20:48:04.921   576   878 D CompatibilityChangeReporter: Compat change id reported: 205907456; UID 10191; state: ENABLED
+09-15 20:48:04.923   802   849 V WindowManagerShell: Transition requested: android.os.BinderProxy@765d7ec TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=394 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=157884 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@aaf07b5} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{bdd9e4a com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 20:48:04.923   576   878 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity (has extras)} with LAUNCH_SINGLE_TOP from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+09-15 20:48:04.925   576   607 D CompatibilityChangeReporter: Compat change id reported: 135634846; UID 10191; state: DISABLED
+09-15 20:48:04.925   576   619 D CompatibilityChangeReporter: Compat change id reported: 143937733; UID 10191; state: ENABLED
+09-15 20:48:04.927   576   600 D CompatibilityChangeReporter: Compat change id reported: 168419799; UID 10191; state: DISABLED
+09-15 20:48:04.927   576   600 D CompatibilityChangeReporter: Compat change id reported: 273564678; UID 10191; state: DISABLED
+09-15 20:48:04.930   576   659 D CompatibilityChangeReporter: Compat change id reported: 265195908; UID 10191; state: ENABLED
+--------- beginning of main
+09-15 20:48:04.933   802   861 D SplashScreenView: Build android.window.SplashScreenView{3113884 V.E...... ......ID 0,0-0,0}
+09-15 20:48:04.933   802   861 D SplashScreenView: Icon: view: android.widget.ImageView{7a5786d V.ED..... ......I. 0,0-0,0 #10204f0 android:id/splashscreen_icon_view} drawable: com.android.wm.shell.startingsurface.SplashscreenIconDrawableFactory$ImmobileIconDrawable@d73aca2 size: 440
+09-15 20:48:04.933   802   861 D SplashScreenView: Branding: view: android.view.View{260d33 G.ED..... ......I. 0,0-0,0 #10204ef android:id/splashscreen_branding_view} drawable: null size w: 0 h: 0
+09-15 20:48:04.934   432   432 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+09-15 20:48:04.934   380   380 D Zygote  : Forked child process 5081
+09-15 20:48:04.935   576   619 I ActivityManager: Start proc 5081:com.muzhao.muzhao/u0a191 for next-top-activity {com.muzhao.muzhao/com.muzhao.muzhao.MainActivity}
+09-15 20:48:04.937   576  2319 D CoreBackPreview: Window{fa17dcd u0 Splash Screen com.muzhao.muzhao}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@8800193, mPriority=0, mIsAnimationCallback=false}
+09-15 20:48:04.967   576   604 V WindowManager: Sent Transition #10 createdAt=09-15 20:48:04.918 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=394 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=157884 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{b1f23ef Task{a49d991 #394 type=standard I=com.muzhao.muzhao/.MainActivity}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{30f4efc com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 20:48:04.967   576   604 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+09-15 20:48:04.967   576   604 V WindowManager:     info={id=10 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{b1f23ef Task{a49d991 #394 type=standard I=com.muzhao.muzhao/.MainActivity}}} m=OPEN f=NONE leash=Surface(name=Task=394)/@0x65529c9 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{RemoteToken{3ba9fe2 Task{a2c9481 #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xba882a5 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:48:04.967   802   849 V WindowManagerShell: onTransitionReady android.os.BinderProxy@765d7ec: {id=10 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@cdd5608} m=OPEN f=NONE leash=Surface(name=Task=394)/@0x6724825 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@ca441a1} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x2422dfa sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:48:04.968   802   849 V WindowManagerShell: Playing animation for (#10)android.os.BinderProxy@765d7ec@0
+09-15 20:48:04.968   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultMixedHandler@38f1533
+09-15 20:48:04.968   802   849 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@4d3c0f0
+09-15 20:48:04.968   802   849 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@c927669
+09-15 20:48:04.968   802   849 V WindowManagerShell:  try handler com.android.wm.shell.recents.RecentsTransitionHandler@8a698ee
+09-15 20:48:04.969   802   849 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+09-15 20:48:04.969   802   849 V WindowManagerShell:  try handler com.android.wm.shell.pip.PipTransition@79bd18f
+09-15 20:48:04.969   802   849 V WindowManagerShell:  try handler com.android.wm.shell.splitscreen.StageCoordinator@acbfc1c
+09-15 20:48:04.969   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@9531025
+09-15 20:48:04.969   802   849 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=10 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@cdd5608} m=OPEN f=NONE leash=Surface(name=Task=394)/@0x6724825 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@ca441a1} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x2422dfa sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:48:04.969   802   849 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@8e755fa, appThread = android.app.IApplicationThread$Stub$Proxy@df7ab, debugName = LauncherToDream }}
+09-15 20:48:04.970   802   849 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@aabe08, appThread = android.app.IApplicationThread$Stub$Proxy@c989a1, debugName = QuickstepLaunchHome }}
+09-15 20:48:04.970   802   849 V WindowManagerShell:  Delegate animation for #10 to null
+09-15 20:48:04.970   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@144d7c6
+09-15 20:48:04.970   802   849 V WindowManagerShell: start default transition animation, info = {id=10 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@cdd5608} m=OPEN f=NONE leash=Surface(name=Task=394)/@0x6724825 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@ca441a1} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x2422dfa sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:48:04.971   802   849 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@4848252 animAttr=0x13 type=OPEN isEntrance=false
+09-15 20:48:04.971   802   849 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@9c4719e animAttr=0x12 type=OPEN isEntrance=true
+09-15 20:48:04.972   802   849 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@144d7c6
+09-15 20:48:04.974  5081  5081 I m.muzhao.muzhao: Late-enabling -Xcheck:jni
+09-15 20:48:04.979  1093  1708 D EGL_emulation: app_time_stats: avg=271.53ms min=7.27ms max=1993.55ms count=8
+09-15 20:48:04.994   802   897 D EGL_emulation: app_time_stats: avg=226.08ms min=4.41ms max=1954.64ms count=9
+09-15 20:48:04.998  5081  5081 I m.muzhao.muzhao: Using CollectorTypeCC GC.
+09-15 20:48:04.999  5081  5081 W m.muzhao.muzhao: Unexpected CPU variant for x86: x86_64.
+09-15 20:48:04.999  5081  5081 W m.muzhao.muzhao: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+09-15 20:48:05.027   461   482 I adbd    : jdwp connection from 5081
+09-15 20:48:05.032   576  2319 W ActivityTaskManager: takeTaskSnapshot: taskId=319 not found or not visible
+09-15 20:48:05.032   576  2319 W ActivityTaskManager: takeTaskSnapshot: taskId=327 not found or not visible
+09-15 20:48:05.086  5081  5081 D CompatibilityChangeReporter: Compat change id reported: 171979766; UID 10191; state: ENABLED
+09-15 20:48:05.087  5081  5081 D CompatibilityChangeReporter: Compat change id reported: 242716250; UID 10191; state: ENABLED
+09-15 20:48:05.093   576   650 D CompatibilityChangeReporter: Compat change id reported: 170503758; UID 10191; state: ENABLED
+09-15 20:48:05.098  5081  5081 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+09-15 20:48:05.098  5081  5081 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+09-15 20:48:05.099  5081  5081 W ziparchive: Unable to open '/data/app/~~ckde2bQzQW-uBZ4ef6KY9g==/com.muzhao.muzhao-QU7g7SKhqM3gwicFK6MaEw==/base.dm': No such file or directory
+09-15 20:48:05.099  5081  5081 W ziparchive: Unable to open '/data/app/~~ckde2bQzQW-uBZ4ef6KY9g==/com.muzhao.muzhao-QU7g7SKhqM3gwicFK6MaEw==/base.dm': No such file or directory
+09-15 20:48:05.201   802   897 D EGL_emulation: app_time_stats: avg=70.89ms min=12.97ms max=649.32ms count=16
+09-15 20:48:05.264  5081  5081 D nativeloader: Configuring clns-6 for other apk /data/app/~~ckde2bQzQW-uBZ4ef6KY9g==/com.muzhao.muzhao-QU7g7SKhqM3gwicFK6MaEw==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~ckde2bQzQW-uBZ4ef6KY9g==/com.muzhao.muzhao-QU7g7SKhqM3gwicFK6MaEw==/lib/x86_64:/data/app/~~ckde2bQzQW-uBZ4ef6KY9g==/com.muzhao.muzhao-QU7g7SKhqM3gwicFK6MaEw==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.muzhao.muzhao
+09-15 20:48:05.267   802   849 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#10)android.os.BinderProxy@765d7ec@0
+09-15 20:48:05.268   576   604 V WindowManager: Finish Transition #10: created at 09-15 20:48:04.918 collect-started=0.046ms request-sent=4.685ms started=6.096ms ready=46.456ms sent=48.353ms finished=349.82ms
+09-15 20:48:05.269   802   849 V WindowManagerShell: Track 0 became idle
+09-15 20:48:05.269   802   849 V WindowManagerShell: All active transition animations finished
+09-15 20:48:05.275  5081  5081 V GraphicsEnvironment: Currently set values for:
+09-15 20:48:05.276  5081  5081 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+09-15 20:48:05.276  5081  5081 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+09-15 20:48:05.276  5081  5081 V GraphicsEnvironment: ANGLE GameManagerService for com.muzhao.muzhao: false
+09-15 20:48:05.276  5081  5081 V GraphicsEnvironment: com.muzhao.muzhao is not listed in per-application setting
+09-15 20:48:05.277  5081  5081 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+09-15 20:48:05.313   576  2319 I ActivityManager: Flag disabled. Ignoring finishAttachApplication from uid: 10191. pid: 5081
+09-15 20:48:05.321  5081  5103 D libEGL  : loaded /vendor/lib64/egl/libEGL_emulation.so
+09-15 20:48:05.323  5081  5103 D libEGL  : loaded /vendor/lib64/egl/libGLESv1_CM_emulation.so
+09-15 20:48:05.325  5081  5103 D libEGL  : loaded /vendor/lib64/egl/libGLESv2_emulation.so
+09-15 20:48:05.327   576   760 D SntpClient: request time failed: java.net.SocketTimeoutException: Poll timed out
+09-15 20:48:05.327   576   760 D TrafficStats: tagSocket(398) with statsTag=0xffffff41, statsUid=-1
+09-15 20:48:05.345  5081  5081 I FlutterActivityAndFragmentDelegate: If you are attempting to set --enable-impeller= via Intent extras to launch a Flutter component outside of using the Flutter CLI, note that support for setting engine flags on Android via Intent will soon be dropped; see https://github.com/flutter/flutter/issues/180686 for more information on this breaking change. To migrate, set --enable-impeller= or any other flags specified via Intent extras on the command line instead or see https://github.com/flutter/flutter/blob/main/docs/engine/Flutter-Android-Engine-Flags.md for alternative methods.
+09-15 20:48:05.361  5081  5105 I ResourceExtractor: Found extracted resources res_timestamp-1-1789505191700
+09-15 20:48:05.362  5081  5104 D FlutterJNI: Beginning load of flutter...
+09-15 20:48:05.371  5081  5104 D FlutterJNI: flutter (null) was loaded normally!
+09-15 20:48:05.375  5081  5106 D skia    : [SkFontMgr Android Parser] '/product/etc/fonts_customization.xml' could not be opened
+09-15 20:48:05.412  5081  5081 W m.muzhao.muzhao: type=1400 audit(0.0:23): avc:  denied  { read } for  name="max_map_count" dev="proc" ino=51911 scontext=u:r:untrusted_app:s0:c191,c256,c512,c768 tcontext=u:object_r:proc_max_map_count:s0 tclass=file permissive=0 app=com.muzhao.muzhao
+09-15 20:48:05.420  5081  5081 I flutter : [IMPORTANT:flutter/shell/common/shell.cc(528)] [Action Required]: Impeller opt-out deprecated.
+09-15 20:48:05.420  5081  5081 I flutter :     The application opted out of Impeller by either using the
+09-15 20:48:05.420  5081  5081 I flutter :     `--no-enable-impeller` flag or the
+09-15 20:48:05.420  5081  5081 I flutter :     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
+09-15 20:48:05.420  5081  5081 I flutter :     These options are going to go away in an upcoming Flutter release. Remove
+09-15 20:48:05.420  5081  5081 I flutter :     the explicit opt-out. If you need to opt-out, please report a bug describing
+09-15 20:48:05.420  5081  5081 I flutter :     the issue.
+09-15 20:48:05.420  5081  5081 I flutter : 
+09-15 20:48:05.420  5081  5081 I flutter :     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+09-15 20:48:05.420  5081  5081 I flutter : 
+09-15 20:48:05.571  5081  5113 I flutter : The Dart VM service is listening on http://127.0.0.1:39639/LRKoHclbAgc=/
+09-15 20:48:05.583   576   668 D ActivityManager: freezing 1997 com.google.android.onetimeinitializer
+09-15 20:48:05.653  1733  2179 D TrafficStats: tagSocket(72) with statsTag=0x8003, statsUid=-1
+09-15 20:48:05.705   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:05.768  5081  5081 W m.muzhao.muzhao: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (unsupported,test-api, reflection, allowed)
+09-15 20:48:05.768  5081  5081 W m.muzhao.muzhao: Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (unsupported, reflection, allowed)
+09-15 20:48:05.768  5081  5081 W m.muzhao.muzhao: Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (unsupported, reflection, allowed)
+09-15 20:48:05.768  5081  5081 W m.muzhao.muzhao: Accessing hidden method Landroid/util/LongArray;->get(I)J (unsupported, reflection, allowed)
+09-15 20:48:05.776  5081  5081 D AccessibilityBridge: Setting not found: accessibility_display_inversion_enabled, using default: 0
+09-15 20:48:05.793  5081  5081 D FlutterRenderer: Width is zero. 0,0
+09-15 20:48:05.810  5081  5081 D CompatibilityChangeReporter: Compat change id reported: 237531167; UID 10191; state: DISABLED
+09-15 20:48:05.812  5081  5081 W OpenGLRenderer: Unknown dataspace 0
+09-15 20:48:06.021  5081  5081 I flutter : QA_MARKER|qa_started_batch
+09-15 20:48:06.032  5081  5081 I Choreographer: Skipped 43 frames!  The application may be doing too much work on its main thread.
+09-15 20:48:06.126  5081  5081 D FlutterRenderer: Width is zero. 0,0
+09-15 20:48:06.127   576  2319 D CoreBackPreview: Window{655fb5c u0 com.muzhao.muzhao/com.muzhao.muzhao.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@ce61fc7, mPriority=0, mIsAnimationCallback=false}
+09-15 20:48:06.133  5081  5081 D FlutterJNI: Sending viewport metrics to the engine.
+09-15 20:48:06.140  5081  5101 W OpenGLRenderer: Failed to initialize 101010-2 format, error = EGL_SUCCESS
+09-15 20:48:06.144   181   181 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+09-15 20:48:06.144  5081  5107 I Gralloc4: mapper 4.x is not supported
+--------- beginning of kernel
+09-15 20:48:06.127     0     0 I servicemanager: Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+09-15 20:48:06.217   802   897 D EGL_emulation: app_time_stats: avg=15.28ms min=6.50ms max=42.29ms count=60
+09-15 20:48:06.419   576  2319 D ActivityManager: freezer override set to true
+09-15 20:48:06.425   576  2319 D ActivityManager: sync unfroze 1997 com.google.android.onetimeinitializer for 19
+09-15 20:48:06.491  5081  5096 I m.muzhao.muzhao: Explicit concurrent copying GC freed 13385(1017KB) AllocSpace objects, 0(0B) LOS objects, 49% free, 2636KB/5273KB, paused 331us,69us total 16.972ms
+09-15 20:48:06.531   576  2319 D ActivityManager: freezer override set to false
+09-15 20:48:06.602  5081  5081 D FlutterJNI: Sending viewport metrics to the engine.
+09-15 20:48:06.715   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:07.014  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287013001|0/1|{"event":"begin","i":40,"t":1789505286991}
+09-15 20:48:07.089   576  1666 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+09-15 20:48:07.093  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287093002|0/1|{"event":"item","rec":{"i":40,"path":"C:\\Users\\liuyu\\Pictures\\Lightroom\\Lightroom Catalog Previews.lrdata\\previews.db","class":"non_image","device_file":"item_040.db","file_bytes":118784,"engine":{"matting_ms":32,"matting_error":"UnsupportedImageException: 这个图片格式打不开","matting_error_type":"UnsupportedImageException","message_zh":"这个图片格式打不开","matting_stack_head":"#0      decodeToRgb (package:muzhao/core/matting/image_ops.dart:164:5) | #1      runMattingSync (package:muzhao/core/matting/matting_worker.dart:126:17) | #2      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18) | #3      _RemoteRunner._run (dart:isolate:1234:47)"},"controller":{"load_ms":13,"stage":"error","error_message":"这个图片格式打不开","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":61,"t_done":1789505287076}}
+09-15 20:48:07.114  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287114003|0/1|{"event":"begin","i":41,"t":1789505287093}
+09-15 20:48:07.154  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287154004|0/1|{"event":"item","rec":{"i":41,"path":"C:\\Users\\liuyu\\Pictures\\Lightroom\\Lightroom Catalog Previews.lrdata\\root-pixels.db","class":"non_image","device_file":"item_041.db","file_bytes":32768,"engine":{"matting_ms":4,"matting_error":"UnsupportedImageException: 这个图片格式打不开","matting_error_type":"UnsupportedImageException","message_zh":"这个图片格式打不开","matting_stack_head":"#0      decodeToRgb (package:muzhao/core/matting/image_ops.dart:164:5) | #1      runMattingSync (package:muzhao/core/matting/matting_worker.dart:126:17) | #2      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18) | #3      _RemoteRunner._run (dart:isolate:1234:47)"},"controller":{"load_ms":3,"stage":"error","error_message":"这个图片格式打不开","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":23,"t_done":1789505287138}}
+09-15 20:48:07.169  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287169005|0/1|{"event":"begin","i":42,"t":1789505287154}
+09-15 20:48:07.210  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287210006|0/1|{"event":"item","rec":{"i":42,"path":"C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\Luminar Neo Catalog.luminarneo","class":"non_image","device_file":"item_042.luminarneo","file_bytes":204800,"engine":{"matting_ms":5,"matting_error":"UnsupportedImageException: 这个图片格式打不开","matting_error_type":"UnsupportedImageException","message_zh":"这个图片格式打不开","matting_stack_head":"#0      decodeToRgb (package:muzhao/core/matting/image_ops.dart:164:5) | #1      runMattingSync (package:muzhao/core/matting/matting_worker.dart:126:17) | #2      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18) | #3      _RemoteRunner._run (dart:isolate:1234:47)"},"controller":{"load_ms":2,"stage":"error","error_message":"这个图片格式打不开","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":23,"t_done":1789505287193}}
+09-15 20:48:07.226  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287225007|0/1|{"event":"begin","i":43,"t":1789505287210}
+09-15 20:48:07.265  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287265008|0/1|{"event":"item","rec":{"i":43,"path":"C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\map.dat","class":"non_image","device_file":"item_043.dat","file_bytes":0,"engine":{"matting_ms":5,"matting_error":"UnsupportedImageException: 这个图片格式打不开","matting_error_type":"UnsupportedImageException","message_zh":"这个图片格式打不开","matting_stack_head":"#0      decodeToRgb (package:muzhao/core/matting/image_ops.dart:151:5) | #1      runMattingSync (package:muzhao/core/matting/matting_worker.dart:126:17) | #2      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18) | #3      _RemoteRunner._run (dart:isolate:1234:47)"},"controller":{"load_ms":3,"stage":"error","error_message":"这个图片格式打不开","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":24,"t_done":1789505287251}}
+09-15 20:48:07.281  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287281009|0/1|{"event":"begin","i":44,"t":1789505287266}
+09-15 20:48:07.322  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287322010|0/1|{"event":"item","rec":{"i":44,"path":"C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\vectors.dat","class":"non_image","device_file":"item_044.dat","file_bytes":8,"engine":{"matting_ms":3,"matting_error":"UnsupportedImageException: 这个图片格式打不开","matting_error_type":"UnsupportedImageException","message_zh":"这个图片格式打不开","matting_stack_head":"#0      decodeToRgb (package:muzhao/core/matting/image_ops.dart:164:5) | #1      runMattingSync (package:muzhao/core/matting/matting_worker.dart:126:17) | #2      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18) | #3      _RemoteRunner._run (dart:isolate:1234:47)"},"controller":{"load_ms":4,"stage":"error","error_message":"这个图片格式打不开","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":25,"t_done":1789505287307}}
+09-15 20:48:07.338  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287338011|0/1|{"event":"begin","i":45,"t":1789505287322}
+09-15 20:48:07.378  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287378012|0/1|{"event":"item","rec":{"i":45,"path":"C:\\Users\\liuyu\\Pictures\\Luminar Neo Catalog\\Sample Images\\scenario.json","class":"non_image","device_file":"item_045.json","file_bytes":15287,"engine":{"matting_ms":5,"matting_error":"UnsupportedImageException: 这个图片格式打不开","matting_error_type":"UnsupportedImageException","message_zh":"这个图片格式打不开","matting_stack_head":"#0      decodeToRgb (package:muzhao/core/matting/image_ops.dart:164:5) | #1      runMattingSync (package:muzhao/core/matting/matting_worker.dart:126:17) | #2      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18) | #3      _RemoteRunner._run (dart:isolate:1234:47)"},"controller":{"load_ms":3,"stage":"error","error_message":"这个图片格式打不开","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":23,"t_done":1789505287362}}
+09-15 20:48:07.393  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287393013|0/1|{"event":"begin","i":46,"t":1789505287378}
+09-15 20:48:07.433  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287433014|0/1|{"event":"item","rec":{"i":46,"path":"C:\\Users\\liuyu\\Pictures\\Saved Pictures\\desktop.ini","class":"non_image","device_file":"item_046.ini","file_bytes":92,"engine":{"matting_ms":4,"matting_error":"UnsupportedImageException: 这个图片格式打不开","matting_error_type":"UnsupportedImageException","message_zh":"这个图片格式打不开","matting_stack_head":"#0      decodeToRgb (package:muzhao/core/matting/image_ops.dart:164:5) | #1      runMattingSync (package:muzhao/core/matting/matting_worker.dart:126:17) | #2      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18) | #3      _RemoteRunner._run (dart:isolate:1234:47)"},"controller":{"load_ms":2,"stage":"error","error_message":"这个图片格式打不开","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":23,"t_done":1789505287417}}
+09-15 20:48:07.450  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287450015|0/1|{"event":"begin","i":47,"t":1789505287433}
+09-15 20:48:07.489  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287489016|0/1|{"event":"item","rec":{"i":47,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\desktop.ini","class":"non_image","device_file":"item_047.ini","file_bytes":190,"engine":{"matting_ms":4,"matting_error":"UnsupportedImageException: 这个图片格式打不开","matting_error_type":"UnsupportedImageException","message_zh":"这个图片格式打不开","matting_stack_head":"#0      decodeToRgb (package:muzhao/core/matting/image_ops.dart:164:5) | #1      runMattingSync (package:muzhao/core/matting/matting_worker.dart:126:17) | #2      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18) | #3      _RemoteRunner._run (dart:isolate:1234:47)"},"controller":{"load_ms":3,"stage":"error","error_message":"这个图片格式打不开","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":23,"t_done":1789505287474}}
+09-15 20:48:07.505  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505287505017|0/1|{"event":"begin","i":48,"t":1789505287489}
+09-15 20:48:07.801   576   668 D ActivityManager: freezing 2036 com.android.localtransport
+09-15 20:48:07.802   576   668 D ActivityManager: freezing 3019 com.android.imsserviceentitlement
+09-15 20:48:07.803   576   668 D ActivityManager: freezing 3076 com.android.camera2
+09-15 20:48:07.804   576   668 D ActivityManager: freezing 3122 com.android.dynsystem
+09-15 20:48:07.804   576   668 D ActivityManager: freezing 3199 com.android.dynsystem:dynsystem
+09-15 20:48:07.805   576   668 D ActivityManager: freezing 3396 com.google.android.configupdater
+09-15 20:48:07.805   576   668 D ActivityManager: freezing 3321 com.google.android.apps.docs
+09-15 20:48:07.806   576   668 D ActivityManager: freezing 1733 com.google.android.apps.youtube.music
+09-15 20:48:07.808   576   668 D ActivityManager: freezing 1811 com.android.keychain
+09-15 20:48:07.809   576   668 D ActivityManager: freezing 1011 com.android.settings
+09-15 20:48:07.810   576   668 D ActivityManager: freezing 1526 com.google.android.apps.wellbeing
+09-15 20:48:07.811   576   668 D ActivityManager: freezing 3852 com.google.android.settings.intelligence
+09-15 20:48:07.812   576   668 D ActivityManager: freezing 1906 com.google.process.gapps
+09-15 20:48:07.813   576   668 D ActivityManager: freezing 1464 android.process.acore
+09-15 20:48:08.595   576  2319 D ActivityManager: freezer override set to true
+09-15 20:48:08.596   576  2319 D ActivityManager: sync unfroze 2036 com.android.localtransport for 19
+09-15 20:48:08.596   576  2319 D ActivityManager: sync unfroze 3019 com.android.imsserviceentitlement for 19
+09-15 20:48:08.596   576  2319 D ActivityManager: sync unfroze 3076 com.android.camera2 for 19
+09-15 20:48:08.596   576  2319 D ActivityManager: sync unfroze 3122 com.android.dynsystem for 19
+09-15 20:48:08.596   576  2319 D ActivityManager: sync unfroze 3199 com.android.dynsystem:dynsystem for 19
+09-15 20:48:08.597   576  2319 D ActivityManager: sync unfroze 3396 com.google.android.configupdater for 19
+09-15 20:48:08.597   576  2319 D ActivityManager: sync unfroze 3321 com.google.android.apps.docs for 19
+09-15 20:48:08.598   576  2319 D ActivityManager: sync unfroze 1733 com.google.android.apps.youtube.music for 19
+09-15 20:48:08.598   576  2319 D ActivityManager: sync unfroze 1811 com.android.keychain for 19
+09-15 20:48:08.598   576  2319 D ActivityManager: sync unfroze 1011 com.android.settings for 19
+09-15 20:48:08.598   576  2319 D ActivityManager: sync unfroze 1526 com.google.android.apps.wellbeing for 19
+09-15 20:48:08.599   576  2319 D ActivityManager: sync unfroze 3852 com.google.android.settings.intelligence for 19
+09-15 20:48:08.599   576  2319 D ActivityManager: sync unfroze 1906 com.google.process.gapps for 19
+09-15 20:48:08.599   576  2319 D ActivityManager: sync unfroze 1464 android.process.acore for 19
+09-15 20:48:08.623  5081  5096 I m.muzhao.muzhao: Explicit concurrent copying GC freed 4066(213KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2647KB/5294KB, paused 410us,52us total 6.067ms
+09-15 20:48:08.643   576  2319 D ActivityManager: freezer override set to false
+09-15 20:48:08.717   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:08.830  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505288830018|0/1|{"event":"item","rec":{"i":48,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-07-26 172208.png","class":"screenshot","device_file":"item_048.png","file_bytes":33291,"engine":{"matting_ms":883,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":396,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":1297,"
+09-15 20:48:08.845  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505288845019|0/1|{"event":"begin","i":49,"t":1789505288830}
+09-15 20:48:09.228   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:09.721   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:09.730  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505289730020|0/1|{"event":"item","rec":{"i":49,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-09-07 151043.png","class":"screenshot","device_file":"item_049.png","file_bytes":697324,"engine":{"matting_ms":424,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":423,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":868,"
+09-15 20:48:09.745  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505289745021|0/1|{"event":"begin","i":50,"t":1789505289730}
+09-15 20:48:09.910   576   668 D ActivityManager: freezing 3794 com.google.android.rkpdapp
+09-15 20:48:09.911   576   668 D ActivityManager: freezing 2014 android.process.media
+09-15 20:48:09.912   576   668 D ActivityManager: freezing 3647 com.google.android.gm
+09-15 20:48:09.912   576   668 D ActivityManager: freezing 4233 com.android.emergency
+09-15 20:48:09.913   576   668 D ActivityManager: freezing 1783 com.android.traceur
+09-15 20:48:09.914   576   668 D ActivityManager: freezing 1185 com.google.android.cellbroadcastreceiver
+09-15 20:48:09.914   576   668 D ActivityManager: freezing 3733 com.google.android.partnersetup
+09-15 20:48:09.915   576   668 D ActivityManager: freezing 1353 com.google.android.permissioncontroller
+09-15 20:48:09.915   576   668 D ActivityManager: freezing 1913 com.google.android.apps.photos
+09-15 20:48:10.246  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505290245022|0/1|{"event":"item","rec":{"i":50,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-09-09 105351.png","class":"screenshot","device_file":"item_050.png","file_bytes":56373,"engine":{"matting_ms":220,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":248,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":484,"t
+09-15 20:48:10.261  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505290261023|0/1|{"event":"begin","i":51,"t":1789505290246}
+09-15 20:48:10.329   576   760 D SntpClient: request time failed: java.net.SocketTimeoutException: Poll timed out
+09-15 20:48:10.330   576   760 D SntpClient: request time failed
+09-15 20:48:10.715   576  2319 D ActivityManager: freezer override set to true
+09-15 20:48:10.715   576  2319 D ActivityManager: sync unfroze 3794 com.google.android.rkpdapp for 19
+09-15 20:48:10.716   576  2319 D ActivityManager: sync unfroze 2014 android.process.media for 19
+09-15 20:48:10.716   576  2319 D ActivityManager: sync unfroze 3647 com.google.android.gm for 19
+09-15 20:48:10.716   576  2319 D ActivityManager: sync unfroze 4233 com.android.emergency for 19
+09-15 20:48:10.716   576  2319 D ActivityManager: sync unfroze 1783 com.android.traceur for 19
+09-15 20:48:10.716   576  2319 D ActivityManager: sync unfroze 1185 com.google.android.cellbroadcastreceiver for 19
+09-15 20:48:10.717   576  2319 D ActivityManager: sync unfroze 3733 com.google.android.partnersetup for 19
+09-15 20:48:10.717   576  2319 D ActivityManager: sync unfroze 1353 com.google.android.permissioncontroller for 19
+09-15 20:48:10.717   576  2319 D ActivityManager: sync unfroze 1913 com.google.android.apps.photos for 19
+09-15 20:48:10.743  5081  5096 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3425(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2647KB/5294KB, paused 265us,35us total 4.918ms
+09-15 20:48:10.761   576  2319 D ActivityManager: freezer override set to false
+09-15 20:48:10.821  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505290821024|0/1|{"event":"item","rec":{"i":51,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-10-21 203504.png","class":"screenshot","device_file":"item_051.png","file_bytes":165026,"engine":{"matting_ms":235,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":292,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":544,"
+09-15 20:48:10.837  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505290837025|0/1|{"event":"begin","i":52,"t":1789505290822}
+09-15 20:48:11.055   877  4983 D NetworkMonitor/100: PROBE_HTTPS https://www.google.com/generate_204 Probe failed with exception java.net.SocketTimeoutException: failed to connect to www.google.com/2001::1 (port 443) from /fec0::5054:ff:fe12:3456 (port 34278) after 10000ms
+09-15 20:48:11.168  5081  5140 D ProfileInstaller: Installing profile for com.muzhao.muzhao
+09-15 20:48:11.397  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505291397026|0/1|{"event":"item","rec":{"i":52,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-10-21 210032.png","class":"screenshot","device_file":"item_052.png","file_bytes":169825,"engine":{"matting_ms":280,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":249,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":545,"
+09-15 20:48:11.414  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505291414027|0/1|{"event":"begin","i":53,"t":1789505291397}
+09-15 20:48:11.728   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:11.926  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505291925028|0/1|{"event":"item","rec":{"i":53,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2023-11-14 113737.png","class":"screenshot","device_file":"item_053.png","file_bytes":8004,"engine":{"matting_ms":266,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":207,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":490,"t_
+09-15 20:48:11.941  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505291941029|0/1|{"event":"begin","i":54,"t":1789505291926}
+09-15 20:48:12.133   576   668 D ActivityManager: freezing 1919 com.google.android.projection.gearhead:shared
+09-15 20:48:12.134   576   668 D ActivityManager: freezing 2522 com.google.android.apps.wallpaper
+09-15 20:48:12.135   576   668 D ActivityManager: freezing 3394 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+09-15 20:48:12.135   576   668 D ActivityManager: freezing 3228 com.android.providers.calendar
+09-15 20:48:12.136   576   668 D ActivityManager: freezing 1309 com.google.android.deskclock
+09-15 20:48:12.136   576   668 D ActivityManager: freezing 3241 com.android.chrome:privileged_process0
+09-15 20:48:12.137   576   668 D ActivityManager: freezing 2877 com.android.chrome
+09-15 20:48:12.138   576   668 D ActivityManager: freezing 3877 com.google.android.youtube
+09-15 20:48:12.139   576   668 D ActivityManager: freezing 4313 com.google.android.healthconnect.controller
+09-15 20:48:12.139   576   668 D ActivityManager: freezing 4280 com.google.android.gms.ui
+09-15 20:48:12.140   576   668 D ActivityManager: freezing 3448 com.google.android.contacts
+09-15 20:48:12.454  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505292454030|0/1|{"event":"item","rec":{"i":54,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-01-26 112901.png","class":"screenshot","device_file":"item_054.png","file_bytes":109156,"engine":{"matting_ms":240,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":240,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":496,"
+09-15 20:48:12.470  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505292470031|0/1|{"event":"begin","i":55,"t":1789505292454}
+09-15 20:48:12.500  2364  3583 D TrafficStats: tagSocket(71) with statsTag=0x8003, statsUid=-1
+09-15 20:48:12.560  2181  2435 I DialerVvmSmsDispatcherImpl: com.android.dialer.voicemail.service.impl.sms.VvmSmsDispatcherImpl.lambda$getOmtpSmsMessage$1:83 remove sms listener: 163096573
+09-15 20:48:12.560  2181  2377 E svj     : Got more than one input Future failure. Logging failures after the first
+09-15 20:48:12.560  2181  2377 E svj     : jkr: receive status sms timeout
+09-15 20:48:12.560  2181  2377 E svj     : 	at iyx.a(PG:7)
+09-15 20:48:12.560  2181  2377 E svj     : 	at rst.a(PG:2)
+09-15 20:48:12.560  2181  2377 E svj     : 	at suk.c(PG:2)
+09-15 20:48:12.560  2181  2377 E svj     : 	at sul.run(PG:10)
+09-15 20:48:12.560  2181  2377 E svj     : 	at ocg.run(PG:1)
+09-15 20:48:12.560  2181  2377 E svj     : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+09-15 20:48:12.560  2181  2377 E svj     : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+09-15 20:48:12.560  2181  2377 E svj     : 	at oca.run(PG:19)
+09-15 20:48:12.560  2181  2377 E svj     : 	at oca.run(PG:32)
+09-15 20:48:12.560  2181  2377 E svj     : 	at java.lang.Thread.run(Thread.java:1012)
+09-15 20:48:12.560  2181  2377 E svj     : 	at ocj.run(PG:6)
+09-15 20:48:12.828   576  2319 D ActivityManager: freezer override set to true
+09-15 20:48:12.829   576  2319 D ActivityManager: sync unfroze 1919 com.google.android.projection.gearhead:shared for 19
+09-15 20:48:12.830   576  2319 D ActivityManager: sync unfroze 2522 com.google.android.apps.wallpaper for 19
+09-15 20:48:12.830   576  2319 D ActivityManager: sync unfroze 3394 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 for 19
+09-15 20:48:12.830   576  2319 D ActivityManager: sync unfroze 3228 com.android.providers.calendar for 19
+09-15 20:48:12.830   576  2319 D ActivityManager: sync unfroze 1309 com.google.android.deskclock for 19
+09-15 20:48:12.830   576  2319 D ActivityManager: sync unfroze 3241 com.android.chrome:privileged_process0 for 19
+09-15 20:48:12.831   576  2319 D ActivityManager: sync unfroze 2877 com.android.chrome for 19
+09-15 20:48:12.831   576  2319 D ActivityManager: sync unfroze 3877 com.google.android.youtube for 19
+09-15 20:48:12.831   576  2319 D ActivityManager: sync unfroze 4313 com.google.android.healthconnect.controller for 19
+09-15 20:48:12.832   576  2319 D ActivityManager: sync unfroze 4280 com.google.android.gms.ui for 19
+09-15 20:48:12.832   576  2319 D ActivityManager: sync unfroze 3448 com.google.android.contacts for 19
+09-15 20:48:12.857  5081  5096 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3689(165KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2657KB/5315KB, paused 384us,36us total 5.995ms
+09-15 20:48:12.878   576  2319 D ActivityManager: freezer override set to false
+09-15 20:48:13.601  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505293601032|0/1|{"event":"item","rec":{"i":55,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-01-26 112931.png","class":"screenshot","device_file":"item_055.png","file_bytes":1253556,"engine":{"matting_ms":516,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":575,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":1115
+09-15 20:48:13.622  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505293622033|0/1|{"event":"begin","i":56,"t":1789505293601}
+09-15 20:48:13.737   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:14.030   877  4982 D NetworkMonitor/100: PROBE_FALLBACK http://www.google.com/gen_204 Probe failed with exception java.net.SocketTimeoutException: failed to connect to www.google.com/2001::1 (port 80) from /fec0::5054:ff:fe12:3456 (port 52372) after 10000ms
+09-15 20:48:14.031   877  4982 D NetworkMonitor/100: isCaptivePortal: isSuccessful()=false isPortal()=false RedirectUrl=null isPartialConnectivity()=true Time=23009ms
+09-15 20:48:14.031   576   729 D ConnectivityService: [100 CELLULAR] validation failed
+09-15 20:48:14.032   576   729 I ConnectivityService: Update capabilities for net 100 : +PARTIAL_CONNECTIVITY
+09-15 20:48:14.037   576   720 W BestClock: java.time.DateTimeException: Missing network time fix
+09-15 20:48:14.038   576   720 W BestClock: java.time.DateTimeException: Missing network time fix
+09-15 20:48:14.040  1633  2702 I BugleRcsEngine: [66] brqh.handleMessage: RcsEngineImpl[DUAL_REG]:[18b686fb-652b]>Handler: handleMessage processing message:[NOTIFY_UPTIME_IGNORE_STATE_CHANGED] with [non-null]:RcsEngineImpl reference
+09-15 20:48:14.043  1633  2251 I BugleRcsEngine: [53] bqvv.c: Connected state: [1], networkType: [MOBILE]
+09-15 20:48:14.045   576  2319 D OomAdjuster: Not killing cached processes
+09-15 20:48:14.046   576  2319 W ProcessStats: Tracking association SourceState{d76d628 com.google.android.apps.nexuslauncher/10161 BTop #2945} whose proc state 2 is better than process ProcessState{61558e2 com.google.android.googlequicksearchbox:search/10131 pkg=com.google.android.googlequicksearchbox} proc state 5 (54 skipped)
+09-15 20:48:14.051   576   729 D NetworkNotificationManager: showNotification tag=ConnectivityNotification:100 event=PARTIAL_CONNECTIVITY transport=mobile data name=epc.tmobile.com highPriority=false
+09-15 20:48:14.052  1633  2702 I BugleRcsEngine: [66] brnl.h: No RCS Configuration was found in Bugle for simID: redacted-pii:sim_id[chars:20,last3:897]
+09-15 20:48:14.322   576   668 D ActivityManager: freezing 2157 com.android.printspooler
+09-15 20:48:14.323   576   668 D ActivityManager: freezing 2181 com.google.android.dialer
+09-15 20:48:14.324   576   668 D ActivityManager: freezing 2952 com.google.android.tts
+09-15 20:48:14.324   576   668 D ActivityManager: freezing 3903 com.android.externalstorage
+09-15 20:48:14.325   576   668 D ActivityManager: freezing 2103 com.google.android.as.oss
+09-15 20:48:14.649  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505294649034|0/1|{"event":"item","rec":{"i":56,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-05-06 213407.png","class":"screenshot","device_file":"item_056.png","file_bytes":2637925,"engine":{"matting_ms":496,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingAlphaOnly (package:muzhao/core/matting/matting_worker.dart:244:16) | #2      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:157:18) | #3      _RemoteRunner._run (dart:isolate:1234:47)"},"controller":{"load_ms":476,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":1008,"t_done":1789505294631}}
+09-15 20:48:14.666  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505294666035|0/1|{"event":"begin","i":57,"t":1789505294649}
+09-15 20:48:14.742   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:14.898  1889  2135 W MessengerIpcClient: Timing out request: 1
+09-15 20:48:14.899  1889  2247 W GCM-GMS : Failed to get registration: java.io.IOException: SERVICE_NOT_AVAILABLE
+09-15 20:48:14.902  1328  5029 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.gcm.gmsproc.GcmInGmsTaskService finished executing. cause:5 result: 3 elapsed_millis: 30021 uptime_millis: 30021 exec_start_elapsed_seconds: 137 [CONTEXT service_id=218 ]
+09-15 20:48:14.926   576   607 W ActivityTaskManager: Launch timeout has expired, giving up wake lock!
+09-15 20:48:14.949  1328  5135 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.icing.proxy.IcingInternalCorporaUpdateService started execution. cause:5 exec_start_elapsed_seconds: 167 [CONTEXT service_id=218 ]
+09-15 20:48:14.958  1328  5029 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.icing.proxy.IcingInternalCorporaUpdateService finished executing. cause:5 result: 1 elapsed_millis: 29 uptime_millis: 29 exec_start_elapsed_seconds: 167 [CONTEXT service_id=218 ]
+09-15 20:48:14.962   576   600 D ActivityManager: freezer override set to true
+09-15 20:48:14.963   576   600 D ActivityManager: sync unfroze 2157 com.android.printspooler for 19
+09-15 20:48:14.964   576   600 D ActivityManager: sync unfroze 2181 com.google.android.dialer for 19
+09-15 20:48:14.966   576   600 D ActivityManager: sync unfroze 2952 com.google.android.tts for 19
+09-15 20:48:14.966   576   600 D ActivityManager: sync unfroze 3903 com.android.externalstorage for 19
+09-15 20:48:14.967   576   600 D ActivityManager: sync unfroze 2103 com.google.android.as.oss for 19
+09-15 20:48:14.996  5081  5096 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3467(145KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2656KB/5312KB, paused 317us,64us total 6.332ms
+09-15 20:48:15.016  1328  5149 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.phenotype.service.sync.PhenotypeConfigurator started execution. cause:5 exec_start_elapsed_seconds: 167 [CONTEXT service_id=218 ]
+09-15 20:48:15.020   576   600 D ActivityManager: freezer override set to false
+09-15 20:48:15.060   576   606 I DropBoxManagerService: add tag=system_server_strictmode isTagEnabled=true flags=0x2
+09-15 20:48:15.070  1093  1871 D OneSearchSuggestProvider: Shut down the binder channel
+09-15 20:48:15.074  1093  1144 I ImeTracker: com.google.android.apps.nexuslauncher:1735edde: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT
+09-15 20:48:15.075   576   600 I ImeTracker: com.google.android.apps.nexuslauncher:1735edde: onCancelled at PHASE_SERVER_SHOULD_HIDE
+09-15 20:48:15.086   921  1154 D BtGatt.ScanManager: uid 10128 isForeground true scanMode 1
+09-15 20:48:15.086   921  1154 D BtGatt.ScanManager: uid 10128 isForeground true scanMode -1
+09-15 20:48:15.721  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505295721036|0/1|{"event":"item","rec":{"i":57,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-05-06 213412.png","class":"screenshot","device_file":"item_057.png","file_bytes":756589,"engine":{"matting_ms":556,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":463,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":1039,
+09-15 20:48:15.738  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505295738037|0/1|{"event":"begin","i":58,"t":1789505295721}
+09-15 20:48:15.745   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:15.938  1328  5149 I HeterodyneSyncer: Removed 0 invalid users [CONTEXT service_id=51 ]
+09-15 20:48:15.978  1889  2821 D TrafficStats: tagSocket(160) with statsTag=0x30003000, statsUid=-1
+09-15 20:48:16.037   379  5159 I resolv  : GetAddrInfoHandler::run: {100 786532 100 983140 10128 0}
+09-15 20:48:16.037   379  5160 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+09-15 20:48:16.037   379  5161 I resolv  : res_nmkquery: (QUERY, IN, A)
+09-15 20:48:16.037   379  5160 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x752f11c99010
+09-15 20:48:16.037   379  5160 I resolv  : doQuery: rcode=0, ancount=8, return value=260
+09-15 20:48:16.037   379  5161 I resolv  : resolv_cache_lookup: FOUND IN CACHE entry=0x7530c1ca4f50
+09-15 20:48:16.038   379  5161 I resolv  : doQuery: rcode=0, ancount=8, return value=164
+09-15 20:48:16.039  1328  4131 D TrafficStats: tagSocket(271) with statsTag=0x1203, statsUid=10128
+09-15 20:48:16.342  1328  4131 D TrafficStats: tagSocket(272) with statsTag=0x1203, statsUid=10128
+09-15 20:48:16.451  1733  2179 D TrafficStats: tagSocket(72) with statsTag=0x8003, statsUid=-1
+09-15 20:48:16.534   576   668 D ActivityManager: freezing 1997 com.google.android.onetimeinitializer
+09-15 20:48:16.893  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505296893038|0/1|{"event":"item","rec":{"i":58,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-09-16 193456.png","class":"screenshot","device_file":"item_058.png","file_bytes":151841,"engine":{"matting_ms":584,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":538,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":1139,
+09-15 20:48:16.910  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505296910039|0/1|{"event":"begin","i":59,"t":1789505296893}
+09-15 20:48:17.084   576   649 D ActivityManager: freezer override set to true
+09-15 20:48:17.085   576   649 D ActivityManager: sync unfroze 1997 com.google.android.onetimeinitializer for 19
+09-15 20:48:17.109  5081  5096 I m.muzhao.muzhao: Explicit concurrent copying GC freed 3423(144KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 2656KB/5312KB, paused 272us,33us total 4.582ms
+09-15 20:48:17.126   576   649 D ActivityManager: freezer override set to false
+09-15 20:48:17.749   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:17.898  5081  5081 I flutter : QA_JSONL|batch_items.jsonl|1789505297898040|0/1|{"event":"item","rec":{"i":59,"path":"C:\\Users\\liuyu\\Pictures\\Screenshots\\屏幕截图 2024-09-16 193518.png","class":"screenshot","device_file":"item_059.png","file_bytes":103261,"engine":{"matting_ms":476,"matting_error":"NoFaceException: 没找到人脸，请手动框选","matting_error_type":"NoFaceException","message_zh":"没找到人脸，请手动框选","matting_stack_head":"#0      _mattingCore (package:muzhao/core/matting/matting_worker.dart:196:7) | #1      runMattingFromRgb (package:muzhao/core/matting/matting_worker.dart:151:16) | #2      runMattingSync (package:muzhao/core/matting/matting_worker.dart:127:10) | #3      MattingEngineMixin.removeBackground.<anonymous closure> (package:muzhao/core/matting/matting_engine.dart:171:18)"},"controller":{"load_ms":480,"stage":"error","error_message":"没找到人脸，请手动框选","error_message_cjk":true,"candidates":0,"suggested_crop":null},"result":"graceful_error","weird":false,"total_ms":971,"
+09-15 20:48:17.898  5081  5081 I flutter : QA_MARKER|done_batch
+09-15 20:48:17.942   576  2426 I ActivityManager: Process com.muzhao.muzhao (pid 5081) has died: fg  TOP 
+09-15 20:48:17.942   576  1703 I WindowManager: WIN DEATH: Window{655fb5c u0 com.muzhao.muzhao/com.muzhao.muzhao.MainActivity}
+09-15 20:48:17.942   576   620 I libprocessgroup: Successfully killed process cgroup uid 10191 pid 5081 in 0ms
+09-15 20:48:17.942   576  1703 W InputManager-JNI: Input channel object '655fb5c com.muzhao.muzhao/com.muzhao.muzhao.MainActivity (client)' was disposed without first being removed with the input manager!
+09-15 20:48:17.943   380   380 I Zygote  : Process 5081 exited cleanly (0)
+09-15 20:48:17.946   576  2426 W ActivityTaskManager: Force removing ActivityRecord{e1b97b8 u0 com.muzhao.muzhao/.MainActivity t394}: app died, no saved state
+09-15 20:48:17.946   576  2426 D CompatibilityChangeReporter: Compat change id reported: 197654537; UID 10191; state: ENABLED
+09-15 20:48:17.947   576   605 D DisplayManagerService: Drop pending events for gone uid 10191
+09-15 20:48:17.948   802   849 V WindowManagerShell: Transition requested: android.os.BinderProxy@2965138 TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=394 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=158017 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@fd511} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{5cf1676 com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 20:48:17.953   576  1631 W AppSearchIcing: icing-search-engine.cc:283: Error: 5, Message: Document (com.google.android.googlequicksearchbox$OneSearchZeroStateGoogleSuggestions/default, zp) not found.
+09-15 20:48:17.957   576   607 W ActivityManager: setHasOverlayUi called on unknown pid: 5081
+09-15 20:48:17.959  1093  1871 D OneSearchSuggestProvider: Created the binder channel successfully for end point service =com.google.android.apps.search.googleapp.search.suggest.plugins.onesearch.server.OneSearchSuggestService , mChannel=z1{delegate=s1{logId=13, target=directaddress:///AndroidComponentAddress%5BIntent%20%7B%20act=grpc.io.action.BIND%20cmp=com.google.android.googlequicksearchbox/com.google.android.apps.search.googleapp.search.suggest.plugins.onesearch.server.OneSearchSuggestService%20%7D%5D}} , mOneSearchConnection=X1.T@73961a1
+09-15 20:48:17.961  1575  1858 I AiAiEcho: Predicting[0]: 
+09-15 20:48:17.961  1575  1858 I AiAiEcho: EchoTargets: 
+09-15 20:48:17.961  1575  1858 I AiAiEcho: Filtered by AiAi flag check: 
+09-15 20:48:17.962  1575  1858 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata: 
+09-15 20:48:17.963  1575  1858 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+09-15 20:48:17.963   921  1154 D BtGatt.ScanManager: uid 10128 isForeground true scanMode 1
+09-15 20:48:17.963   921  1154 D BtGatt.ScanManager: uid 10128 isForeground true scanMode -1
+09-15 20:48:17.982   432   432 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+09-15 20:48:18.025  1795  1795 W A       : Can't get WAA status for Mavatar!
+09-15 20:48:18.025  1795  1795 W A       : java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Class java.lang.Object.getClass()' on a null object reference
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.apps.tiktok.dataservice.z.b(PG:1)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.apps.tiktok.dataservice.at.a(PG:1)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.apps.tiktok.tracing.ec.a(PG:2)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.aj.a(PG:2)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.ac.apply(PG:1)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.h.e(PG:2)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.j.run(PG:9)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.bf.execute(PG:1)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.d.i(PG:1)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.d.iq(PG:5)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.j.h(PG:2)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.ax.d(PG:1)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.apps.tiktok.dataservice.au.a(PG:5)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.apps.tiktok.dataservice.dr.c(PG:5)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.apps.tiktok.dataservice.dp.run(PG:6)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.apps.tiktok.concurrent.ak.run(PG:6)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.apps.tiktok.tracing.ei.run(PG:2)
+09-15 20:48:18.025  1795  1795 W A       : 	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.dy.a(PG:1)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.cv.run(PG:4)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.google.common.util.concurrent.dz.run(PG:1)
+09-15 20:48:18.025  1795  1795 W A       : 	at android.os.Handler.handleCallback(Handler.java:958)
+09-15 20:48:18.025  1795  1795 W A       : 	at android.os.Handler.dispatchMessage(Handler.java:99)
+09-15 20:48:18.025  1795  1795 W A       : 	at android.os.Looper.loopOnce(Looper.java:205)
+09-15 20:48:18.025  1795  1795 W A       : 	at android.os.Looper.loop(Looper.java:294)
+09-15 20:48:18.025  1795  1795 W A       : 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+09-15 20:48:18.025  1795  1795 W A       : 	at java.lang.reflect.Method.invoke(Native Method)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+09-15 20:48:18.025  1795  1795 W A       : 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+09-15 20:48:18.033   802   849 V WindowManagerShell: onTransitionReady android.os.BinderProxy@2965138: {id=11 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@86f1549} m=CLOSE f=NONE leash=Surface(name=Task=394)/@0xe8bb14d sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@f3e7e4e} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xe2402 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{fc9c93f token=android.os.Binder@357e15e})/@0x8a2113 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:48:18.033   802   849 V WindowManagerShell: Playing animation for (#11)android.os.BinderProxy@2965138@0
+09-15 20:48:18.033   576   604 V WindowManager: Sent Transition #11 createdAt=09-15 20:48:17.946 via request=TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=394 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=158017 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{b1f23ef Task{a49d991 #394 type=standard I=com.muzhao.muzhao/.MainActivity}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{30f4efc com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 20:48:18.034   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultMixedHandler@38f1533
+09-15 20:48:18.034   576   604 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+09-15 20:48:18.034   802   849 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@4d3c0f0
+09-15 20:48:18.034   802   849 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@c927669
+09-15 20:48:18.034   576   604 V WindowManager:     info={id=11 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{b1f23ef Task{a49d991 #394 type=standard I=com.muzhao.muzhao/.MainActivity}}} m=CLOSE f=NONE leash=Surface(name=Task=394)/@0x65529c9 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{RemoteToken{3ba9fe2 Task{a2c9481 #1 type=home}}} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xba882a5 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{fc9c93f token=android.os.Binder@357e15e})/@0xbae600f sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:48:18.034   802   849 V WindowManagerShell:  try handler com.android.wm.shell.recents.RecentsTransitionHandler@8a698ee
+09-15 20:48:18.034   802   849 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+09-15 20:48:18.034   802   849 V WindowManagerShell:  try handler com.android.wm.shell.pip.PipTransition@79bd18f
+09-15 20:48:18.034   802   849 V WindowManagerShell:  try handler com.android.wm.shell.splitscreen.StageCoordinator@acbfc1c
+09-15 20:48:18.034   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@9531025
+09-15 20:48:18.035   802   849 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=11 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@86f1549} m=CLOSE f=NONE leash=Surface(name=Task=394)/@0xe8bb14d sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@f3e7e4e} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xe2402 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{fc9c93f token=android.os.Binder@357e15e})/@0x8a2113 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:48:18.035   802   849 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@8e755fa, appThread = android.app.IApplicationThread$Stub$Proxy@df7ab, debugName = LauncherToDream }}
+09-15 20:48:18.035   802   849 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@aabe08, appThread = android.app.IApplicationThread$Stub$Proxy@c989a1, debugName = QuickstepLaunchHome }}
+09-15 20:48:18.035   802   849 V WindowManagerShell:  Delegate animation for #11 to null
+09-15 20:48:18.035   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@144d7c6
+09-15 20:48:18.035   802   849 V WindowManagerShell: start default transition animation, info = {id=11 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@86f1549} m=CLOSE f=NONE leash=Surface(name=Task=394)/@0xe8bb14d sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@f3e7e4e} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xe2402 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{fc9c93f token=android.os.Binder@357e15e})/@0x8a2113 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:48:18.041   802   849 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@5d4d07c animAttr=0x10 type=CLOSE isEntrance=true
+09-15 20:48:18.043   802   849 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@c229f8b animAttr=0x11 type=CLOSE isEntrance=false
+09-15 20:48:18.043   802   849 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@144d7c6
+09-15 20:48:18.062   576  1982 I ImeTracker: com.google.android.apps.nexuslauncher:28532407: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+09-15 20:48:18.063   576  1982 I ImeTracker: com.google.android.apps.nexuslauncher:28532407: onCancelled at PHASE_SERVER_SHOULD_HIDE
+09-15 20:48:18.064  1500  1500 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3227 
+09-15 20:48:18.066  1500  1500 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 0, unlocked = true
+09-15 20:48:18.067  1500  1500 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.google.android.apps.nexuslauncher fieldId=0 fieldName=null extras=null}, false)
+09-15 20:48:18.067  1500  1500 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4008 ShouldHideHeaderOnInitialState = false
+09-15 20:48:18.067   802   860 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda17@ab58f0
+09-15 20:48:18.068   576  1222 D CoreBackPreview: Window{fa17dcd u0 Splash Screen com.muzhao.muzhao EXITING}: Setting back callback null
+09-15 20:48:18.068  1500  1500 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 2, unlocked = true
+09-15 20:48:18.068   576   865 W InputManager-JNI: Input channel object 'fa17dcd Splash Screen com.muzhao.muzhao (client)' was disposed without first being removed with the input manager!
+09-15 20:48:18.099   802   897 D EGL_emulation: app_time_stats: avg=1304.69ms min=2.11ms max=12921.11ms count=10
+09-15 20:48:18.138   802   897 D EGL_emulation: app_time_stats: avg=289.10ms min=9.05ms max=11249.84ms count=41
+09-15 20:48:18.283   802   849 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#11)android.os.BinderProxy@2965138@0
+09-15 20:48:18.285   576   604 V WindowManager: Finish Transition #11: created at 09-15 20:48:17.946 collect-started=0.066ms request-sent=0.395ms started=4.15ms ready=4.125ms sent=85.03ms finished=338.053ms
+09-15 20:48:18.291   802   849 V WindowManagerShell: Track 0 became idle
+09-15 20:48:18.291   802   849 V WindowManagerShell: All active transition animations finished
+09-15 20:48:18.645   576   668 D ActivityManager: freezing 2036 com.android.localtransport
+09-15 20:48:18.646   576   668 D ActivityManager: freezing 3019 com.android.imsserviceentitlement
+09-15 20:48:18.647   576   668 D ActivityManager: freezing 3076 com.android.camera2
+09-15 20:48:18.647   576   668 D ActivityManager: freezing 3122 com.android.dynsystem
+09-15 20:48:18.647   576   668 D ActivityManager: freezing 3199 com.android.dynsystem:dynsystem
+09-15 20:48:18.648   576   668 D ActivityManager: freezing 3396 com.google.android.configupdater
+09-15 20:48:18.648   576   668 D ActivityManager: freezing 3321 com.google.android.apps.docs
+09-15 20:48:18.649   576   668 D ActivityManager: freezing 1733 com.google.android.apps.youtube.music
+09-15 20:48:18.650   576   668 D ActivityManager: freezing 1811 com.android.keychain
+09-15 20:48:18.651   576   668 D ActivityManager: freezing 1011 com.android.settings
+09-15 20:48:18.651   576   668 D ActivityManager: freezing 1526 com.google.android.apps.wellbeing
+09-15 20:48:18.652   576   668 D ActivityManager: freezing 3852 com.google.android.settings.intelligence
+09-15 20:48:18.653   576   668 D ActivityManager: freezing 1906 com.google.process.gapps
+09-15 20:48:19.153   802   897 D EGL_emulation: app_time_stats: avg=5.49ms min=1.13ms max=28.89ms count=60
+09-15 20:48:19.201   576  1982 D ActivityManager: freezer override set to true
+09-15 20:48:19.202   576  1982 D ActivityManager: sync unfroze 2036 com.android.localtransport for 19
+09-15 20:48:19.202   576  1982 D ActivityManager: sync unfroze 3019 com.android.imsserviceentitlement for 19
+09-15 20:48:19.202   576  1982 D ActivityManager: sync unfroze 3076 com.android.camera2 for 19
+09-15 20:48:19.203   576  1982 D ActivityManager: sync unfroze 3122 com.android.dynsystem for 19
+09-15 20:48:19.203   576  1982 D ActivityManager: sync unfroze 3199 com.android.dynsystem:dynsystem for 19
+09-15 20:48:19.203   576  1982 D ActivityManager: sync unfroze 3396 com.google.android.configupdater for 19
+09-15 20:48:19.204   576  1982 D ActivityManager: sync unfroze 3321 com.google.android.apps.docs for 19
+09-15 20:48:19.206   576  1982 D ActivityManager: sync unfroze 1733 com.google.android.apps.youtube.music for 19
+09-15 20:48:19.206   576  1982 D ActivityManager: sync unfroze 1811 com.android.keychain for 19
+09-15 20:48:19.206   576  1982 D ActivityManager: sync unfroze 1011 com.android.settings for 19
+09-15 20:48:19.207   576  1982 D ActivityManager: sync unfroze 1526 com.google.android.apps.wellbeing for 19
+09-15 20:48:19.208   576  1982 D ActivityManager: sync unfroze 3852 com.google.android.settings.intelligence for 19
+09-15 20:48:19.208   576  1982 D ActivityManager: sync unfroze 1906 com.google.process.gapps for 19
+09-15 20:48:19.224   576  1982 D ActivityManager: freezer override set to false
+09-15 20:48:19.231   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:48:19.244   802   897 D EGL_emulation: app_time_stats: avg=118.63ms min=4.09ms max=1004.91ms count=9
+09-15 20:48:20.003   576   618 D OomAdjuster: Not killing cached processes
+09-15 20:48:20.018  1889  5170 I ChimeraConfigurator: Starting update, reason: 4 urgentFeatures: vision.ocr:-1
+09-15 20:48:20.041  1889  5170 I ChimeraConfigurator: Detected pending changes for urgent request: [vision.ocr]. Pending module sets: container:2318189190800+mlkit.ocr.common,tflite_dynamite:2627305025100800+tflite_dynamite,vision_ocr:2316024025100000+vision.ocr
+09-15 20:48:20.049  1889  5170 I GmsDebugLogger: [73] 1801
+09-15 20:48:20.052  1889  5170 W ZappDownloader: No successful module downloads for requested features [vision.ocr].
+09-15 20:48:20.052  1889  5170 I GmsDebugLogger: [30] [VisionOcrDynamite.integ:231602402100000],[TfliteDynamiteDynamite.integ:262730502100800],[MlkitOcrCommon.optional:231818100800]
+09-15 20:48:20.057  1889  5170 W ChimeraConfigService: Retry attempt was throttled. [CONTEXT service_id=264 ]
+09-15 20:48:20.058  1889  5170 I GmsDebugLogger: [83] 1 [vision.ocr]
+09-15 20:48:20.061  1889  5169 W Vision  : Request for optional module download of ocr failed. Request again.
+09-15 20:48:20.061  1889  5169 W Vision  : Would have logged:
+09-15 20:48:20.061  1889  5169 W Vision  : # dsae@37884fe7
+09-15 20:48:20.061  1889  5169 I Vision  : Schedule retrying download ocr at 173023 with backoff 80 seconds

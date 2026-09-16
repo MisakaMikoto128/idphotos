@@ -1,0 +1,303 @@
+--------- beginning of system
+09-15 20:51:04.905   576   668 D ActivityManager: freezing 1919 com.google.android.projection.gearhead:shared
+09-15 20:51:04.906   576   668 D ActivityManager: freezing 2522 com.google.android.apps.wallpaper
+09-15 20:51:04.906   576   668 D ActivityManager: freezing 3394 com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+09-15 20:51:04.907   576   668 D ActivityManager: freezing 3228 com.android.providers.calendar
+09-15 20:51:04.907   576   668 D ActivityManager: freezing 1309 com.google.android.deskclock
+09-15 20:51:04.907   576   668 D ActivityManager: freezing 3241 com.android.chrome:privileged_process0
+09-15 20:51:04.908   576   668 D ActivityManager: freezing 4313 com.google.android.healthconnect.controller
+09-15 20:51:04.908   576   668 D ActivityManager: freezing 4280 com.google.android.gms.ui
+09-15 20:51:04.948   576   649 D CompatibilityChangeReporter: Compat change id reported: 161252188; UID 10191; state: DISABLED
+09-15 20:51:04.949   576   649 W ActivityTaskManager: callingPackage for (uid=2000, pid=6422) has no WPC
+09-15 20:51:04.950   576   649 D CompatibilityChangeReporter: Compat change id reported: 265464455; UID 10191; state: DISABLED
+09-15 20:51:04.950   576   649 D CompatibilityChangeReporter: Compat change id reported: 265452344; UID 10191; state: DISABLED
+09-15 20:51:04.950   576   649 D CompatibilityChangeReporter: Compat change id reported: 266124927; UID 10191; state: DISABLED
+09-15 20:51:04.950   576   649 D CompatibilityChangeReporter: Compat change id reported: 265451093; UID 10191; state: DISABLED
+09-15 20:51:04.950   576   649 D CompatibilityChangeReporter: Compat change id reported: 265456536; UID 10191; state: DISABLED
+09-15 20:51:04.950   576   649 D CompatibilityChangeReporter: Compat change id reported: 255940284; UID 10191; state: DISABLED
+09-15 20:51:04.950   576   649 D CompatibilityChangeReporter: Compat change id reported: 236283604; UID 10191; state: DISABLED
+09-15 20:51:04.951   576   649 D CompatibilityChangeReporter: Compat change id reported: 263959004; UID 10191; state: DISABLED
+09-15 20:51:04.951   576   649 D CompatibilityChangeReporter: Compat change id reported: 264304459; UID 10191; state: DISABLED
+09-15 20:51:04.951   576   649 D CompatibilityChangeReporter: Compat change id reported: 264301586; UID 10191; state: DISABLED
+09-15 20:51:04.951   576   649 D CompatibilityChangeReporter: Compat change id reported: 254631730; UID 10191; state: DISABLED
+09-15 20:51:04.951   576   649 D CompatibilityChangeReporter: Compat change id reported: 273509367; UID 10191; state: DISABLED
+09-15 20:51:04.951   576   649 D CompatibilityChangeReporter: Compat change id reported: 263259275; UID 10191; state: DISABLED
+09-15 20:51:04.951   576   649 D CompatibilityChangeReporter: Compat change id reported: 174042980; UID 10191; state: DISABLED
+09-15 20:51:04.952   576   649 D CompatibilityChangeReporter: Compat change id reported: 174042936; UID 10191; state: DISABLED
+09-15 20:51:04.952   576   649 D CompatibilityChangeReporter: Compat change id reported: 181136395; UID 10191; state: DISABLED
+09-15 20:51:04.952   576   649 D CompatibilityChangeReporter: Compat change id reported: 194480991; UID 10191; state: ENABLED
+09-15 20:51:04.955   576   649 D CompatibilityChangeReporter: Compat change id reported: 184838306; UID 10191; state: DISABLED
+09-15 20:51:04.955   576   649 D CompatibilityChangeReporter: Compat change id reported: 185004937; UID 10191; state: DISABLED
+09-15 20:51:04.956   576   649 D CompatibilityChangeReporter: Compat change id reported: 205907456; UID 10191; state: ENABLED
+09-15 20:51:04.958   802   849 V WindowManagerShell: Transition requested: android.os.BinderProxy@417ddc5 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=397 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=337919 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@f19a31a} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{db88e4b com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 20:51:04.958   576   649 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity (has extras)} with LAUNCH_SINGLE_TOP from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+09-15 20:51:04.959   576   607 D CompatibilityChangeReporter: Compat change id reported: 135634846; UID 10191; state: DISABLED
+09-15 20:51:04.960   576   619 D CompatibilityChangeReporter: Compat change id reported: 143937733; UID 10191; state: ENABLED
+09-15 20:51:04.961   576  2423 D CompatibilityChangeReporter: Compat change id reported: 168419799; UID 10191; state: DISABLED
+09-15 20:51:04.961   576  2423 D CompatibilityChangeReporter: Compat change id reported: 273564678; UID 10191; state: DISABLED
+09-15 20:51:04.966   576   659 D CompatibilityChangeReporter: Compat change id reported: 265195908; UID 10191; state: ENABLED
+--------- beginning of main
+09-15 20:51:04.966   432   432 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+09-15 20:51:04.967   802   861 D SplashScreenView: Build android.window.SplashScreenView{82da03b V.E...... ......ID 0,0-0,0}
+09-15 20:51:04.967   802   861 D SplashScreenView: Icon: view: android.widget.ImageView{ae16358 V.ED..... ......I. 0,0-0,0 #10204f0 android:id/splashscreen_icon_view} drawable: com.android.wm.shell.startingsurface.SplashscreenIconDrawableFactory$ImmobileIconDrawable@c4c4cb1 size: 440
+09-15 20:51:04.967   802   861 D SplashScreenView: Branding: view: android.view.View{dc0c596 G.ED..... ......I. 0,0-0,0 #10204ef android:id/splashscreen_branding_view} drawable: null size w: 0 h: 0
+09-15 20:51:04.969   576  2423 D CoreBackPreview: Window{3d48d76 u0 Splash Screen com.muzhao.muzhao}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@3cf17e4, mPriority=0, mIsAnimationCallback=false}
+09-15 20:51:04.973   380   380 D Zygote  : Forked child process 6425
+09-15 20:51:04.975   576   619 I ActivityManager: Start proc 6425:com.muzhao.muzhao/u0a191 for next-top-activity {com.muzhao.muzhao/com.muzhao.muzhao.MainActivity}
+09-15 20:51:05.001   576   604 V WindowManager: Sent Transition #16 createdAt=09-15 20:51:04.952 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=397 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=337919 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{b57ce50 Task{e4e10aa #397 type=standard I=com.muzhao.muzhao/.MainActivity}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{71f6849 com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 20:51:05.002   576   604 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+09-15 20:51:05.002   576   604 V WindowManager:     info={id=16 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{b57ce50 Task{e4e10aa #397 type=standard I=com.muzhao.muzhao/.MainActivity}}} m=OPEN f=NONE leash=Surface(name=Task=397)/@0xe740b02 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{RemoteToken{3ba9fe2 Task{a2c9481 #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xba882a5 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:51:05.002   802   849 V WindowManagerShell: onTransitionReady android.os.BinderProxy@417ddc5: {id=16 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@c34800f} m=OPEN f=NONE leash=Surface(name=Task=397)/@0x4ad4570 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@bf9489c} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xd8ee0e9 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:51:05.002   802   849 V WindowManagerShell: Playing animation for (#16)android.os.BinderProxy@417ddc5@0
+09-15 20:51:05.002   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultMixedHandler@38f1533
+09-15 20:51:05.003   802   849 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@4d3c0f0
+09-15 20:51:05.003   802   849 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@c927669
+09-15 20:51:05.003   802   849 V WindowManagerShell:  try handler com.android.wm.shell.recents.RecentsTransitionHandler@8a698ee
+09-15 20:51:05.003   802   849 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+09-15 20:51:05.003   802   849 V WindowManagerShell:  try handler com.android.wm.shell.pip.PipTransition@79bd18f
+09-15 20:51:05.009   802   849 V WindowManagerShell:  try handler com.android.wm.shell.splitscreen.StageCoordinator@acbfc1c
+09-15 20:51:05.009   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@9531025
+09-15 20:51:05.010   802   849 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=16 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@c34800f} m=OPEN f=NONE leash=Surface(name=Task=397)/@0x4ad4570 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@bf9489c} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xd8ee0e9 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:51:05.010   802   849 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@8e755fa, appThread = android.app.IApplicationThread$Stub$Proxy@df7ab, debugName = LauncherToDream }}
+09-15 20:51:05.010  1093  1708 D EGL_emulation: app_time_stats: avg=2683.04ms min=6.61ms max=21320.77ms count=8
+09-15 20:51:05.010   802   849 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@aabe08, appThread = android.app.IApplicationThread$Stub$Proxy@c989a1, debugName = QuickstepLaunchHome }}
+09-15 20:51:05.010   802   849 V WindowManagerShell:  Delegate animation for #16 to null
+09-15 20:51:05.010   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@144d7c6
+09-15 20:51:05.010   802   849 V WindowManagerShell: start default transition animation, info = {id=16 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@c34800f} m=OPEN f=NONE leash=Surface(name=Task=397)/@0x4ad4570 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@bf9489c} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xd8ee0e9 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:51:05.011   802   849 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@d80b67a animAttr=0x13 type=OPEN isEntrance=false
+09-15 20:51:05.011   802   849 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@953c046 animAttr=0x12 type=OPEN isEntrance=true
+09-15 20:51:05.012   802   849 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@144d7c6
+09-15 20:51:05.013  6425  6425 I m.muzhao.muzhao: Late-enabling -Xcheck:jni
+09-15 20:51:05.035   802   897 D EGL_emulation: app_time_stats: avg=4992.66ms min=4992.66ms max=4992.66ms count=1
+09-15 20:51:05.044  6425  6425 I m.muzhao.muzhao: Using CollectorTypeCC GC.
+09-15 20:51:05.047  6425  6425 W m.muzhao.muzhao: Unexpected CPU variant for x86: x86_64.
+09-15 20:51:05.047  6425  6425 W m.muzhao.muzhao: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+09-15 20:51:05.068   576  2423 W ActivityTaskManager: takeTaskSnapshot: taskId=319 not found or not visible
+09-15 20:51:05.069   576  2423 W ActivityTaskManager: takeTaskSnapshot: taskId=327 not found or not visible
+09-15 20:51:05.083   461   482 I adbd    : jdwp connection from 6425
+09-15 20:51:05.084   877  6345 D TrafficStats: tagSocket(69) with statsTag=0xffffff81, statsUid=-1
+09-15 20:51:05.118  6425  6425 D CompatibilityChangeReporter: Compat change id reported: 171979766; UID 10191; state: ENABLED
+09-15 20:51:05.119  6425  6425 D CompatibilityChangeReporter: Compat change id reported: 242716250; UID 10191; state: ENABLED
+09-15 20:51:05.130   576   865 D CompatibilityChangeReporter: Compat change id reported: 170503758; UID 10191; state: ENABLED
+09-15 20:51:05.133  6425  6425 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+09-15 20:51:05.133  6425  6425 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+09-15 20:51:05.134  6425  6425 W ziparchive: Unable to open '/data/app/~~ckde2bQzQW-uBZ4ef6KY9g==/com.muzhao.muzhao-QU7g7SKhqM3gwicFK6MaEw==/base.dm': No such file or directory
+09-15 20:51:05.134  6425  6425 W ziparchive: Unable to open '/data/app/~~ckde2bQzQW-uBZ4ef6KY9g==/com.muzhao.muzhao-QU7g7SKhqM3gwicFK6MaEw==/base.dm': No such file or directory
+09-15 20:51:05.299   802   849 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#16)android.os.BinderProxy@417ddc5@0
+09-15 20:51:05.300   576   604 V WindowManager: Finish Transition #16: created at 09-15 20:51:04.952 collect-started=0.07ms request-sent=4.598ms started=5.941ms ready=45.753ms sent=48.144ms finished=346.904ms
+09-15 20:51:05.301   802   849 V WindowManagerShell: Track 0 became idle
+09-15 20:51:05.301   802   849 V WindowManagerShell: All active transition animations finished
+09-15 20:51:05.316  6425  6425 D nativeloader: Configuring clns-6 for other apk /data/app/~~ckde2bQzQW-uBZ4ef6KY9g==/com.muzhao.muzhao-QU7g7SKhqM3gwicFK6MaEw==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~ckde2bQzQW-uBZ4ef6KY9g==/com.muzhao.muzhao-QU7g7SKhqM3gwicFK6MaEw==/lib/x86_64:/data/app/~~ckde2bQzQW-uBZ4ef6KY9g==/com.muzhao.muzhao-QU7g7SKhqM3gwicFK6MaEw==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.muzhao.muzhao
+09-15 20:51:05.321   802   897 D EGL_emulation: app_time_stats: avg=1142.06ms min=9.17ms max=20054.77ms count=18
+09-15 20:51:05.328  6425  6425 V GraphicsEnvironment: Currently set values for:
+09-15 20:51:05.328  6425  6425 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+09-15 20:51:05.328  6425  6425 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+09-15 20:51:05.329  6425  6425 V GraphicsEnvironment: ANGLE GameManagerService for com.muzhao.muzhao: false
+09-15 20:51:05.329  6425  6425 V GraphicsEnvironment: com.muzhao.muzhao is not listed in per-application setting
+09-15 20:51:05.329  6425  6425 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+09-15 20:51:05.360   576   868 I ActivityManager: Flag disabled. Ignoring finishAttachApplication from uid: 10191. pid: 6425
+09-15 20:51:05.367  6425  6446 D libEGL  : loaded /vendor/lib64/egl/libEGL_emulation.so
+09-15 20:51:05.370   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:05.371  6425  6446 D libEGL  : loaded /vendor/lib64/egl/libGLESv1_CM_emulation.so
+09-15 20:51:05.374  6425  6446 D libEGL  : loaded /vendor/lib64/egl/libGLESv2_emulation.so
+09-15 20:51:05.390  6425  6425 I FlutterActivityAndFragmentDelegate: If you are attempting to set --enable-impeller= via Intent extras to launch a Flutter component outside of using the Flutter CLI, note that support for setting engine flags on Android via Intent will soon be dropped; see https://github.com/flutter/flutter/issues/180686 for more information on this breaking change. To migrate, set --enable-impeller= or any other flags specified via Intent extras on the command line instead or see https://github.com/flutter/flutter/blob/main/docs/engine/Flutter-Android-Engine-Flags.md for alternative methods.
+09-15 20:51:05.405  6425  6448 I ResourceExtractor: Found extracted resources res_timestamp-1-1789505191700
+09-15 20:51:05.406  6425  6447 D FlutterJNI: Beginning load of flutter...
+09-15 20:51:05.414  6425  6447 D FlutterJNI: flutter (null) was loaded normally!
+09-15 20:51:05.417  6425  6449 D skia    : [SkFontMgr Android Parser] '/product/etc/fonts_customization.xml' could not be opened
+09-15 20:51:05.452  6425  6425 W m.muzhao.muzhao: type=1400 audit(0.0:28): avc:  denied  { read } for  name="max_map_count" dev="proc" ino=51911 scontext=u:r:untrusted_app:s0:c191,c256,c512,c768 tcontext=u:object_r:proc_max_map_count:s0 tclass=file permissive=0 app=com.muzhao.muzhao
+09-15 20:51:05.460  6425  6425 I flutter : [IMPORTANT:flutter/shell/common/shell.cc(528)] [Action Required]: Impeller opt-out deprecated.
+09-15 20:51:05.460  6425  6425 I flutter :     The application opted out of Impeller by either using the
+09-15 20:51:05.460  6425  6425 I flutter :     `--no-enable-impeller` flag or the
+09-15 20:51:05.460  6425  6425 I flutter :     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
+09-15 20:51:05.460  6425  6425 I flutter :     These options are going to go away in an upcoming Flutter release. Remove
+09-15 20:51:05.460  6425  6425 I flutter :     the explicit opt-out. If you need to opt-out, please report a bug describing
+09-15 20:51:05.460  6425  6425 I flutter :     the issue.
+09-15 20:51:05.460  6425  6425 I flutter : 
+09-15 20:51:05.460  6425  6425 I flutter :     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+09-15 20:51:05.460  6425  6425 I flutter : 
+09-15 20:51:05.611  6425  6456 I flutter : The Dart VM service is listening on http://127.0.0.1:43029/Ign072s0syk=/
+09-15 20:51:05.819  6425  6425 W m.muzhao.muzhao: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (unsupported,test-api, reflection, allowed)
+09-15 20:51:05.820  6425  6425 W m.muzhao.muzhao: Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (unsupported, reflection, allowed)
+09-15 20:51:05.820  6425  6425 W m.muzhao.muzhao: Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (unsupported, reflection, allowed)
+09-15 20:51:05.820  6425  6425 W m.muzhao.muzhao: Accessing hidden method Landroid/util/LongArray;->get(I)J (unsupported, reflection, allowed)
+09-15 20:51:05.825  6425  6425 D AccessibilityBridge: Setting not found: accessibility_display_inversion_enabled, using default: 0
+09-15 20:51:05.842  6425  6425 D FlutterRenderer: Width is zero. 0,0
+09-15 20:51:05.859  6425  6425 D CompatibilityChangeReporter: Compat change id reported: 237531167; UID 10191; state: DISABLED
+09-15 20:51:05.861  6425  6425 W OpenGLRenderer: Unknown dataspace 0
+09-15 20:51:05.961   576   668 D ActivityManager: freezing 2157 com.android.printspooler
+09-15 20:51:05.961   576   668 D ActivityManager: freezing 2181 com.google.android.dialer
+09-15 20:51:05.962   576   668 D ActivityManager: freezing 2952 com.google.android.tts
+09-15 20:51:05.962   576   668 D ActivityManager: freezing 3903 com.android.externalstorage
+09-15 20:51:05.963   576   668 D ActivityManager: freezing 2103 com.google.android.as.oss
+09-15 20:51:06.047  6425  6425 I flutter : QA_MARKER|qa_started_perf
+09-15 20:51:06.056  6425  6425 I Choreographer: Skipped 41 frames!  The application may be doing too much work on its main thread.
+09-15 20:51:06.144  6425  6425 D FlutterRenderer: Width is zero. 0,0
+09-15 20:51:06.145   576   868 D CoreBackPreview: Window{6547ff3 u0 com.muzhao.muzhao/com.muzhao.muzhao.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@f9f24e5, mPriority=0, mIsAnimationCallback=false}
+09-15 20:51:06.152  6425  6425 D FlutterJNI: Sending viewport metrics to the engine.
+09-15 20:51:06.156  6425  6444 W OpenGLRenderer: Failed to initialize 101010-2 format, error = EGL_SUCCESS
+09-15 20:51:06.163   181   181 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+09-15 20:51:06.164  6425  6450 I Gralloc4: mapper 4.x is not supported
+--------- beginning of kernel
+09-15 20:51:06.147     0     0 I servicemanager: Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+09-15 20:51:06.336   802   897 D EGL_emulation: app_time_stats: avg=15.51ms min=10.03ms max=37.18ms count=60
+09-15 20:51:06.383   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:06.421  1733  2179 D TrafficStats: tagSocket(72) with statsTag=0x8003, statsUid=-1
+09-15 20:51:06.613  6425  6425 D FlutterJNI: Sending viewport metrics to the engine.
+09-15 20:51:07.210   576   875 D WifiNl80211Manager: Scan result ready event
+09-15 20:51:07.210   576   875 D WifiNative: Scan result ready event
+09-15 20:51:07.796  2364  3583 D TrafficStats: tagSocket(71) with statsTag=0x8003, statsUid=-1
+09-15 20:51:08.113   576   668 D ActivityManager: freezing 1997 com.google.android.onetimeinitializer
+09-15 20:51:08.115   576   668 D ActivityManager: freezing 2364 com.google.android.apps.messaging
+09-15 20:51:08.968   576  1666 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+09-15 20:51:09.173   576   668 D ActivityManager: freezing 2036 com.android.localtransport
+09-15 20:51:09.174   576   668 D ActivityManager: freezing 3019 com.android.imsserviceentitlement
+09-15 20:51:09.175   576   668 D ActivityManager: freezing 3076 com.android.camera2
+09-15 20:51:09.176   576   668 D ActivityManager: freezing 3122 com.android.dynsystem
+09-15 20:51:09.176   576   668 D ActivityManager: freezing 3199 com.android.dynsystem:dynsystem
+09-15 20:51:09.177   576   668 D ActivityManager: freezing 3396 com.google.android.configupdater
+09-15 20:51:09.178   576   668 D ActivityManager: freezing 3321 com.google.android.apps.docs
+09-15 20:51:09.179   576   668 D ActivityManager: freezing 1733 com.google.android.apps.youtube.music
+09-15 20:51:09.180   576   668 D ActivityManager: freezing 1811 com.android.keychain
+09-15 20:51:09.181   576   668 D ActivityManager: freezing 1011 com.android.settings
+09-15 20:51:09.182   576   668 D ActivityManager: freezing 1526 com.google.android.apps.wellbeing
+09-15 20:51:09.183   576   668 D ActivityManager: freezing 3852 com.google.android.settings.intelligence
+09-15 20:51:09.184   576   668 D ActivityManager: freezing 1906 com.google.process.gapps
+09-15 20:51:09.237   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:09.388   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:09.792  1328  3455 W CCTBackstopTask: Backstop checks have failed.
+09-15 20:51:10.107  1328  4131 D TrafficStats: tagSocket(104) with statsTag=0x1065fff, statsUid=-1
+09-15 20:51:10.385   576   875 D OomAdjuster: Not killing cached processes
+09-15 20:51:10.386   576   875 W ProcessStats: Tracking association SourceState{3af812 com.google.android.googlequicksearchbox:interactor/10131 BTop #3292} whose proc state 2 is better than process ProcessState{26afe00 com.google.android.gms.persistent/10128 pkg=com.google.android.gms} proc state 4 (68 skipped)
+09-15 20:51:10.392   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:10.411  1328  4131 D TrafficStats: tagSocket(109) with statsTag=0x1065fff, statsUid=-1
+09-15 20:51:11.296  6425  6473 D ProfileInstaller: Installing profile for com.muzhao.muzhao
+09-15 20:51:11.397   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:12.095   877  6346 D NetworkMonitor/100: PROBE_HTTPS https://www.google.com/generate_204 Probe failed with exception java.net.SocketTimeoutException: failed to connect to www.google.com/2001::1 (port 443) from /fec0::5054:ff:fe12:3456 (port 40464) after 10000ms
+09-15 20:51:12.366   576   668 D ActivityManager: freezing 3794 com.google.android.rkpdapp
+09-15 20:51:12.366   576   668 D ActivityManager: freezing 2014 android.process.media
+09-15 20:51:12.367   576   668 D ActivityManager: freezing 3647 com.google.android.gm
+09-15 20:51:12.368   576   668 D ActivityManager: freezing 4233 com.android.emergency
+09-15 20:51:12.368   576   668 D ActivityManager: freezing 1783 com.android.traceur
+09-15 20:51:12.369   576   668 D ActivityManager: freezing 1185 com.google.android.cellbroadcastreceiver
+09-15 20:51:12.369   576   668 D ActivityManager: freezing 3733 com.google.android.partnersetup
+09-15 20:51:12.370   576   668 D ActivityManager: freezing 1353 com.google.android.permissioncontroller
+09-15 20:51:12.371   576   668 D ActivityManager: freezing 1464 android.process.acore
+09-15 20:51:12.371   576   668 D ActivityManager: freezing 2879 com.google.android.gms.unstable
+09-15 20:51:14.409   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:14.679  1328  1328 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.gmscompliance.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentBoundBrokerService }
+09-15 20:51:14.961   576   607 W ActivityTaskManager: Launch timeout has expired, giving up wake lock!
+09-15 20:51:15.090   877  6345 D NetworkMonitor/100: PROBE_FALLBACK http://play.googleapis.com/generate_204 Probe failed with exception java.net.SocketTimeoutException: failed to connect to play.googleapis.com/2001:4860:4847:400:: (port 80) from /fec0::5054:ff:fe12:3456 (port 41244) after 10000ms
+09-15 20:51:15.092   877  6345 D NetworkMonitor/100: isCaptivePortal: isSuccessful()=false isPortal()=false RedirectUrl=null isPartialConnectivity()=true Time=23018ms
+09-15 20:51:15.093   576   729 D ConnectivityService: [100 CELLULAR] validation failed
+09-15 20:51:15.106  1093  1871 D OneSearchSuggestProvider: Shut down the binder channel
+09-15 20:51:15.109  1093  1144 I ImeTracker: com.google.android.apps.nexuslauncher:be34e6b3: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT
+09-15 20:51:15.109   576   649 I ImeTracker: com.google.android.apps.nexuslauncher:be34e6b3: onCancelled at PHASE_SERVER_SHOULD_HIDE
+09-15 20:51:15.113   921  1154 D BtGatt.ScanManager: uid 10128 isForeground true scanMode 1
+09-15 20:51:15.113   921  1154 D BtGatt.ScanManager: uid 10128 isForeground true scanMode -1
+09-15 20:51:15.413   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:16.043  1889  2821 D TrafficStats: tagSocket(160) with statsTag=0x30003000, statsUid=-1
+09-15 20:51:16.959   576   868 D OomAdjuster: Not killing cached processes
+09-15 20:51:16.960  1889  1889 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.mobstore.service.START pkg=com.google.android.gms }
+09-15 20:51:18.420   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:19.232   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:19.256   802   897 D EGL_emulation: app_time_stats: avg=1574.12ms min=4.31ms max=14055.20ms count=9
+09-15 20:51:19.424   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:20.428   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:21.432   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:22.789  1889  2412 D TrafficStats: tagSocket(163) with statsTag=0x30000408, statsUid=-1
+09-15 20:51:24.803   576   868 D OomAdjuster: Not killing cached processes
+09-15 20:51:24.803   576   868 W ProcessStats: Tracking association SourceState{c946882 com.google.android.apps.nexuslauncher/10161 BFgs #3305} whose proc state 4 is better than process ProcessState{61558e2 com.google.android.googlequicksearchbox:search/10131 pkg=com.google.android.googlequicksearchbox} proc state 5 (44 skipped)
+09-15 20:51:26.831  6425  6425 I flutter : QA_JSONL|perf_ms.json|1789505486831001|0/1|{"input":"/data/local/tmp/muzhao_qa_tmp/in/perf_512.jpg","n":25,"ms":[804,686,680,704,684,731,667,640,691,723,760,700,648,655,655,657,688,767,763,696,643,663,684,634,697]}
+09-15 20:51:26.831  6425  6425 I flutter : QA_MARKER|done_perf
+09-15 20:51:26.882   576  2423 I WindowManager: WIN DEATH: Window{6547ff3 u0 com.muzhao.muzhao/com.muzhao.muzhao.MainActivity}
+09-15 20:51:26.882   576   868 I ActivityManager: Process com.muzhao.muzhao (pid 6425) has died: fg  TOP 
+09-15 20:51:26.882   576  2423 W InputManager-JNI: Input channel object '6547ff3 com.muzhao.muzhao/com.muzhao.muzhao.MainActivity (client)' was disposed without first being removed with the input manager!
+09-15 20:51:26.882   576   620 I libprocessgroup: Successfully killed process cgroup uid 10191 pid 6425 in 0ms
+09-15 20:51:26.883   380   380 I Zygote  : Process 6425 exited cleanly (0)
+09-15 20:51:26.886   576   868 W ActivityTaskManager: Force removing ActivityRecord{16a4795 u0 com.muzhao.muzhao/.MainActivity t397}: app died, no saved state
+09-15 20:51:26.887   576   868 D CompatibilityChangeReporter: Compat change id reported: 197654537; UID 10191; state: ENABLED
+09-15 20:51:26.887   576   605 D DisplayManagerService: Drop pending events for gone uid 10191
+09-15 20:51:26.888   802   849 V WindowManagerShell: Transition requested: android.os.BinderProxy@f3b8aff TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=397 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=338055 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@ee10cc} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{8437f15 com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 20:51:26.892   576   607 W ActivityManager: setHasOverlayUi called on unknown pid: 6425
+09-15 20:51:26.892   576  1631 W AppSearchIcing: icing-search-engine.cc:283: Error: 5, Message: Document (com.google.android.googlequicksearchbox$OneSearchZeroStateGoogleSuggestions/default, zp) not found.
+09-15 20:51:26.896   921  1154 D BtGatt.ScanManager: uid 10128 isForeground true scanMode 1
+09-15 20:51:26.897   921  1154 D BtGatt.ScanManager: uid 10128 isForeground true scanMode -1
+09-15 20:51:26.897  1093  1871 D OneSearchSuggestProvider: Created the binder channel successfully for end point service =com.google.android.apps.search.googleapp.search.suggest.plugins.onesearch.server.OneSearchSuggestService , mChannel=z1{delegate=s1{logId=25, target=directaddress:///AndroidComponentAddress%5BIntent%20%7B%20act=grpc.io.action.BIND%20cmp=com.google.android.googlequicksearchbox/com.google.android.apps.search.googleapp.search.suggest.plugins.onesearch.server.OneSearchSuggestService%20%7D%5D}} , mOneSearchConnection=X1.T@4bd33d4
+09-15 20:51:26.909  1575  1858 I AiAiEcho: Predicting[0]: 
+09-15 20:51:26.909  1575  1858 I AiAiEcho: EchoTargets: 
+09-15 20:51:26.909  1575  1858 I AiAiEcho: Filtered by AiAi flag check: 
+09-15 20:51:26.910  1575  1858 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata: 
+09-15 20:51:26.912  1575  1858 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+09-15 20:51:26.944  1795  1795 W A       : Can't get WAA status for Mavatar!
+09-15 20:51:26.944  1795  1795 W A       : java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Class java.lang.Object.getClass()' on a null object reference
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.apps.tiktok.dataservice.z.b(PG:1)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.apps.tiktok.dataservice.at.a(PG:1)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.apps.tiktok.tracing.ec.a(PG:2)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.aj.a(PG:2)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.ac.apply(PG:1)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.h.e(PG:2)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.j.run(PG:9)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.bf.execute(PG:1)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.d.i(PG:1)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.d.iq(PG:5)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.j.h(PG:2)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.ax.d(PG:1)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.apps.tiktok.dataservice.au.a(PG:5)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.apps.tiktok.dataservice.dr.c(PG:5)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.apps.tiktok.dataservice.dp.run(PG:6)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.apps.tiktok.concurrent.ak.run(PG:6)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.apps.tiktok.tracing.ei.run(PG:2)
+09-15 20:51:26.944  1795  1795 W A       : 	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.dy.a(PG:1)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.cv.run(PG:4)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.google.common.util.concurrent.dz.run(PG:1)
+09-15 20:51:26.944  1795  1795 W A       : 	at android.os.Handler.handleCallback(Handler.java:958)
+09-15 20:51:26.944  1795  1795 W A       : 	at android.os.Handler.dispatchMessage(Handler.java:99)
+09-15 20:51:26.944  1795  1795 W A       : 	at android.os.Looper.loopOnce(Looper.java:205)
+09-15 20:51:26.944  1795  1795 W A       : 	at android.os.Looper.loop(Looper.java:294)
+09-15 20:51:26.944  1795  1795 W A       : 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+09-15 20:51:26.944  1795  1795 W A       : 	at java.lang.reflect.Method.invoke(Native Method)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+09-15 20:51:26.944  1795  1795 W A       : 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+09-15 20:51:26.950   432   432 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+09-15 20:51:26.964   576   604 V WindowManager: Sent Transition #17 createdAt=09-15 20:51:26.886 via request=TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=397 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.muzhao.muzhao/.MainActivity } baseActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} topActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} origActivity=null realActivity=ComponentInfo{com.muzhao.muzhao/com.muzhao.muzhao.MainActivity} numActivities=1 lastActiveTime=338055 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{b57ce50 Task{e4e10aa #397 type=standard I=com.muzhao.muzhao/.MainActivity}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{71f6849 com.muzhao.muzhao.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+09-15 20:51:26.964   576   604 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+09-15 20:51:26.965   576   604 V WindowManager:     info={id=17 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{b57ce50 Task{e4e10aa #397 type=standard I=com.muzhao.muzhao/.MainActivity}}} m=CLOSE f=NONE leash=Surface(name=Task=397)/@0xe740b02 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{RemoteToken{3ba9fe2 Task{a2c9481 #1 type=home}}} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xba882a5 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{fc9c93f token=android.os.Binder@357e15e})/@0xbae600f sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:51:26.965   802   849 V WindowManagerShell: onTransitionReady android.os.BinderProxy@f3b8aff: {id=17 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@8bad64} m=CLOSE f=NONE leash=Surface(name=Task=397)/@0xd516db8 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@9a57bcd} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xf69f791 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{fc9c93f token=android.os.Binder@357e15e})/@0x4b2c6f6 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:51:26.965   802   849 V WindowManagerShell: Playing animation for (#17)android.os.BinderProxy@f3b8aff@0
+09-15 20:51:26.965   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultMixedHandler@38f1533
+09-15 20:51:26.965   802   849 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@4d3c0f0
+09-15 20:51:26.965   802   849 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@c927669
+09-15 20:51:26.966   802   849 V WindowManagerShell:  try handler com.android.wm.shell.recents.RecentsTransitionHandler@8a698ee
+09-15 20:51:26.966   802   849 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+09-15 20:51:26.966   802   849 V WindowManagerShell:  try handler com.android.wm.shell.pip.PipTransition@79bd18f
+09-15 20:51:26.966   802   849 V WindowManagerShell:  try handler com.android.wm.shell.splitscreen.StageCoordinator@acbfc1c
+09-15 20:51:26.966   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@9531025
+09-15 20:51:26.966   802   849 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=17 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@8bad64} m=CLOSE f=NONE leash=Surface(name=Task=397)/@0xd516db8 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@9a57bcd} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xf69f791 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{fc9c93f token=android.os.Binder@357e15e})/@0x4b2c6f6 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:51:26.966   802   849 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@8e755fa, appThread = android.app.IApplicationThread$Stub$Proxy@df7ab, debugName = LauncherToDream }}
+09-15 20:51:26.966   802   849 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@aabe08, appThread = android.app.IApplicationThread$Stub$Proxy@c989a1, debugName = QuickstepLaunchHome }}
+09-15 20:51:26.967   802   849 V WindowManagerShell:  Delegate animation for #17 to null
+09-15 20:51:26.967   802   849 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@144d7c6
+09-15 20:51:26.967   802   849 V WindowManagerShell: start default transition animation, info = {id=17 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@8bad64} m=CLOSE f=NONE leash=Surface(name=Task=397)/@0xd516db8 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@9a57bcd} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xf69f791 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{fc9c93f token=android.os.Binder@357e15e})/@0x4b2c6f6 sb=Rect(0, 0 - 1080, 2220) eb=Rect(0, 0 - 1080, 2220) d=0}]}
+09-15 20:51:26.967   802   849 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@6ef2f93 animAttr=0x10 type=CLOSE isEntrance=true
+09-15 20:51:26.968   802   849 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@fd7bece animAttr=0x11 type=CLOSE isEntrance=false
+09-15 20:51:26.978   802   849 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@144d7c6
+09-15 20:51:26.986   576   600 I ImeTracker: com.google.android.apps.nexuslauncher:21ba77c: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+09-15 20:51:26.987   576   600 I ImeTracker: com.google.android.apps.nexuslauncher:21ba77c: onCancelled at PHASE_SERVER_SHOULD_HIDE
+09-15 20:51:26.999  1500  1500 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3227 
+09-15 20:51:26.999   802   860 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda17@f4c0517
+09-15 20:51:26.999   576   600 D CoreBackPreview: Window{3d48d76 u0 Splash Screen com.muzhao.muzhao EXITING}: Setting back callback null
+09-15 20:51:27.000   576  1884 W InputManager-JNI: Input channel object '3d48d76 Splash Screen com.muzhao.muzhao (client)' was disposed without first being removed with the input manager!
+09-15 20:51:27.002  1500  1500 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 0, unlocked = true
+09-15 20:51:27.003  1500  1500 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.google.android.apps.nexuslauncher fieldId=0 fieldName=null extras=null}, false)
+09-15 20:51:27.003  1500  1500 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4008 ShouldHideHeaderOnInitialState = false
+09-15 20:51:27.005  1500  1500 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 2, unlocked = true
+09-15 20:51:27.030   802   897 D EGL_emulation: app_time_stats: avg=7774.11ms min=7774.11ms max=7774.11ms count=1
+09-15 20:51:27.173   802   897 D EGL_emulation: app_time_stats: avg=506.96ms min=11.83ms max=20172.57ms count=41
+09-15 20:51:27.218   802   849 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#17)android.os.BinderProxy@f3b8aff@0
+09-15 20:51:27.220   576   604 V WindowManager: Finish Transition #17: created at 09-15 20:51:26.886 collect-started=0.048ms request-sent=0.412ms started=3.035ms ready=3.014ms sent=76.988ms finished=332.815ms
+09-15 20:51:27.223   802   849 V WindowManagerShell: Track 0 became idle
+09-15 20:51:27.223   802   849 V WindowManagerShell: All active transition animations finished
+09-15 20:51:27.463   802   802 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+09-15 20:51:27.688     0     0 I logd    : logdr: UID=2000 GID=2000 PID=6493 n tail=0 logMask=99 pid=0 start=0ns deadline=0ns

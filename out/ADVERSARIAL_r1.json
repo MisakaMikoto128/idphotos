@@ -1,0 +1,1717 @@
+{
+ "round": "r1",
+ "chunks": [
+  {
+   "chunk": "malformed",
+   "cases": [
+    "m01",
+    "m02",
+    "m03",
+    "m04",
+    "m05",
+    "m06",
+    "m07",
+    "m08",
+    "m09",
+    "m10",
+    "m11",
+    "m12",
+    "m13",
+    "m14",
+    "m15",
+    "m16"
+   ],
+   "done_marker": true,
+   "elapsed_s": 10
+  },
+  {
+   "chunk": "sizes",
+   "cases": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10",
+    "s11"
+   ],
+   "done_marker": true,
+   "elapsed_s": 5
+  },
+  {
+   "chunk": "content_exif",
+   "cases": [
+    "c01",
+    "c02",
+    "c03",
+    "c04",
+    "c05",
+    "c06",
+    "c07",
+    "c08",
+    "c09",
+    "c10",
+    "c11",
+    "g01",
+    "e01_o1",
+    "e02_o2",
+    "e03_o3",
+    "e04_o4",
+    "e05_o5",
+    "e06_o6",
+    "e07_o7",
+    "e08_o8",
+    "e09_lie_o6",
+    "e10_lie_o8",
+    "e11_o9_invalid"
+   ],
+   "done_marker": true,
+   "elapsed_s": 31
+  },
+  {
+   "chunk": "sequences",
+   "cases": [
+    "q01_load_during_load",
+    "q02_spec_during_matting",
+    "q03_crop_during_load",
+    "q04_rapid_spec7",
+    "q05_extreme_crops",
+    "q06_save_x20",
+    "q07_corrupt_then_valid",
+    "q08_valid_corrupt_recover",
+    "q09_stress_30"
+   ],
+   "done_marker": true,
+   "elapsed_s": 97
+  }
+ ],
+ "cases": {
+  "m01": {
+   "id": "m01",
+   "file": "m01_zero_byte.jpg",
+   "file_bytes": 0,
+   "expect": "UnsupportedImageException",
+   "matting_ms": 12,
+   "matting_error_type": "UnsupportedImageException",
+   "matting_error": "UnsupportedImageException: 这个图片格式打不开",
+   "matting_message_zh": "这个图片格式打不开",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 24,
+   "no_response_over_5s": false
+  },
+  "m02": {
+   "id": "m02",
+   "file": "m02_text_as_jpg.jpg",
+   "file_bytes": 1520,
+   "expect": "UnsupportedImageException",
+   "matting_ms": 23,
+   "matting_error_type": "UnsupportedImageException",
+   "matting_error": "UnsupportedImageException: 这个图片格式打不开",
+   "matting_message_zh": "这个图片格式打不开",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 28,
+   "no_response_over_5s": false
+  },
+  "m03": {
+   "id": "m03",
+   "file": "m03_truncated_jpg.jpg",
+   "file_bytes": 173509,
+   "expect": "UnsupportedImage/Matting",
+   "matting_ms": 2929,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "face_ms": 485,
+   "face_found": false,
+   "compose_ms": 530,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 4002,
+   "no_response_over_5s": false
+  },
+  "m04": {
+   "id": "m04",
+   "file": "m04_png_corrupt_idat.png",
+   "file_bytes": 12420,
+   "expect": "UnsupportedImageException",
+   "matting_ms": 21,
+   "matting_error_type": "UnsupportedImageException",
+   "matting_error": "UnsupportedImageException: 这个图片格式打不开",
+   "matting_message_zh": "这个图片格式打不开",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 26,
+   "no_response_over_5s": false
+  },
+  "m05": {
+   "id": "m05",
+   "file": "m05_png_bomb_header.png",
+   "file_bytes": 121,
+   "expect": "ImageTooLargeException",
+   "matting_ms": 0,
+   "matting_error_type": "ImageTooLargeException",
+   "matting_error": "ImageTooLargeException: 图片太大了，请用小于 8000px 的照片",
+   "matting_message_zh": "图片太大了，请用小于 8000px 的照片",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 5,
+   "no_response_over_5s": false
+  },
+  "m06": {
+   "id": "m06",
+   "file": "m06_png_bomb_7900.png",
+   "file_bytes": 121,
+   "expect": "UnsupportedImage/Matting",
+   "matting_ms": 351,
+   "matting_error_type": "UnsupportedImageException",
+   "matting_error": "UnsupportedImageException: 这个图片格式打不开",
+   "matting_message_zh": "这个图片格式打不开",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 356,
+   "no_response_over_5s": false
+  },
+  "m07": {
+   "id": "m07",
+   "file": "m07_cmyk.jpg",
+   "file_bytes": 746117,
+   "expect": "解码成功或 UnsupportedImage，不崩溃",
+   "matting_ms": 1315,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "face_ms": 604,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9437634894019203,
+   "compose_ms": 205,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 2171,
+   "no_response_over_5s": false
+  },
+  "m08": {
+   "id": "m08",
+   "file": "m08_16bit.png",
+   "file_bytes": 24740,
+   "expect": "解码成功或 UnsupportedImage，不崩溃",
+   "matting_ms": 637,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 641,
+   "no_response_over_5s": false
+  },
+  "m09": {
+   "id": "m09",
+   "file": "m09_anim.gif",
+   "file_bytes": 41274,
+   "expect": "解码成功（取首帧）或 UnsupportedImage，不崩溃",
+   "matting_ms": 113,
+   "matting_error_type": "UnsupportedImageException",
+   "matting_error": "UnsupportedImageException: 这个图片格式打不开",
+   "matting_message_zh": "这个图片格式打不开",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 118,
+   "no_response_over_5s": false
+  },
+  "m10": {
+   "id": "m10",
+   "file": "m10_anim.webp",
+   "file_bytes": 22062,
+   "expect": "解码成功（取首帧）或 UnsupportedImage，不崩溃",
+   "matting_ms": 1005,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 1009,
+   "no_response_over_5s": false
+  },
+  "m11": {
+   "id": "m11",
+   "file": "m11_multi.tif",
+   "file_bytes": 86832,
+   "expect": "解码成功（取首帧）或 UnsupportedImage，不崩溃",
+   "matting_ms": 644,
+   "matting_size": "120x80",
+   "src_size": "120x80",
+   "face_ms": 229,
+   "face_found": false,
+   "compose_ms": 139,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1042,
+   "no_response_over_5s": false
+  },
+  "m12": {
+   "id": "m12",
+   "file": "m12_fake.heic",
+   "file_bytes": 536,
+   "expect": "UnsupportedImageException",
+   "matting_ms": 2,
+   "matting_error_type": "UnsupportedImageException",
+   "matting_error": "UnsupportedImageException: 这个图片格式打不开",
+   "matting_message_zh": "这个图片格式打不开",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 6,
+   "no_response_over_5s": false
+  },
+  "m13": {
+   "id": "m13",
+   "file": "m13_jpg_trailing_garbage.jpg",
+   "file_bytes": 347531,
+   "expect": "解码成功（容忍尾部垃圾）",
+   "matting_ms": 1037,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "face_ms": 399,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9439478220068782,
+   "compose_ms": 153,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1627,
+   "no_response_over_5s": false
+  },
+  "m14": {
+   "id": "m14",
+   "file": "m14_png_as_jpg.jpg",
+   "file_bytes": 32588,
+   "expect": "解码成功（按内容嗅探）或 UnsupportedImage，不崩溃",
+   "matting_ms": 681,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 686,
+   "no_response_over_5s": false
+  },
+  "m15": {
+   "id": "m15",
+   "file": "m15_exe_as_png.png",
+   "file_bytes": 602,
+   "expect": "UnsupportedImageException",
+   "matting_ms": 2,
+   "matting_error_type": "UnsupportedImageException",
+   "matting_error": "UnsupportedImageException: 这个图片格式打不开",
+   "matting_message_zh": "这个图片格式打不开",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 8,
+   "no_response_over_5s": false
+  },
+  "m16": {
+   "id": "m16",
+   "file": "m16_中文文件名🙂.jpg",
+   "file_bytes": 263464,
+   "expect": "解码成功（长路径/unicode 文件名不炸）",
+   "matting_ms": 1037,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "face_ms": 413,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9439663617263203,
+   "compose_ms": 162,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1653,
+   "no_response_over_5s": false
+  },
+  "s01": {
+   "id": "s01",
+   "file": "s01_1x1.png",
+   "file_bytes": 69,
+   "expect": "MattingException/优雅失败，不崩溃",
+   "matting_ms": 845,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 857,
+   "no_response_over_5s": false
+  },
+  "s02": {
+   "id": "s02",
+   "file": "s02_1x1.jpg",
+   "file_bytes": 631,
+   "expect": "MattingException/优雅失败，不崩溃",
+   "matting_ms": 625,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 630,
+   "no_response_over_5s": false
+  },
+  "s03": {
+   "id": "s03",
+   "file": "s03_strip_20x8000.png",
+   "file_bytes": 594,
+   "expect": "不崩溃（8000 恰好不超限）",
+   "matting_ms": 749,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 754,
+   "no_response_over_5s": false
+  },
+  "s04": {
+   "id": "s04",
+   "file": "s04_strip_8000x20.jpg",
+   "file_bytes": 4626,
+   "expect": "不崩溃",
+   "matting_ms": 659,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 664,
+   "no_response_over_5s": false
+  },
+  "s05": {
+   "id": "s05",
+   "file": "s05_strip_1x8000.png",
+   "file_bytes": 104,
+   "expect": "不崩溃",
+   "matting_ms": 578,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 584,
+   "no_response_over_5s": false
+  },
+  "s06": {
+   "id": "s06",
+   "file": "s06_8000x6000.jpg",
+   "file_bytes": 2161654,
+   "expect": "成功，工作分辨率 2048x1536，不 OOM",
+   "matting_ms": 1524,
+   "matting_size": "2048x1536",
+   "src_size": "8000x6000",
+   "face_ms": 525,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9247599679950839,
+   "compose_ms": 1229,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 3439,
+   "no_response_over_5s": false
+  },
+  "s07": {
+   "id": "s07",
+   "file": "s07_8001x100.png",
+   "file_bytes": 2630,
+   "expect": "ImageTooLargeException",
+   "matting_ms": 0,
+   "matting_error_type": "ImageTooLargeException",
+   "matting_error": "ImageTooLargeException: 图片太大了，请用小于 8000px 的照片",
+   "matting_message_zh": "图片太大了，请用小于 8000px 的照片",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 5,
+   "no_response_over_5s": false
+  },
+  "s08": {
+   "id": "s08",
+   "file": "s08_12000x9000.jpg",
+   "file_bytes": 1689626,
+   "expect": "ImageTooLargeException",
+   "matting_ms": 0,
+   "matting_error_type": "ImageTooLargeException",
+   "matting_error": "ImageTooLargeException: 图片太大了，请用小于 8000px 的照片",
+   "matting_message_zh": "图片太大了，请用小于 8000px 的照片",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 12,
+   "no_response_over_5s": false
+  },
+  "s09": {
+   "id": "s09",
+   "file": "s09_square_600x600.png",
+   "file_bytes": 2337,
+   "expect": "不崩溃",
+   "matting_ms": 707,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 711,
+   "no_response_over_5s": false
+  },
+  "s10": {
+   "id": "s10",
+   "file": "s10_2x3.png",
+   "file_bytes": 77,
+   "expect": "优雅失败，不崩溃",
+   "matting_ms": 533,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 538,
+   "no_response_over_5s": false
+  },
+  "s11": {
+   "id": "s11",
+   "file": "s11_2049x2049.png",
+   "file_bytes": 16922,
+   "expect": "成功，走降采样路径",
+   "matting_ms": 1661,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 1666,
+   "no_response_over_5s": false
+  },
+  "c01": {
+   "id": "c01",
+   "file": "c01_all_black.png",
+   "file_bytes": 843,
+   "expect": "0 脸，不崩溃",
+   "matting_ms": 1102,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 1114,
+   "no_response_over_5s": false
+  },
+  "c02": {
+   "id": "c02",
+   "file": "c02_all_white.png",
+   "file_bytes": 1878,
+   "expect": "0 脸，不崩溃",
+   "matting_ms": 674,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 679,
+   "no_response_over_5s": false
+  },
+  "c03": {
+   "id": "c03",
+   "file": "c03_pure_noise.png",
+   "file_bytes": 788082,
+   "expect": "0 脸，不崩溃",
+   "matting_ms": 700,
+   "matting_size": "512x512",
+   "src_size": "512x512",
+   "face_ms": 316,
+   "face_found": false,
+   "compose_ms": 323,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1481,
+   "no_response_over_5s": false
+  },
+  "c04": {
+   "id": "c04",
+   "file": "c04_noisy_portrait.jpg",
+   "file_bytes": 989316,
+   "expect": "脸检出/优雅失败，不崩溃",
+   "matting_ms": 1239,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "face_ms": 529,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9354964057413314,
+   "compose_ms": 236,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 2047,
+   "no_response_over_5s": false
+  },
+  "c05": {
+   "id": "c05",
+   "file": "c05_group.jpg",
+   "file_bytes": 500215,
+   "expect": "多人脸，不崩溃",
+   "matting_ms": 1667,
+   "matting_size": "2016x1512",
+   "src_size": "2016x1512",
+   "face_ms": 736,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9321890178849539,
+   "compose_ms": 197,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 2632,
+   "no_response_over_5s": false
+  },
+  "c06": {
+   "id": "c06",
+   "file": "c06_upside_down.jpg",
+   "file_bytes": 282944,
+   "expect": "脸检出/0 脸均不崩溃",
+   "matting_ms": 1003,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "face_ms": 386,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.8457061840354598,
+   "compose_ms": 196,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1621,
+   "no_response_over_5s": false
+  },
+  "c07": {
+   "id": "c07",
+   "file": "c07_half_face_edge.jpg",
+   "file_bytes": 185550,
+   "expect": "不崩溃（检出或优雅失败）",
+   "matting_ms": 886,
+   "matting_size": "666x1415",
+   "src_size": "666x1415",
+   "face_ms": 312,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9453619807910375,
+   "compose_ms": 104,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1346,
+   "no_response_over_5s": false
+  },
+  "c08": {
+   "id": "c08",
+   "file": "c08_tiny_person.png",
+   "file_bytes": 143810,
+   "expect": "不崩溃",
+   "matting_ms": 1843,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 1849,
+   "no_response_over_5s": false
+  },
+  "c09": {
+   "id": "c09",
+   "file": "c09_skin_tone.png",
+   "file_bytes": 1882,
+   "expect": "0 脸，不崩溃",
+   "matting_ms": 651,
+   "matting_error_type": "MattingException",
+   "matting_error": "MattingException: 抠图失败了，换一张试试吧",
+   "matting_message_zh": "抠图失败了，换一张试试吧",
+   "matting_message_cjk": true,
+   "result": "done",
+   "total_ms": 656,
+   "no_response_over_5s": false
+  },
+  "c10": {
+   "id": "c10",
+   "file": "c10_grayscale.jpg",
+   "file_bytes": 247507,
+   "expect": "解码成功",
+   "matting_ms": 1055,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "face_ms": 401,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9403052845908318,
+   "compose_ms": 116,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1613,
+   "no_response_over_5s": false
+  },
+  "c11": {
+   "id": "c11",
+   "file": "c11_pale_portrait.jpg",
+   "file_bytes": 85599,
+   "expect": "不崩溃",
+   "matting_ms": 1092,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "face_ms": 380,
+   "face_found": false,
+   "compose_ms": 128,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1639,
+   "no_response_over_5s": false
+  },
+  "g01": {
+   "id": "g01",
+   "file": "g01.jpg",
+   "file_bytes": 263464,
+   "expect": "基线人像",
+   "matting_ms": 1108,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "face_ms": 395,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9439663617263203,
+   "compose_ms": 138,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1682,
+   "no_response_over_5s": false
+  },
+  "e01_o1": {
+   "id": "e01_o1",
+   "file": "e01_o1.jpg",
+   "file_bytes": 263500,
+   "expect": "成片方向正确（orientation 摆正后与像素一致），不崩溃",
+   "matting_ms": 1040,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "orientation_mads": [
+    "0.5",
+    "53.7",
+    "66.2",
+    "53.6"
+   ],
+   "orientation_ok": true,
+   "aspect_ok": true,
+   "face_ms": 398,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9439663617263203,
+   "compose_ms": 138,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1846,
+   "no_response_over_5s": false
+  },
+  "e02_o2": {
+   "id": "e02_o2",
+   "file": "e02_o2.jpg",
+   "file_bytes": 265377,
+   "expect": "成片方向正确（orientation 摆正后与像素一致），不崩溃",
+   "matting_ms": 1115,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "orientation_mads": [
+    "0.5",
+    "53.7",
+    "66.2",
+    "53.6"
+   ],
+   "orientation_ok": true,
+   "aspect_ok": true,
+   "face_ms": 411,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9442011391168225,
+   "compose_ms": 140,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1851,
+   "no_response_over_5s": false
+  },
+  "e03_o3": {
+   "id": "e03_o3",
+   "file": "e03_o3.jpg",
+   "file_bytes": 282559,
+   "expect": "成片方向正确（orientation 摆正后与像素一致），不崩溃",
+   "matting_ms": 1000,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "orientation_mads": [
+    "0.5",
+    "53.7",
+    "66.2",
+    "53.6"
+   ],
+   "orientation_ok": true,
+   "aspect_ok": true,
+   "face_ms": 395,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9438191411757187,
+   "compose_ms": 137,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1709,
+   "no_response_over_5s": false
+  },
+  "e04_o4": {
+   "id": "e04_o4",
+   "file": "e04_o4.jpg",
+   "file_bytes": 282980,
+   "expect": "成片方向正确（orientation 摆正后与像素一致），不崩溃",
+   "matting_ms": 1079,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "orientation_mads": [
+    "0.5",
+    "53.7",
+    "66.2",
+    "53.6"
+   ],
+   "orientation_ok": true,
+   "aspect_ok": true,
+   "face_ms": 390,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9436390550182072,
+   "compose_ms": 137,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1787,
+   "no_response_over_5s": false
+  },
+  "e05_o5": {
+   "id": "e05_o5",
+   "file": "e05_o5.jpg",
+   "file_bytes": 266358,
+   "expect": "成片方向正确（orientation 摆正后与像素一致），不崩溃",
+   "matting_ms": 1025,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "orientation_mads": [
+    "0.5",
+    "53.7",
+    "66.2",
+    "53.6"
+   ],
+   "orientation_ok": true,
+   "aspect_ok": true,
+   "face_ms": 396,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.943851739368648,
+   "compose_ms": 144,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1735,
+   "no_response_over_5s": false
+  },
+  "e06_o6": {
+   "id": "e06_o6",
+   "file": "e06_o6.jpg",
+   "file_bytes": 268316,
+   "expect": "成片方向正确（orientation 摆正后与像素一致），不崩溃",
+   "matting_ms": 1040,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "orientation_mads": [
+    "0.5",
+    "53.7",
+    "66.2",
+    "53.6"
+   ],
+   "orientation_ok": true,
+   "aspect_ok": true,
+   "face_ms": 396,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9439439249862093,
+   "compose_ms": 136,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1737,
+   "no_response_over_5s": false
+  },
+  "e07_o7": {
+   "id": "e07_o7",
+   "file": "e07_o7.jpg",
+   "file_bytes": 280408,
+   "expect": "成片方向正确（orientation 摆正后与像素一致），不崩溃",
+   "matting_ms": 1050,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "orientation_mads": [
+    "0.5",
+    "53.7",
+    "66.2",
+    "53.6"
+   ],
+   "orientation_ok": true,
+   "aspect_ok": true,
+   "face_ms": 398,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9440508843097661,
+   "compose_ms": 138,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1750,
+   "no_response_over_5s": false
+  },
+  "e08_o8": {
+   "id": "e08_o8",
+   "file": "e08_o8.jpg",
+   "file_bytes": 280794,
+   "expect": "成片方向正确（orientation 摆正后与像素一致），不崩溃",
+   "matting_ms": 1091,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "orientation_mads": [
+    "0.5",
+    "53.7",
+    "66.2",
+    "53.6"
+   ],
+   "orientation_ok": true,
+   "aspect_ok": true,
+   "face_ms": 388,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9437278894202448,
+   "compose_ms": 142,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1788,
+   "no_response_over_5s": false
+  },
+  "e09_lie_o6": {
+   "id": "e09_lie_o6",
+   "file": "e09_lie_o6.jpg",
+   "file_bytes": 263500,
+   "expect": "不崩溃（tag 谎报/非法值）",
+   "matting_ms": 988,
+   "matting_size": "1415x1080",
+   "src_size": "1415x1080",
+   "orientation_mads": [
+    "53.7",
+    "66.3",
+    "53.6",
+    "0.4"
+   ],
+   "orientation_ok": false,
+   "aspect_ok": false,
+   "face_ms": 390,
+   "face_found": false,
+   "compose_ms": 143,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1684,
+   "no_response_over_5s": false
+  },
+  "e10_lie_o8": {
+   "id": "e10_lie_o8",
+   "file": "e10_lie_o8.jpg",
+   "file_bytes": 263500,
+   "expect": "不崩溃（tag 谎报/非法值）",
+   "matting_ms": 1097,
+   "matting_size": "1415x1080",
+   "src_size": "1415x1080",
+   "orientation_mads": [
+    "53.6",
+    "0.5",
+    "53.7",
+    "66.2"
+   ],
+   "orientation_ok": false,
+   "aspect_ok": false,
+   "face_ms": 392,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.8298439354855494,
+   "compose_ms": 135,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1778,
+   "no_response_over_5s": false
+  },
+  "e11_o9_invalid": {
+   "id": "e11_o9_invalid",
+   "file": "e11_o9_invalid.jpg",
+   "file_bytes": 263500,
+   "expect": "不崩溃（tag 谎报/非法值）",
+   "matting_ms": 1020,
+   "matting_size": "1080x1415",
+   "src_size": "1080x1415",
+   "orientation_mads": [
+    "0.5",
+    "53.7",
+    "66.2",
+    "53.6"
+   ],
+   "orientation_ok": true,
+   "aspect_ok": true,
+   "face_ms": 383,
+   "face_found": true,
+   "face_order_ok": true,
+   "face_conf": 0.9439663617263203,
+   "compose_ms": 125,
+   "compose_decoded": true,
+   "compose_w": 295,
+   "compose_h": 413,
+   "compose_size_ok": true,
+   "result": "done",
+   "total_ms": 1686,
+   "no_response_over_5s": false
+  },
+  "q01_load_during_load": {
+   "id": "q01_load_during_load",
+   "steps": [
+    {
+     "final_stage": "ready",
+     "final_err": null,
+     "final_cands": 6,
+     "final_src_ok": true,
+     "final_cand0_decoded": true,
+     "final_cand0_wh": "295x413"
+    },
+    {
+     "step": "race",
+     "ms": 3194
+    }
+   ],
+   "result": "done",
+   "total_ms": 3218,
+   "no_response_over_5s": false
+  },
+  "q02_spec_during_matting": {
+   "id": "q02_spec_during_matting",
+   "steps": [
+    {
+     "final_stage": "ready",
+     "final_spec": "visa_us",
+     "final_cands": 6,
+     "final_err": null
+    },
+    {
+     "cand0_wh": "600x600"
+    },
+    {
+     "step": "race",
+     "ms": 2353
+    }
+   ],
+   "result": "done",
+   "total_ms": 2371,
+   "no_response_over_5s": false
+  },
+  "q03_crop_during_load": {
+   "id": "q03_crop_during_load",
+   "steps": [
+    {
+     "after_load_a": "ready"
+    },
+    {
+     "final_stage": "ready",
+     "final_err": null,
+     "final_cands": 6,
+     "final_src_ok": true,
+     "final_cand0_decoded": true,
+     "final_cand0_wh": "600x600"
+    },
+    {
+     "step": "race",
+     "ms": 4085
+    }
+   ],
+   "result": "done",
+   "total_ms": 4102,
+   "no_response_over_5s": false
+  },
+  "q04_rapid_spec7": {
+   "id": "q04_rapid_spec7",
+   "steps": [
+    {
+     "final_stage": "ready",
+     "final_spec": "visa_us",
+     "final_cands": 6
+    },
+    {
+     "cand0_wh": "600x600"
+    },
+    {
+     "step": "rapid_spec",
+     "ms": 5693
+    }
+   ],
+   "result": "done",
+   "total_ms": 5710,
+   "no_response_over_5s": true
+  },
+  "q05_extreme_crops": {
+   "id": "q05_extreme_crops",
+   "steps": [
+    {
+     "final_stage": "ready",
+     "final_err": null,
+     "final_cands": 6
+    },
+    {
+     "cand0_decoded": true
+    },
+    {
+     "step": "extreme_crops",
+     "ms": 9541
+    }
+   ],
+   "result": "done",
+   "total_ms": 9559,
+   "no_response_over_5s": true
+  },
+  "q06_save_x20": {
+   "id": "q06_save_x20",
+   "steps": [
+    {
+     "save_ok": 5,
+     "save_bad": 15,
+     "detail": [
+      {
+       "i": 0,
+       "path": "muzhao_1789475387202_white.jpg",
+       "exists": true,
+       "bytes": 69259,
+       "decoded": true,
+       "size_ok": false
+      },
+      {
+       "i": 1,
+       "path": "muzhao_1789475387202_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 2,
+       "path": "muzhao_1789475387202_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 3,
+       "path": "muzhao_1789475387203_white.jpg",
+       "exists": true,
+       "bytes": 69259,
+       "decoded": true,
+       "size_ok": false
+      },
+      {
+       "i": 4,
+       "path": "muzhao_1789475387203_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 5,
+       "path": "muzhao_1789475387203_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 6,
+       "path": "muzhao_1789475387204_white.jpg",
+       "exists": true,
+       "bytes": 69259,
+       "decoded": true,
+       "size_ok": false
+      },
+      {
+       "i": 7,
+       "path": "muzhao_1789475387205_white.jpg",
+       "exists": true,
+       "bytes": 69259,
+       "decoded": true,
+       "size_ok": false
+      },
+      {
+       "i": 8,
+       "path": "muzhao_1789475387205_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 9,
+       "path": "muzhao_1789475387205_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 10,
+       "path": "muzhao_1789475387205_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 11,
+       "path": "muzhao_1789475387205_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 12,
+       "path": "muzhao_1789475387205_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 13,
+       "path": "muzhao_1789475387206_white.jpg",
+       "exists": true,
+       "bytes": 69259,
+       "decoded": true,
+       "size_ok": false
+      },
+      {
+       "i": 14,
+       "path": "muzhao_1789475387206_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 15,
+       "path": "muzhao_1789475387206_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 16,
+       "path": "muzhao_1789475387206_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 17,
+       "path": "muzhao_1789475387206_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 18,
+       "path": "muzhao_1789475387206_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      },
+      {
+       "i": 19,
+       "path": "muzhao_1789475387206_white.jpg",
+       "exists": false,
+       "bytes": null,
+       "decoded": false,
+       "size_ok": false
+      }
+     ]
+    },
+    {
+     "step": "save20",
+     "ms": 2673
+    }
+   ],
+   "result": "done",
+   "total_ms": 2691,
+   "no_response_over_5s": false
+  },
+  "q07_corrupt_then_valid": {
+   "id": "q07_corrupt_then_valid",
+   "steps": [
+    {
+     "final_stage": "ready",
+     "final_err": null,
+     "final_cands": 6,
+     "final_src_ok": true,
+     "final_cand0_decoded": true,
+     "final_cand0_wh": "600x600"
+    },
+    {
+     "step": "race",
+     "ms": 2428
+    }
+   ],
+   "result": "done",
+   "total_ms": 2445,
+   "no_response_over_5s": false
+  },
+  "q08_valid_corrupt_recover": {
+   "id": "q08_valid_corrupt_recover",
+   "steps": [
+    {
+     "a_stage": "ready",
+     "a_err": null,
+     "a_cands": 6,
+     "a_src_ok": true,
+     "a_cand0_decoded": true,
+     "a_cand0_wh": "600x600"
+    },
+    {
+     "err_stage": "error",
+     "err_msg": "这个图片格式打不开",
+     "err_msg_cjk": true
+    },
+    {
+     "recover_stage": "ready",
+     "recover_err": null,
+     "recover_cands": 6,
+     "recover_src_ok": true,
+     "recover_cand0_decoded": true,
+     "recover_cand0_wh": "600x600"
+    },
+    {
+     "step": "recover",
+     "ms": 3878
+    }
+   ],
+   "result": "done",
+   "total_ms": 3895,
+   "no_response_over_5s": false
+  },
+  "q09_stress_30": {
+   "id": "q09_stress_30",
+   "steps": [
+    {
+     "loads": [
+      {
+       "i": 0,
+       "file": "g01.jpg",
+       "ms": 2158,
+       "stage": "ready"
+      },
+      {
+       "i": 1,
+       "file": "g02.jpg",
+       "ms": 1632,
+       "stage": "ready"
+      },
+      {
+       "i": 2,
+       "file": "c04_noisy_portrait.jpg",
+       "ms": 2601,
+       "stage": "ready"
+      },
+      {
+       "i": 3,
+       "file": "c10_grayscale.jpg",
+       "ms": 2108,
+       "stage": "ready"
+      },
+      {
+       "i": 4,
+       "file": "c11_pale_portrait.jpg",
+       "ms": 2066,
+       "stage": "ready"
+      },
+      {
+       "i": 5,
+       "file": "c05_group.jpg",
+       "ms": 2949,
+       "stage": "ready"
+      },
+      {
+       "i": 6,
+       "file": "c06_upside_down.jpg",
+       "ms": 2163,
+       "stage": "ready"
+      },
+      {
+       "i": 7,
+       "file": "c07_half_face_edge.jpg",
+       "ms": 1772,
+       "stage": "ready"
+      },
+      {
+       "i": 8,
+       "file": "g01.jpg",
+       "ms": 2186,
+       "stage": "ready"
+      },
+      {
+       "i": 9,
+       "file": "g02.jpg",
+       "ms": 1628,
+       "stage": "ready"
+      },
+      {
+       "i": 10,
+       "file": "c04_noisy_portrait.jpg",
+       "ms": 2551,
+       "stage": "ready"
+      },
+      {
+       "i": 11,
+       "file": "c10_grayscale.jpg",
+       "ms": 2087,
+       "stage": "ready"
+      },
+      {
+       "i": 12,
+       "file": "c11_pale_portrait.jpg",
+       "ms": 2034,
+       "stage": "ready"
+      },
+      {
+       "i": 13,
+       "file": "c05_group.jpg",
+       "ms": 3013,
+       "stage": "ready"
+      },
+      {
+       "i": 14,
+       "file": "c06_upside_down.jpg",
+       "ms": 2160,
+       "stage": "ready"
+      },
+      {
+       "i": 15,
+       "file": "c07_half_face_edge.jpg",
+       "ms": 1883,
+       "stage": "ready"
+      },
+      {
+       "i": 16,
+       "file": "g01.jpg",
+       "ms": 2223,
+       "stage": "ready"
+      },
+      {
+       "i": 17,
+       "file": "g02.jpg",
+       "ms": 1756,
+       "stage": "ready"
+      },
+      {
+       "i": 18,
+       "file": "c04_noisy_portrait.jpg",
+       "ms": 2614,
+       "stage": "ready"
+      },
+      {
+       "i": 19,
+       "file": "c10_grayscale.jpg",
+       "ms": 2047,
+       "stage": "ready"
+      },
+      {
+       "i": 20,
+       "file": "c11_pale_portrait.jpg",
+       "ms": 2029,
+       "stage": "ready"
+      },
+      {
+       "i": 21,
+       "file": "c05_group.jpg",
+       "ms": 2937,
+       "stage": "ready"
+      },
+      {
+       "i": 22,
+       "file": "c06_upside_down.jpg",
+       "ms": 2208,
+       "stage": "ready"
+      },
+      {
+       "i": 23,
+       "file": "c07_half_face_edge.jpg",
+       "ms": 1698,
+       "stage": "ready"
+      },
+      {
+       "i": 24,
+       "file": "g01.jpg",
+       "ms": 2182,
+       "stage": "ready"
+      },
+      {
+       "i": 25,
+       "file": "g02.jpg",
+       "ms": 1550,
+       "stage": "ready"
+      },
+      {
+       "i": 26,
+       "file": "c04_noisy_portrait.jpg",
+       "ms": 2488,
+       "stage": "ready"
+      },
+      {
+       "i": 27,
+       "file": "c10_grayscale.jpg",
+       "ms": 2118,
+       "stage": "ready"
+      },
+      {
+       "i": 28,
+       "file": "c11_pale_portrait.jpg",
+       "ms": 2003,
+       "stage": "ready"
+      },
+      {
+       "i": 29,
+       "file": "c05_group.jpg",
+       "ms": 2936,
+       "stage": "ready"
+      }
+     ],
+     "ready": 30,
+     "err": 0,
+     "total_ms": 65928
+    },
+    {
+     "step": "stress30",
+     "ms": 65929
+    }
+   ],
+   "result": "done",
+   "total_ms": 65947,
+   "no_response_over_5s": true
+  }
+ },
+ "n_cases_recorded": 59,
+ "artifact_check": {
+  "c03_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "c04_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "c05_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "c06_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "c07_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "c10_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "c11_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e01_o1_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e02_o2_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e03_o3_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e04_o4_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e05_o5_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e06_o6_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e07_o7_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e08_o8_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e09_lie_o6_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e10_lie_o8_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "e11_o9_invalid_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  },
+  "g01_cand.jpg": {
+   "decoded": true,
+   "size": [
+    295,
+    413
+   ]
+  }
+ }
+}
