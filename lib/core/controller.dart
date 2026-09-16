@@ -188,9 +188,7 @@ class MuZhaoController implements IdPhotoController {
         : m.width / m.srcWidth;
     if (k == 1.0) return f;
     return FaceInfo(
-      box: Rect.fromLTRB(
-        f.box.left * k, f.box.top * k, f.box.right * k, f.box.bottom * k,
-      ),
+      box: _scaleRect(f.box, k),
       chinY: f.chinY * k,
       headTopY: f.headTopY * k,
       rollDeg: f.rollDeg,
@@ -198,15 +196,19 @@ class MuZhaoController implements IdPhotoController {
     );
   }
 
+  /// 矩形等比缩放（原点不动）。[k] == 1.0 时原样返回。
+  static Rect _scaleRect(Rect r, double k) =>
+      k == 1.0
+          ? r
+          : Rect.fromLTRB(
+              r.left * k, r.top * k, r.right * k, r.bottom * k,
+            );
+
   /// 坐标换算（G4.7）：cropOverride 由 UI 以**原图坐标**送入
   /// （[IdPhotoController.setCrop] 契约），compose 需要工作分辨率坐标。
   Rect? _cropInWorkingSpace(Rect? r, MattingResult m) {
     if (r == null) return null;
-    final double k = m.width / m.srcWidth;
-    if (k == 1.0) return r;
-    return Rect.fromLTRB(
-      r.left * k, r.top * k, r.right * k, r.bottom * k,
-    );
+    return _scaleRect(r, m.width / m.srcWidth);
   }
 
   /// 用当前缓存的抠图结果 + 规格，为 6 种内置底色各合成一张候选。

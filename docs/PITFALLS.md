@@ -690,6 +690,9 @@
 - 处置：c669d36 已整体回退到 1dcd35c 行为（r4 为当前最优已验证态），工装文件
   mem_ledger.dart / dev_compose_memprofile.dart 保留；bitcheck 190 哈希与 1dcd35c
   基线逐位一致，2B 9/9。复测口径 = qa-batch QA_ROUND 重跑。
+- 补记（/simplify，2026-09-16）：`mem_ledger.dart` 已随 simplify 删除
+  （c669d36 回退后零挂点、账本恒 0，头注已成谎言）；重挂记账需按当时
+  的分配点重新实现 hook，dev_compose_memprofile 现仅剩 ProcessInfo RSS 对照。
 
 ## [imaging] memprofile 的「decontaminate premul 12MP 48.8MB」是工装假象，不是管线路径——compose 全部大缓冲本来就随 matting 分辨率缩放
 - 现象（2026-09-15，G4 最后一轮）：归因"compose 段 12MP 缓冲从哪来"时发现，

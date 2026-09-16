@@ -22,7 +22,6 @@
 library;
 
 import 'dart:io';
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' show Offset, Rect;
 
@@ -34,6 +33,7 @@ import 'package:image/image.dart' as img;
 import '../api.dart';
 import '../specs/photo_specs.dart';
 import 'compose_only_engine.dart';
+import 'dev_synth.dart';
 
 const Timeout _long = Timeout(Duration(minutes: 20));
 
@@ -73,78 +73,9 @@ MattingResult _loadGolden(String id) {
       rgba: rgba, alpha: alpha, width: src.width, height: src.height);
 }
 
-/// 由参考 alpha 反推 FaceInfo（与 dev_selfcheck.dart 同口径的简化版）。
-FaceInfo _faceFromAlpha(MattingResult m) {
-  int minY = 1 << 30, maxY = -1;
-  double sx = 0;
-  int sn = 0;
-  for (int y = 0; y < m.height; y++) {
-    final int row = y * m.width;
-    for (int x = 0; x < m.width; x++) {
-      if (m.alpha[row + x] > 128) {
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-        sx += x;
-        sn++;
-      }
-    }
-  }
-  if (maxY < 0) {
-    minY = 0;
-    maxY = m.height - 1;
-  }
-  final double headTop = minY.toDouble();
-  final int bboxH = maxY - minY + 1;
-  final double headH = math.max(8.0, bboxH * 0.5);
-  final double cx = sn > 0 ? sx / sn : m.width / 2.0;
-  return FaceInfo(
-    box: Rect.fromCenter(
-        center: Offset(cx, headTop + headH / 2),
-        width: headH * 0.8,
-        height: headH),
-    headTopY: headTop,
-    chinY: headTop + headH,
-    rollDeg: 0.0,
-    confidence: 1.0,
-  );
-}
-
-/// 合成人像（软边矩形头 + 颈肩，饱和蓝底），两种"内容"靠颜色与几何区分，
-/// 尺寸相同 —— 用来打跨图同键复用的串染。
-MattingResult _synthMatting({
-  required int width,
-  required int height,
-  required double headCx,
-  required double headTopY,
-  required double chinY,
-  required double headWidth,
-  required List<int> skin,
-}) {
-  final Uint8List rgba = Uint8List(width * height * 4);
-  final Uint8List alpha = Uint8List(width * height);
-  const List<int> bg = <int>[26, 92, 176];
-  const List<int> cloth = <int>[46, 54, 70];
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      final int ai = y * width + x;
-      final double dx = (x + 0.5 - headCx) / (headWidth / 2);
-      final double dyH =
-          (y + 0.5 - (headTopY + chinY) / 2) / ((chinY - headTopY) / 2);
-      final double dHead = math.sqrt(dx * dx + dyH * dyH);
-      final double a =
-          ((1.0 - dHead) * 40.0 / 3.0 + 0.5).clamp(0.0, 1.0).toDouble();
-      alpha[ai] = (a * 255).round().clamp(0, 255);
-      final List<int> col = y < chinY + 40 ? skin : cloth;
-      final int p = ai * 4;
-      for (int ch = 0; ch < 3; ch++) {
-        rgba[p + ch] = (col[ch] * a + bg[ch] * (1 - a)).round();
-      }
-      rgba[p + 3] = 255;
-    }
-  }
-  return MattingResult(
-      rgba: rgba, alpha: alpha, width: width, height: height);
-}
+/// 由参考 alpha 反推 FaceInfo / 合成人像输入 —— 见 dev_synth.dart
+/// （三份工装拷贝的合一点）。合成人像是软边矩形头 + 颈肩、饱和蓝底，
+/// 两种"内容"靠颜色与几何区分，尺寸相同 —— 用来打跨图同键复用的串染。
 
 void main() {
   final ComposeOnlyEngine engine = ComposeOnlyEngine();
@@ -163,7 +94,7 @@ void main() {
     for (int i = 1; i <= 8; i++) {
       final String id = 'g${i.toString().padLeft(2, '0')}';
       final MattingResult m = _loadGolden(id);
-      final FaceInfo face = _faceFromAlpha(m);
+      final FaceInfo face = faceFromAlpha(m);
       for (final PhotoSpec spec in photoSpecs) {
         for (final BackgroundStyle style in <BackgroundStyle>[green, blue, white]) {
           final Candidate c = await engine.compose(
@@ -176,24 +107,26 @@ void main() {
 
     // ---- 2. 同尺寸双图交替（跨图同键串染）----
     final List<MattingResult> twins = <MattingResult>[
-      _synthMatting(
+      synthMatting(
           width: 1100,
           height: 1500,
           headCx: 420,
           headTopY: 300,
           chinY: 660,
           headWidth: 260,
-          skin: const <int>[232, 184, 140]),
-      _synthMatting(
+          skin: const <int>[232, 184, 140],
+          neckOffset: 40),
+      synthMatting(
           width: 1100,
           height: 1500,
           headCx: 640,
           headTopY: 380,
           chinY: 800,
           headWidth: 340,
-          skin: const <int>[150, 205, 190]),
+          skin: const <int>[150, 205, 190],
+          neckOffset: 40),
     ];
-    final List<FaceInfo> twinFaces = twins.map(_faceFromAlpha).toList();
+    final List<FaceInfo> twinFaces = twins.map(faceFromAlpha).toList();
     for (final PhotoSpec spec in photoSpecs) {
       for (int k = 0; k < twins.length; k++) {
         final Candidate c = await engine.compose(

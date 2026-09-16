@@ -332,17 +332,17 @@ Uint8List _areaResampleRgbStrided(
   final srcRowDst = Int32List(srcRowOff[srcH]);
   final srcRowW = Float32List(srcRowOff[srcH]);
   final fill = Int32List(srcH);
+  // wy.weights 的写入游标随目标行增量推进（原实现每个 j 都从 0 重数
+  // 前面所有 count，O(dstH²)；游标推进后权重下标与原实现完全一致）。
+  var wi = 0;
   for (var j = 0; j < dstH; j++) {
-    var wi = 0;
-    for (var k = 0; k < j; k++) {
-      wi += wy.count[k];
-    }
     for (var k = 0; k < wy.count[j]; k++) {
       final y = wy.start[j] + k;
       final pos = srcRowOff[y] + fill[y]++;
       srcRowDst[pos] = j;
       srcRowW[pos] = wy.weights[wi + k];
     }
+    wi += wy.count[j];
   }
   final acc = Float32List(dstH * dstW * 3);
   final row = Float32List(dstW * 3);
@@ -474,13 +474,19 @@ Uint8List featherGray(Uint8List src, int w, int h, double sigma) {
   }
 
   final out = Uint8List(w * h);
+  // 行视图缓存：每个 y 只对窗口内 (2r+1) 行各调一次 hrowOf（建一次
+  // 视图对象），x 循环里直接下标访问——调用数从 (2r+1)·w·h 降到
+  // (2r+1)·h，加法次序与权重完全不变，结果逐位一致。
+  final rows = List<Float32List?>.filled(window, null);
   for (var y = 0; y < h; y++) {
     final base = y * w;
+    for (var i = -radius; i <= radius; i++) {
+      rows[i + radius] = hrowOf((y + i).clamp(0, h - 1));
+    }
     for (var x = 0; x < w; x++) {
       var v = 0.0;
       for (var i = -radius; i <= radius; i++) {
-        final yy = (y + i).clamp(0, h - 1);
-        v += hrowOf(yy)[x] * k[i + radius];
+        v += rows[i + radius]![x] * k[i + radius];
       }
       out[base + x] = _roundToByte(v);
     }

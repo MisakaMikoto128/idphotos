@@ -276,11 +276,10 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
         _encodeRgbJpeg(thumb, quality: kThumbJpegQuality, dpi: s.dpi);
 
     // 编码完成（缩略图是只读 full 得出的，也已完成）才把缓冲还给池。
-    // 缩略图长边不足 320 时 downscaleRgb 返回 full 本身，此时只能归还一次。
+    // 缩略图长边不足 320 时 downscaleRgb 返回 full 本身——release 幂等
+    //（归还后缓冲与池解绑，重复调用无操作），无条件归还即可。
     full.release();
-    if (!identical(thumb, full)) {
-      thumb.release();
-    }
+    thumb.release();
 
     return Candidate(style: style, jpegBytes: jpeg, thumbBytes: thumbJpeg);
   }
@@ -375,10 +374,10 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     return level;
   }
 
-  /// [encodeRgbJpeg] 的引擎内缓存版：编码画布与编码器实例跨调用复用
-  /// （见 [_encodeCanvas] / [_jpegEncoders] 的文档）。输出与 [encodeRgbJpeg]
-  /// **逐位一致**——画布里的像素与 [encodeRgbJpeg] 每次新拷进去的完全相同，
-  /// 编码器输出只由 quality 与画布像素决定。
+  /// 引擎内缓存版 JPEG 编码：编码画布与编码器实例跨调用复用
+  /// （见 [_encodeCanvas] / [_jpegEncoders] 的文档）。输出与"每次新建
+  /// 画布 + 编码器"的朴素路径**逐位一致**——画布里的像素与朴素路径每次
+  /// 新拷进去的完全相同，编码器输出只由 quality 与画布像素决定。
   Uint8List _encodeRgbJpeg(RenderedImage image,
       {required int quality, required int dpi}) {
     final String key = '${image.width} x ${image.height}';
@@ -471,7 +470,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
         headH = headH / cosA;
       }
 
-      // 人脸框的 x 不可靠（见 probeHeadInRotated 的注释）：先把人脸框中心
+      // 人脸框的 x 不可靠（见 refineHeadFromMask 的文档）：先把人脸框中心
       // 映进旋转空间当锚点，掩膜精化（下面）会在锚点附近量出头部真实
       // 水平中心 Xc，再按仿射逆关系解出「源图 y 恰为 face.headTopY」的
       // 那条旋转空间行 Yt：
@@ -553,23 +552,4 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     return RectD(
         p[0] - r.width / 2.0, p[1] - r.height / 2.0, r.width, r.height);
   }
-}
-
-/// 把 RGB 缓冲编码成 JPEG 并写入 DPI。
-///
-/// 单独抽出来是为了让自检脚本直接复用同一条编码路径 ——
-/// 自检测的必须是真正交付的那串字节，不是另一条近似路径。
-Uint8List encodeRgbJpeg(RenderedImage image,
-    {required int quality, required int dpi}) {
-  final img.Image encoded = img.Image.fromBytes(
-    width: image.width,
-    height: image.height,
-    bytes: image.rgb.buffer,
-    numChannels: 3,
-    order: img.ChannelOrder.rgb,
-  );
-  // chroma 保持默认的 yuv444：4:2:0 会把底色的色度糊进人像边缘，
-  // 恰好制造出 G2B.6 要抓的溢色。
-  final Uint8List bytes = img.encodeJpg(encoded, quality: quality);
-  return writeJpegDpi(bytes, dpi);
 }

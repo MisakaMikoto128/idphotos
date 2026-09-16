@@ -142,24 +142,11 @@ MattingPayload runMattingSync(Uint8List bytes, int sessionAddress,
 /// **之前**：被拒的图省掉整次抠图推理，失败路径更快、瞬时内存更小。
 /// 传 null 表示引擎已用缓存裁决过本次门槛（跳过检脸，省一次推理）。
 ///
-/// [rgbaOpaqueReuse] 非 null 时（dart:ui 降采样解码路径）：payload 的
-/// rgba 直接复用该缓冲（就地强制 A=255），不再从 rgb 重建一份——省
-/// 一次 w*h*4 的分配与拷贝（G4.7 瞬时滞留压缩）。传入前必须确保调用方
-/// 不再使用它（本函数会改写 alpha 字节）。
 MattingPayload runMattingFromRgb(DecodedImage image, int sessionAddress,
-    {int? faceSessionAddress, Uint8List? rgbaOpaqueReuse}) {
+    {int? faceSessionAddress}) {
   final core = _mattingCore(image, sessionAddress,
       faceSessionAddress: faceSessionAddress);
-  final Uint8List rgba;
-  if (rgbaOpaqueReuse != null) {
-    assert(rgbaOpaqueReuse.length == image.width * image.height * 4);
-    rgba = rgbaOpaqueReuse;
-    for (var i = 3; i < rgba.length; i += 4) {
-      rgba[i] = 255;
-    }
-  } else {
-    rgba = image.toRgba();
-  }
+  final Uint8List rgba = image.toRgba();
   return MattingPayload(
     TransferableTypedData.fromList(<Uint8List>[rgba]),
     TransferableTypedData.fromList(<Uint8List>[core.alpha]),
@@ -250,6 +237,10 @@ Uint8List _matteFromModnetInput(
 /// alpha-only 抠图（G4.7 dart:ui 降采样路径专用）：worker 只回 alpha 与
 /// 检脸结果，rgba 由宿主就地复用（强制 A=255），全程不再跨 isolate 搬运
 /// 或重建 `w*h*4` 的大缓冲——比完整 payload 路径少两次全尺寸拷贝。
+///
+/// 生产管线已改走 [runMattingPrecomputed]（G4 r3）；本函数现在唯一的
+/// 调用方是 `native/bench/ml_probe3_main.dart`（P1 旧路径复刻探针），
+/// 删除前先改探针。
 MattingPayload runMattingAlphaOnly(DecodedImage image, int sessionAddress,
     {int? faceSessionAddress}) {
   final core = _mattingCore(image, sessionAddress,

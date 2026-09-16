@@ -157,135 +157,8 @@ RotationPlan planRotation({
 }
 
 // ---------------------------------------------------------------------------
-// 摆正后的头部定位（掩膜探针）
+// 摆正后的头部定位（掩膜精化）
 // ---------------------------------------------------------------------------
-
-/// [probeHeadInRotated] 的结果，坐标均为**旋转空间**。
-class RotHeadProbe {
-  /// 是否探到了有效前景。false 时调用方必须退回不依赖掩膜的算法。
-  final bool valid;
-
-  /// 头部水平中心 x。
-  final double centerX;
-
-  /// 掩膜最高行 y（头顶，含头发）。
-  final double maskTopY;
-
-  const RotHeadProbe(
-      {required this.valid, required this.centerX, required this.maskTopY});
-
-  static const RotHeadProbe invalid =
-      RotHeadProbe(valid: false, centerX: 0.0, maskTopY: 0.0);
-}
-
-/// 在**旋转空间**里用 alpha 掩膜定位头部的水平中心与头顶行。
-///
-/// ## 为什么需要它（G2B.8 的真正成因）
-///
-/// [FaceInfo] 的 `box` 是**轴对齐**矩形，`headTopY` / `chinY` 是**纯 y 坐标**。
-/// 一旦要摆正，就必须把「头顶」这个点搬进旋转空间，而搬一个点需要 x 和 y 两个
-/// 分量 —— 可 `box.center.dx` 只是人脸框的中心，未必落在头部的真实竖直轴上。
-/// 旋转会把这份横向误差按 `sinθ·Δx` 折算进 y：
-///
-/// ```
-/// Δy = sin(θ) · Δx      // θ = +10°、Δx = 165px  →  Δy ≈ ±29px
-/// ```
-///
-/// 而且**正负角的符号相反**。这就是第 1 轮 `−10°` 残差 0.0° 完美、`+10°` 却
-/// 把头顶整条裁出画面的原因：不是旋转符号错了，是「用错 x 去转 y」，
-/// 误差在两个方向上一正一负，只验一侧必然漏掉。
-///
-/// 掩膜没有这个问题：它在旋转空间里是**摆正后的真实剪影**，头顶就是最高行，
-/// 头部水平中心就是上部若干行的左右边界中点。用它把 x 校正回来，
-/// 再按闭式解反算头顶的 y（见 `compose_engine.dart` 的 `_solveCrop`），
-/// 正负角完全对称。
-///
-/// [headHeight] 用于确定「上部若干行」的取样带宽（取头高的 60%）。
-/// [alphaThreshold] 以上视为前景；[minRowSamples] 用于抑制孤立噪点行。
-RotHeadProbe probeHeadInRotated({
-  required Uint8List alpha,
-  required int width,
-  required int height,
-  required RotationPlan plan,
-  required double headHeight,
-  int alphaThreshold = 128,
-  int minRowSamples = 4,
-}) {
-  if (width <= 0 || height <= 0 || alpha.length < width * height) {
-    return RotHeadProbe.invalid;
-  }
-  final int rows = plan.rotHeight.ceil() + 1;
-  if (rows <= 1) {
-    return RotHeadProbe.invalid;
-  }
-  final Int32List count = Int32List(rows);
-  final Float64List sumMin = Float64List(rows);
-  final Float64List sumMax = Float64List(rows);
-  for (int i = 0; i < rows; i++) {
-    sumMin[i] = double.infinity;
-    sumMax[i] = double.negativeInfinity;
-  }
-
-  // 源图 → 旋转空间是仿射变换，沿源图一行前进时旋转空间坐标线性增长，
-  // 每行只算一次三角函数，行内用增量推进。
-  final double c = math.cos(-plan.angleRad);
-  final double s = math.sin(-plan.angleRad);
-  final double srcCx = plan.srcWidth / 2.0;
-  final double srcCy = plan.srcHeight / 2.0;
-  final double rotCx = plan.rotWidth / 2.0;
-  final double rotCy = plan.rotHeight / 2.0;
-
-  for (int y = 0; y < height; y++) {
-    final double dy = (y + 0.5) - srcCy;
-    final double dx0 = 0.5 - srcCx;
-    double qx = rotCx + c * dx0 - s * dy;
-    double qy = rotCy + s * dx0 + c * dy;
-    final int base = y * width;
-    for (int x = 0; x < width; x++) {
-      if (alpha[base + x] >= alphaThreshold) {
-        final int r = qy.floor();
-        if (r >= 0 && r < rows) {
-          count[r]++;
-          if (qx < sumMin[r]) sumMin[r] = qx;
-          if (qx > sumMax[r]) sumMax[r] = qx;
-        }
-      }
-      qx += c;
-      qy += s;
-    }
-  }
-
-  int top = -1;
-  for (int r = 0; r < rows; r++) {
-    if (count[r] >= minRowSamples) {
-      top = r;
-      break;
-    }
-  }
-  if (top < 0) {
-    return RotHeadProbe.invalid;
-  }
-
-  final int band = math.max(
-      1, (headHeight.isFinite && headHeight > 0 ? headHeight * 0.6 : 1).round());
-  int bandRows = 0;
-  double sumCenter = 0.0;
-  for (int r = top; r < math.min(rows, top + band); r++) {
-    if (count[r] < minRowSamples) {
-      continue;
-    }
-    sumCenter += (sumMin[r] + sumMax[r]) / 2.0;
-    bandRows++;
-  }
-  if (bandRows == 0) {
-    return RotHeadProbe.invalid;
-  }
-  return RotHeadProbe(
-    valid: true,
-    centerX: sumCenter / bandRows,
-    maskTopY: top.toDouble(),
-  );
-}
 
 /// [refineHeadFromMask] 的结果，坐标与输入同处**旋转空间**。
 class HeadMaskRefinement {
@@ -327,7 +200,7 @@ class HeadMaskRefinement {
 ///   （约 0.02·头高）行的稀疏缺口（蓬松发梢），走到头为止。
 ///   发丝再乱也是连通的前景，比任何系数推算都可靠。
 /// - **水平中心**：发顶往下 0.5 倍头高内的前景质心，
-///   比 [probeHeadInRotated] 的全宽行中点更抗同画面其他人干扰。
+///   比 G2B 旧版的全宽行中点探针更抗同画面其他人干扰。
 ///
 /// **下巴不修正**：MODNet 的 alpha 把头颈躯干连成整块，宽度剖面里不存在
 /// 可靠的颌颈收窄信号（G4 四张真实设备 alpha 实测），按剖面修下巴只会把
