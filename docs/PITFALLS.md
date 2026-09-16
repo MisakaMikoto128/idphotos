@@ -743,3 +743,48 @@
 - 现象：同一相邻代码（r7 vs r8）锚定 Δ 从 -7.4MB 跳到 +91.8MB，像"回归"；逐采样曲线却显示 20 轮内无单调漂移（430-519MB 振荡）。
 - 原因：baseline 取 leak_begin marker ±8s 窗口中位，而 App 在该窗口内仍在 warmUp（首样可低至 140MB，warmup 后即到 390-460）——锚点踩在预热期就比稳态低 30-60MB，Δ 全盘虚高。r3 的 +135.8/-9.1 斜率是真回归，r8 的 +91.8/+2.4 斜率是伪影。
 - 解法：4.8 判读改双指标——(1) 稳态段（leak_begin+15s 后）线性回归斜率（MB/20轮，r4-r8 全部 ±7 内 = 无泄漏）；(2) 峰值完整回落检查（曲线内峰值 vs 末值）。绝对 Δ 只作参考。已在 r8 报告给出全轮斜率表。
+
+## [store-assets] assets/fonts 子集字体缺字但 PIL getbbox 检测不出来
+- 现象：宣传图用 `NotoSerifSC-Subset-Bold.ttf` 渲染"免费/证件"等字，画出来是空白。
+  用 `f.getbbox(c)` 检查覆盖时返回 `(0,44,38,44)` 这种零高度框（truthy），误判为有字。
+- 原因：子集字体只含 App 内出现过的字符；PIL 对 cmap 里有映射但无轮廓的字形返回退化 bbox，
+  非空元组导致 `if not f.getbbox(c)` 通过。
+- 解法：缺字检测用 `f.getmask(c).getbbox()` 并要求宽高都 >0；宣传图渲染时对缺字回退到
+  系统全量字体 `C:\Windows\Fonts\NotoSerifSC-VF.ttf`（`set_variation_by_name("Bold")` 取粗体），
+  只用于营销 PNG，不进 App 包。见 `store/gen_promo.py` 的 `font_zh()`。
+
+## [release] ABI 过滤写在 buildTypes.release.ndk 无效：Flutter 插件预填的 defaultConfig 三 ABI 是并集基底
+- 现象：release buildType 里写 `ndk.abiFilters = {arm64-v8a, armeabi-v7a}`，出的 APK 仍带 x86_64 的
+  libonnxruntime.so（16.5MB 白付）；后来在 defaultConfig 里只 `addAll` 两个 arm ABI，同样无效。
+- 原因：两条叠加。① AGP 把 defaultConfig 与 buildType 的 abiFilters 做**并集**，buildType 写
+  arm-only 挡不住 defaultConfig 里的 x86_64；② Flutter Gradle 插件在 apply 期（早于 app 的
+  android{} 块）把 defaultConfig.abiFilters **clear 后填入全部三 ABI**，所以自己的 defaultConfig
+  里直接 addAll 是往三元素集合里加两个，等于没过滤。
+- 解法：defaultConfig.ndk.abiFilters **先 clear() 再 addAll**（本脚本 android{} 块执行晚于插件
+  apply，赋值生效）。要给某个 buildType 单独放宽（如 debug 补 x86_64 供模拟器），只能做"加法"，
+  不能做"减法"。AGP 9.1 的 variant API 已无 `variant.ndk`（onVariants 里 Unresolved reference），
+  别往那条路走。
+- 附带：Flutter 3.47 的 `flutter drive --release` 明确报"does not support running in release mode"，
+  `flutter test` 也**没有** --release 选项了。release 模式设备端验证只能：构建真 release APK
+  （x86_64 验证版经环境变量把 x86_64 加回 abiFilters）→ adb install → am start；引擎链路
+  用 batch_runner 入口的 release 包跑；UI 全流程（选照片→抠图→候选→保存）用 adb input 驱动
+  系统照片选择器完成（照片先 push 到 /sdcard/Pictures + MEDIA_SCANNER_SCAN_FILE 广播），
+  保存结果用 MediaStore content query 验证。
+
+## [release] 增量构建下 aapt badging 的 uses-permission 会读到旧 merged manifest；manifest 改动要 flutter clean 后重出包
+- 现象：manifest 加了 `tools:node="remove"` 删 READ_EXTERNAL_STORAGE 后，packaged_manifests 下的
+  文本 manifest 已正确，但 `aapt dump badging` 仍报 READ_EXTERNAL_STORAGE，白查 20 分钟。
+- 原因：Windows 增量构建在 manifest/DSL 变更后复用旧中间产物（与早前"增量 assembleDebug 产出
+  损坏 APK"同族），badging 读的是旧二进制。
+- 解法：以 `aapt dump xmltree <apk> AndroidManifest.xml` 看实际二进制为准（它显示的才是包内真相）；
+  出**正式产物**前一律 flutter clean 全量重建。别信 badging 的权限行当唯一证据。
+
+## [release] --dart-define 的设备路径会被 Git Bash MSYS 改写烤进 libapp.so；模拟器随机段错误（exit 139、无 minidump）
+- 现象一：`--dart-define=QA_DIR=/data/local/tmp/...` 构建出的 release 包读
+  `C:/DevTools/Git/data/local/tmp/...`——MSYS 改写不只在 adb push，对 flutter build 的参数同样生效。
+- 解法一：构建命令前 `export MSYS2_ARG_CONV_EXCL="*"`（与 qa-batch 的 adb push 条目同源）；
+  出包后 `python` 读 libapp.so 验证特征串（本例 QA_DIR 原文）再上设备。
+- 现象二：`-no-window -gpu guest -feature -Vulkan -no-snapshot-load` 启动的 qemu 仍会启动后
+  数分钟内 SIGSEGV（exit 139，crash DB 无新 minidump），重试即可恢复；**flutter tool 命令
+  （drive/test）在线期间极易伴随 qemu 死亡**（G4 已有先案，本轮再现）。build 全部放模拟器
+  启动前做，模拟器在线期间只用裸 adb，能显著缩短暴露窗。

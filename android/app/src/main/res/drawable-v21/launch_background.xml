@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!-- 木照启动底色（API 21+ 覆盖版）：复用自适应图标背景（木色垂直渐变）。
+     原 `?android:colorBackground` 在浅色主题下是白色，深色外观的 App 冷启动会白闪（G5B.13）。
+     API 31+ 走 SplashScreen API 时本文件同样不被使用。改动者：store-assets（res/drawable* 归属）。 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="?android:colorBackground" />
-
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+    <item android:drawable="@drawable/ic_launcher_background" />
 </layer-list>

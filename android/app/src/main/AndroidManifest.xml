@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- 木照 MuZhao 权限清单（CLAUDE.md §6 硬红线：100% 离线）
 
          G5.1：release 的 merged manifest 中不得出现 android.permission.INTERNET。
@@ -12,10 +13,18 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
+    <!-- G5.2 权限白名单精简（release 阶段 5）：gal/image_picker 的 AAR manifest
+         会合并进 READ_EXTERNAL_STORAGE(<=32)；本 App 读取走 SAF/MediaStore，
+         从不主动读公共存储，显式 remove 保证 merged manifest 不含它。 -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        tools:node="remove" />
+
     <application
-        android:label="muzhao"
+        android:label="木照"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"

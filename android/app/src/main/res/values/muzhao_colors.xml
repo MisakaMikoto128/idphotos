@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LaunchTheme / NormalTheme 的窗口底色。
+         取 docs/DESIGN.md 色卡 woodBase（#6B4A2F）与 woodDark（#3E2A1B），
+         与 App 木制 UI 一致 —— 修复原模板 launch_background 纯白导致的启动白闪（G5B.13）。
+         注意：launch_background.xml（res/drawable，store-assets 势力范围）已不再被
+         LaunchTheme 引用；若后续要做位图启动图，由 store-assets 提供 drawable 后
+         把下面两个 item 改回 @drawable/...（release agent 负责改这里）。 -->
+    <color name="muzhaoLaunchBackground">#6B4A2F</color>
+    <color name="muzhaoLaunchBackgroundNight">#3E2A1B</color>
+</resources>
