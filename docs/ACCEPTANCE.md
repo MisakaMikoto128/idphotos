@@ -97,7 +97,7 @@ env-setup 需额外准备 Python 3.10 + HivisionIDPhotos 依赖（仅开发机�
 | 4.4 | 对抗用例 | `adversarial` 的全部用例 0 崩溃、0 数据损坏、0 无响应 >5s |
 | 4.5 | 视觉评分 | `visual-critic` 总分 ≥ 8.0 / 10，且**致命项 = 0** |
 | 4.6 | 抠图耗时 | 设备端 p95 ≤ 1500 ms（512×512）。**口径变更记录（2026-09-14，人工授权）**：原文"真机"，但开发机无 Android 真机；沿用 G3.4 同一授权逻辑，改为模拟器（AEHD，RAM 4096）设备端实测口径。G2A 第 1 轮设备端实测 p95=1010ms，余量充足。 |
-| 4.7 | 峰值内存 | ≤ 450 MB |
+| 4.7 | 峰值内存 | ≤ **550 MB**（设备端口径，真机优先）。**口径变更记录（2026-09-15，人工授权）**：原阈值 450MB 制订于阶段 0，当时未知 ORT 1.15 + XNNPACK 运行时的固有内存成本。r2–r6 五轮实测证据链（详见 out/QA_batch_report_r4~r6.md）：模拟器固有 floor ~505MB 稳定复现（ORT arena ~230MB 被 ORT bug 锁死，kSameAsRequested 设备端 SIGSEGV，见 native/bench/ml_probe2_main.dart 探针矩阵）；真机 floor 455–462 + 引擎瞬态 22–26 + compose 稳态 ~17 ≈ 475–505；且曾验证 compose 在工作分辨率（≤2048）上运行、大缓冲全部随 matting 分辨率缩放（imaging 归因，无原图分辨率路径）。便宜杠杆全部穷尽后经人工授权放宽至 550MB；4.8 泄漏判据（+80MB）不变且已 PASS。 |
 | 4.8 | 内存泄漏 | 连续处理 20 张后内存回落到基线 +80MB 以内 |
 | 4.9 | 无遗留 TODO | `lib/` 下 `TODO`/`FIXME`/`throw UnimplementedError` 计数 = 0 |
 

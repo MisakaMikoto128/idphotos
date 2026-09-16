@@ -6,9 +6,19 @@
 /// 做逐段记账（[ImagingLedger]，精确字节）+ 进程 RSS 对照
 /// （`ProcessInfo.currentRss` / `maxRss`，host 采样）。
 ///
-/// 两个用例对应 qa-batch 的大头：
-/// - A：4032×3024 人像（12.2MP，QA item 1979d869 同量级）；
-/// - B：4958×7017 扫描件（34.8MP，batch 里最大的输入）。
+/// 两个用例对应 qa-batch 的大头（**工作分辨率口径**，G4.7 改造后）：
+/// compose 的入参只有 [MattingResult]，其 rgba/alpha 已由 ml-porting 降采样到
+/// 引擎工作分辨率（长边 ≤ kEngineMaxEdge=2048，见 `lib/core/matting/image_ops.dart`）。
+/// 本工装喂的是引擎真实会产出的那两种尺寸：
+/// - A：2048×1536 —— 12MP 人像（QA item 1979d869 的 4032×3024）降采样后；
+/// - B：1447×2048 —— 4958×7017 扫描件（batch 里最大的输入）降采样后。
+///
+/// 归因注记（G4 最后一轮的谜题）：此前报告的「decontaminate premul 12MP
+/// 48.8MB」不是管线路径 —— compose 从不接触原图字节，全部大缓冲都按
+/// matting.width×height 缩放；那个数字来自本工装旧版直接构造
+/// 4032×3024 的合成输入（第 190 行 `_profileCase(log, 'A', 4032, 3024)`），
+/// 量的是「假如引擎不降采样」的假想工况。kEngineMaxEdge 落地后该工况
+/// 在真实管线中不存在。
 ///
 /// 每个用例跑 7 规格 × 2 底色（模拟一个数据项的真实合成次数），三个检查点：
 /// 1. 抠图结果就绪后（相当于进入 compose 段前的基线）；
@@ -185,10 +195,10 @@ Future<void> _profileCase(
 }
 
 void main() {
-  test('compose 段内存剖面（A 4032x3024 / B 4958x7017）', () async {
+  test('compose 段内存剖面（A 2048x1536 / B 1447x2048，工作分辨率口径）', () async {
     final StringBuffer log = StringBuffer();
-    await _profileCase(log, 'A-portrait-12MP', 4032, 3024);
-    await _profileCase(log, 'B-scan-35MP', 4958, 7017);
+    await _profileCase(log, 'A-portrait-12MP-downsampled', 2048, 1536);
+    await _profileCase(log, 'B-scan-35MP-downsampled', 1447, 2048);
     // ignore: avoid_print
     print('MEMPROFILE-BEGIN\n$log MEMPROFILE-END');
   }, timeout: _long);

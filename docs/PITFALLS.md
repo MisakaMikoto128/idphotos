@@ -690,3 +690,19 @@
 - 处置：c669d36 已整体回退到 1dcd35c 行为（r4 为当前最优已验证态），工装文件
   mem_ledger.dart / dev_compose_memprofile.dart 保留；bitcheck 190 哈希与 1dcd35c
   基线逐位一致，2B 9/9。复测口径 = qa-batch QA_ROUND 重跑。
+
+## [imaging] memprofile 的「decontaminate premul 12MP 48.8MB」是工装假象，不是管线路径——compose 全部大缓冲本来就随 matting 分辨率缩放
+- 现象（2026-09-15，G4 最后一轮）：归因"compose 段 12MP 缓冲从哪来"时发现，
+  `dev_compose_memprofile.dart` 旧版直接构造 4032×3024 的合成 MattingResult
+  喂 compose，账面上的 48.8MB premul + 12.2MB alphaMax 量的是「假如引擎
+  不降采样」的假想工况。真实管线（kEngineMaxEdge=2048 已在 ml-porting 落地）
+  中该工况不存在：compose 入参只有 MattingResult，从不接触原图字节，
+  premul/mip alphaMax/背景估计/池/画布全部按 matting.width×height 缩放。
+- 教训：改数据流上游（降采样）之后，下游的内存剖面工装要同步换口径，
+  否则会拿旧工况的数字去指导新架构的优化（r5 的流式化改造正是在旧口径
+  数字驱动下做的，后因进程 PSS 净回归被回退）。工作分辨率落地后，
+  整图 premul 2048×1536×4=12.6MB、amax ≤3.1MB、字段 ~1.4MB，
+  r4 的"整项存续大缓冲"结构在 ≤2048 输入下已是 ~17MB 级，
+  **无需任何流式化复杂度**。
+- 附：mem_ledger 的 alloc/free hook 挂在 c669d36 里随回退一起消失，
+  b2fab99 起账本恒为 0 属预期；RSS 对照（ProcessInfo）不受影响。
