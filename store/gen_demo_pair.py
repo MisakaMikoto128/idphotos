@@ -79,7 +79,7 @@ HEAD_CY2 = 640          # 脸心：头顶(640-390=250) 之后按 9% 留白裁
 draw_character(d2, BIG_W//2, HEAD_CY2, body_dy=-260)
 # ID 窗口：头高 735px = 0.62*Hc -> Hc=1185, Wc=1185*295/413≈846
 Hc = 1185; Wc = int(Hc*295/413)
-top = (HEAD_CY2-390) - int(0.09*Hc)
+top = (HEAD_CY2-390) - int(0.055*Hc)  # 与 S5 真实输出构图对齐：头顶余量收窄，完整含入双丸子头
 left = BIG_W//2 - Wc//2
 crop = big.crop((left, top, left+Wc, top+Hc))
 # 白边相纸

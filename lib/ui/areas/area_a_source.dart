@@ -402,6 +402,10 @@ class _PaperLabel extends StatelessWidget {
                 Text('轻触选择照片', style: Type.bodyStrong(T.inkBrown)),
                 const SizedBox(height: 2),
                 Text('从相册里挑一张正面照', style: Type.caption(T.inkBrown)),
+                const SizedBox(height: 6),
+                // 关于页入口的可见提示（visual-critic PHASE6：零提示发现率为零）
+                Text('长按顶部标尺，了解木照',
+                    style: Type.caption(T.brass)),
               ],
             ),
           ),
