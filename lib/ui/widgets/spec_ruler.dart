@@ -21,12 +21,19 @@ import 'press_effect.dart';
 class SpecRuler extends StatelessWidget {
   final PhotoSpec spec;
   final VoidCallback onTap;
+
+  /// 长按整条标尺打开"关于"浮层（PHASE6 W1）。
+  /// 刻意做成不显眼的长按入口：三段式布局红线不允许加常驻控件，
+  /// 标尺是工作台上唯一一块"可以多拧一下"的铜件，适合藏这个彩蛋。
+  final VoidCallback? onLongPress;
+
   final double height;
 
   const SpecRuler({
     super.key,
     required this.spec,
     required this.onTap,
+    this.onLongPress,
     this.height = 40,
   });
 
@@ -80,6 +87,20 @@ class SpecRuler extends StatelessWidget {
                     ],
                   ),
                 ),
+                // "关于"入口：长按整条标尺。translucent —— 轻触仍然穿透给
+                // 外层 [PressSurface] 的 onTap（拉规格抽屉），长按由本层接管。
+                if (onLongPress != null)
+                  Positioned.fill(
+                    child: Semantics(
+                      button: true,
+                      label: '关于木照，长按打开',
+                      child: GestureDetector(
+                        key: const Key('btn_about'),
+                        behavior: HitTestBehavior.translucent,
+                        onLongPress: onLongPress,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

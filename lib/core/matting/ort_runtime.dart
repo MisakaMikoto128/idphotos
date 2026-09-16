@@ -52,6 +52,75 @@ const int kFaceInputSize = 640;
 /// 应用目录，把这个设成仓库里的 `assets/models` 即可。生产代码不会设置它。
 String? debugModelDirectory;
 
+/// Windows：把 onnxruntime.dll 预载进进程（幂等）。
+///
+/// 背景：插件的绑定层在 Windows 上执行 `DynamicLibrary.open('onnxruntime.dll')`，
+/// 按 LoadLibrary 语义搜索"可执行文件所在目录 → 系统目录 → PATH"。
+/// 两条运行形态的差别：
+///
+/// 1. **Flutter 桌面 App**（`flutter run -d windows` / build）：插件的
+///    `windows/CMakeLists.txt` 把 pub cache 里的 onnxruntime.dll 列进
+///    `onnxruntime_bundled_libraries`，构建时自动拷到 runner.exe 旁边，
+///    什么都不用做。
+/// 2. **`flutter test` / 宿主机 bench**（flutter_tester.exe）：没有任何
+///    打包步骤，按名字搜索必然失败。这里按绝对路径先 `DynamicLibrary.open`
+///    一次；之后绑定层按模块名再 open 时，LoadLibrary 命中已加载的同名
+///    模块，返回同一句柄。
+///
+/// 搜索顺序：环境变量 `MUZHAO_ORT_DLL`（指向 dll 文件，优先）→ pub cache
+/// 里 onnxruntime 插件包的 `windows/onnxruntime.dll` → 可执行文件目录。
+/// 非 Windows 平台是空操作。找不到也不抛：让后续真正的 open 按原样失败，
+/// 错误信息保持插件原生语义。
+///
+/// 必须在**任何** ORT 绑定被触碰之前调用（warmUp / createSession 之前）。
+bool ensureOrtRuntimeLoaded() {
+  if (!Platform.isWindows) return false;
+  try {
+    ffi.DynamicLibrary.open('onnxruntime.dll');
+    // 按名字已经能打开（App 形态，dll 在 exe 旁），无需预载。
+    return false;
+  } on ArgumentError {
+    // 继续按候选路径找。
+  } on IOException {
+    // 同上（路径存在但加载失败等）。
+  }
+  final candidates = <String>[];
+  final env = Platform.environment['MUZHAO_ORT_DLL'];
+  if (env != null && env.isNotEmpty) {
+    candidates.add(env);
+  }
+  final pubCache = Platform.environment['PUB_CACHE'];
+  final localAppData = Platform.environment['LOCALAPPDATA'];
+  final cacheRoots = <String>[
+    if (pubCache != null && pubCache.isNotEmpty) pubCache,
+    if (localAppData != null && localAppData.isNotEmpty)
+      '$localAppData\\Pub\\Cache',
+  ];
+  for (final root in cacheRoots) {
+    final hosted = Directory('$root${Platform.pathSeparator}hosted'
+        '${Platform.pathSeparator}pub.dev');
+    if (!hosted.existsSync()) continue;
+    for (final e in hosted.listSync()) {
+      final name = e.path.split(Platform.pathSeparator).last;
+      if (e is Directory && name.startsWith('onnxruntime-')) {
+        candidates.add('${e.path}\\windows\\onnxruntime.dll');
+      }
+    }
+  }
+  candidates.add('${File(Platform.resolvedExecutable).parent.path}'
+      '\\onnxruntime.dll');
+  for (final path in candidates) {
+    if (!File(path).existsSync()) continue;
+    try {
+      ffi.DynamicLibrary.open(path);
+      return true;
+    } catch (_) {
+      // 换下一个候选。
+    }
+  }
+  return false;
+}
+
 /// 把模型资源落地成一个可被 ORT 直接打开的文件路径。
 Future<String> resolveModelPath(String assetKey) async {
   final fileName = assetKey.split('/').last;

@@ -38,6 +38,7 @@ const List<String> kShotScenarios = <String>[
   'S4_generating', // 候选区生成中
   'S5_ready', // 6 个候选就绪，选中蓝底
   'S6_saved', // 保存成功反馈态
+  'S7_about', // "关于"浮层展开（PHASE6 W1 新增，主会话追认见报告）
 ];
 
 /// 截图/测试场景里不弹系统相册，直接给出内置样张。
@@ -119,6 +120,7 @@ Widget _scenarioTree(String scenarioId) {
     'S5_ready' => const WorkbenchState(selectedStyleId: 'blue'),
     'S6_saved' =>
       const WorkbenchState(selectedStyleId: 'blue', saveFeedback: true),
+    'S7_about' => const WorkbenchState(aboutOpen: true),
     _ => const WorkbenchState(),
   };
 

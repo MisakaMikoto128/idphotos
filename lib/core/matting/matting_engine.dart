@@ -68,6 +68,11 @@ mixin MattingEngineMixin {
 
   Future<void> _loadModels() async {
     if (_mattingSession != null && _faceSession != null) return;
+    // Windows：flutter test / 宿主机 bench 形态下 onnxruntime.dll 不在
+    // 可执行文件旁，先按绝对路径预载（App 形态下是空操作）。必须在任何
+    // ORT 绑定被触碰之前执行，否则 DynamicLibrary.open('onnxruntime.dll')
+    // 直接失败。
+    ensureOrtRuntimeLoaded();
     final mattingPath = await resolveModelPath(kMattingModelAsset);
     final facePath = await resolveModelPath(kFaceModelAsset);
     // 建会话要读 7MB 模型并做图优化，放后台 isolate，别卡住首帧。

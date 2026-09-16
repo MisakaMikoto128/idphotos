@@ -119,6 +119,9 @@ class WorkbenchState {
   /// 规格抽屉是否展开。
   final bool specSheetOpen;
 
+  /// "关于"浮层是否展开（PHASE6 W1，入口：黄铜标尺长按）。
+  final bool aboutOpen;
+
   /// 取图/载入阶段的错误（区域 A 的提示行显示）。
   ///
   /// CONTRACTS §6 要求引擎异常在 controller 层转成 `AppState.errorMessage`，
@@ -138,6 +141,7 @@ class WorkbenchState {
     this.selectedStyleId = 'white',
     this.saveFeedback = false,
     this.specSheetOpen = false,
+    this.aboutOpen = false,
     this.pickError,
     this.saveError,
   });
@@ -150,6 +154,7 @@ class WorkbenchState {
     String? selectedStyleId,
     bool? saveFeedback,
     bool? specSheetOpen,
+    bool? aboutOpen,
     String? pickError,
     bool clearPickError = false,
     String? saveError,
@@ -162,6 +167,7 @@ class WorkbenchState {
       selectedStyleId: selectedStyleId ?? this.selectedStyleId,
       saveFeedback: saveFeedback ?? this.saveFeedback,
       specSheetOpen: specSheetOpen ?? this.specSheetOpen,
+      aboutOpen: aboutOpen ?? this.aboutOpen,
       pickError: clearPickError ? null : (pickError ?? this.pickError),
       saveError: clearSaveError ? null : (saveError ?? this.saveError),
     );
@@ -208,6 +214,8 @@ class WorkbenchNotifier extends Notifier<WorkbenchState> {
       : state.copyWith(saveError: msg, saveFeedback: false);
 
   void setSpecSheet(bool v) => state = state.copyWith(specSheetOpen: v);
+
+  void setAboutOpen(bool v) => state = state.copyWith(aboutOpen: v);
 }
 
 final NotifierProvider<WorkbenchNotifier, WorkbenchState> workbenchProvider =

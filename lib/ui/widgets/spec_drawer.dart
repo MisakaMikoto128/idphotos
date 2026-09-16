@@ -94,7 +94,7 @@ class _Drawer extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              const Center(child: _DrawerPull()),
+              const Center(child: DrawerPull()),
               const SizedBox(height: 10),
               Row(
                 children: <Widget>[
@@ -140,9 +140,9 @@ class _Drawer extends StatelessWidget {
   }
 }
 
-/// 抽屉面板上的铜拉手。
-class _DrawerPull extends StatelessWidget {
-  const _DrawerPull();
+/// 抽屉面板上的铜拉手。规格抽屉与"关于"抽屉共用。
+class DrawerPull extends StatelessWidget {
+  const DrawerPull({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -800,3 +800,35 @@
 - 解法：做一个外壳页内嵌 `<iframe style="width:375px">` 加载目标页，对 500px 窗口截图/量尺寸，
   iframe 内布局才是真实 375px；溢出检测可用临时脚本把 `scrollWidth` 与越界元素清单写进 DOM 再
   `--dump-dom` 读取（记得测完删掉临时代码）。
+
+## [ml-porting] onnxruntime 插件 1.4.1 其实**自带** Windows 桌面支持——"插件不支持 Windows"是过时结论
+- 现象：W2 评估按"插件无 Windows"的假设起步，准备手动下载/分发 onnxruntime.dll。
+- 原因：v1.3.0 起 pub 包 `onnxruntime` 就声明了 `windows: ffiPlugin: true`，
+  包内 `windows/` 有 CMakeLists（把 onnxruntime.dll 列进 `onnxruntime_bundled_libraries`），
+  pub cache 里就带着 dll（FileCapture VersionInfo = 1.15.2023...，与 ffigen 绑定同源）。
+  之前"不支持"的印象来自早年在 Windows host 跑 flutter test 时 dll 找不到——那只是
+  **flutter_tester.exe 旁没有打包步骤**，不是插件不支持。
+- 解法：① 桌面 App 形态：`flutter build windows` 自动把 dll 拷到 muzhao.exe 旁，
+  什么都不用做（release 无需任何额外打包动作）。② flutter test / bench 形态：
+  `lib/core/matting/ort_runtime.dart` 新增 `ensureOrtRuntimeLoaded()`（warmUp 前调用，
+  按 MUZHAO_ORT_DLL 环境变量 → pub cache → exe 目录的顺序预载 dll，LoadLibrary
+  之后按名字 open 命中同一模块）。数值验证：黄金集 g01 与 Android 模拟器（同 CPU EP）
+  alpha 逐字节比对 99.87% 全同、max delta=1 LSB、IoU@128=1.000000；FaceInfo 六位小数同值。
+- 附带：Windows 官方 dll（桌面 CPU 包）**不含 XNNPACK EP**，createSession 的
+  xnnpack 尝试会失败并按设计降级到 cpu——探针实测 provider=cpu，属预期行为不是 bug。
+
+## [ml-porting] Windows 桌面首次构建三连坑：启动锁静默等待 / Developer Mode symlink / 引擎 artifacts 重复下载
+- 现象一：`flutter build windows --debug` 20+ 分钟零输出（输出文件 0 字节、CPU 0.03s），
+  看似卡死。真因：另一个并行 agent 的 `flutter drive` 长时间持有 Flutter 工具启动锁，
+  我的 build 在锁上排队且不打印任何东西。多 agent 并行期做任何 flutter 命令前先
+  `Get-CimInstance Win32_Process -Filter "Name='dart.exe'"` 看有没有别的 flutter_tools 在跑。
+- 现象二：构建在插件注入阶段报 "Building with plugins requires symlink support"
+  （ERROR_PRIVILEGE_NOT_HELD）。非 admin 终端无法开 Developer Mode，注册表写 HKLM 被拒。
+- 解法（无 admin 的 workaround）：手动为每个 Windows 插件建 **目录联接**（junction，
+  `cmd /c mklink /J`，不需要任何特权）到 `windows/flutter/ephemeral/.plugin_symlinks/<name>`。
+  flutter_tools 的 `_createPlatformPluginSymlinks` 只在 link 缺失时才创建（force=true 仅在
+  插件清单变化后触发），junction 会被当作已存在直接跳过。注意 **`flutter clean` 会删掉
+  ephemeral，之后必须重建这些 junction**，否则构建又失败。
+- 现象三：symlink 失败前的那次构建仍会先下载全部 4 份 Windows 引擎 artifacts
+  （debug/profile/release + wrapper，约 1GB、本机实测 10-25 分钟/份），失败后下次还会重下。
+  成功率低的构建尝试可能反复支付这个下载成本；junction 修好后增量构建仅 65s。

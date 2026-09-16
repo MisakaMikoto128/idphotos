@@ -22,6 +22,7 @@ import 'state/providers.dart';
 import 'theme/fonts.dart';
 import 'theme/tokens.dart';
 import 'theme/typography.dart';
+import 'widgets/about_sheet.dart';
 import 'widgets/spec_drawer.dart';
 
 /// A / B / C 三段的 flex 权重。
@@ -63,6 +64,7 @@ class MuZhaoWorkbench extends StatelessWidget {
                 ],
               ),
               _SpecDrawerHost(),
+              _AboutSheetHost(),
             ],
           ),
         ),
@@ -87,6 +89,22 @@ class _SpecDrawerHost extends ConsumerWidget {
         ref.read(workbenchProvider.notifier).setSpecSheet(false);
       },
       onClose: () => ref.read(workbenchProvider.notifier).setSpecSheet(false),
+    );
+  }
+}
+
+/// "关于"浮层宿主（PHASE6 W1）。与规格抽屉同一模式：常驻 Stack 顶层，
+/// 由 [WorkbenchState.aboutOpen] 驱动开合，入口是黄铜标尺长按。
+class _AboutSheetHost extends ConsumerWidget {
+  const _AboutSheetHost();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool open =
+        ref.watch(workbenchProvider.select((WorkbenchState s) => s.aboutOpen));
+    return AboutSheet(
+      open: open,
+      onClose: () => ref.read(workbenchProvider.notifier).setAboutOpen(false),
     );
   }
 }

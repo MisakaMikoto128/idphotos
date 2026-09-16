@@ -74,6 +74,10 @@ class AreaASource extends ConsumerWidget {
                         onTap: () => ref
                             .read(workbenchProvider.notifier)
                             .setSpecSheet(true),
+                        // PHASE6 W1：长按标尺打开"关于"浮层。
+                        onLongPress: () => ref
+                            .read(workbenchProvider.notifier)
+                            .setAboutOpen(true),
                       ),
                     ),
                   ],
