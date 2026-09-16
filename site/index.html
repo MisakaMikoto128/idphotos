@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>木照 MuZhao — 完全离线的免费证件照 App</title>
+  <meta name="description" content="木照 MuZhao：一间装进口袋的老照相馆。完全离线，照片不出手机；免费无水印无广告；7 种证件规格、6 种底色、300 DPI 打印级输出，端侧 AI 本机抠图。">
+  <meta name="keywords" content="证件照, 一寸照, 二寸照, 换底色, 离线, 免费, 签证照, ID photo, passport photo">
+  <meta name="author" content="刘沅林">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="木照 MuZhao — 完全离线的免费证件照 App">
+  <meta property="og:description" content="完全离线 · 免费 · 无水印。7 种证件规格，6 种底色一键换，照片自始至终留在你的手机里。">
+  <meta property="og:image" content="assets/feature_graphic.jpg">
+  <meta name="theme-color" content="#3E2A1B">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#top">
+        <img src="assets/icon.png" alt="木照图标" width="34" height="34">
+        <span class="brand-name">木照 <small>MuZhao</small></span>
+      </a>
+      <nav class="nav">
+        <a href="#features">特性</a>
+        <a href="#specs">规格</a>
+        <a href="#demo">演示</a>
+        <a href="#download">下载</a>
+        <a href="#privacy">隐私</a>
+        <!-- 英文版占位：真 i18n 暂不实现 -->
+        <span class="nav-en" title="English version coming soon">EN</span>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 首屏 -->
+  <section class="hero" id="top">
+    <div class="wrap hero-inner">
+      <div class="hero-copy reveal">
+        <p class="hero-kicker">完全离线 · 完全免费 · 无水印无广告</p>
+        <h1>一间装进口袋的<br>老照相馆</h1>
+        <p class="hero-sub">
+          挑一张正面照，拖动四角，稍候片刻 —— 证件照就成了。
+          照片自始至终留在你的手机里，不联网、不上传、不带水印。
+        </p>
+        <div class="hero-cta">
+          <!-- TODO(W4): 仓库公开后把 OWNER/muzhao 换成实际 GitHub 地址 -->
+          <a class="btn btn-brass" href="https://github.com/OWNER/muzhao/releases/latest"
+             data-todo="replace-repo-url">下载 Android APK</a>
+          <a class="btn btn-ghost" href="#demo">看看效果</a>
+        </div>
+        <p class="hero-note">Android 6.0+ ｜ 免安装费用 · MIT 开源</p>
+      </div>
+      <figure class="hero-shot reveal">
+        <div class="frame frame-hero">
+          <img src="assets/shot_01.jpg" alt="木照主界面：完全离线，照片不出手机" width="720" height="1280">
+        </div>
+        <figcaption>主界面 · 完全离线，照片不出手机</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 特性 -->
+  <section class="section" id="features">
+    <div class="wrap">
+      <h2 class="sec-title reveal">为什么选木照</h2>
+      <p class="sec-sub reveal">把老照相馆的手艺，放进一台不联网的手机。</p>
+      <div class="grid">
+        <div class="card reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.2-3 7.4-7 9-4-1.6-7-4.8-7-9V6l7-3z" fill="none"/><path d="M9 12l2 2 4-4" fill="none"/></svg>
+          <h3>完全离线</h3>
+          <p>App 不申请网络权限，全程本机处理，照片不出手机。</p>
+        </div>
+        <div class="card reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none"/><path d="M8.5 12.5l2.5 2.5 4.5-5" fill="none"/></svg>
+          <h3>完全免费</h3>
+          <p>无内购、无订阅。MIT 协议开源，用得放心。</p>
+        </div>
+        <div class="card reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" fill="none"/><path d="M8 16l8-8" fill="none"/></svg>
+          <h3>无水印</h3>
+          <p>成片干净无痕，报名、办事、签证直接可用。</p>
+        </div>
+        <div class="card reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none"/><path d="M9 9l6 6M15 9l-6 6" fill="none"/></svg>
+          <h3>无广告</h3>
+          <p>不含任何广告与统计 SDK，界面只有木头、黄铜和照片。</p>
+        </div>
+        <div class="card reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="4" width="8" height="11" fill="none"/><path d="M10.5 17.5h3M12 15v2.5M6 20h12" fill="none"/></svg>
+          <h3>7 种证件规格</h3>
+          <p>一寸到美签，比例自动锁定，像素精确到个位。</p>
+        </div>
+        <div class="card reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="12" r="5" fill="none"/><circle cx="15" cy="12" r="5" fill="none"/></svg>
+          <h3>6 种底色一键换</h3>
+          <p>白、蓝、红、深蓝、浅灰、蓝渐变，六张候选横向排开。</p>
+        </div>
+        <div class="card reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" fill="none"/><path d="M7 14v-4M12 14v-4M17 14v-4" fill="none"/></svg>
+          <h3>300 DPI 打印级</h3>
+          <p>按打印标准输出像素尺寸，可直接送印，不再二次放大。</p>
+        </div>
+        <div class="card reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="11" r="4" fill="none"/><path d="M12 2v3M12 17v3M2 11h3M19 11h3M5 5l2 2M19 5l-2 2" fill="none"/></svg>
+          <h3>端侧 AI 抠图</h3>
+          <p>人像分割模型在手机上运行，秒级出片，不依赖云端。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 规格 -->
+  <section class="section section-paper" id="specs">
+    <div class="wrap">
+      <h2 class="sec-title reveal">七种规格 · 六种底色</h2>
+      <p class="sec-sub reveal">均按 300 DPI 输出，像素尺寸精确到个位，可直接送印。</p>
+      <div class="specs-cols">
+        <table class="spec-table reveal">
+          <thead>
+            <tr><th>规格</th><th>尺寸</th><th>像素</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>一寸</td><td class="num">25×35 mm</td><td class="num">295×413</td></tr>
+            <tr><td>小一寸</td><td class="num">22×32 mm</td><td class="num">260×378</td></tr>
+            <tr><td>大一寸</td><td class="num">33×48 mm</td><td class="num">390×567</td></tr>
+            <tr><td>二寸</td><td class="num">35×49 mm</td><td class="num">413×579</td></tr>
+            <tr><td>小二寸</td><td class="num">35×45 mm</td><td class="num">413×531</td></tr>
+            <tr><td>社保卡</td><td class="num">26×32 mm</td><td class="num">358×441</td></tr>
+            <tr><td>美签</td><td class="num">51×51 mm</td><td class="num">600×600</td></tr>
+          </tbody>
+        </table>
+        <div class="bg-panel reveal">
+          <h3>六种底色</h3>
+          <ul class="swatches">
+            <li><span class="dot" style="background:#FFFFFF"></span>白底</li>
+            <li><span class="dot" style="background:#438EDB"></span>蓝底</li>
+            <li><span class="dot" style="background:#B03A2E"></span>红底</li>
+            <li><span class="dot" style="background:#1E3A5F"></span>深蓝底</li>
+            <li><span class="dot" style="background:#D9D9D9"></span>浅灰底</li>
+            <li><span class="dot" style="background:linear-gradient(180deg,#7EB3E8,#438EDB)"></span>蓝渐变</li>
+          </ul>
+          <p class="bg-note">六张候选横向排开，挑一张满意的即可。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 演示 -->
+  <section class="section" id="demo">
+    <div class="wrap">
+      <h2 class="sec-title reveal">三步出片</h2>
+      <p class="sec-sub reveal">以下为真实界面截图，左右滑动查看。</p>
+    </div>
+    <div class="carousel reveal" aria-label="界面演示轮播">
+      <button class="car-btn prev" type="button" aria-label="上一张">&#8249;</button>
+      <ul class="car-track" id="carTrack">
+        <li><div class="frame"><img src="assets/shot_01.jpg" alt="第一步：选择照片并框选，完全离线" loading="lazy" width="720" height="1280"></div><p>一、相册挑一张正面照</p></li>
+        <li><div class="frame"><img src="assets/shot_02.jpg" alt="第二步：选择证件规格，比例自动锁定" loading="lazy" width="720" height="1280"></div><p>二、选规格，拖四角微调</p></li>
+        <li><div class="frame"><img src="assets/shot_03.jpg" alt="拖拽四角精确裁剪界面" loading="lazy" width="720" height="1280"></div><p>比例锁定，精确裁剪</p></li>
+        <li><div class="frame"><img src="assets/shot_04.jpg" alt="本机模型抠图生成中" loading="lazy" width="720" height="1280"></div><p>三、本机抠图，秒级出片</p></li>
+        <li><div class="frame"><img src="assets/shot_05.jpg" alt="六种底色候选结果" loading="lazy" width="720" height="1280"></div><p>六种底色任选</p></li>
+        <li><div class="frame"><img src="assets/shot_06.jpg" alt="保存成功，无水印" loading="lazy" width="720" height="1280"></div><p>存入相册，无水印</p></li>
+      </ul>
+      <button class="car-btn next" type="button" aria-label="下一张">&#8250;</button>
+      <div class="car-dots" id="carDots" role="tablist" aria-label="幻灯片位置"></div>
+    </div>
+  </section>
+
+  <!-- 下载 -->
+  <section class="section section-download" id="download">
+    <div class="wrap">
+      <h2 class="sec-title reveal">把照相馆带回家</h2>
+      <p class="sec-sub reveal">免费下载，无内购，无广告。</p>
+      <div class="dl-cards">
+        <div class="dl-card reveal">
+          <h3>Android</h3>
+          <p class="dl-ver">APK ｜ Android 6.0+</p>
+          <!-- TODO(W4): 仓库公开后把 OWNER/muzhao 换成实际 GitHub 地址 -->
+          <a class="btn btn-brass btn-big" href="https://github.com/OWNER/muzhao/releases/latest"
+             data-todo="replace-repo-url">下载最新版 APK</a>
+          <p class="dl-note">指向 GitHub Releases 最新发布版</p>
+        </div>
+        <div class="dl-card dl-disabled reveal">
+          <h3>Windows</h3>
+          <p class="dl-ver">安装包 ｜ 开发中</p>
+          <span class="btn btn-big btn-muted">即将推出</span>
+          <p class="dl-note">桌面版正在适配，敬请期待</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 隐私 -->
+  <section class="section section-paper" id="privacy">
+    <div class="wrap">
+      <h2 class="sec-title reveal">关于隐私，先把话说清</h2>
+      <div class="promise">
+        <div class="promise-item reveal">
+          <h3>不收集</h3>
+          <p>不收集任何个人信息，不设账号体系，不做用户画像。</p>
+        </div>
+        <div class="promise-item reveal">
+          <h3>不传输</h3>
+          <p>照片仅在设备本地处理，自始至终不离开你的手机。</p>
+        </div>
+        <div class="promise-item reveal">
+          <h3>无网络</h3>
+          <p>App 不申请网络权限，不含统计 SDK，不含广告 SDK。</p>
+        </div>
+      </div>
+      <p class="privacy-more reveal">
+        人像抠图全部由设备端模型完成。完整隐私政策见
+        <!-- TODO(W4): 仓库公开后指向实际隐私政策 URL -->
+        <a href="https://github.com/OWNER/muzhao#readme" data-todo="replace-repo-url">仓库说明</a>。
+      </p>
+    </div>
+  </section>
+
+  <!-- 作者 / 页脚 -->
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <p class="footer-brand">
+        <img src="assets/icon.png" alt="" width="28" height="28">
+        木照 MuZhao —— 愿它像一台老相机一样可靠。
+      </p>
+      <p class="footer-meta">
+        作者 <strong>刘沅林</strong> ｜ 以
+        <!-- TODO(W4): 仓库公开后把 OWNER/muzhao 换成实际 GitHub 地址 -->
+        <a href="https://github.com/OWNER/muzhao" data-todo="replace-repo-url">GitHub</a>
+        开源 · <span>MIT License</span>（字体 OFL 单列）
+      </p>
+      <p class="footer-meta">© 2026 刘沅林</p>
+    </div>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

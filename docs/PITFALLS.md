@@ -791,3 +791,12 @@
   数分钟内 SIGSEGV（exit 139，crash DB 无新 minidump），重试即可恢复；**flutter tool 命令
   （drive/test）在线期间极易伴随 qemu 死亡**（G4 已有先案，本轮再现）。build 全部放模拟器
   启动前做，模拟器在线期间只用裸 adb，能显著缩短暴露窗。
+
+## [store-assets] Windows 无头 Chrome 的两个坑：截图默认写入被拒；窗口宽度下限约 470px，375px 移动端布局无法直接量
+- 坑一：`chrome --headless --screenshot=相对路径.png` 报"拒绝访问 (0x5)"，换绝对路径写到
+  `%TEMP%` 即可（沙箱对项目目录的写入被拦）。
+- 坑二：`--window-size=375,...` 实际渲染视口被钳到约 470（`documentElement.clientWidth` 实测 470），
+  想验证真 375px 移动端布局，直接截出来的图会出现"右侧被裁"的假象。
+- 解法：做一个外壳页内嵌 `<iframe style="width:375px">` 加载目标页，对 500px 窗口截图/量尺寸，
+  iframe 内布局才是真实 375px；溢出检测可用临时脚本把 `scrollWidth` 与越界元素清单写进 DOM 再
+  `--dump-dom` 读取（记得测完删掉临时代码）。
