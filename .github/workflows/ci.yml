@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  analyze-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart analyze lib/
+      - run: flutter test lib/core/imaging/dev_selfcheck.dart
+      - run: flutter test native/bench/matting_bench_test.dart
