@@ -706,3 +706,35 @@
   **无需任何流式化复杂度**。
 - 附：mem_ledger 的 alloc/free hook 挂在 c669d36 里随回退一起消失，
   b2fab99 起账本恒为 0 属预期；RSS 对照（ProcessInfo）不受影响。
+
+## [gatekeeper G4 r2] adb push "1 file pushed" 是噪声行 + /data/local/tmp 下的 root 属主遗留目录会静默杀死所有 push
+- 现象（2026-09-15，G4 r2 设备阶段）：`adb push` 到 `/data/local/tmp/muzhao_gate_tmp/g4_spot/`
+  间歇性失败，报 `remote couldn't create file: Permission denied`，**但同一输出里还会打印
+  `1 file pushed, 0 skipped`** —— 这行是噪声，文件实际没上去；以退出码或输出判断都会误判成功。
+  且失败与成功在同一次 run 内交错，极像随机 flake。
+- 真因：早前某轮以 root adbd（`adb root`）操作过模拟器，留下 root 属主的 `g4_spot/` 目录
+  （`drwxrwxr-x root root`）。shell 用户的 push 既不能创建文件、`chmod 777` 也报
+  `Operation not permitted`（连目录属主都不是）。时钟对不上不要紧，`ls -ld` 一眼定位。
+- 解法（已固化在 `tools/gate/device_harness_common.dart` prepareDeviceGateDir）：
+  对 push 实际落盘的**叶子目录**做写探针（mkdir x/touch/rm），探针失败才 `adb root` 深清理重建
+  （仅限 emulator-*，真机不能 adb root）；push 判定改为设备端 `stat -c %s` 与本地字节数一致
+  才算成功，不信退出码。
+- 教训：adb push 的 "N file pushed" 永远不要当真；模拟器上凡是动过 `adb root`，/data/local/tmp
+  下的属主状态就会污染后续所有 shell 会话。另：本日 qemu 崩溃 6 次均集中在 flutter drive 阶段，
+  预先 `flutter build apk --debug/--profile` 把 gradle 峰值挪到模拟器启动前，可缩小崩溃暴露窗。
+
+## [ml-porting] 模拟器 RSS 瞬态（峰值-基线）读数噪声地板 ±15-25MB：GC 滞后支配，单步级 A/B 别用它下结论
+- 现象（2026-09-16，G4 r3 4.7 A/B 台 ml_probe3）：同一台模拟器、同一探针，**逐位同代码**的
+  两次运行（旧引擎构建里 P1 复刻 = 旧 P2 的同一 workload），mf.png 单步峰值一次测得 +58.1MB、
+  一次 +43.2MB；新路径全回合（P3）与单步（P2）甚至出现 P3 < P2 的倒挂。都是 20ms RSS 采样
+  + 3 轮取最小。
+- 原因：external typed data（scudo secondary = 匿名 mmap）的释放由 Dart idle-GC 时机决定，
+  "峰值-窗口基线"把 GC 滞后垃圾全部计进峰值；基线本身又受上一阶段残留垃圾影响（P3 紧跟
+  P2，基线偏高 → 峰值-基线反而偏小）。采样步长不同（20ms vs 50ms）也直接改变可比性。
+- 解法：可下结论的口径只有三种——① **结构性 live-set 清单**（逐缓冲算术：worker 收 8MB vs
+  34.6MB 这种，恒真）；② **同协议 churn 每回合墙钟时间**（新旧引擎 mf.png ~2.6s → ~1.9s，
+  稳定复现）；③ 真机 VmHWM（qa-batch 通道，4.7 的唯一验收口径）。凡要做瞬态 A/B，先跑
+  一次"同代码重复测"定噪声地板，差值小于地板的结论一律不作数。
+- 附带：debug APK 没有 libapp.so（JIT 走 assets/flutter_assets/kernel_blob.bin），换
+  --target 后的入口点验证对 debug 包要查 kernel_blob.bin 里的特征串，对 release 包查
+  lib/x86_64/libapp.so。

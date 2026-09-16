@@ -146,30 +146,44 @@ mixin MattingEngineMixin {
       // 两条路径拆成两个闭包：闭包只捕获自己真正引用的变量。合并写法会把
       // imageBytes 一并拷进降采样路径的 worker isolate（一次全文件大小的
       // 无谓拷贝，G4.7 瞬时滞留的直接来源之一）。
+      //
+      // G4 r3：降采样路径改为**宿主就地从 rgba 备好模型输入**，worker 只收
+      // 固定 8MB 的两张 Float32 输入（YuNet letterbox 4.9MB + MODNet 512²
+      // 3.1MB），不再拷 rgba（w*h*4）、不再在 worker 里转 rgb（w*h*3）——
+      // 模型输入与旧路径逐位一致（见 modnetInputFromRgba / yunetInputFromRgba），
+      // 输出不变，isolate 拷贝与 worker 峰值各少 ~12.6/9.4MB（2048 口径）。
+      // 输入构建（面积重采样 ~20-40ms）留在宿主是为了不拷大缓冲；代价是
+      // NoFace 图也付一次 MODNet 输入构建（门槛没过时白备 3.1MB），与
+      // "门槛在 MODNet 之前省整次推理"的大头相比可忽略。
       final MattingPayload payload;
       if (rgba != null && plan != null) {
         final r = rgba;
         final p = plan;
+        final LetterboxInput? yunet =
+            runGate ? yunetInputFromRgba(r, p.width, p.height, kFaceInputSize)
+                : null;
+        final Float32List modnet =
+            modnetInputFromRgba(r, p.width, p.height, kMattingInputSize);
         payload = await Isolate.run(() {
           // alpha-only 路径：worker 只回 alpha（+人像门槛的检脸结果），
           // rgba 缓冲留在宿主，就地强制 A=255 后直接作为结果——不跨
           // isolate 搬运、不重建 w*h*4 大缓冲（G4.7 瞬时滞留压缩）。
-          return runMattingAlphaOnly(
-            rgbaToDecoded(
-              r,
-              p.width,
-              p.height,
-              sourceWidth: p.sourceWidth,
-              sourceHeight: p.sourceHeight,
-            ),
-            session,
+          return runMattingPrecomputed(
+            modnetInput: modnet,
+            yunetInput: yunet,
+            sessionAddress: session,
             faceSessionAddress: runGate ? faceSession : null,
+            width: p.width,
+            height: p.height,
+            sourceWidth: p.sourceWidth,
+            sourceHeight: p.sourceHeight,
           );
         });
       } else {
         payload = await Isolate.run(() {
           return runMattingSync(imageBytes, session,
               maxEdge: kEngineMaxEdge,
+              targetEdge: kBigImageWorkEdge,
               faceSessionAddress: runGate ? faceSession : null);
         });
       }
@@ -222,17 +236,21 @@ mixin MattingEngineMixin {
         }
       }
       // 与 removeBackground 同理：闭包只捕获所需变量，未命中降采样路径时
-      // 不把 imageBytes 拷进 worker。
+      // 不把 imageBytes 拷进 worker。降采样路径同样在宿主预计算 letterbox
+      // 输入（G4 r3），worker 只收 4.9MB 的 Float32。
       final FaceInfo? result;
       if (rgba != null && plan != null) {
         final r = rgba;
         final p = plan;
+        final LetterboxInput yunet =
+            yunetInputFromRgba(r, p.width, p.height, kFaceInputSize);
         result = await Isolate.run(() {
-          return runFaceFromRgb(rgbaToDecoded(r, p.width, p.height), session);
+          return faceFromYunetInput(yunet, session, p.width, p.height);
         });
       } else {
         result = await Isolate.run(() {
-          return runFaceSync(imageBytes, session, maxEdge: kEngineMaxEdge);
+          return runFaceSync(imageBytes, session,
+              maxEdge: kEngineMaxEdge, targetEdge: kBigImageWorkEdge);
         });
       }
       _faceCacheKey = imageBytes;

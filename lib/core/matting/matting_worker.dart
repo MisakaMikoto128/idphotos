@@ -122,8 +122,8 @@ class MattingPayload {
 /// 兜底；全尺寸解码的瞬时缓冲不可避免，但后续管线只吃小图）。
 /// [faceSessionAddress] 非 null 时先跑人像门槛（见下）。
 MattingPayload runMattingSync(Uint8List bytes, int sessionAddress,
-    {int? maxEdge, int? faceSessionAddress}) {
-  final image = decodeToRgb(bytes, maxEdge: maxEdge);
+    {int? maxEdge, int? targetEdge, int? faceSessionAddress}) {
+  final image = decodeToRgb(bytes, maxEdge: maxEdge, targetEdge: targetEdge);
   return runMattingFromRgb(image, sessionAddress,
       faceSessionAddress: faceSessionAddress);
 }
@@ -197,9 +197,20 @@ _MattingCore _mattingCore(DecodedImage image, int sessionAddress,
     }
   }
 
-  final input = modnetInput(
-      image.rgb, image.width, image.height, kMattingInputSize);
+  final input =
+      modnetInput(image.rgb, image.width, image.height, kMattingInputSize);
+  final alpha = _matteFromModnetInput(
+      input, sessionAddress, image.width, image.height);
+  return _MattingCore(alpha, subjectFace);
+}
 
+/// MODNet 推理 + alpha 后处理（前景占比/碎片门槛、放大回工作分辨率、羽化）。
+///
+/// 输入是已按 [modnetInput]/[modnetInputFromRgba] 备好的 512×512 NCHW——
+/// rgb 路径（黄金集口径）与 RGBA 预计算路径（G4 r3）共用同一套实现，
+/// 喂进模型的字节逐位一致，产出也逐位一致。
+Uint8List _matteFromModnetInput(
+    Float32List input, int sessionAddress, int dstW, int dstH) {
   final outputs = runFloatInput(
     sessionAddress,
     input,
@@ -227,13 +238,13 @@ _MattingCore _mattingCore(DecodedImage image, int sessionAddress,
   ensureCoherentSubject(small);
 
   var alpha = areaResampleGray(
-      small, kMattingInputSize, kMattingInputSize, image.width, image.height);
-  final upscale = (image.width + image.height) / (2.0 * kMattingInputSize);
+      small, kMattingInputSize, kMattingInputSize, dstW, dstH);
+  final upscale = (dstW + dstH) / (2.0 * kMattingInputSize);
   final sigma = featherSigmaFor(upscale);
   if (sigma > 0) {
-    alpha = featherGray(alpha, image.width, image.height, sigma);
+    alpha = featherGray(alpha, dstW, dstH, sigma);
   }
-  return _MattingCore(alpha, subjectFace);
+  return alpha;
 }
 
 /// alpha-only 抠图（G4.7 dart:ui 降采样路径专用）：worker 只回 alpha 与
@@ -252,6 +263,49 @@ MattingPayload runMattingAlphaOnly(DecodedImage image, int sessionAddress,
     sourceHeight:
         image.sourceHeight != image.height ? image.sourceHeight : null,
     subjectFace: core.subjectFace,
+  );
+}
+
+/// 预计算输入版抠图（G4 r3 dart:ui 降采样路径专用）。
+///
+/// 与 [runMattingAlphaOnly] 的差别只在**输入缓冲从哪来**：模型输入
+/// （YuNet letterbox + MODNet 512²）由调用方在宿主 isolate 直接从 RGBA
+/// 算好带进来，worker 里不再持有 rgba、不再转紧凑 rgb——Isolate.run 的
+/// 闭包拷贝从 w*h*4 降到固定的 8MB（4.9+3.1），worker 峰值少掉 ~22MB
+/// （rgba 12.6 + rgb 9.4，2048 工作分辨率口径）。喂进模型的字节与旧路径
+/// **逐位一致**（见 [modnetInputFromRgba] 的等价论证），输出不变。
+///
+/// [faceSessionAddress] 非 null 时先跑人像门槛（同 [runFaceFromRgb] 口径：
+/// YuNet + pickSubjectFace + kMinFaceAreaRatio），检不到抛
+/// [NoFaceException]。此时 [yunetInput] 必须非 null。
+MattingPayload runMattingPrecomputed({
+  required Float32List modnetInput,
+  LetterboxInput? yunetInput,
+  required int sessionAddress,
+  int? faceSessionAddress,
+  required int width,
+  required int height,
+  int? sourceWidth,
+  int? sourceHeight,
+}) {
+  FaceInfo? subjectFace;
+  if (faceSessionAddress != null) {
+    subjectFace = faceFromYunetInput(yunetInput!, faceSessionAddress,
+        width, height);
+    if (subjectFace == null) {
+      // 文案/控制流与 _mattingCore 的门槛分支逐字一致。
+      throw const NoFaceException(cause: 'face gate: no subject face');
+    }
+  }
+  final alpha = _matteFromModnetInput(modnetInput, sessionAddress, width,
+      height);
+  return MattingPayload.alphaOnly(
+    TransferableTypedData.fromList(<Uint8List>[alpha]),
+    width,
+    height,
+    sourceWidth: sourceWidth != width ? sourceWidth : null,
+    sourceHeight: sourceHeight != height ? sourceHeight : null,
+    subjectFace: subjectFace,
   );
 }
 
@@ -333,8 +387,9 @@ void ensureCoherentSubject(Uint8List alpha, {int size = kMattingInputSize}) {
 }
 
 /// 完整人脸检测流程，同步执行。没检出返回 null（契约要求不抛异常）。
-FaceInfo? runFaceSync(Uint8List bytes, int sessionAddress, {int? maxEdge}) {
-  final image = decodeToRgb(bytes, maxEdge: maxEdge);
+FaceInfo? runFaceSync(Uint8List bytes, int sessionAddress,
+    {int? maxEdge, int? targetEdge}) {
+  final image = decodeToRgb(bytes, maxEdge: maxEdge, targetEdge: targetEdge);
   return runFaceFromRgb(image, sessionAddress);
 }
 
@@ -342,7 +397,14 @@ FaceInfo? runFaceSync(Uint8List bytes, int sessionAddress, {int? maxEdge}) {
 FaceInfo? runFaceFromRgb(DecodedImage image, int sessionAddress) {
   final input =
       yunetInput(image.rgb, image.width, image.height, kFaceInputSize);
+  return faceFromYunetInput(input, sessionAddress, image.width, image.height);
+}
 
+/// [runFaceFromRgb] 的核心：从备好的 YuNet letterbox 输入跑检测。
+///
+/// 供 rgb 路径与预计算输入路径（G4 r3）共用；同一输入产出同一 FaceInfo。
+FaceInfo? faceFromYunetInput(
+    LetterboxInput input, int sessionAddress, int imgW, int imgH) {
   final outputs = runFloatInput(
     sessionAddress,
     input.data,
@@ -370,11 +432,8 @@ FaceInfo? runFaceFromRgb(DecodedImage image, int sessionAddress) {
   final kept = nonMaxSuppression(raw);
   if (kept.isEmpty) return null;
   final face = toFaceInfo(
-      pickSubjectFace(kept, image.width, image.height),
-      input.scale,
-      image.width,
-      image.height);
-  final ratio = face.box.width * face.box.height / (image.width * image.height);
+      pickSubjectFace(kept, imgW, imgH), input.scale, imgW, imgH);
+  final ratio = face.box.width * face.box.height / (imgW * imgH);
   if (ratio < kMinFaceAreaRatio) {
     return null;
   }

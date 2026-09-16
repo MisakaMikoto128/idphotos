@@ -14,7 +14,7 @@ import 'package:image/image.dart' as img;
 import '../api.dart';
 import 'image_header.dart';
 
-/// 引擎工作分辨率的长边上限。
+/// 引擎工作分辨率的长边上限（"要不要降采样"的门槛）。
 ///
 /// 模型输入本来就是 512×512，alpha 再放大回去；合成出片最大也就二寸
 /// （413×579@300dpi ≈ 1745px）。长边 2048 对成片质量零损失，但把
@@ -22,6 +22,17 @@ import 'image_header.dart';
 /// G4.7 峰值内存达标的根本手段。黄金集长边全部 ≤2048，严格大于才降采样，
 /// 所以对黄金集逐字节零影响。
 const int kEngineMaxEdge = 2048;
+
+/// 长边**超过** [kEngineMaxEdge] 的图实际降采样到的工作分辨率长边。
+///
+/// G4 r3：真机 churn 相位的瞬态峰与"工作缓冲总量"成正比——4032×3024 在
+/// 2048 工作分辨率下单份 rgba 12.6MB、compose 去色边再持一份，叠加
+/// isolate 拷贝就是真机 615MB 峰值的主要来源。把"确实超过 2048 的大图"
+/// 再压到 1536：单份 rgba 7.1MB（-44%），成片（≤579px）的过采样仍有
+/// ~2.4×，视觉无损失；黄金集长边 ≤2048 不进这条分支，逐位零影响。
+/// 注意 ≤2048 的图**不**再降——黄金集 2048 长边的参考 alpha 就是原生
+/// 尺寸产出的，动了就是黄金集回归 FAIL。
+const int kBigImageWorkEdge = 1536;
 
 /// 引擎工作分辨率的规划结果。
 class WorkingSizePlan {
@@ -63,10 +74,10 @@ WorkingSizePlan? planWorkingSize(Uint8List bytes) {
         header.width, header.height, header.width, header.height,
         orientation: header.orientation);
   }
-  final s = kEngineMaxEdge / long;
+  final s = kBigImageWorkEdge / long;
   return WorkingSizePlan(
-    (header.width * s).round().clamp(1, kEngineMaxEdge),
-    (header.height * s).round().clamp(1, kEngineMaxEdge),
+    (header.width * s).round().clamp(1, kBigImageWorkEdge),
+    (header.height * s).round().clamp(1, kBigImageWorkEdge),
     header.width,
     header.height,
     orientation: header.orientation,
@@ -140,13 +151,16 @@ class DecodedImage {
 /// - 解码不出来 → [UnsupportedImageException]
 /// - 长边超过 [kMaxImageEdgePx] → [ImageTooLargeException]
 /// - [maxEdge] 非 null 且解码结果长边超过它时，解码后立即等比降采样到
-///   该长边（面积插值）。这是 dart:ui 降采样解码不可用时的兜底路径——
-///   全尺寸解码的瞬时缓冲躲不掉，但后续管线只吃小图。
+///   [targetEdge]（缺省与 [maxEdge] 相同）该长边（面积插值）。这是 dart:ui
+///   降采样解码不可用时的兜底路径——全尺寸解码的瞬时缓冲躲不掉，但后续
+///   管线只吃小图。触发门槛与目标长边分开：大图（长边 > [kEngineMaxEdge]）
+///   要与 planWorkingSize 的规划（降到 [kBigImageWorkEdge]）保持一致，而
+///   ≤[kEngineMaxEdge] 的图（黄金集）绝不重采样——动了就是黄金集回归 FAIL。
 ///
 /// EXIF 方向会被烘焙进像素。注意 image 包 4.9 的 JPEG 解码器在 `getImage`
 /// 里**已经**烘焙过 orientation 并把 tag 置空，下面的 `bakeOrientation`
 /// 只兜真正还带 tag 的格式；这与参考实现 `cv2.imread` 的默认行为一致。
-DecodedImage decodeToRgb(Uint8List bytes, {int? maxEdge}) {
+DecodedImage decodeToRgb(Uint8List bytes, {int? maxEdge, int? targetEdge}) {
   if (bytes.isEmpty) {
     throw const UnsupportedImageException();
   }
@@ -176,11 +190,12 @@ DecodedImage decodeToRgb(Uint8List bytes, {int? maxEdge}) {
     throw const UnsupportedImageException();
   }
   if (maxEdge != null && math.max(w0, h0) > maxEdge) {
-    final s = maxEdge / math.max(w0, h0);
+    final target = targetEdge ?? maxEdge;
+    final s = target / math.max(w0, h0);
     decoded = img.copyResize(
       decoded,
-      width: (w0 * s).round().clamp(1, maxEdge),
-      height: (h0 * s).round().clamp(1, maxEdge),
+      width: (w0 * s).round().clamp(1, target),
+      height: (h0 * s).round().clamp(1, target),
       interpolation: img.Interpolation.average,
     );
   }
@@ -256,6 +271,33 @@ Uint8List areaResampleRgb(
   int dstW,
   int dstH,
 ) {
+  return _areaResampleRgbStrided(src, srcW, srcH, dstW, dstH, 3);
+}
+
+/// 同 [areaResampleRgb]，但源是 **RGBA**（stride 4，alpha 列被跳过）。
+///
+/// G4 r3：dart:ui 降采样解码产物是 RGBA。旧路径要先在 worker 里把它
+/// 转成紧凑 RGB（一份 w*h*3 的分配 + 拷贝）再重采样；直接按 stride 4
+/// 读源像素后这份中间缓冲就不再需要。逐字节取的 RGB 值与转换后的
+/// 完全一致、权重与累加次序共用同一套实现——结果与旧路径**逐位相同**。
+Uint8List areaResampleRgbFromRgba(
+  Uint8List src,
+  int srcW,
+  int srcH,
+  int dstW,
+  int dstH,
+) {
+  return _areaResampleRgbStrided(src, srcW, srcH, dstW, dstH, 4);
+}
+
+Uint8List _areaResampleRgbStrided(
+  Uint8List src,
+  int srcW,
+  int srcH,
+  int dstW,
+  int dstH,
+  int srcStride,
+) {
   final wx = _AreaWeights.build(srcW, dstW);
   final wy = _AreaWeights.build(srcH, dstH);
   // 每个源行贡献给哪些目标行、权重多少（按目标行升序）。
@@ -288,7 +330,7 @@ Uint8List areaResampleRgb(
   final row = Float32List(dstW * 3);
   for (var y = 0; y < srcH; y++) {
     // 横向重采样当前源行
-    final rowBase = y * srcW * 3;
+    final rowBase = y * srcW * srcStride;
     var wi = 0;
     for (var j = 0; j < dstW; j++) {
       var r = 0.0, g = 0.0, b = 0.0;
@@ -296,7 +338,7 @@ Uint8List areaResampleRgb(
       final n = wx.count[j];
       for (var k = 0; k < n; k++) {
         final w = wx.weights[wi + k];
-        final p = rowBase + (i0 + k) * 3;
+        final p = rowBase + (i0 + k) * srcStride;
         r += src[p] * w;
         g += src[p + 1] * w;
         b += src[p + 2] * w;
@@ -434,6 +476,20 @@ Uint8List featherGray(Uint8List src, int w, int h, double sigma) {
 /// 黄金集参考 alpha 就是在 BGR 下产生的，换成 RGB 会得到不同的 mask。
 Float32List modnetInput(Uint8List rgb, int w, int h, int size) {
   final resized = areaResampleRgb(rgb, w, h, size, size);
+  return _modnetInputFromResampled(resized, size);
+}
+
+/// [modnetInput] 的 RGBA 源版本（dart:ui 降采样解码路径专用）。
+///
+/// 源像素是同一条解码产物的 RGBA 布局：跳过 alpha 列后与"先转紧凑 RGB
+/// 再重采样"的旧路径喂进模型的是**逐位相同**的输入（权重与累加次序共用
+/// 同一套实现），但省掉一份 w*h*3 的中间缓冲。
+Float32List modnetInputFromRgba(Uint8List rgba, int w, int h, int size) {
+  final resized = areaResampleRgbFromRgba(rgba, w, h, size, size);
+  return _modnetInputFromResampled(resized, size);
+}
+
+Float32List _modnetInputFromResampled(Uint8List resized, int size) {
   final out = Float32List(3 * size * size);
   final plane = size * size;
   for (var i = 0, p = 0; p < plane; i += 3, p++) {
@@ -459,6 +515,20 @@ LetterboxInput yunetInput(Uint8List rgb, int w, int h, int size) {
   var nw = (w * scale).round().clamp(1, size);
   var nh = (h * scale).round().clamp(1, size);
   final resized = areaResampleRgb(rgb, w, h, nw, nh);
+  return _yunetInputFromResampled(resized, nw, nh, size, scale);
+}
+
+/// [yunetInput] 的 RGBA 源版本。逐位等价论证同 [modnetInputFromRgba]。
+LetterboxInput yunetInputFromRgba(Uint8List rgba, int w, int h, int size) {
+  final scale = math.min(size / w, size / h);
+  var nw = (w * scale).round().clamp(1, size);
+  var nh = (h * scale).round().clamp(1, size);
+  final resized = areaResampleRgbFromRgba(rgba, w, h, nw, nh);
+  return _yunetInputFromResampled(resized, nw, nh, size, scale);
+}
+
+LetterboxInput _yunetInputFromResampled(
+    Uint8List resized, int nw, int nh, int size, double scale) {
   final plane = size * size;
   final out = Float32List(3 * plane);
   for (var y = 0; y < nh; y++) {
