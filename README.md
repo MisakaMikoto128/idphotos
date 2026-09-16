@@ -26,6 +26,11 @@
 | 🪵 **复古木制 UI** | 程序化木纹/黄铜/绒布材质，像 1930 年代照相馆的工作台 |
 | 🚫 **免费无水印** | 无内购、无水印、无追踪 |
 
+<p align="center">
+  <img src="store/demo_pair.png" width="560" alt="效果示意（原创卡通演示）"/>
+</p>
+<p align="center"><sub>效果示意 · 吉祥物"木木"（原创卡通形象，非真实照片）</sub></p>
+
 ## 下载
 
 前往 [Releases](https://github.com/liuyuanlin/idphotos/releases) 下载最新 Android APK。
