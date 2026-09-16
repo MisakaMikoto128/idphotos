@@ -5,6 +5,12 @@
 /// 取四角像素的均值当作原始背景色，离它足够远的像素判为前景保留，够近的换成
 /// 该候选的底色。样张本身就是蓝底证件照，这个办法足够以假乱真。
 ///
+/// 阶段 6 样张换成木木（卡通吉祥物）的**生活照**后，四角均值不再是干净底色
+/// （室内场景、有植物/窗框），色度抠像会把背景杂物全判成前景。所以木木样张
+/// 随文内嵌了一张**预烘焙的前景掩膜**（见 `sample_photo.dart`）——样张是
+/// 程序化画的，前景轮廓天然已知，直接采用烘焙掩膜，色度抠像只作无掩膜时的
+/// 兜底路径保留。
+///
 /// 这是**开发脚手架**，不是产品逻辑 —— 真正的抠图由 `ml-porting` 的模型完成，
 /// 阶段 3 接线后本文件不再参与出图。
 ///
@@ -22,8 +28,17 @@ import '../../core/api.dart';
 import 'sample_photo.dart';
 
 img.Image? _decoded;
+img.Image? _maskDecoded;
 
 img.Image? _sample() => _decoded ??= img.decodeJpg(sampleSourceJpeg());
+
+/// 内嵌样张的预烘焙前景掩膜（与样张同尺寸），没有则 null。
+img.Image? _alphaMask() {
+  if (_maskDecoded != null) return _maskDecoded;
+  final Uint8List? png = sampleAlphaPng();
+  if (png == null) return null;
+  return _maskDecoded = img.decodePng(png);
+}
 
 /// 取四角 6% 见方的区域求均值，作为原背景色估计。
 List<double> _estimateBackground(img.Image im) {
@@ -113,17 +128,39 @@ Uint8List renderFakeCandidate({
     interpolation: img.Interpolation.cubic,
   );
 
-  // 色度抠像：离原背景色越远越算前景
-  final List<double> bgRef = _estimateBackground(photo);
+  // 抠像：优先用预烘焙掩膜（木木样张，生活照背景色度抠像不适用）；
+  // 否则回落色度抠像（纯色底的证件照样张）。
+  final List<double>? bgRef = _alphaMask() == null ? _estimateBackground(photo) : null;
   final Float32List alpha = Float32List(outW * outH);
-  for (int y = 0; y < outH; y++) {
-    for (int x = 0; x < outW; x++) {
-      final img.Pixel p = photo.getPixel(x, y);
-      final double dr = p.r - bgRef[0];
-      final double dg = p.g - bgRef[1];
-      final double db = p.b - bgRef[2];
-      final double d = math.sqrt(dr * dr + dg * dg + db * db);
-      alpha[y * outW + x] = ((d - 34) / 40).clamp(0.0, 1.0);
+  if (bgRef == null) {
+    final img.Image croppedMask = img.copyCrop(
+      _alphaMask()!,
+      x: cx,
+      y: cy,
+      width: cw,
+      height: ch,
+    );
+    final img.Image mask = img.copyResize(
+      croppedMask,
+      width: outW,
+      height: outH,
+      interpolation: img.Interpolation.cubic,
+    );
+    for (int y = 0; y < outH; y++) {
+      for (int x = 0; x < outW; x++) {
+        alpha[y * outW + x] = mask.getPixel(x, y).r / 255.0;
+      }
+    }
+  } else {
+    for (int y = 0; y < outH; y++) {
+      for (int x = 0; x < outW; x++) {
+        final img.Pixel p = photo.getPixel(x, y);
+        final double dr = p.r - bgRef[0];
+        final double dg = p.g - bgRef[1];
+        final double db = p.b - bgRef[2];
+        final double d = math.sqrt(dr * dr + dg * dg + db * db);
+        alpha[y * outW + x] = ((d - 34) / 40).clamp(0.0, 1.0);
+      }
     }
   }
   _blur(alpha, outW, outH, math.max(1, (outW / 260).round()));

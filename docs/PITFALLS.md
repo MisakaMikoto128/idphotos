@@ -832,3 +832,52 @@
 - 现象三：symlink 失败前的那次构建仍会先下载全部 4 份 Windows 引擎 artifacts
   （debug/profile/release + wrapper，约 1GB、本机实测 10-25 分钟/份），失败后下次还会重下。
   成功率低的构建尝试可能反复支付这个下载成本；junction 修好后增量构建仅 65s。
+
+## 2026-09-16 ui-woodcraft（W1 关于页）
+
+- 现象：`flutter drive`（integration_test 截图流水线）连续 4 次在
+  `convertFlutterSurfaceToImage()` 处抛 `MissingPluginException`，此前同一命令成功过。
+- 根因：`android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java`
+  被一次 **release 构建**重写成了"不含 dev_dependencies 插件"的版本（`integration_test`
+  是 dev 依赖，release registrant 不含 `IntegrationTestPlugin`），mtime 与并行 agent
+  的构建时间吻合。之后的 debug 增量构建认为该文件"最新"不再重新生成，装出来的 APK
+  永远缺这个平台通道。两个 agent 在**同一个项目里并行跑 gradle**（一个 debug 一个
+  release）就会互相重写这个文件。
+- 解法：删掉 `GeneratedPluginRegistrant.java` + `flutter pub get`（debug 形态下重新
+  生成，含 IntegrationTestPlugin），再 `flutter drive` 即恢复。并行构建期间注意
+  重新检查这个文件；症状与"模拟器抽风"极像，别往模拟器方向查。
+- 代价：~4 轮 drive × 5 分钟才定位。若门禁截图批量挂在这种 MissingPlugin 上，
+  先看 registrant 里有没有 `IntegrationTestPlugin`，再看模拟器。
+
+## [验证员/W2] `flutter test --release` 不存在——Windows AOT 引擎验证用 `flutter build windows --release --target=<探针main>` 替代
+
+- 现象：需要验证"release AOT 编译模式下黄金集是否仍逐位一致"，但 Flutter 3.47 的
+  `flutter test` 没有 `--release` 选项（flutter_tools `commands/test.dart` 全文 0 处
+  release，与早前 release 条目"flutter test 也没有 --release 选项了"一致）。
+- 解法：`flutter clean` → `flutter build windows --release
+  --target=native/bench/win_cmp_android_main.dart`（该入口本来就是为 --target 设计的，
+  从仓库根跑 exe 时默认读 `test/golden/src`，产物落 getApplicationSupportDirectory 的
+  `win_cmp/`，含 `win_cmp_done` marker，跑完 exit(0)）。宿主侧验证三件套：
+  ① `data/app.so` 含 1 处 `WINCMP` 特征串（确认入口真换了，防"半新半旧"）；
+  ② stdout 经 `Start-Process -RedirectStandardOutput` 可正常捕获（GUI 子系统 exe
+  只要给了句柄，print 就落盘）；③ 拿 JIT（flutter test 探针）与 AOT 两边的
+  alpha sha256 逐位比对。实测 8/8 逐位一致、g01 原始 alpha 逐字节一致。
+  附带：换 --target 前后都要 clean 重建产品包，最后用特征串复核默认入口已还原
+  （app.so 不含 WINCMP）。
+- 另两个小坑：① `flutter clean` 连 `.flutter-plugins-dependencies` 一起删——
+  **junction 重建必须排在 `flutter pub get` 之后**，否则清单文件不存在无从枚举插件；
+  ② `Start-Process -Wait -PassThru | ... ExitCode` 对 GUI 进程有竞态
+  （"Process must exit before requested information can be determined"），
+  要退出码就改用 `$LASTEXITCODE` 或轮询进程消失 + 落盘 marker。
+
+## 2026-09-16 ui-woodcraft（阶段 6 收尾：官方样张换木木）
+
+- `store/draw_demo_pair.py` 的 `draw_character()` 脖子几何有 bug：脖子椭圆画在
+  `HEAD_CY+s(680)`，而下巴在 `HEAD_CY+s(345)`、肩线在 `HEAD_CY+s(720)`——脖子上缘与下巴之间
+  露出约 200px 背景缝隙（demo_before.png 里肉眼可见"脖子悬空"）。`store/gen_avatar.py` 因
+  用绝对坐标 `H-500` 没踩中。store-assets 复用部件函数画宣传图时注意：脖子椭圆应满足
+  `上缘 < 下巴 y` 且 `下缘 > 肩线 y`（木木样张用的参数：cy=HEAD_CY+s(430), ry=s(120), 肩线 BY=HEAD_CY+s(520)）。
+- `flutter drive` 跑完会打印 `adb uninstall ... DELETE_FAILED_INTERNAL_ERROR`，是 flutter 工具
+  卸载残留包的已知噪音，截图已正常落盘，不要当成流水线失败重跑。
+- 杀掉模拟器后 serial 会被下一台复用（5554 → 5554），"等 emulator-5556 上线"的轮询会白等；
+  等 boot 用实际出现的 serial 轮询 `sys.boot_completed` 即可。

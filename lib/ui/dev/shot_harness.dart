@@ -11,8 +11,9 @@
 /// * S4（冲洗中）靠 `Stage.composing` + 空候选列表钉死，不需要卡住任何 Future；
 /// * `UiConfig.freezeAnimations = true` 让"显影"这类循环动画停在固定相位 ——
 ///   否则 `pumpAndSettle()` 会因为永远有新帧被调度而超时；
-/// * 照片输入固定为内嵌的 `test/golden/src/g01.jpg`（见 `sample_photo.dart`），
-///   不读运行时相册。
+/// * 照片输入固定为内嵌的原创卡通吉祥物"木木"生活照样张
+///   （见 `sample_photo.dart`；阶段 6 前是黄金集 g01，因官方截图不得含
+///   真人肖像而更换，黄金集本身仍是门禁资产、未动），不读运行时相册。
 ///
 /// 势力范围：ui-woodcraft。场景 id 与稳定 Key 的改名必须先经主会话同意。
 library;
