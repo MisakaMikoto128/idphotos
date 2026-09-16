@@ -160,9 +160,27 @@ class DecodedImage {
 /// EXIF 方向会被烘焙进像素。注意 image 包 4.9 的 JPEG 解码器在 `getImage`
 /// 里**已经**烘焙过 orientation 并把 tag 置空，下面的 `bakeOrientation`
 /// 只兜真正还带 tag 的格式；这与参考实现 `cv2.imread` 的默认行为一致。
+///
+/// 内存口径（REVIEW_SEC M3）：[readImageHeaderSize] 只覆盖 JPEG/PNG/GIF/
+/// BMP/WebP 五类头。头解析失败时旧代码直接 `img.decodeImage` 全量解码——
+/// image 包还能解 TGA/EXR/PNM/TIFF/PSD 等头未覆盖的格式，30000×30000 的
+/// TGA 全量解码是 2.7GB 瞬时分配（8000px 上限拦不住它，因为尺寸压根没
+/// 读过），叠加 ORT 常驻 floor 单张图即可 OOM（对抗组没打爆只是没构造
+/// 这个组合）。这里按"头解析失败 = 解不开"拒绝（[UnsupportedImage-
+/// Exception]），零像素分配。**依据是全量数据集实测**：88 项里 22 个
+/// success 条目的头全部可解析（0 例外），13 个头解析失败条目全是
+/// ini/db/txt 等非图片、旧结局本来就是 [UnsupportedImageException]——
+/// 即"头解析失败但能解出有效图"的真实格式在本项目数据面不存在，不值得
+/// 为它保留一条无界解码路径。冷门格式（TGA 等）从此不再支持：能正常
+/// 使用的图片（相册 JPEG/PNG/截图）头解析不该失败，这条判定与契约的
+/// "解不开 → UnsupportedImageException" 语义一致。
 DecodedImage decodeToRgb(Uint8List bytes, {int? maxEdge, int? targetEdge}) {
   if (bytes.isEmpty) {
     throw const UnsupportedImageException();
+  }
+  if (readImageHeaderSize(bytes) == null) {
+    throw UnsupportedImageException(
+        cause: 'unrecognized image header (${bytes.length}B)');
   }
   img.Image? decoded;
   Object? failure;
