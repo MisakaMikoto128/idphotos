@@ -304,6 +304,32 @@ class MuZhaoController implements IdPhotoController {
   /// 互相截断产出损坏文件，X4 的失败清理还会误删同名文件）。
   int _saveSeq = 0;
 
+  /// 安全审查 M1：保存成功的私有 temp 文件会携带全分辨率人像照片滞留
+  /// cache 目录（Android 12+ 的 D2D 换机迁移会连带复制 cache）。构造时
+  /// 清理超过 24 小时的历史产出——相册里的正式副本不受影响，24 小时内
+  /// 的文件保留供"保存后立即重读"类验证使用。
+  static Future<void> _purgeStaleSavedFiles(Directory dir) async {
+    try {
+      final DateTime cutoff =
+          DateTime.now().subtract(const Duration(hours: 24));
+      await for (final FileSystemEntity e in dir.list()) {
+        if (e is! File) continue;
+        final String name = e.uri.pathSegments.last;
+        if (!name.startsWith('muzhao_') || !name.endsWith('.jpg')) continue;
+        final FileStat st = await e.stat();
+        if (st.modified.isBefore(cutoff)) {
+          try {
+            await e.delete();
+          } on FileSystemException catch (e) {
+            developer.log('清理过期保存产物失败: $e', name: 'muzhao.controller');
+          }
+        }
+      }
+    } on FileSystemException catch (e) {
+      developer.log('扫描保存产物目录失败: $e', name: 'muzhao.controller');
+    }
+  }
+
   @override
   Future<String> save(Candidate c) async {
     // 返回的路径必须真实存在且可重新解码（G3.3），所以先在私有目录落一份。
@@ -311,6 +337,8 @@ class MuZhaoController implements IdPhotoController {
     // 私有文件给门禁/回读用，相册条目才是用户看到的"已保存到相册"。
     // 两者都由用户点击"保存"触发（CLAUDE.md §6 的例外条款）。
     final Directory dir = await getTemporaryDirectory();
+    // M1：异步清理过期产物，不阻塞本次保存路径。
+    unawaited(_purgeStaleSavedFiles(dir));
     final File file = File(
       '${dir.path}'
       '/muzhao_${DateTime.now().millisecondsSinceEpoch}'
