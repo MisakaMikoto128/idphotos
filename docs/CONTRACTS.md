@@ -171,6 +171,10 @@ const List<String> kShotScenarios = <String>[
   'S6_saved',      // 保存成功反馈态
 ];
 
+/// 阶段 6 追加（主会话追认 ui-woodcraft 的申请）：
+/// 'S7_about' —— 关于页抽屉展开态（入口 btn_about 长按黄铜标尺）。
+/// 场景清单从 6 张扩到 7 张；既有 6 张语义不变。
+
 /// 构造处于指定场景状态的完整 App 根 widget（内部用 FakeController 驱动）。
 ///
 /// 必须是**确定性**的：同一 id 每次构造出同一画面，不依赖真实模型、

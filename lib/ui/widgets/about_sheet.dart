@@ -327,7 +327,9 @@ class _OathStrip extends StatelessWidget {
       child: Text(
         '本应用完全离线运行，照片永不离开你的设备',
         textAlign: TextAlign.center,
-        style: Type.bodyStrong(T.inkBrown),
+        // 13/700：主屏卡片内宽放不下 15px 的整句（会拆成两行还孤出一个字），
+        // 降到字号阶的 13 并保留加粗，一行放下。
+        style: Type.small(T.inkBrown).copyWith(fontWeight: FontWeight.w700),
       ),
     );
   }
