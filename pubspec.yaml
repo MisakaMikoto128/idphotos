@@ -41,6 +41,8 @@ dependencies:
   # ml-porting 自建 FFI 层（session_factory/arena 配置）的显式声明；
   # 此前借 onnxruntime 的传递依赖。阶段 4 加（G4.7 内存攻坚）。
   ffi: ^2.1.0
+  # 阶段 6 Windows 桌面端：取图（file_selector_windows 自动随联邦包引入）
+  file_selector: ^1.0.0
   path_provider: ^2.1.6
   gal: ^2.3.3
 

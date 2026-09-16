@@ -12,6 +12,10 @@ library;
 
 import 'dart:typed_data';
 
+import 'dart:io' show Platform;
+
+import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -20,7 +24,7 @@ abstract class PhotoSource {
   Future<Uint8List?> pick();
 }
 
-/// 系统相册。
+/// 系统相册（Android/iOS）。
 class GalleryPhotoSource implements PhotoSource {
   const GalleryPhotoSource();
 
@@ -33,5 +37,24 @@ class GalleryPhotoSource implements PhotoSource {
   }
 }
 
-final Provider<PhotoSource> photoSourceProvider =
-    Provider<PhotoSource>((Ref ref) => const GalleryPhotoSource());
+/// 桌面端文件选择（Windows 等——无系统"相册"概念，走打开文件对话框）。
+class DesktopPhotoSource implements PhotoSource {
+  const DesktopPhotoSource();
+
+  @override
+  Future<Uint8List?> pick() async {
+    final XTypeGroup group = const XTypeGroup(
+      label: '图片',
+      extensions: <String>['jpg', 'jpeg', 'png', 'webp', 'bmp'],
+    );
+    final XFile? file =
+        await openFile(acceptedTypeGroups: <XTypeGroup>[group]);
+    if (file == null) return null;
+    return file.readAsBytes();
+  }
+}
+
+final Provider<PhotoSource> photoSourceProvider = Provider<PhotoSource>((Ref ref) {
+  if (!kIsWeb && Platform.isWindows) return const DesktopPhotoSource();
+  return const GalleryPhotoSource();
+});

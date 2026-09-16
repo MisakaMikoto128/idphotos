@@ -24,6 +24,8 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
+import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -211,6 +213,19 @@ class MuZhaoController implements IdPhotoController {
     return _scaleRect(r, m.width / m.srcWidth);
   }
 
+  /// Windows 保存：另存为对话框。用户取消返回 null。
+  static Future<File?> _pickSaveDestination(Candidate c) async {
+    final FileSaveLocation? loc = await getSaveLocation(
+      suggestedName:
+          'muzhao_${DateTime.now().millisecondsSinceEpoch}_${c.style.id}.jpg',
+      acceptedTypeGroups: const <XTypeGroup>[
+        XTypeGroup(label: 'JPEG 图片', extensions: <String>['jpg']),
+      ],
+    );
+    if (loc == null) return null;
+    return File(loc.path);
+  }
+
   /// 用当前缓存的抠图结果 + 规格，为 6 种内置底色各合成一张候选。
   /// 顺序即 CONTRACTS 第 5 节锁定的展示顺序。
   ///
@@ -338,6 +353,14 @@ class MuZhaoController implements IdPhotoController {
     // 相册写入走 MediaStore（gal），不返回路径，二者各司其职：
     // 私有文件给门禁/回读用，相册条目才是用户看到的"已保存到相册"。
     // 两者都由用户点击"保存"触发（CLAUDE.md §6 的例外条款）。
+    // Windows：gal 不支持桌面端——走"另存为"对话框由用户选择落盘位置。
+    // 隐私语义不变：文件只写到用户亲自选定的本地路径。
+    if (!kIsWeb && Platform.isWindows) {
+      final File? dest = await _pickSaveDestination(c);
+      if (dest == null) return ''; // 用户取消——UI 按空路径静默处理
+      await dest.writeAsBytes(c.jpegBytes, flush: true);
+      return dest.path;
+    }
     final Directory dir = await getTemporaryDirectory();
     // M1：异步清理过期产物，不阻塞本次保存路径。
     unawaited(_purgeStaleSavedFiles(dir));
