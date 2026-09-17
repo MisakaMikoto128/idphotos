@@ -1,0 +1,47 @@
+{
+ "image": "out/P0_anchors/composed/c01__cn_big_1inch.jpg",
+ "rows": [
+  {
+   "injected_deg": 3.0,
+   "ok": true,
+   "recovered_deg": 3.0286985783405864,
+   "err_deg": 0.028698578340586423,
+   "eyedist": 94.6
+  },
+  {
+   "injected_deg": -3.0,
+   "ok": true,
+   "recovered_deg": -2.7263109939062655,
+   "err_deg": 0.2736890060937345,
+   "eyedist": 94.6
+  },
+  {
+   "injected_deg": 5.0,
+   "ok": true,
+   "recovered_deg": 5.139757378990604,
+   "err_deg": 0.1397573789906037,
+   "eyedist": 94.9
+  },
+  {
+   "injected_deg": -5.0,
+   "ok": true,
+   "recovered_deg": -4.725705845786491,
+   "err_deg": 0.2742941542135089,
+   "eyedist": 94.1
+  },
+  {
+   "injected_deg": 10.0,
+   "ok": false,
+   "reason": "no_face"
+  },
+  {
+   "injected_deg": -10.0,
+   "ok": true,
+   "recovered_deg": -9.586823923222859,
+   "err_deg": 0.4131760767771411,
+   "eyedist": 94.6
+  }
+ ],
+ "max_abs_err_deg": 0.4131760767771411,
+ "pass": true
+}

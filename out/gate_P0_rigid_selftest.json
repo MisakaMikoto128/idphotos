@@ -1,0 +1,49 @@
+{
+ "image": "out/P0_anchors/composed/c01__cn_big_1inch.jpg",
+ "rows": [
+  {
+   "injected_deg": 3.0,
+   "recovered_deg": 3.000000000000001,
+   "err_deg": 8.881784197001252e-16,
+   "iou": 0.9999610096929903,
+   "scale": 1.0
+  },
+  {
+   "injected_deg": -3.0,
+   "recovered_deg": -2.8700000000000006,
+   "err_deg": 0.12999999999999945,
+   "iou": 0.9904303242019435,
+   "scale": 1.0
+  },
+  {
+   "injected_deg": 5.0,
+   "recovered_deg": 4.879999999999999,
+   "err_deg": -0.120000000000001,
+   "iou": 0.990615370249323,
+   "scale": 1.0
+  },
+  {
+   "injected_deg": -5.0,
+   "recovered_deg": -4.760000000000002,
+   "err_deg": 0.23999999999999844,
+   "iou": 0.9802538019785053,
+   "scale": 1.0
+  },
+  {
+   "injected_deg": 10.0,
+   "recovered_deg": 9.730000000000002,
+   "err_deg": -0.2699999999999978,
+   "iou": 0.9665853885817233,
+   "scale": 1.0
+  },
+  {
+   "injected_deg": -10.0,
+   "recovered_deg": -9.45,
+   "err_deg": 0.5500000000000007,
+   "iou": 0.9589445549477872,
+   "scale": 1.0
+  }
+ ],
+ "max_abs_err_deg": 0.5500000000000007,
+ "pass": false
+}

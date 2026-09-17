@@ -1,0 +1,64 @@
+{
+ "rows": [
+  {
+   "ref": "out/P0_anchors/composed/c08__cn_big_1inch.jpg",
+   "target": "out/P0_anchors/composed/c08_d+10__cn_big_1inch.jpg",
+   "expected_relative_deg": 10.0,
+   "measured_relative_deg": 5.000000000000001,
+   "iou": 0.8137098507732863,
+   "scale": 1.0149999999999997,
+   "note": "d+10 期望相对角 = +10",
+   "err_deg": -4.999999999999999
+  },
+  {
+   "ref": "out/P0_anchors/composed/c08__cn_big_1inch.jpg",
+   "target": "out/P0_anchors/composed/c08_d+5__cn_big_1inch.jpg",
+   "expected_relative_deg": 5.0,
+   "measured_relative_deg": 1.9400000000000002,
+   "iou": 0.8488475396081141,
+   "scale": 1.0099999999999996,
+   "note": "d+5",
+   "err_deg": -3.0599999999999996
+  },
+  {
+   "ref": "out/P0_anchors/composed/c08__cn_big_1inch.jpg",
+   "target": "out/P0_anchors/composed/c08_d+3__cn_big_1inch.jpg",
+   "expected_relative_deg": 3.0,
+   "measured_relative_deg": 3.6000000000000005,
+   "iou": 0.7863939163130342,
+   "scale": 1.0299999999999991,
+   "note": "d+3",
+   "err_deg": 0.6000000000000005
+  },
+  {
+   "ref": "out/P0_anchors/composed/c08__cn_big_1inch.jpg",
+   "target": "out/P0_anchors/composed/c08_d-3__cn_big_1inch.jpg",
+   "expected_relative_deg": -3.0,
+   "measured_relative_deg": -0.44,
+   "iou": 0.9361174411723973,
+   "scale": 1.005,
+   "note": "d-3",
+   "err_deg": 2.56
+  },
+  {
+   "ref": "out/P0_anchors/composed/c08__cn_big_1inch.jpg",
+   "target": "out/P0_anchors/composed/c08_d-5__cn_big_1inch.jpg",
+   "expected_relative_deg": -5.0,
+   "measured_relative_deg": 12.600000000000005,
+   "iou": 0.8233375677920555,
+   "scale": 1.0299999999999996,
+   "note": "d-5",
+   "err_deg": 17.600000000000005
+  },
+  {
+   "ref": "out/P0_anchors/composed/c08__cn_big_1inch.jpg",
+   "target": "out/P0_anchors/composed/c08_d-10__cn_big_1inch.jpg",
+   "expected_relative_deg": -10.0,
+   "measured_relative_deg": 20.9,
+   "iou": 0.4564614430130287,
+   "scale": 1.199999999999999,
+   "note": "d-10",
+   "err_deg": 30.9
+  }
+ ]
+}

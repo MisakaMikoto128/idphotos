@@ -1,0 +1,15 @@
+# gatekeeper 本轮（G2B-P0）自报改动清单（滚动更新）。
+# 这些文件是门禁自己的工具，由 gatekeeper 创建/修改；在此逐条声明，
+# 供防作弊巡查豁免"越界写 tools/gate // test/gate"的判定，并在报告里接受复核。
+# 声明外的任何 tools/gate、test/gate、docs/ACCEPTANCE.md、docs/RUBRIC.md
+# 改动，一律按 ACCEPTANCE 防作弊条款 1/2 判 FAIL。
+tools/gate/gate_P0.dart
+tools/gate/anticheat.dart
+tools/gate/p0_eyeline.py
+tools/gate/p0_rigid_check.py
+tools/gate/p0_overlap.py
+tools/gate/p0_roll_probe_test.dart
+tools/gate/rot_dir_check.dart
+test/gate/p0_gate_judgment_test.dart
+tools/gate/gate_G5B.dart
+test/gate/anticheat_test.dart

@@ -139,4 +139,121 @@ void main() {
     expect(isForbiddenFor('test/batch/p0_selftest.dart', 'qa-batch'), false);
     expect(isForbiddenFor('test/adversarial/a.dart', 'adversarial'), false);
   });
+
+  test('E 条款 5：单行与**跨行**空 catch 都必须抓到（正例），非空 catch 不得误报（负例）',
+      () async {
+    // 存在理由：原来的 `grep -rn` 是**逐行**匹配，而 dart format 之后
+    //     } catch (e) {
+    //     }
+    // 是最自然的写法 —— 跨行空 catch 结构性地抓不到，等于条款 5 有一半是摆设。
+    // 一个只有负例的自测，与"永远返回合规"的坏实现无法区分，所以这里两种
+    // 写法各造一个**真样本**，并且必须都命中。
+    final Directory tmp = Directory.systemTemp.createTempSync('gate_anticheat_');
+    try {
+      final String root = tmp.path.replaceAll('\\', '/');
+      File('${tmp.path}/single.dart').writeAsStringSync(
+        'void a() {\n  try { b(); } catch (_) {}\n}\n',
+      );
+      File('${tmp.path}/multiline.dart').writeAsStringSync(
+        'void c() {\n  try { d(); }\n  catch (e) {\n  }\n}\n',
+      );
+      // 负例控制：**非空** catch 不许命中，否则说明模式退化成"见到 catch 就报"。
+      File('${tmp.path}/handled.dart').writeAsStringSync(
+        'void e() {\n  try { f(); } catch (err) {\n    log(err);\n  }\n}\n',
+      );
+
+      final Map<String, dynamic> s = await scanDir(
+        root,
+        pattern: RegExp(kEmptyCatchPattern),
+        prefilter: const <String>['catch'],
+      );
+      final String all = (s['hits'] as List<dynamic>).cast<String>().join('\n');
+
+      expect(s['undecidable'], false,
+          reason: '临时目录上的扫描该是可判的（why=${s['why']}）');
+      expect(s['files_scanned'], 3,
+          reason: '三个 .dart 都得真被读到 —— '
+              '"扫了 0 个文件"和"扫了但没命中"不是一回事');
+      expect(all.contains('single.dart'), true,
+          reason: '单行空 catch `catch (_) {}` 必须报违规');
+      expect(all.contains('multiline.dart'), true,
+          reason: '跨行空 catch `catch (e) {\\n}` 必须报违规 —— '
+              '这正是原来逐行 grep 漏掉的那一半');
+      expect(all.contains('handled.dart'), false,
+          reason: '有实参的非空 catch 不是违规，误报和漏报一样有害');
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  });
+
+  test('F 「零命中」与「判不了」必须可区分', () async {
+    // 这条是同一个形态的收口：仪表看不见对象时，必须说"我看不见"，
+    // 而不是说"没有"。空 hits 和真零命中在报告里长得一模一样，
+    // 只有把"扫了什么/有没有打架"一并记下来才分得开。
+    //
+    // 现实教训：r1 的条款 3/5 用外部 grep，Windows 在参数传递途中吃掉了
+    // 模式里的 `\` `{` `}`，grep 报 exit 2 —— 而报告里写的是"命中 0"。
+    // **扫描从未真正跑过。** 下面这条就是把那种情形变成红色。
+    final Directory tmp = Directory.systemTemp.createTempSync('gate_anticheat_');
+    try {
+      final String root = tmp.path.replaceAll('\\', '/');
+      File('${tmp.path}/clean.dart').writeAsStringSync(
+        'void a() {\n  try { b(); } catch (err) {\n    log(err);\n  }\n}\n',
+      );
+
+      // 真零命中：可判，且 hits 为空。
+      final Map<String, dynamic> zero = await scanDir(
+        root,
+        pattern: RegExp(kEmptyCatchPattern),
+        prefilter: const <String>['catch'],
+      );
+      expect(zero['undecidable'], false, reason: '干净的目录必须是可判的');
+      expect(zero['files_scanned'], 1, reason: '必须真读到那一个文件');
+      expect(zero['hits'], <String>[], reason: '确无命中就该是空，不许伪造出条目');
+
+      // 判不了（引擎打架）：正则命中，但字面量预筛没筛出来 ⇒ 有东西不对劲。
+      File('${tmp.path}/dirty.dart')
+          .writeAsStringSync('void c() {\n  try { d(); } catch (_) {}\n}\n');
+      final Map<String, dynamic> broken = await scanDir(
+        root,
+        pattern: RegExp(kEmptyCatchPattern),
+        prefilter: const <String>['zzz-not-a-real-literal'],
+      );
+      expect(broken['undecidable'], true,
+          reason: '两个引擎结论打架时必须报"判不了"—— '
+              '把它当零命中，就是 r1 那次"扫描从未跑过却写命中 0"换个地方重演');
+      expect((broken['why'] as String).isNotEmpty, true,
+          reason: '判不了的时候必须给出原因，否则报告里没法回派');
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  });
+
+  test('G 巡检自身领地的命中：登记但不判违规，且不能借机洗白别人', () {
+    // 扫描器扫不了自己：anticheat.dart 里必然写着模式常量 `skip:`/`@Skip`，
+    // anticheat_test.dart 里必然摆着正例夹具 `catch (_) {}`。
+    // 一刀切会把这两处每轮都判成违规（噪声），全部隐去则是作弊。
+    // 采取的是第三条路：**登记并公开**。
+    expect(isScannerSelfTerritory('tools/gate/anticheat.dart'), true);
+    expect(isScannerSelfTerritory('test/gate/anticheat_test.dart'), true);
+    expect(isScannerSelfTerritory('tools\\gate\\anticheat.dart'), true,
+        reason: 'Windows 分隔符也要认出，否则本机跑就漏判');
+
+    // 负例：别人写的测试**不**在自身领地里，命中就得照样判违规。
+    for (final String p in <String>[
+      'test/batch/p0_compose_test.dart',
+      'test/adversarial/a_test.dart',
+      'test/widget_test.dart',
+      'integration_test/coldstart_probe_test.dart',
+      'lib/core/matting/x.dart',
+    ]) {
+      expect(isScannerSelfTerritory(p), false, reason: '$p 不该被当成巡检自身领地');
+    }
+
+    // 命中行解析：取不到路径时**原样返回**，不许返回空串——
+    // 空串会从自身领地的判定里漏出去，变成一条假违规。
+    expect(hitPath('test/gate/x.dart:12: catch (_) {}'), 'test/gate/x.dart');
+    expect(hitPath('没有行号的怪东西'), '没有行号的怪东西');
+    expect(isScannerSelfTerritory(hitPath('没有行号的怪东西')), false);
+  });
 }

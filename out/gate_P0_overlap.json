@@ -1,0 +1,94 @@
+{
+ "generatedBy": "gatekeeper tools/gate/p0_overlap.py",
+ "method": "缩到 48x48 灰度签名，逐对 MAE；≤5.0 记同图",
+ "limitation": "测不出同一场景的不同裁切/不同取景（c10/c11/c12 这类），那部分按法典条款 6 的订正结论办；本工具**不推翻**法典结论",
+ "anchor_entries": 12,
+ "base_entries": 13,
+ "golden_n": 8,
+ "golden_all_in_anchor": true,
+ "golden_same_photo_n": 8,
+ "intra_duplicates": [
+  {
+   "a": "c03",
+   "b": "c04",
+   "mae": 2.328558921813965,
+   "a_path": "C:/Users/liuyu/Pictures/8D861A29F86CE7464865EFEB3C9B4124.jpg",
+   "b_path": "C:/Users/liuyu/Pictures/8D861A29F86CE7464865EFEB3C9B4124 (自定义).jpg"
+  }
+ ],
+ "golden_overlap": [
+  {
+   "golden": "g01.jpg",
+   "nearest_anchor": "p2",
+   "nearest_corpus": "straight",
+   "mae": 0.1471354216337204,
+   "same_photo": true,
+   "golden_path": "test/golden/src\\g01.jpg",
+   "anchor_path": "C:/Users/liuyu/Pictures/2.jpg"
+  },
+  {
+   "golden": "g02.jpg",
+   "nearest_anchor": "c01",
+   "nearest_corpus": "anchor",
+   "mae": 0.0303819440305233,
+   "same_photo": true,
+   "golden_path": "test/golden/src\\g02.jpg",
+   "anchor_path": "C:/Users/liuyu/Pictures/20240710193717_7c99.jpg"
+  },
+  {
+   "golden": "g03.jpg",
+   "nearest_anchor": "c02",
+   "nearest_corpus": "anchor",
+   "mae": 0.0551215261220932,
+   "same_photo": true,
+   "golden_path": "test/golden/src\\g03.jpg",
+   "anchor_path": "C:/Users/liuyu/Pictures/29EDA59B982FA8339335D50B00CCD096.jpg"
+  },
+  {
+   "golden": "g04.jpg",
+   "nearest_anchor": "c06",
+   "nearest_corpus": "anchor",
+   "mae": 0.0737847238779068,
+   "same_photo": true,
+   "golden_path": "test/golden/src\\g04.jpg",
+   "anchor_path": "C:/Users/liuyu/Pictures/吴港+通信工程+532128200107160711.jpg"
+  },
+  {
+   "golden": "g05.jpg",
+   "nearest_anchor": "c07",
+   "nearest_corpus": "anchor",
+   "mae": 0.0516493059694767,
+   "same_photo": true,
+   "golden_path": "test/golden/src\\g05.jpg",
+   "anchor_path": "C:/Users/liuyu/Pictures/报名照片.jpg"
+  },
+  {
+   "golden": "g06.jpg",
+   "nearest_anchor": "p1",
+   "nearest_corpus": "anchor",
+   "mae": 0.6597222089767456,
+   "same_photo": true,
+   "golden_path": "test/golden/src\\g06.jpg",
+   "anchor_path": "C:/Users/liuyu/Pictures/1 (2).jpg"
+  },
+  {
+   "golden": "g07.jpg",
+   "nearest_anchor": "c03",
+   "nearest_corpus": "anchor",
+   "mae": 0.0972222238779068,
+   "same_photo": true,
+   "golden_path": "test/golden/src\\g07.jpg",
+   "anchor_path": "C:/Users/liuyu/Pictures/8D861A29F86CE7464865EFEB3C9B4124.jpg"
+  },
+  {
+   "golden": "g08.jpg",
+   "nearest_anchor": "c08",
+   "nearest_corpus": "anchor",
+   "mae": 0.1080729141831398,
+   "same_photo": true,
+   "golden_path": "test/golden/src\\g08.jpg",
+   "anchor_path": "C:/Users/liuyu/Pictures/Camera Roll/WIN_20230522_00_19_11_Pro.jpg"
+  }
+ ],
+ "distinct_photos_after_dedup": 11
+}

@@ -1,0 +1,132 @@
+{
+  "gate": "G2B-P0",
+  "generatedAt": "2026-09-17T05:45:52.553585",
+  "items": [
+    {
+      "id": "P0.1a",
+      "description": "锚点残差（只用 pupil 锚点）：成片端到端残余 |residual| ≤ 1.5°，中位 ≤ 1.0°",
+      "expected": "|residual| ≤ 1.5，中位 ≤ 1.0，样本 ≥ 8 张不同照片",
+      "actual": "**本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：M docs/PITFALLS.md、M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**\n原判定依据（**不作为判决**）：\n可计分锚点 11 条（原始 12 条；法典口径 6 @ `98f3331`：锚点栏 12 条 − c03≡c04 这一对真重复 = **11 张不同照片**；c10/c11/c12 为**三张不同照片**，各自计数。p2 不在锚点栏——它同现于 anchors 与 straight，成片台按 id 合并后归入 straight）\nmax|残余| = 0.714，中位 = 0.476\n残余出处：{gate_eyeline: 10, gate_sift_align: 1}（derived_identity = 两条量具都测不出，用已验证恒等式 残余=真值−施加角 推出）\np1: truth=-4.400 applied=-4.416 resid=0.484 src=pupil by=gate_eyeline\nc01: truth=-1.300 applied=-1.364 resid=0.303 src=pupil by=gate_eyeline\nc02: truth=-0.250 applied=0.000 resid=-0.144 src=pupil by=gate_eyeline\nc03: truth=-3.720 applied=-3.729 resid=0.158 src=pupil by=gate_eyeline\nc04: truth=-3.820 applied=-3.900 resid=0.644 src=pupil by=gate_eyeline\nc05: truth=-3.910 applied=-3.936 resid=0.476 src=pupil by=gate_eyeline\nc06: truth=-1.730 applied=-1.843 resid=0.714 src=pupil by=gate_eyeline\nc07: truth=-0.350 applied=0.000 resid=-0.451 src=pupil by=gate_eyeline\nc08: truth=-8.010 applied=-7.330 resid=-0.660 src=pupil by=gate_sift_align\nc10: truth=-3.440 applied=-3.313 resid=0.603 src=pupil by=gate_eyeline\nc12: truth=-2.090 applied=-2.116 resid=0.151 src=pupil by=gate_eyeline",
+      "pass": false,
+      "manual": true,
+      "owner": "gatekeeper（本轮输入不可信，不计实现方责任）",
+      "roundInvalid": true
+    },
+    {
+      "id": "P0.1b",
+      "description": "条件覆盖率：真值 |tilt| > 1.5° 的锚点必须给出 pupil 估计，unavailable 必须 = 0",
+      "expected": "需要摆正的 8 条锚点上 unavailable = 0",
+      "actual": "**本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：M docs/PITFALLS.md、M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**\n原判定依据（**不作为判决**）：\n需要摆正（|truth| > 1.5°）的锚点 8 条，其中 unavailable 0 条\n|truth| ≤ 1.5° 而返回 unavailable 的 1 条，按口径 2 可接受：c11(-0.110)",
+      "pass": false,
+      "manual": true,
+      "owner": "gatekeeper（本轮输入不可信，不计实现方责任）",
+      "roundInvalid": true
+    },
+    {
+      "id": "P0.2",
+      "description": "不引入歪斜：已知竖直样本残余 ≤ 1.5°，且 uprightSynthetic 必须返回 pupil",
+      "expected": "|residual| ≤ 1.5 且 9 张 uprightSynthetic 全部 source=pupil",
+      "actual": "**本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：M docs/PITFALLS.md、M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**\n原判定依据（**不作为判决**）：\n竖直样本 10 条（用户 2.jpg 1 条 + 合成竖直 9 条，后者下限 9 条），max|残余| = 0.637\nuprightSynthetic 来源分布：{pupil: 9}（全部 pupil）\np2: truth=-0.200 applied=0.000 resid=-0.160 src=pupil by=gate_eyeline\np1_upright: truth=0.000 applied=0.000 resid=0.487 src=pupil by=gate_eyeline\nc01_upright: truth=0.000 applied=0.000 resid=0.454 src=pupil by=gate_eyeline\nc03_upright: truth=0.000 applied=0.000 resid=-0.161 src=pupil by=gate_eyeline\nc04_upright: truth=0.000 applied=0.000 resid=0.479 src=pupil by=gate_eyeline\nc05_upright: truth=0.000 applied=0.000 resid=0.637 src=pupil by=gate_eyeline\nc06_upright: truth=0.000 applied=0.000 resid=0.582 src=pupil by=gate_eyeline\nc08_upright: truth=0.000 applied=0.000 resid=-0.019 src=pupil by=gate_sift_align\nc10_upright: truth=0.000 applied=0.000 resid=0.597 src=pupil by=gate_eyeline\nc12_upright: truth=0.000 applied=0.000 resid=0.000 src=pupil by=gate_eyeline",
+      "pass": false,
+      "manual": true,
+      "owner": "gatekeeper（本轮输入不可信，不计实现方责任）",
+      "roundInvalid": true
+    },
+    {
+      "id": "P0.3a",
+      "description": "旋转等变：① 估计值 vs 真值斜率 ∈[0.85,1.15]（只作诊断）；② 成片残余 vs 真值斜率 |·| ≤ 0.15、|截距| ≤ 0.5°、max|残余| ≤ 1.5°（硬判据，口径无关）",
+      "expected": "② 斜率 |·| ≤ 0.15、|截距| ≤ 0.5°、max|残余| ≤ 1.5°",
+      "actual": "**本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：M docs/PITFALLS.md、M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**\n原判定依据（**不作为判决**）：\n② 硬判据：残余 vs 真值 斜率 = -0.013（|·| ≤ 0.15），截距 = 0.279°（|·| ≤ 0.5），max|残余| = 11.368°（≤ 1.5）\n超 1.5° 的夹具 1 条：c06_d-3(11.368°)\n只用 pupil 夹具 89 条（原始 100 条）\n① 诊断：估计值 vs 真值 斜率 = 1.007（带 [0.85, 1.15]，不参与 PASS/FAIL）\n按口径 1 排除在残余统计外的 unavailable 样本 11 条（它们的账由 P0.3b 条件覆盖率算，不许在这里被悄悄算成通过）：c11、c01_d+10、c04_d-10、c04_d-5、c06_d+3、c08_d-5、c11_d-10、c11_d-5、c11_d-3、c11_d+5、c11_d+10\n残余出处：{gate_eyeline: 80, gate_sift_align: 9}（derived_identity = 两条量具都测不出，用已验证恒等式 残余=真值−施加角 推出）",
+      "pass": false,
+      "manual": true,
+      "owner": "gatekeeper（本轮输入不可信，不计实现方责任）",
+      "roundInvalid": true
+    },
+    {
+      "id": "P0.3b",
+      "description": "旋转夹具条件覆盖率：真值 |tilt| > 1.5° 的夹具上 unavailable 必须 = 0",
+      "expected": "需要摆正的 67 条夹具上 unavailable = 0",
+      "actual": "**本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：M docs/PITFALLS.md、M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**\n原判定依据（**不作为判决**）：\n违规 9 条（需要摆正 |truth| > 1.5° 却返回 unavailable）：c01_d+10(truth 8.700°)、c04_d-10(truth -13.820°)、c04_d-5(truth -8.820°)、c08_d-5(truth -13.010°)、c11_d-10(truth -10.110°)、c11_d-5(truth -5.110°)、c11_d-3(truth -3.110°)、c11_d+5(truth 4.890°)、c11_d+10(truth 9.890°)——这 9 条成片未施加任何旋转，仍歪着对应角度\n旋转夹具原始总数 78 条，需要摆正 67 条\n|truth| ≤ 1.5° 而 unavailable 的 1 条，按口径 2 可接受\n分母：可计分 78 条 / 原始 78 条（无样本因量测失效被扣除，见条款 7 样本账）",
+      "pass": false,
+      "manual": true,
+      "owner": "gatekeeper（本轮输入不可信，不计实现方责任）",
+      "roundInvalid": true
+    },
+    {
+      "id": "P0.4",
+      "description": "诚实性与分布：报告 RollSource 分布；unavailable 的施加角必须 = 0.0；禁止回退到 YuNet 眼睑路径（夹具里不得出现 given）",
+      "expected": "unavailable 样本施加角 = 0 的违规数 = 0，且不得出现 source=given",
+      "actual": "**本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：M docs/PITFALLS.md、M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**\n原判定依据（**不作为判决**）：\n全量可合成样本 100 条，来源分布：{pupil: 89, unavailable: 11}\n锚点：{pupil: 11, unavailable: 1}；竖直：{pupil: 10}；夹具：{pupil: 68, unavailable: 10}\nunavailable 的施加角 ≠ 0 的违规 0 条；夹具里 source=given 的 0 条",
+      "pass": false,
+      "manual": true,
+      "owner": "gatekeeper（本轮输入不可信，不计实现方责任）",
+      "roundInvalid": true
+    },
+    {
+      "id": "P0.5a",
+      "description": "不回归：dev_selfcheck 9/9",
+      "expected": "退出码 0 且 通过 ≥ 9、失败 = 0",
+      "actual": "**本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：M docs/PITFALLS.md、M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**\n原判定依据（**不作为判决**）：\n退出码=0；解析到 通过=9 失败=0（命中「+9」）\n...(截断)...\n\n[2B.6/2B.7 验收口径]\n  灰矩形画布 cn_1inch             绿=0 品红=0\n  灰矩形画布 cn_small_1inch       绿=0 品红=0\n  灰矩形画布 cn_big_1inch         绿=0 品红=0\n  灰矩形画布 cn_2inch             绿=0 品红=0\n  灰矩形画布 cn_small_2inch       绿=0 品红=0\n  灰矩形画布 cn_social_security   绿=0 品红=0\n  灰矩形画布 visa_us              绿=0 品红=0\n  黄金集 g01 绿=0 品红=0\n  黄金集 g02 绿=0 品红=0\n  黄金集 g03 绿=0 品红=0\n  黄金集 g04 绿=0 品红=0\n  黄金集 g05 绿=0 品红=0\n  黄金集 g06 绿=0 品红=0\n  黄金集 g07 绿=0 品红=0\n  黄金集 g08 绿=0 品红=0\n  合计溢色像素=0 (阈值 0)\n00:19 +4: 2B.8 摆正（±10° 输入的残差角）\n[2B.8]\n  输入 roll=-10.0° → 成片残差 -0.039°\n  输入 roll=-6.0° → 成片残差 -0.034°\n  输入 roll=6.0° → 成片残差 0.034°\n  输入 roll=10.0° → 成片残差 0.039°\n  输入 roll=0.8°（死区内）→ 是否旋转=false\n  最差残差=0.039° (阈值 1.5°)\n00:20 +5: 用户框选 × 摆正：主体尺度守恒（REVIEW_G2 #3 回归）\n[用户框选×摆正]\n  roll=0.0° 摆正=false 裁剪框=460.0×644.0（用户框 460×644） 成片头高=243.0px（理想 243.7） 保留比例=99.7%\n  roll=2.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=6.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=10.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=-10.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=20.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  最差偏离=0.5% (阈值 3%)\n00:22 +6: 用户框选 × 摆正 × 越界：无黑边（2B.9 的反旋转新路径）\n[用户框选×摆正×越界]\n  roll=10° 框心=(40,40) 裁剪框=460.0×644.0 越界=50.7% 图外非白像素=0\n  roll=10° 框心=(960,40) 裁剪框=460.0×644.0 越界=42.8% 图外非白像素=0\n  roll=10° 框心=(40,1360) 裁剪框=460.0×644.0 越界=0.0% 图外非白像素=0\n  roll=10° 框心=(960,1360) 裁剪框=460.0×644.0 越界=39.9% 图外非白像素=0\n  roll=10° 框心=(500,-800) 裁剪框=460.0×644.0 越界=100.0% 图外非白像素=0\n  roll=-10° 框心=(40,40) 裁剪框=460.0×644.0 越界=42.8% 图外非白像素=0\n  roll=-10° 框心=(960,40) 裁剪框=460.0×644.0 越界=50.7% 图外非白像素=0\n  roll=-10° 框心=(40,1360) 裁剪框=460.0×644.0 越界=39.9% 图外非白像素=0\n  roll=-10° 框心=(960,1360) 裁剪框=460.0×644.0 越界=0.0% 图外非白像素=0\n  roll=-10° 框心=(500,-800) 裁剪框=460.0×644.0 越界=100.0% 图外非白像素=0\n  最大越界比例=100.0% 图外非白像素（最差单张）=0 (阈值 0)\n00:23 +7: 2B.9 边界安全（贴边人脸不抛异常、无黑边）\n[2B.9]\n  setup0 完成，越界比例=26.0% 缩小=false 说明=裁剪框越界 26.0%（越出部分按 alpha=0 填底色）\n  setup1 完成，越界比例=28.7% 缩小=false 说明=裁剪框越界 28.7%（越出部分按 alpha=0 填底色）\n  setup2 完成，越界比例=0.0% 缩小=false 说明=裁剪框完全在图内\n  setup3 完成，越界比例=7.6% 缩小=true 说明=人脸过于贴边/过大，已按头顶锚点缩到越界 ≤ 45%：头高比 1.307（目标 0.640），越界 7.6% 填底色\n  setup4 完成，越界比例=31.0% 缩小=false 说明=裁剪框越界 31.0%（越出部分按 alpha=0 填底色）\n  图外区域出现的非底色像素总数（最差单张）=0 (阈值 0)\n00:26 +8: 渐变底与去色边质量（蓝渐变 / 白底，合成原片）\n[渐变] 顶部=(97,138,206) 期望≈(98,139,206) 底部=(43,89,160) 期望≈(43,90,160)\n[去色边] 换白底后残留蓝边像素=0 (阈值 0)\n00:27 +9: All tests passed!\n\nstderr:\n",
+      "pass": false,
+      "manual": true,
+      "owner": "gatekeeper（本轮输入不可信，不计实现方责任）",
+      "roundInvalid": true
+    },
+    {
+      "id": "P0.5b",
+      "description": "不回归：2B.8 摆正几何（成片实测旋转 = 真值 − 施加角）",
+      "expected": "两个**分开报**的子量都要过：① 施加几何 —— SIFT 实测施加角 vs 生产记录 |差| ≤ 1.5°；② 跨量具一致性 —— 眼线实测残余 vs (真值−施加角) ≤ 1.5°",
+      "actual": "**本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：M docs/PITFALLS.md、M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**\n原判定依据（**不作为判决**）：\n①【判据量·施加几何】SIFT 源图↔成片配准，可配准 100 条，实测施加角 vs 生产记录 |差| 最大 0.070° （阈值 1.5°，余量 1.430°）—— 此项不读眼线、不读 alpha、不读生产诊断，是 2B.8 本体的直接测量\n②【辅助量·跨量具一致性】眼线路径，可实测夹具 90 条，|眼线实测残余 − (真值−施加角)| 最大 1.450° （阈值 1.5°，余量 0.050°，眼线量具自检误差 0.413°）—— 这个量把**量具噪声**和几何误差混在一起，余量小于量具误差，**不作为定罪依据**\n说明：本项不注入夹具，而是用真值已知的旋转夹具反查同一件事；施加几何一旦出问题（符号反了/没转），① 会立刻爆到 2 倍真值",
+      "pass": false,
+      "subchecks": [
+        {
+          "name": "① 施加几何",
+          "value": 0.07014866864241043,
+          "criterion": true,
+          "margin": 1.4298513313575896,
+          "instrumentErr": 0.5500000000000007
+        },
+        {
+          "name": "② 跨量具一致性",
+          "value": 1.4501302323221583,
+          "criterion": false,
+          "margin": 0.04986976767784168,
+          "instrumentErr": 0.4131760767771411
+        }
+      ],
+      "margin": 0.04986976767784168,
+      "instrumentErr": 0.4131760767771411,
+      "corroboration": "margin > instrumentErr 才是确定性违规；若 margin < instrumentErr，须 SIFT 路径独立复现同一超线才计违规，否则记「边界噪声 / 证据不足」，不消耗实现方修复轮次（本条不适用 P0.3a：P0.3a 超阈值 7 倍以上，两支量具均独立复现，按原样记 FAIL）",
+      "corroborated": true,
+      "manual": true,
+      "owner": "gatekeeper（本轮输入不可信，不计实现方责任）",
+      "roundInvalid": true
+    },
+    {
+      "id": "P0.5c",
+      "description": "不回归：2B.8 之外的 G2B 项 / G4 已过项不退化（判据只覆盖\"原本通过的项\"）",
+      "expected": "原本通过的项重跑后仍 PASS；本项需重跑才能判定",
+      "actual": "**本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：M docs/PITFALLS.md、M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**\n原判定依据（**不作为判决**）：\n本轮未重跑设备端（上游 P0.3a/P0.3b 未修好时重跑不产生新信息，一轮约 40 分钟）。\n既有 gate 结果里的未过项：G4/4.7\n注意：这些是**本轮之前就存在的**未过项，不是 P0 引入的退化；逐条原因见各自的 out/GATE_*_r*.md，不计在 ml-porting 账上。",
+      "pass": false,
+      "manual": true,
+      "owner": "gatekeeper（本轮输入不可信，不计实现方责任）",
+      "roundInvalid": true
+    },
+    {
+      "id": "AC",
+      "description": "ACCEPTANCE 防作弊条款 1–6",
+      "expected": "0 命中",
+      "actual": "**本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：M docs/PITFALLS.md、M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**\n原判定依据（**不作为判决**）：\n清白（黄金集 src=8 ref=8；skip/catch 扫描：skip 命中 23（其中 23 条落在巡检自身领地 tools/gate、test/gate，已登记不判违规）；catch 命中 5（其中 5 条落在巡检自身领地 tools/gate、test/gate，已登记不判违规）；基线 baseline-p6p0 以来 test/ tools/gate/ ACCEPTANCE/RUBRIC 无实现类 agent 改动；门禁自身未提交改动 10 个，已在 out/GATE_P0_selfchanges.txt 逐条自报）",
+      "pass": false,
+      "manual": true,
+      "owner": "gatekeeper（本轮输入不可信，不计实现方责任）",
+      "roundInvalid": true
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 0,
+    "manual": 10
+  },
+  "pass": false
+}

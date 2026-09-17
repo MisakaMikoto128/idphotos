@@ -41,6 +41,37 @@ const String kComposeSummaryPath = 'out/P0_compose_summary.json';
 /// 冻结判定覆盖的路径。`out/` 是共享输出目录，**不在**冻结条件内
 /// （它的脏是预期的：每轮都会往里写）。
 const List<String> kFreezeScopes = <String>['lib', 'test', 'tools', 'docs'];
+
+/// 事后勘误，按轮次。**只追加，不改动下方任何原始结论。**
+///
+/// 写在生成器里而不是手工贴在 md 上：报告是可重生成的产物，
+/// 手贴的批注会在下一次 `--reuse` 时被冲掉，等于没有。
+const Map<int, List<String>> kRoundErrata = <int, List<String>>{
+  1: <String>[
+    '### 事后勘误（2026-09-17 追加；不推翻下方任何原始结论，只标注哪些证据当时是空的）',
+    '1. **「防作弊巡查：清白」这句话在条款 3 / 条款 5 上当时是空的。** '
+        '本轮用的扫描器是 `grep` 子进程，而本机从 Dart 起 `grep` 时 Windows 会在参数传递途中'
+        '吃掉模式里的 `\\` `{` `}` `,`：`catch\\s*\\(...\\)\\s*\\{[\\s\\S]{0,80}?\\}` 到达 grep 时'
+        '已变成 `catchs*(s*[A-Za-z_]*s*)s*{[sS]80?}`，grep 直接报 exit 2；'
+        '`skip:|@Skip|@skip` 里的 `|` 还被 shell 当管道，报 `\'Skip\' is not recognized`、exit 255。'
+        '**也就是说条款 3/5 的扫描从未真正跑过，而报告写的是"命中 0"。**'
+        '这正是本项目反复出现的那同一个形态：**仪表看不见对象时说了"没有"，而不是"我看不见"。**',
+    '2. **改用纯 Dart 正则后（`tools/gate/anticheat.dart`，同一提交内自报）的复核读数**：'
+        '`lib/` 67 个文件、`test/` 22 个、`tools/gate/` 20 个、`integration_test/` 9 个；'
+        'skip 命中仅出现在 `tools/gate/`（16 条，全是扫描器自己的模式常量与 gate_G4 里的字样）；'
+        '空 catch 命中仅出现在 `test/gate/anticheat_test.dart`（3 条，全是自检的正例夹具）。'
+        '**`lib/` 与 `integration_test/` 两项均为 0 命中。**',
+    '3. 由此新增一条口径：命中落在巡检自身领地（`tools/gate/`、`test/gate/`）时'
+        '**逐条登记但不判违规**——扫描器扫不了自己，而这两个目录本就只有 gatekeeper 能写，'
+        '别人往里写已先被条款 1 拦下。登记并公开 ≠ 隐去。',
+    '4. 本文件是**再生成**（`--reuse`），不是一次新判决；第 1 轮的「作废」结论原样保留，'
+        '也不会因为再生成而变成对某个代码状态的判决。',
+    '5. 判据第 6 条的表述在上游被订正过（`6f01e6e` → `98f3331`）：'
+        '不同照片数是 **11**（12 条锚点 − `c03`/`c04` 这一对真重复），'
+        '`c10`/`c11`/`c12` 是**三张不同照片**各自计数，`p2` 归 `straight` 不在锚点栏。'
+        '数字未变，变的是理由与算式。',
+  ],
+};
 const String kEyelinePath = 'out/gate_P0_eyeline.json';
 const String kEyelineSelftestPath = 'out/gate_P0_eyeline_selftest.json';
 const String kRigidSelftestPath = 'out/gate_P0_rigid_selftest.json';
@@ -416,8 +447,10 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       'expected': '|residual| ≤ $kResidualMaxDeg，中位 ≤ $kResidualMedianMaxDeg，样本 ≥ $kMinDistinctPhotos 张不同照片',
       'actual': _text(
         <String>[
-          '可计分锚点 ${cohort.length} 条（原始 ${anchors.length} 条；法典口径 6：倾斜锚点 12 条实际覆盖 11 张不同照片，'
-              'c03≡c04 为同图不同分辨率、c11/c12 为 c10 的不同裁切）',
+          '可计分锚点 ${cohort.length} 条（原始 ${anchors.length} 条；法典口径 6 @ `98f3331`：'
+              '锚点栏 12 条 − c03≡c04 这一对真重复 = **11 张不同照片**；'
+              'c10/c11/c12 为**三张不同照片**，各自计数。'
+              'p2 不在锚点栏——它同现于 anchors 与 straight，成片台按 id 合并后归入 straight）',
           'max|残余| = ${_f(maxAbs)}，中位 = ${_f(median)}',
           _provenance(cohort),
           _sampleLine(cohort),
@@ -788,23 +821,42 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       final Map<String, dynamic> ac = rawAc;
       // 用 `== true`（而非真值判断）：缺键/`null`/非布尔一律落到"非 clean"。
       final bool clean = ac['clean'] == true;
-      items.add(<String, dynamic>{
-        'id': 'AC',
-        'description': 'ACCEPTANCE 防作弊条款 1–6',
-        'expected': '0 命中',
-        'actual': clean
-            ? '清白（${inputs['acSummary'] ?? ""}）'
-            : (ac['violations'] as List<dynamic>? ?? <dynamic>[])
-                .map((dynamic v) => (v as Map<String, dynamic>)['path'] +
-                    ' ← ' +
-                    (v['attribution'] as String) +
-                    '：' +
-                    (v['detail'] as String))
-                .join('\n'),
-        'pass': clean,
-        'manual': false,
-        'owner': clean ? null : '见每条的 attribution',
-      });
+      // 巡检自己报"判不了"时，**不得**当清白：仪表看不见对象时必须说
+      // "我看不见"，而不是说"没有"。这是同一形态在本链上的最后一处。
+      final List<dynamic> undecidable =
+          ac['undecidable'] as List<dynamic>? ?? <dynamic>[];
+      if (undecidable.isNotEmpty) {
+        items.add(<String, dynamic>{
+          'id': 'AC',
+          'description': 'ACCEPTANCE 防作弊条款 1–6',
+          'expected': '0 命中',
+          'actual': '**本轮不可判**：防作弊巡检自身有判不了的扫描——'
+              '${undecidable.join("；")}。\n'
+              '（扫描的退出码与 stdout 是否为空已记进 out/gate_P0.json 的 evidence；'
+              '空输出与"确实零命中"必须可区分，判不了就不许报清白。）',
+          'pass': false,
+          'manual': true,
+          'owner': 'gatekeeper（巡检自身不可判，不计实现方责任）',
+        });
+      } else {
+        items.add(<String, dynamic>{
+          'id': 'AC',
+          'description': 'ACCEPTANCE 防作弊条款 1–6',
+          'expected': '0 命中',
+          'actual': clean
+              ? '清白（${inputs['acSummary'] ?? ""}）'
+              : (ac['violations'] as List<dynamic>? ?? <dynamic>[])
+                  .map((dynamic v) => (v as Map<String, dynamic>)['path'] +
+                      ' ← ' +
+                      (v['attribution'] as String) +
+                      '：' +
+                      (v['detail'] as String))
+                  .join('\n'),
+          'pass': clean,
+          'manual': false,
+          'owner': clean ? null : '见每条的 attribution',
+        });
+      }
     }
   }
 
@@ -990,7 +1042,8 @@ Future<void> _finish({
   );
   inputs['anticheat'] = ac;
   inputs['qaResidual'] = _readJson('out/P0_output_residual.json');
-  inputs['acSummary'] = '黄金集 src=$srcCount ref=$refCount；skip/catch-all 命中 0；'
+  inputs['acSummary'] = '黄金集 src=$srcCount ref=$refCount；'
+      'skip/catch 扫描：${_scanSummary(ac)}；'
       '基线 $kBaseline 以来 test/ tools/gate/ ACCEPTANCE/RUBRIC 无实现类 agent 改动；'
       '门禁自身未提交改动 ${_selfTouched().length} 个，已在 out/GATE_P0_selfchanges.txt 逐条自报';
   // AC 条目要吃 patrol 结果，而 patrol 依赖本轮的哈希与黄金集计数，
@@ -1116,6 +1169,10 @@ String _renderMd({
   b.writeln('## 脚本完整性：${_hashVerdict(hashes, prevHashes)}');
   b.writeln('## 防作弊巡查：${ac['clean'] == true ? '清白' : '命中（见 AC 条目）'}');
   b.writeln();
+  for (final String line in kRoundErrata[round] ?? const <String>[]) {
+    b.writeln(line);
+  }
+  if ((kRoundErrata[round] ?? const <String>[]).isNotEmpty) b.writeln();
   b.writeln('规格：`$kSpec`（ACCEPTANCE P0.1a 指定）；'
       '真值：`$kTruthPath`；生产记录：`$kComposePath`；'
       'gatekeeper 独立测量：`$kEyelinePath`。');
@@ -1602,6 +1659,51 @@ RunResult _gitSync(List<String> args) {
     return RunResult(
         ok: false, exitCode: -1, stdout: '', stderr: '$e', timedOut: false);
   }
+}
+
+/// AC 摘要里那句"skip/catch 命中多少"必须**从扫描结果推出来**，不能写死。
+///
+/// 原来这里硬编码"命中 0"——虽然它只在 `clean == true` 时才显示、显示出来时
+/// 恰好为真，但它**不携带证据**：读者无法据它复核。现在从 `evidence` 里的
+/// 逐目录扫描记录现算，并把"判不了"的目录一起报出来。
+String _scanSummary(Map<String, dynamic> ac) {
+  final Object? ev = ac['evidence'];
+  if (ev is! Map<String, dynamic>) return '无扫描证据';
+  final List<String> parts = <String>[];
+  for (final String family in <String>['skip', 'catch']) {
+    final Object? scans = ev['${family}_scans'];
+    if (scans is! Map<String, dynamic>) {
+      parts.add('$family=无记录');
+      continue;
+    }
+    int hits = 0;
+    final List<String> bad = <String>[];
+    for (final MapEntry<String, dynamic> e in scans.entries) {
+      final Map<String, dynamic> s = e.value as Map<String, dynamic>;
+      if (s['undecidable'] == true) bad.add(e.key);
+      hits += (s['hits'] as List<dynamic>).length;
+    }
+    // 自身领地的命中**只在本族里数一次**。
+    // （上一版把它放在逐个扫描目录的循环里，同一个 map 被数 4 遍，
+    //   报出"命中 28、其中 138 条自身领地"这种自相矛盾的数字。）
+    final String selfKey =
+        family == 'skip' ? 'skip_hits_self_reference' : 'empty_catch_hits_self_reference';
+    int selfHits = 0;
+    final Object? sh = ev[selfKey];
+    if (sh is Map<String, dynamic>) {
+      for (final Object v in sh.values) {
+        if (v is List<dynamic>) selfHits += v.length;
+      }
+    }
+    parts.add('$family 命中 $hits'
+        '${selfHits == 0 ? "" : "（其中 $selfHits 条落在巡检自身领地 tools/gate、test/gate，已登记不判违规）"}'
+        '${bad.isEmpty ? "" : "（**判不了：${bad.join("、")}**）"}');
+  }
+  final List<dynamic> und = (ac['undecidable'] as List<dynamic>? ?? <dynamic>[]);
+  if (und.isNotEmpty) {
+    parts.add('**巡检自身不可判：${und.join("；")}**');
+  }
+  return parts.join('；');
 }
 
 String _crossCheck(Map<String, dynamic> inputs) {  final Map<String, dynamic> eyeline = inputs['eyeline'] as Map<String, dynamic>? ?? <String, dynamic>{};
