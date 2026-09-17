@@ -118,6 +118,18 @@ const double kPupilMinAspect = 0.50;
 ///
 /// 镜片反光会在虹膜里挖洞、睫毛会粘边，所以不能要求太满；0.62 是原型在
 /// 真实照片上跑通的取值。
+///
+/// **这条门坐在一段连续分布上，不是一个分离面——不要指望靠挪它提覆盖。**
+/// 实测（123 张：门禁 78 夹具 + 12 锚点原图 + 语料 33）被它挡下的域有 889 个，
+/// 其中 106 个落在 [0.60,0.62)、215 个落在 [0.55,0.60)；同时**当前胜出**的域
+/// 里有 8 个落在 [0.62,0.65)。即两侧都没有空档，阈值切在人群中间。
+/// 试过整体放到 0.55：`c06_d−3` 是修好了，但 `c08_d−3` 的右眼立刻被一个
+/// `d=36 circ=0.55` 的合并域占掉（它与真虹膜 `d=22 circ=0.63` 在同一 dedup 组，
+/// 先验距离 0.24 vs 0.25，一线之差），误差 0.12° → 1.01°，全库最差误差
+/// 0.67° → 1.01°。**已回退**，别再试。
+///
+/// 个别真虹膜落在门下的（c06_d−3 右眼 `circ=0.58`）改由**双眼互相佐证**那条路
+/// 兜（见 [kPupilCorroborateMinCircularity]），只对那一只眼放宽，不动这条门。
 const double kPupilMinCircularity = 0.62;
 
 /// 连通域最小像素数（原图像素，未取样时即 1:1）。
@@ -129,13 +141,37 @@ const int kPupilMinAreaPx = 12;
 /// 卡片头像之类的极小脸走这条路直接判 unavailable（诚实失败）。
 const double kPupilMinEyeDistPx = 22.0;
 
-/// 双眼检出直径之比的上限，超过即判"一只眼找错了"。
+/// 双眼**等面积直径**之比的上限，超过即判"一只眼找错了"。
+///
+/// 等面积直径 = `2·√(面积/π)`，与该域同面积的圆的直径（见 [estimatePupilRoll]
+/// 的 ratio 一段）。
 ///
 /// 实测（`native/bench/iris_roll_calib_test.dart` D 段，门禁 78 张旋转夹具
 /// + 语料 20 张）真图双眼直径比最大 1.23（g07，左眼虹膜与睫毛粘连），
 /// 而 c06_d−3 的误检（左眼虹膜 d=16 / 右眼眉梢 d=8）是 2.0。
 /// 1.6 在真图上留 30% 余量，在误检上留 25% 拒绝余量。
 const double kPupilMaxDiameterRatio = 1.6;
+
+/// 第二趟（**双眼互相佐证**）的三个准入上限，只在某只眼**一个候选都没有**时启用。
+///
+/// 单眼的几何门是"这个域像不像虹膜"的**孤立**判断；某只眼全被否掉时，
+/// 还有一份独立信息没用上：**另一只眼量到的虹膜有多大、多扁**。同一个人的
+/// 两只眼，虹膜尺寸与可见形状高度接近，所以另一只眼的读数可以给这只眼当
+/// 参照物——只接受与它量级相符的域，圆度门才允许放到
+/// [kPupilCorroborateMinCircularity]。
+///
+/// **这不是把圆度门整体放松**：正常路径仍用 [kPupilMinCircularity] 的严格门，
+/// 这里放宽的候选还必须同时满足直径比 ≤ [kPupilCorroborateMaxDiameterRatio]
+/// 且 aspect 比 ≤ [kPupilCorroborateMaxAspectRatio]——两条都是**独立于圆度**
+/// 的证据。实测（123 张）只有 2 只眼会走到这条路径（都是 c06 的右眼，
+/// d−3 与 d+3），所以它对全库其余样本的影响为零。
+///
+/// 实测 c06_d−3 右眼：真虹膜 `d=15 asp=0.67 circ=0.58`，被 0.62 的圆度门挡下
+/// （差 0.04），而另一只眼 `d=16 asp=0.69 circ=0.77` 是干净的。佐证放行后
+/// 瞳孔连线给 −4.71°，独立真值 −4.73°。
+const double kPupilCorroborateMaxDiameterRatio = 1.30;
+const double kPupilCorroborateMaxAspectRatio = 1.40;
+const double kPupilCorroborateMinCircularity = 0.45;
 
 /// 检出点与 YuNet 种子的距离上限 / 双眼距。
 ///
@@ -207,6 +243,18 @@ const int kPupilMaxWindowEdge = 288;
 /// 二维欧氏距离。`dart:math` 没有 `hypot`，且这里的两点尺度同量级，
 /// 直接开方不会溢出。
 double _hypot(double dx, double dy) => math.sqrt(dx * dx + dy * dy);
+
+/// 候选（直径 [diameter]、[aspect]）是否与另一只眼的读数 [ref] **量级相符**。
+/// 第二趟的准入条件，见 [kPupilCorroborateMaxDiameterRatio]。
+bool _corroboratesBy(PupilPoint ref, double diameter, double aspect) {
+  final double dr = diameter > ref.diameterPx
+      ? diameter / ref.diameterPx
+      : ref.diameterPx / diameter;
+  final double ar =
+      aspect > ref.aspect ? aspect / ref.aspect : ref.aspect / aspect;
+  return dr <= kPupilCorroborateMaxDiameterRatio &&
+      ar <= kPupilCorroborateMaxAspectRatio;
+}
 
 // ---------------------------------------------------------------------------
 // 结果
@@ -333,26 +381,48 @@ PupilRoll estimatePupilRoll({
       'Lseed=(${lx.toStringAsFixed(1)},${ly.toStringAsFixed(1)}) '
       'Rseed=(${rx.toStringAsFixed(1)},${ry.toStringAsFixed(1)})');
 
-  final PupilPoint? l =
-      _findPupil(gray, width, height, lx, ly, ed, 'L', trace);
+  PupilPoint? l = _findPupil(gray, width, height, lx, ly, ed, 'L', trace);
+  PupilPoint? rr = _findPupil(gray, width, height, rx, ry, ed, 'R', trace);
+  // 第二趟：某只眼一个候选都没收上来时，用**另一只眼的读数**当参照再找一次
+  // （只放宽圆度门，且候选必须与参照量级相符）。见 kPupilCorroborateMinCircularity。
+  if (l == null && rr != null) {
+    l = _findPupil(gray, width, height, lx, ly, ed, 'L*', trace,
+        corroborate: rr);
+  } else if (rr == null && l != null) {
+    rr = _findPupil(gray, width, height, rx, ry, ed, 'R*', trace,
+        corroborate: l);
+  }
   if (l == null) {
     return const PupilRoll.unavailable('no iris blob at left eye seed');
   }
-  final PupilPoint? rr =
-      _findPupil(gray, width, height, rx, ry, ed, 'R', trace);
   if (rr == null) {
     return const PupilRoll.unavailable('no iris blob at right eye seed');
   }
 
-  // 双眼一致性：同一个人两只眼的虹膜直径量级相同。差太多说明其中一只
-  // 找到了别的东西（眉毛、镜框、卧蚕阴影），此时宁可不给角。
-  final double ratio = l.diameterPx > rr.diameterPx
-      ? l.diameterPx / rr.diameterPx
-      : rr.diameterPx / l.diameterPx;
+  // 双眼一致性：同一个人两只眼的虹膜**大小**相同。差太多说明其中一只找到了
+  // 别的东西（眉毛、镜框、卧蚕阴影），此时宁可不给角。
+  //
+  // 比的是**等面积直径**（`2·√(面积/π)`，与该域同面积的圆的直径），不是外接
+  // 矩形的长边。长边不是抗形状的尺寸：上睑阴影/睫毛沿睑缘**横向**并进来时，
+  // 域的宽度会被拉长而面积几乎不变，长边于是高报（实测 c08_d−10 左眼 d=39、
+  // 同域等面积直径只有 25.1）。而"两只眼虹膜一样大"本来就是**面积**意义上的
+  // 陈述，等面积直径才是它的直接对应物。
+  //
+  // 阈值 1.6 不动。实测（`native/bench/iris_roll_debug_test.dart`，门禁 78 夹具
+  // + 12 锚点原图 + 语料 33 张 = 123 张）这条门**全库只触发 1 次**，就是
+  // c08_d−10：长边比 1.86 判失败，等面积直径比 1.44 通过。因为只触发 1 次，
+  // 换度量对本轮其余样本的影响是**零**——这不是放松，是换一把量对东西的尺。
+  final double dEqL = 2 * math.sqrt(l.areaPx / math.pi);
+  final double dEqR = 2 * math.sqrt(rr.areaPx / math.pi);
+  final double ratio = dEqL > dEqR ? dEqL / dEqR : dEqR / dEqL;
   if (ratio > kPupilMaxDiameterRatio) {
+    trace?.add('ratioGate eqRatio=${ratio.toStringAsFixed(2)} '
+        'dEqL=${dEqL.toStringAsFixed(1)} dEqR=${dEqR.toStringAsFixed(1)} '
+        'L=$l R=$rr');
     return PupilRoll.unavailable(
-        'iris diameter mismatch L=${l.diameterPx.toStringAsFixed(1)} '
-        'R=${rr.diameterPx.toStringAsFixed(1)}');
+        'iris size mismatch eqL=${dEqL.toStringAsFixed(1)} '
+        'eqR=${dEqR.toStringAsFixed(1)} (dEq ratio '
+        '${ratio.toStringAsFixed(2)} > $kPupilMaxDiameterRatio)');
   }
 
   final double roll = math.atan2(rr.y - l.y, rr.x - l.x) * 180.0 / math.pi;
@@ -389,7 +459,8 @@ PupilRoll estimatePupilRoll({
 /// 因此这不引入新的误检面，只是不再让"窗口该开多大"这个与答案无关的自由度
 /// 决定答案。代价是耗时 ×3.6，实测中位 1.7ms → 6ms 量级，可忽略。
 PupilPoint? _findPupil(Uint8List gray, int width, int height, double sx,
-    double sy, double ed, String tag, List<String>? trace) {
+    double sy, double ed, String tag, List<String>? trace,
+    {PupilPoint? corroborate}) {
   final cands = <_Blob>[];
   // 拒绝计数（只在 [trace] 非 null 时用于报告，生产路径上是一次加法）。
   var nBlob = 0, rejSize = 0, rejAspect = 0, rejCirc = 0, rejFar = 0;
@@ -493,6 +564,9 @@ PupilPoint? _findPupil(Uint8List gray, int width, int height, double sx,
           rejSize++;
           trace?.add('  $tag $label rejSize d=${longSide.toStringAsFixed(1)} '
               'n=${(area * pxPerSample * pxPerSample).round()} '
+              'asp=${(shortSide / longSide).toStringAsFixed(2)} '
+              'circ=${(area * pxPerSample * pxPerSample / (bw * bh * math.pi / 4)).toStringAsFixed(2)} '
+              'seedOff=${(_hypot(x0 + (sumX / area) * pxPerSample - sx, y0 + (sumY / area) * pxPerSample - sy) / ed).toStringAsFixed(3)} '
               'xy=(${(x0 + (sumX / area) * pxPerSample).toStringAsFixed(0)},'
               '${(y0 + (sumY / area) * pxPerSample).toStringAsFixed(0)})');
           continue;
@@ -500,6 +574,10 @@ PupilPoint? _findPupil(Uint8List gray, int width, int height, double sx,
         final double aspect = shortSide / longSide;
         if (aspect < kPupilMinAspect) {
           rejAspect++;
+          trace?.add('  $tag $label rejAspect d=${longSide.toStringAsFixed(1)} '
+              'asp=${aspect.toStringAsFixed(2)} '
+              'xy=(${(x0 + (sumX / area) * pxPerSample).toStringAsFixed(0)},'
+              '${(y0 + (sumY / area) * pxPerSample).toStringAsFixed(0)})');
           continue;
         }
         final double cx0 = x0 + (sumX / area) * pxPerSample + (step - 1) / 2.0;
@@ -508,14 +586,33 @@ PupilPoint? _findPupil(Uint8List gray, int width, int height, double sx,
         if (_hypot(cx0 - sx, cy0 - sy) >
             kPupilMaxSeedOffsetInEyeDist * ed) {
           rejFar++;
+          trace?.add('  $tag $label rejFar d=${longSide.toStringAsFixed(1)} '
+              'seedOff=${(_hypot(cx0 - sx, cy0 - sy) / ed).toStringAsFixed(3)} '
+              'xy=(${cx0.toStringAsFixed(0)},${cy0.toStringAsFixed(0)})');
           continue;
         }
         // 圆度用**原图像素**面积算，抽样不改变量纲。
         final double areaPx = area * pxPerSample * pxPerSample;
         final double circ = areaPx / (bw * bh * math.pi / 4);
         if (circ < kPupilMinCircularity) {
-          rejCirc++;
-          continue;
+          // 第二趟：另一只眼成功过，且这一个候选在**直径与 aspect 上**都与它
+          // 相符 —— 那它是一条独立的、非形状的证据支持的虹膜，圆度门让路。
+          // 见 kPupilCorroborateMinCircularity。
+          if (corroborate == null ||
+              circ < kPupilCorroborateMinCircularity ||
+              !_corroboratesBy(corroborate, longSide, aspect)) {
+            rejCirc++;
+            trace?.add('  $tag $label rejCirc d=${longSide.toStringAsFixed(1)} '
+                'asp=${aspect.toStringAsFixed(2)} '
+                'circ=${circ.toStringAsFixed(2)} '
+                'seedOff=${(_hypot(cx0 - sx, cy0 - sy) / ed).toStringAsFixed(3)} '
+                'xy=(${cx0.toStringAsFixed(0)},${cy0.toStringAsFixed(0)})');
+            continue;
+          }
+          trace?.add('  $tag $label CORROBORATED d=${longSide.toStringAsFixed(1)} '
+              'asp=${aspect.toStringAsFixed(2)} circ=${circ.toStringAsFixed(2)} '
+              'xy=(${cx0.toStringAsFixed(0)},${cy0.toStringAsFixed(0)}) '
+              'ref=$corroborate');
         }
         final double cx = cx0;
         final double cy = cy0;
@@ -581,6 +678,9 @@ PupilPoint? _findPupil(Uint8List gray, int width, int height, double sx,
     }
   }
   reps.sort((a, b) => b.score.compareTo(a.score));
+  trace?.add('  $tag reps=${reps.length} (dedup=${dedup.toStringAsFixed(1)} '
+      'prior=${prior.toStringAsFixed(1)}) '
+      '[${reps.take(8).join(' | ')}]');
 
   final _Blob kind = reps.first;
   final double rivalFloor = kind.score * kPupilRivalScoreRatio;
