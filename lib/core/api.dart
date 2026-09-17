@@ -124,6 +124,20 @@ class MattingResult {
   int get srcHeight => sourceHeight ?? height;
 }
 
+/// [FaceInfo.rollDeg] 的估计来源。
+enum RollSource {
+  /// 瞳孔对精测：由双眼虹膜/瞳孔中心连线得到，不依赖 YuNet 的眼睑关键点。
+  /// 这是唯一"可以据以旋转"的来源。
+  pupil,
+
+  /// 无法可信估计。[FaceInfo.rollDeg] 恒为 0.0，含义是"放弃摆正"，
+  /// **不是**"这张图不需要摆正"。
+  unavailable,
+
+  /// 调用方直接给定（合成自检 / 测试夹具 / dev 探针），引擎未参与估计。
+  given,
+}
+
 /// 人脸信息。用于自动裁剪推算与框选初始值。
 ///
 /// 坐标为**引擎工作分辨率**（与 [MattingResult] 同一坐标系，G4.7 降采样后
@@ -139,8 +153,21 @@ class FaceInfo {
   /// 头顶 y，原图像素坐标。
   final double headTopY;
 
-  /// 面内旋转角（度）。正值表示头向右倾。用于摆正，见 G2B.8。
+  /// **待施加的摆正角**（度）。正值表示把图像顺时针转 [rollDeg] 度。
+  ///
+  /// 语义（阶段 6 P0 收紧，主会话授权）：这是"要转多少"，不是"测得多少"。
+  /// 引擎无法可信估计时**必须返回 0.0**——宁可不摆正，不可引入歪斜。
+  /// 消费方（imaging）无条件按本值旋转，不做二次仲裁。
+  ///
+  /// 为什么不能说"测不出就用旧值兜底"：YuNet 眼球关键点落在上睑褶而非
+  /// 瞳孔，在真实照片上误差 3.7~6.7° 且可反号（p1 +0.84 vs 真值 −4.4；
+  /// p2 −3.91 vs 真值 −0.2）。拿它兜底会把一张竖直的证件照转歪，
+  /// 这正是本次 P0 事故。
   final double rollDeg;
+
+  /// [rollDeg] 的估计来源，供门禁判定"覆盖率与诚实性"（ACCEPTANCE P0.4）
+  /// 与排查用。消费方不得据此改变行为——行为差异全部由 [rollDeg] 承载。
+  final RollSource rollSource;
 
   /// 检出置信度，0–1。
   final double confidence;
@@ -158,6 +185,7 @@ class FaceInfo {
     required this.headTopY,
     required this.rollDeg,
     required this.confidence,
+    this.rollSource = RollSource.given,
     this.landmarks,
   });
 

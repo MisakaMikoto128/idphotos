@@ -28,9 +28,13 @@ class MattingResult {
 class FaceInfo {
   final Rect box;             // 人脸框，原图像素坐标
   final double chinY, headTopY; // 下巴/头顶 y，原图像素坐标
-  final double rollDeg;       // 面内旋转角，用于摆正
+  final double rollDeg;       // 待施加的摆正角；无法可信估计时恒为 0.0
   final double confidence;
+  final Float32List? landmarks;   // YuNet 五关键点（阶段 6 透传）
+  final RollSource rollSource;    // rollDeg 的来源（阶段 6 P0 新增）
 }
+
+enum RollSource { pupil, unavailable, given }
 
 /// 底色样式
 class BackgroundStyle {
@@ -141,6 +145,18 @@ ui-woodcraft **只依赖 `IdPhotoController` 和 `AppState`**，阶段 2 用 `Fa
 （YuNet 五关键点，工作分辨率坐标）。P0 歪斜复现证明单凭眼球连线估角在
 眼镜/上睑下垂/单眼 hooded 时误差 3.7~6.7° 且可反号——imaging 将用
 多线（眼线/嘴线/鼻梁）中位融合仲裁。ml-porting 负责填充，imaging 负责消费。
+
+**语义扩展记录（阶段 6 P0 二次收紧，主会话授权）**：`rollDeg` 的语义从
+"面内旋转角"改为 **"待施加的摆正角"**——引擎测不出时必须给 0.0，由 ml-porting
+在内部决定信任度，**imaging 无条件按 `rollDeg` 旋转、不做二次仲裁**。
+配套新增 `RollSource`（`pupil` / `unavailable` / `given`）仅供门禁与排查，
+消费方不得据此改变行为。
+
+上一版（同阶段更早，已被本次取代）：暴露 `landmarks` 给 imaging 做多线融合。
+实测否决——眼线、嘴线、鼻线同源于同一组 YuNet 眼睑关键点，强相关，融合是零和的
+（`docs/PITFALLS.md` imaging 两条归因条目，104 组系列实测差 ±0.02°）；根因在
+关键点定位（眼点落在上睑褶上，p1 高约 50px）。`landmarks` 字段保留（诊断与
+回归夹具仍用），但**不再作为生产摆正路径**。
 
 **语义扩展记录（G4，主会话授权）**：ml-porting 的 G4.3 修复在 `removeBackground`
 入口加了人脸门槛——非人像输入（无人脸）**作为阻断性拒绝抛出 NoFaceException**，
