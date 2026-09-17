@@ -5,6 +5,7 @@
 library;
 
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
 import '../api.dart';
@@ -225,11 +226,31 @@ FaceInfo toFaceInfo(RawFace f, double scale, int imageW, int imageH) {
   //（模型输出的"右/左"是相对被摄者），从右眼指向左眼即图像上的从左到右。
   final rollDeg = math.atan2(lm[3] - lm[1], lm[2] - lm[0]) * 180 / math.pi;
 
+  // 五关键点透传（P0 歪斜修复，契约语义扩展记录）：按 [FaceInfo.landmarks]
+  // 的契约顺序 [左眼, 右眼, 鼻尖, 左嘴角, 右嘴角] 重排。"左/右"沿用模型
+  // 的被摄者口径，与上方 roll 注释一致——正面脸在图像上：被摄者左眼 =
+  // 图像右眼（lm[2..3]），被摄者左嘴角 = 图像右嘴角（lm[8..9])。
+  // imaging 做多线融合时请用"两两点对"（眼对 0-3、嘴对 6-9）并按 x 从小
+  // 到大定向，标签口径差异不影响线方向。坐标即工作分辨率，与 box/rollDeg
+  // 同系（本函数已除过 letterbox scale）。
+  final kps = Float32List(10)
+    ..[0] = lm[2]
+    ..[1] = lm[3] // 左眼
+    ..[2] = lm[0]
+    ..[3] = lm[1] // 右眼
+    ..[4] = lm[4]
+    ..[5] = lm[5] // 鼻尖
+    ..[6] = lm[8]
+    ..[7] = lm[9] // 左嘴角
+    ..[8] = lm[6]
+    ..[9] = lm[7]; // 右嘴角
+
   return FaceInfo(
     box: Rect.fromLTWH(x, y, w, h),
     chinY: chinY,
     headTopY: headTopY,
     rollDeg: rollDeg,
     confidence: f.score.clamp(0.0, 1.0),
+    landmarks: kps,
   );
 }
