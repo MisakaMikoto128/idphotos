@@ -91,6 +91,17 @@ void main() {
       r'C:\Users\liuyu\Pictures\1979d869c783fcc849d4e05b81eb809e.png',
       for (var i = 1; i <= 8; i++) 'test/golden/src/g0$i.jpg',
     ];
+    // 可选：native/bench/out/ovl_targets.txt 每行一个绝对路径（或仓库相对路径），
+    // 优先使用。用来对某个具体夹具出目视证据。
+    final File extra = File('native/bench/out/ovl_targets.txt');
+    if (extra.existsSync()) {
+      targets
+        ..clear()
+        ..addAll(extra
+            .readAsLinesSync()
+            .map((String l) => l.trim())
+            .where((String l) => l.isNotEmpty));
+    }
     for (final path in targets) {
       final File file = File(path);
       if (!file.existsSync()) continue;
