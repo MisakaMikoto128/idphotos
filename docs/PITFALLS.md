@@ -1980,3 +1980,44 @@ del out\hashes_P0_truth_leaves_baseline.txt
    买不到通过。首轮落地同样是 void —— 建立锚的那一轮本来就不该同时充当判决。
 3. **同一形状第三次出现**：前两次是 `lib` 域 29 vs 101、`files` 计数相等而集合不同。
    这次的形态是"保护范围写对了、保护的锚漏了"。**列表型的保护，边界要连自己一起数。**
+
+---
+
+## [qa-batch] 手写的数字不跟着产物走 —— 同一份 JSON 里"算出来的"和"写死的"互相打架
+
+日期：2026-09-17　范围：`test/batch/p0_finalize_v1.py`、`out/P0_truth.json`
+
+`gateInputs.rotationFailureBoundary.what` 写着「P0.3 那 **1 条硬违规 + 9 条覆盖率违规**」。
+查下来这 1 条是 `c06_d-3`（估计 −15.42°、残余 10.64°），来自
+`out/P0_output_residual.json`（**03:34**，无 `provenance` 字段）；这 9 条来自
+`out/P0_compose_items.jsonl`（**04:57**，同样无 `provenance`）。而 `iris_roll.dart`
+在那两个时点之后改了三次（`e12f1a0` 04:52、`4fac79c` 05:23、`e6547ec` 05:48）。
+拿唯一能与提交对上的测量台 `iris_prior_full.txt`（78 行只剩 3 条 unavailable，
+与 `e6547ec` 提交信息里的 0.67° 吻合）复核：**当前 revision 下是 0 条硬违规 + 2 条
+覆盖率违规**（`c06_d-3`、`c08_d-10`；`c06_d+3` 真值 1.27 ≤ 1.5 死区豁免）。
+**"1 + 9" 描述的是一个已经不存在的代码状态。**
+
+真正让这个错误活得久的是结构，不是那一个字符串：
+
+1. **同一块里，`bySource` 是现算的、`note` 是写死的。** `P0.3b_culpritBreakdown`
+   的 `bySource` 每次都从产物重算，它旁边的 `note` 却写着「c11 的 5 条」。
+   产物一换，两兄弟直接对骂，而读的人分不清哪个是当轮的 ——
+   **计算出来的字段会自愈，写死的不会；把数字放进句子，就是把它移出保护范围。**
+2. **5 个喂 `P0_truth.json` 的产物全都无出处。** 本次实测
+   `P0_output_residual.json` / `P0_compose_items.jsonl` / `P0_coverage_items.jsonl` /
+   `P0_coverage_post.json` / `P0_alpha_holes.json` **都没有 `provenance`**。
+   （其中 `p0_alpha_holes.py` 的代码**已经**会写 `provenance` ——
+   盘上那份是加之前跑的。**改了产出方 ≠ 产物的出处问题解决了。**）
+   没有出处，下游就无法判"这份数出自我手上这份代码吗"，只能一路当真值用。
+3. **同一批块里还有 4 处同类冻结**，均已改为现算或删除：
+   `notScorableClassification.note` 的「总数 6」、
+   `affectsWhichCriterion` 的「c08_d-5 同时是 P0.3b 违规之一」（`c08_d-5` 现在能估出）、
+   `c11AllSix` 的 `total: 6 / violations: 5` 与「c11_d+3 反而是 pupil」、
+   `absMaxExcludingGrossOutlier` 里**写死的 id** `c06_d-3`（该样本不再是离群点时，
+   这一行会静默地什么都没剔除）。
+
+**教训：给一个派生块标"来自哪一轮"，不是给它加一句
+"本块可能过期"的说明，而是记下它的**输入**的内容哈希。** 本次按块记了三个源产物的
+SHA256（`evidenceProvenance.sourceSha256`）；但源产物自己没有代码指纹，
+所以这只能证明"数字与产物一致"，**证明不了"产物出自当前代码"** ——
+这一层缺口必须由产出方补，属 r2 的前置条件。

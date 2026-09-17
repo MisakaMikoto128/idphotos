@@ -157,6 +157,17 @@ def _tally(values):
     return dict(sorted(out.items(), key=lambda kv: (-kv[1], kv[0])))
 
 
+def _n_family(comp, prefix):
+    """该族在 rotated 语料里的夹具数（族内可能有 anchor 条目，不计入）。
+
+    条数**现算**，不写死：`c11AllSix` 这个键名里的 Six 是历史名，
+    以算出来的 `total` 为准。
+    """
+    return sum(1 for r in comp.values()
+               if str(r.get("id", "")).startswith(prefix)
+               and r.get("corpus") == "rotated")
+
+
 def _alpha_frac_by_basename():
     """{`c08_d+10.png`: eyeBandZeroFrac}，取自 out/P0_alpha_holes.json。"""
     p = os.path.join(REPO, "out", "P0_alpha_holes.json")
@@ -270,6 +281,21 @@ def gate_inputs(truth, resid):
     cov = _load_jsonl(os.path.join(REPO, "out", "P0_coverage_items.jsonl"))
     un_all = [r for r in cov if r.get("rollSource") == "unavailable"]
     in_hashes, in_hash_src = _input_hashes(prim, list(comp.values()))
+
+    # 下面几组先算出来，再让**叙述文字**引用它们的长度，而不是把数字写死在字符串里。
+    # 写死的数字不会随产物更新，同一份 JSON 里会出现「计算出来的 bySource」与
+    # 「手写的 note」互相打架，而读的人分不清哪个是当轮的。
+    ns_rot = stats("rotated")["notScorable"]
+    ns_upr = stats("uprightSynthetic")["notScorable"]
+    ns_items = _classify_not_scorable(ns_rot + ns_upr, frac)
+    n_ns_unreliable = sum(1 for it in ns_items if it["class"] == "量测失效")
+    gross_ids = sorted(r["id"] for r in pu
+                       if abs(r["primary_tilt_deg"]) > 1.5)
+    n_cov_culprits = len(coverage("rotated")["culprits"])
+    src_sha = {p: _sha256_file(os.path.join(REPO, *p.split("/")))
+               for p in ("out/P0_output_residual.json",
+                         "out/P0_compose_items.jsonl",
+                         "out/P0_alpha_holes.json")}
 
     return {
         "note": "qa-batch 提供的实测数字，供 gatekeeper 判定；本块不含 PASS/FAIL。"
@@ -402,18 +428,17 @@ def gate_inputs(truth, resid):
             },
         },
         "notScorableClassification": {
-            "note": "第 7 条：逐条列出并归类，**总数 6**（rotated 5 + "
-                    "uprightSynthetic 1）。**归类为'量测失效'的每一条必须由 "
+            "note": f"第 7 条：逐条列出并归类，**总数 {len(ns_items)}**"
+                    f"（rotated {len(ns_rot)} + uprightSynthetic {len(ns_upr)}；"
+                    f"其中量测失效 {n_ns_unreliable}）。"
+                    "**归类为'量测失效'的每一条必须由 "
                     "gatekeeper 用与 qa-batch 不同的独立路径复核并写明结论**——"
                     "把真实缺陷归成'量不出来'是这套判据里最容易藏东西的地方。",
             "thresholds": {"eyeBandZeroFrac": 0.35},
-            "items": _classify_not_scorable(
-                stats("rotated")["notScorable"]
-                + stats("uprightSynthetic")["notScorable"], frac),
+            "items": ns_items,
             "affectsWhichCriterion": "只影响残差类（P0.1a/P0.2/P0.3a②）的分母；"
                                      "覆盖率类（P0.1b/P0.3b）读的是 rollSource，"
-                                     "这几条仍全部计分、不扣除（c08_d-5 同时是 "
-                                     "P0.3b 违规之一）。",
+                                     "这几条仍全部计分、不扣除。",
         },
         "P0.1a_anchorOutputResidual": stats("anchor"),
         "P0.1b_anchorConditionalCoverage": coverage("anchor"),
@@ -451,8 +476,12 @@ def gate_inputs(truth, resid):
                 "max_abs_residual_deg": round(
                     max(abs(r["primary_tilt_deg"]) for r in pu), 3) if pu else None,
                 "absMaxExcludingGrossOutlier": round(
-                    max(abs(r["primary_tilt_deg"]) for r in pu
-                        if r["id"] != "c06_d-3"), 3) if len(pu) > 1 else None,
+                    max([abs(r["primary_tilt_deg"]) for r in pu
+                         if abs(r["primary_tilt_deg"]) <= 1.5] or [0.0]), 3)
+                    if len(pu) > 1 else None,
+                "absMaxExcludingGrossOutlierNote":
+                    "剔除的是**全部** |残余| > 1.5° 的样本（见 grossOutliers），"
+                    "不是写死某个 id —— 写死 id 会在该样本不再是离群点时静默剔除错行。",
             },
             "grossOutliers": [
                 {"id": r["id"], "truth": r["truthTiltDeg"],
@@ -463,15 +492,29 @@ def gate_inputs(truth, resid):
         },
         "P0.3b_fixtureConditionalCoverage": coverage("rotated"),
         "P0.3b_culpritBreakdown": {
-            "note": "9 条违规按源图归并。**不得用'真难样本'标签把 c11 的 5 条兜过去**"
+            "note": f"{n_cov_culprits} 条违规按源图归并（逐族条数见 bySource，"
+                    "**本句不写死**）。**不得用'真难样本'标签把某一族的违规兜过去**"
                     "——只有 `c11`(Δ=0, 真值 −0.11) 那一条是死区豁免。",
             "bySource": _count_by_source(
                 coverage("rotated")["culprits"]),
             "c11AllSix": {
-                "total": 6,
-                "violations": 5,
+                "keyNameIsHistorical": "键名里的 Six 是历史名；条数以 total 为准。",
+                "total": _n_family(comp, "c11"),
+                "violations": sum(1 for i in coverage("rotated")["culprits"]
+                                  if i.startswith("c11")),
                 "harmless": ["c11_d0(Δ=0,truth=-0.11) 死区豁免"],
-                "nonMonotonic": "c11_d+3(真值 2.89) 反而是 pupil，与 d-3/-5 不同向",
+                "nonMonotonicNote":
+                    "逐条 rollSource 见 c11FamilyRows（现算）。**原此处写死"
+                    "「c11_d+3(真值 2.89) 反而是 pupil，与 d-3/-5 不同向」，是"
+                    "某一轮估角器状态下的观察；估角器改动后该结论会整体失效，"
+                    "故不再写死，改为由产物现算。**",
+                "c11FamilyRows": [
+                    {"id": r["id"], "corpus": r.get("corpus"),
+                     "truthTiltDeg": r.get("truthTiltDeg"),
+                     "rollSource": r.get("rollSource")}
+                    for r in sorted((x for x in comp.values()
+                                     if str(x.get("id", "")).startswith("c11")),
+                                    key=lambda x: str(x["id"]))],
             },
             "c09Note": "暗光图 Camera Roll/WIN_20230522_00_19_21_Pro.jpg（我 rejected 的 "
                        "c09，两法矛盾 17.07° 未定真值）**不在 P0 语料内、无夹具**，"
@@ -525,7 +568,24 @@ def gate_inputs(truth, resid):
         "rotationFailureBoundary": {
             "what": "**不得把「旋转夹具上的失败」一概推广成「夹具伪影」。** "
                     "c08 的空洞是伪影（生产碰不到面内旋转输入），"
-                    "但 P0.3 那 1 条硬违规 + 9 条覆盖率违规是**估角器真不稳**，必须修。",
+                    f"但 P0.3 的 {len(gross_ids)} 条硬违规 + {n_cov_culprits} 条"
+                    "覆盖率违规是**估角器真不稳**，必须修。"
+                    "（两条数都由下方产物现算，不写死；估角器一改就整块重测。）",
+            "evidenceProvenance": {
+                "hardAndCoverageSource":
+                    "out/P0_output_residual.json（硬违规）+ "
+                    "out/P0_compose_items.jsonl（覆盖率）",
+                "evidenceRowSource": "out/P0_output_residual.json",
+                "alphaFractionSource": "out/P0_alpha_holes.json",
+                "sourceSha256": src_sha,
+                "codeFingerprintOfSources": None,
+                "note": "⚠ 上面每一行、以及 what 里的两个条数，都是 finalize 时从这些"
+                        "产物**现算**的；而这些产物**没有记录自己的代码指纹**"
+                        "（无 `provenance` 字段）。所以本块只证明「数字与产物一致」，"
+                        "**不证明产物出自当前被测代码**。估角器（`iris_roll.dart`）"
+                        "在 03:34 的残差产物之后已改过 3 次，本块的行值因此可能"
+                        "描述一个已不存在的代码状态 —— **跨轮比较前必须先重测产物**。",
+            },
             "evidenceNonMonotonic": {
                 "note": "c06 家族在**同一张图**上：|Δ| 最小的一档炸，更大的一档反而干净"
                         "——均匀的伪影不会这样跳。",
