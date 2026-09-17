@@ -106,6 +106,32 @@
 - `test/batch/p0_cases.dart`：`buildCases` 无条件 `out.add(...)` 导致 p2 重复（101 行 / 100 id，因 `p0_finalize_v1.py:906-911` 把 `straight[0]` 也塞进 `anchors`）。改为按 id 去重的 Map。**核实**：消费者 `p0_compose_test.dart:108-110` 本就按 id 建 Map，重复从未落盘 —— 盘上 `summary.cases: 100` 佐证。故这是潜在契约缺陷，**不是**当时被报的「跑不动」。
 - `test/batch/p0_alpha_dump_test.dart`：`kIds` 里的 `c08` 在 `:70` 解析到 `out/P0_anchors/c08.png` —— **线描 overlay**，被当测量输入喂进 `removeBackground`。加 `_cleanSource()` 从 `out/P0_truth.json` 的 `anchors`/`straight` 取原始路径。修后 `c08` 的 `alphaHoleHint` 由 `magentaInHeadFrac 0.7878 / largestBlobPx 87453` 变为 **0.3446 / 36579**（overlay 曾把该值抬高 2.3×）。日志已确认 `SRC c08 <- C:\Users\liuyu\Pictures\Camera Roll\WIN_20230522_00_19_11_Pro.jpg`。主链核查干净：真值锚点直接取 `Pictures/` 原图，`p0_rotate.py:74` 取 `anchors_base.json`，同为原图。
 
-## 7. 未决
+## 7. 越界面积中位数：已决（**5.31% 为准**）
 
-- 向 gatekeeper 提问：其报的越界面积中位数 **5.6%** 用的是哪个子集/定义？我的三个变体分别是 5.31%（全 110）、12.74%（阳性）、3.18%（仅 cn_big）。在得到答复前本文件记为 5.31%。
+gatekeeper 复核后确认 **其报的 5.6% 作废**，成因不是子集也不是截断，而是**偶数 n 的中位数写法** `sorted(v)[len(v)//2]` —— n=110 时取 `sorted[55]`（第 56 个值），而偶数 n 的真中位数是两个中间值的平均。
+
+| 口径 | 值 |
+|---|---|
+| **真中位（中间两值平均）** | **5.3136%** ← 本文件采用 |
+| `sorted[n//2]`（gatekeeper 原报） | 5.6036% ← 作废 |
+| `sorted[(n-1)//2]` | 5.0237% |
+| 均值（全 110） | 10.4303% |
+
+我的另两个变体经对方逐位复算一致：仅正值 77 条中位 **12.7381%**、仅 `cn_big_1inch` 100 条中位 **3.1794%**。越界填充那条论据**不依赖**本数（依赖 `>0` 的 77/110 = 70% 与 max 43.5%），结论不变。
+
+三路互核逐字段一致（我 finalize 写、gatekeeper 从清单算、team-lead 从产物算）：
+- `P0.3b_fixtureConditionalCoverage` = `{n: 67, unavailable: 2, culprits: [c06_d-3, c08_d-10], nearZeroExempt: [c06_d+3]}`
+- `P0.1b_anchorConditionalCoverage` = `{n: 8, unavailable: 0, culprits: []}`
+- 分母 75 = 67 + 8 中那 8 条锚点 = `c03, c04, c05, c06, c08, c10, c12, p1`（`|trueRollDeg| > 1.5`）
+
+### 7b. 同型排查：`sorted(v)[len(v)//2]` 在本仓还是**模式**，不止一处（r3）
+
+- **r2 已报的分数中位数不受影响**：live 路径用的是正确实现 —— `p0_finalize_v1.py:240`、`p0_output_residual.py:339`、`p0_lib.py:232` 用 `np.median`，`p0_est.py:57/61` 用 `statistics.median`。（P0.1a 的 `absMedian 0.145` 由 `np.median` 得出，**n=12 偶数也正确**。）
+- **仍是 `//2]` 写法的 5 处**（均在我方 `test/batch/`）：`p0_measure.py:97`、`p0_finalize.py:217`、`p0_rotate.py:84`、`merge_results.py:285`、`run_realdevice.py:375/451`。
+  - 其中 `merge_results.py:285` 与 `run_realdevice.py:375/451` 取的是**稳健基线/底线**（`baseline_mb`、`floor`），偏差被采样噪声（该处记录为 ±60MB 量级）覆盖，**非分数项**；
+  - `p0_rotate.py:84` 的输入是 7 个旋转（**奇数**）——**本就正确**；
+  - `p0_measure.py:97` / `p0_finalize.py:217` 属 r1 期脚本，已被 `p0_finalize_v1.py` 取代。
+- **正确实现已经在仓里**：`p0_c08_sensitivity.py:318` 就是「奇数取中、偶数取两中值平均」。故这是**复制粘贴分叉**，不是没人会写。
+- 另：`native/bench/ml_release_memcheck.py:312` 的 `p50_ms` 用同一写法（ml-porting 范围）。**p50 与 median 在偶数 n 上定义不同**（nearest-rank 与线性插值），该数若要对着阈值判，口径需写明。
+
+**r3 动作**：抽一个共享 `median()`（以 `p0_c08_sensitivity.py:318` 为准）替换上述位置，并在字段名或 docstring 里写明每个数字的口径（median / nearest-rank p50 / 基线样本）。**本轮不改**：`test/batch/` 在指纹域内，改动会变更 `0f66aabb3c08105f`、作废 r2。
