@@ -1,53 +1,29 @@
 {
- "generatedBy": "qa-batch test/batch/p0_coverage_test.dart",
- "note": "生产引擎（Windows host）实测；rollSource 分布 + 逐项 rollDeg。本文件为 **修后（ml-porting 瞳孔估角已落地）** 版本，修前基线见 out/P0_coverage_pre.json。",
- "phase": "postfix",
- "gitCommit": "fb2f161",
- "workingTreeDirty": "",
- "total": 188,
- "expectedOutputs": 188,
- "produced": 188,
- "complete": true,
- "completeNote": "完整性 = **missing == 0 且 produced == expectedOutputs**。`crash == 0` 只是\"没抛异常\"，**必要但远不充分**——一份把输入静默跳过的轮次同样能报出 crash=0。",
- "faceDetected": 122,
- "noFace": 53,
- "rejected": 13,
- "crash": 0,
+ "generatedBy": "qa-batch test/batch/p0_compose_test.dart",
+ "note": "生产引擎产成片（white 底）；眼线残余由 p0_output_residual.py 独立测量",
+ "cases": 100,
+ "casesAttempted": 100,
+ "expectedOutputs": 110,
  "missing": 0,
- "rollSourceDistribution": {
-  "none": 66,
-  "pupil": 121,
-  "unavailable": 1
- },
- "byCorpus": {
-  "pictures": {
-   "none": 66,
-   "pupil": 13,
-   "unavailable": 1
-  },
-  "golden": {
-   "pupil": 8
-  },
-  "anchor": {
-   "pupil": 22
-  },
-  "rotated": {
-   "pupil": 78
-  }
- },
- "bySynthetic": {
-  "upright": {
-   "pupil": 9
-  },
-  "rotated": {
-   "pupil": 78
-  }
- },
- "syntheticNote": "P0.2 的竖直样本集请用 bySynthetic[\"upright\"]，**不要用 byCorpus**——corpus 把 uprightSynthetic 并进了 anchor（为保持 r1↔r2 结构可比而刻意不改）。",
+ "complete": true,
+ "completeNote": "完整性 = **missing == 0 且 ok == expectedOutputs**（两条缺一不可）。注意 ok 与 cases **本来就不相等**：cases 是去重后的输入 id 数，ok 是成片条数（同一张图跨规格产出多条）。`crash == 0` 是**必要但远不充分**的条件——它只说明\"没抛异常\"，一份只跑了 17/100 的轮次同样能报出 crash=0。",
+ "ok": 110,
+ "mattingFail": 0,
+ "composeFail": 0,
+ "noFace": 0,
+ "crash": 0,
+ "primarySpec": "cn_big_1inch",
+ "spotlightSpecs": [
+  "cn_big_1inch",
+  "cn_1inch",
+  "visa_us"
+ ],
  "provenance": {
+  "gitHead": "8adff7e",
+  "workingTreeDirty": "M native/bench/iris_roll_calib_test.dart |  M out/P0_compose_items.jsonl",
   "codeFingerprint": {
    "files": 103,
-   "fnv1a64": "cd417a4d254ec1c2",
+   "fnv1a64": "0f66aabb3c08105f",
    "blobHashes": {
     "lib/core/api.dart": "a116f65a79cc80ae9a6df23318d6b147f502e198",
     "lib/core/controller.dart": "e93ee6397c70820604575db12ad1ebc9b8b7249c",
@@ -75,7 +51,7 @@
     "lib/core/matting/flutter_decode.dart": "6a312a6dae2d3840aa1e76f8175dabb789bc8280",
     "lib/core/matting/image_header.dart": "d8123916a81dfbcfb71b9def09aead38314d9e34",
     "lib/core/matting/image_ops.dart": "e51f4b35e6d92421120cd204c98d51a73fd89b18",
-    "lib/core/matting/iris_roll.dart": "b31748061f03b6725dbb9080fbc3c488eda16775",
+    "lib/core/matting/iris_roll.dart": "5f65fce144e59cbf3ff51d512b4dd31ff5f5a724",
     "lib/core/matting/matting_engine.dart": "7583483a23ca673b207eff1f3934bc9498abbe91",
     "lib/core/matting/matting_worker.dart": "46b7b58cd405fd6101a92a5826175676aafe738c",
     "lib/core/matting/ort_runtime.dart": "c5a6090e7f213a94004f8f90292c976e02b5e61b",
@@ -153,14 +129,14 @@
     "test/batch/sha256_selftest.dart": "a8f314bdcd1adbb99944d242a757d85f14603377",
     "test/batch/sha256_util.dart": "ef91dedf3af855661102f3c5993b9536f15759fa"
    },
-   "headCommit": "fb2f161a77fcdd3b434da6168522b034f628e484",
+   "headCommit": "72e1a67b67b41fb0c0b890f5b78cc4772a60bf65",
    "allCommitted": true,
    "uncommittedMeasuredFiles": [],
-   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 fb2f161a77fcdd3b434da6168522b034f628e484 的代码。"
+   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 72e1a67b67b41fb0c0b890f5b78cc4772a60bf65 的代码。"
   },
   "codeFingerprintAtEnd": {
    "files": 103,
-   "fnv1a64": "cd417a4d254ec1c2",
+   "fnv1a64": "0f66aabb3c08105f",
    "blobHashes": {
     "lib/core/api.dart": "a116f65a79cc80ae9a6df23318d6b147f502e198",
     "lib/core/controller.dart": "e93ee6397c70820604575db12ad1ebc9b8b7249c",
@@ -188,7 +164,7 @@
     "lib/core/matting/flutter_decode.dart": "6a312a6dae2d3840aa1e76f8175dabb789bc8280",
     "lib/core/matting/image_header.dart": "d8123916a81dfbcfb71b9def09aead38314d9e34",
     "lib/core/matting/image_ops.dart": "e51f4b35e6d92421120cd204c98d51a73fd89b18",
-    "lib/core/matting/iris_roll.dart": "b31748061f03b6725dbb9080fbc3c488eda16775",
+    "lib/core/matting/iris_roll.dart": "5f65fce144e59cbf3ff51d512b4dd31ff5f5a724",
     "lib/core/matting/matting_engine.dart": "7583483a23ca673b207eff1f3934bc9498abbe91",
     "lib/core/matting/matting_worker.dart": "46b7b58cd405fd6101a92a5826175676aafe738c",
     "lib/core/matting/ort_runtime.dart": "c5a6090e7f213a94004f8f90292c976e02b5e61b",
@@ -266,17 +242,18 @@
     "test/batch/sha256_selftest.dart": "a8f314bdcd1adbb99944d242a757d85f14603377",
     "test/batch/sha256_util.dart": "ef91dedf3af855661102f3c5993b9536f15759fa"
    },
-   "headCommit": "fb2f161a77fcdd3b434da6168522b034f628e484",
+   "headCommit": "8adff7e6c4b4820b8aefdd7e392b9c93a940c41e",
    "allCommitted": true,
    "uncommittedMeasuredFiles": [],
-   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 fb2f161a77fcdd3b434da6168522b034f628e484 的代码。"
+   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 8adff7e6c4b4820b8aefdd7e392b9c93a940c41e 的代码。"
   },
-  "itemsFile": "out/P0_coverage_items.jsonl",
-  "itemsSha256": "e0585c29d495e9c5fff102272e997762cbeaa498bf046c9d866321f40f9f80f1",
-  "itemsBindingNote": "`itemsSha256` 是落盘后对 `out/P0_coverage_items.jsonl` 字节取的摘要。该 jsonl **自身不含 provenance**，下游读它时必须拿这个摘要复核 —— 对不上说明它不属于本次运行，**不得当成当轮数据**。",
+  "itemsFile": "out/P0_compose_items.jsonl",
+  "itemsSha256": "aea8b3cc9ab95f758e682a8661867e23e00dfc03f85e62e18433193b7cea0310",
+  "itemsBindingNote": "`itemsSha256` 是落盘后对 `out/P0_compose_items.jsonl` 字节取的摘要。该 jsonl **自身不含 provenance**，下游读它时必须拿这个摘要复核 —— 对不上说明它不属于本次运行，**不得当成当轮数据**。",
   "codeStableDuringRun": true,
   "roundValid": true,
   "changedFiles": [],
-  "verdict": "有效：被测代码在开跑到收尾之间未变，本读数可钉到该指纹。"
+  "verdict": "有效：被测代码在开跑到收尾之间未变，本读数可钉到该指纹。",
+  "stableNote": "两次指纹不一致 = 本轮数字**失效**（跑的过程中被测代码被改过），不得据此判定；一致则这些数字可钉到该指纹对应的代码内容上。"
  }
 }

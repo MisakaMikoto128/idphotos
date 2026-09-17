@@ -8,10 +8,10 @@
  "failed": 0,
  "pass": true,
  "criterion": "与 tools/gate/gate_P0.dart 的 P0.5a 同口径：退出码 0 且 通过 ≥ 9、失败 = 0",
- "tail": "看 alpha）\n[2B.6/2B.7 验收口径]\n  灰矩形画布 cn_1inch             绿=0 品红=0\n  灰矩形画布 cn_small_1inch       绿=0 品红=0\n  灰矩形画布 cn_big_1inch         绿=0 品红=0\n  灰矩形画布 cn_2inch             绿=0 品红=0\n  灰矩形画布 cn_small_2inch       绿=0 品红=0\n  灰矩形画布 cn_social_security   绿=0 品红=0\n  灰矩形画布 visa_us              绿=0 品红=0\n  黄金集 g01 绿=0 品红=0\n  黄金集 g02 绿=0 品红=0\n  黄金集 g03 绿=0 品红=0\n  黄金集 g04 绿=0 品红=0\n  黄金集 g05 绿=0 品红=0\n  黄金集 g06 绿=0 品红=0\n  黄金集 g07 绿=0 品红=0\n  黄金集 g08 绿=0 品红=0\n  合计溢色像素=0 (阈值 0)\n00:19 +4: 2B.8 摆正（±10° 输入的残差角）\n[2B.8]\n  输入 roll=-10.0° → 成片残差 -0.039°\n  输入 roll=-6.0° → 成片残差 -0.034°\n  输入 roll=6.0° → 成片残差 0.034°\n  输入 roll=10.0° → 成片残差 0.039°\n  输入 roll=0.8°（死区内）→ 是否旋转=false\n  最差残差=0.039° (阈值 1.5°)\n00:21 +5: 用户框选 × 摆正：主体尺度守恒（REVIEW_G2 #3 回归）\n[用户框选×摆正]\n  roll=0.0° 摆正=false 裁剪框=460.0×644.0（用户框 460×644） 成片头高=243.0px（理想 243.7） 保留比例=99.7%\n  roll=2.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=6.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=10.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=-10.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=20.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  最差偏离=0.5% (阈值 3%)\n00:22 +6: 用户框选 × 摆正 × 越界：无黑边（2B.9 的反旋转新路径）\n[用户框选×摆正×越界]\n  roll=10° 框心=(40,40) 裁剪框=460.0×644.0 越界=50.7% 图外非白像素=0\n  roll=10° 框心=(960,40) 裁剪框=460.0×644.0 越界=42.8% 图外非白像素=0\n  roll=10° 框心=(40,1360) 裁剪框=460.0×644.0 越界=0.0% 图外非白像素=0\n  roll=10° 框心=(960,1360) 裁剪框=460.0×644.0 越界=39.9% 图外非白像素=0\n  roll=10° 框心=(500,-800) 裁剪框=460.0×644.0 越界=100.0% 图外非白像素=0\n  roll=-10° 框心=(40,40) 裁剪框=460.0×644.0 越界=42.8% 图外非白像素=0\n  roll=-10° 框心=(960,40) 裁剪框=460.0×644.0 越界=50.7% 图外非白像素=0\n  roll=-10° 框心=(40,1360) 裁剪框=460.0×644.0 越界=39.9% 图外非白像素=0\n  roll=-10° 框心=(960,1360) 裁剪框=460.0×644.0 越界=0.0% 图外非白像素=0\n  roll=-10° 框心=(500,-800) 裁剪框=460.0×644.0 越界=100.0% 图外非白像素=0\n  最大越界比例=100.0% 图外非白像素（最差单张）=0 (阈值 0)\n00:23 +7: 2B.9 边界安全（贴边人脸不抛异常、无黑边）\n[2B.9]\n  setup0 完成，越界比例=26.0% 缩小=false 说明=裁剪框越界 26.0%（越出部分按 alpha=0 填底色）\n  setup1 完成，越界比例=28.7% 缩小=false 说明=裁剪框越界 28.7%（越出部分按 alpha=0 填底色）\n  setup2 完成，越界比例=0.0% 缩小=false 说明=裁剪框完全在图内\n  setup3 完成，越界比例=7.6% 缩小=true 说明=人脸过于贴边/过大，已按头顶锚点缩到越界 ≤ 45%：头高比 1.307（目标 0.640），越界 7.6% 填底色\n  setup4 完成，越界比例=31.0% 缩小=false 说明=裁剪框越界 31.0%（越出部分按 alpha=0 填底色）\n  图外区域出现的非底色像素总数（最差单张）=0 (阈值 0)\n00:26 +8: 渐变底与去色边质量（蓝渐变 / 白底，合成原片）\n[渐变] 顶部=(97,138,206) 期望≈(98,139,206) 底部=(43,89,160) 期望≈(43,90,160)\n[去色边] 换白底后残留蓝边像素=0 (阈值 0)\n00:27 +9: All tests passed!\n\n",
+ "tail": "看 alpha）\n[2B.6/2B.7 验收口径]\n  灰矩形画布 cn_1inch             绿=0 品红=0\n  灰矩形画布 cn_small_1inch       绿=0 品红=0\n  灰矩形画布 cn_big_1inch         绿=0 品红=0\n  灰矩形画布 cn_2inch             绿=0 品红=0\n  灰矩形画布 cn_small_2inch       绿=0 品红=0\n  灰矩形画布 cn_social_security   绿=0 品红=0\n  灰矩形画布 visa_us              绿=0 品红=0\n  黄金集 g01 绿=0 品红=0\n  黄金集 g02 绿=0 品红=0\n  黄金集 g03 绿=0 品红=0\n  黄金集 g04 绿=0 品红=0\n  黄金集 g05 绿=0 品红=0\n  黄金集 g06 绿=0 品红=0\n  黄金集 g07 绿=0 品红=0\n  黄金集 g08 绿=0 品红=0\n  合计溢色像素=0 (阈值 0)\n00:17 +4: 2B.8 摆正（±10° 输入的残差角）\n[2B.8]\n  输入 roll=-10.0° → 成片残差 -0.039°\n  输入 roll=-6.0° → 成片残差 -0.034°\n  输入 roll=6.0° → 成片残差 0.034°\n  输入 roll=10.0° → 成片残差 0.039°\n  输入 roll=0.8°（死区内）→ 是否旋转=false\n  最差残差=0.039° (阈值 1.5°)\n00:19 +5: 用户框选 × 摆正：主体尺度守恒（REVIEW_G2 #3 回归）\n[用户框选×摆正]\n  roll=0.0° 摆正=false 裁剪框=460.0×644.0（用户框 460×644） 成片头高=243.0px（理想 243.7） 保留比例=99.7%\n  roll=2.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=6.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=10.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=-10.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=20.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  最差偏离=0.5% (阈值 3%)\n00:20 +6: 用户框选 × 摆正 × 越界：无黑边（2B.9 的反旋转新路径）\n[用户框选×摆正×越界]\n  roll=10° 框心=(40,40) 裁剪框=460.0×644.0 越界=50.7% 图外非白像素=0\n  roll=10° 框心=(960,40) 裁剪框=460.0×644.0 越界=42.8% 图外非白像素=0\n  roll=10° 框心=(40,1360) 裁剪框=460.0×644.0 越界=0.0% 图外非白像素=0\n  roll=10° 框心=(960,1360) 裁剪框=460.0×644.0 越界=39.9% 图外非白像素=0\n  roll=10° 框心=(500,-800) 裁剪框=460.0×644.0 越界=100.0% 图外非白像素=0\n  roll=-10° 框心=(40,40) 裁剪框=460.0×644.0 越界=42.8% 图外非白像素=0\n  roll=-10° 框心=(960,40) 裁剪框=460.0×644.0 越界=50.7% 图外非白像素=0\n  roll=-10° 框心=(40,1360) 裁剪框=460.0×644.0 越界=39.9% 图外非白像素=0\n  roll=-10° 框心=(960,1360) 裁剪框=460.0×644.0 越界=0.0% 图外非白像素=0\n  roll=-10° 框心=(500,-800) 裁剪框=460.0×644.0 越界=100.0% 图外非白像素=0\n  最大越界比例=100.0% 图外非白像素（最差单张）=0 (阈值 0)\n00:21 +7: 2B.9 边界安全（贴边人脸不抛异常、无黑边）\n[2B.9]\n  setup0 完成，越界比例=26.0% 缩小=false 说明=裁剪框越界 26.0%（越出部分按 alpha=0 填底色）\n  setup1 完成，越界比例=28.7% 缩小=false 说明=裁剪框越界 28.7%（越出部分按 alpha=0 填底色）\n  setup2 完成，越界比例=0.0% 缩小=false 说明=裁剪框完全在图内\n  setup3 完成，越界比例=7.6% 缩小=true 说明=人脸过于贴边/过大，已按头顶锚点缩到越界 ≤ 45%：头高比 1.307（目标 0.640），越界 7.6% 填底色\n  setup4 完成，越界比例=31.0% 缩小=false 说明=裁剪框越界 31.0%（越出部分按 alpha=0 填底色）\n  图外区域出现的非底色像素总数（最差单张）=0 (阈值 0)\n00:24 +8: 渐变底与去色边质量（蓝渐变 / 白底，合成原片）\n[渐变] 顶部=(97,138,206) 期望≈(98,139,206) 底部=(43,89,160) 期望≈(43,90,160)\n[去色边] 换白底后残留蓝边像素=0 (阈值 0)\n00:24 +9: All tests passed!\n\n",
  "codeFingerprint": {
   "files": 103,
-  "fnv1a64": "0f66aabb3c08105f",
+  "fnv1a64": "cd417a4d254ec1c2",
   "blobHashes": {
    "lib/core/api.dart": "a116f65a79cc80ae9a6df23318d6b147f502e198",
    "lib/core/controller.dart": "e93ee6397c70820604575db12ad1ebc9b8b7249c",
@@ -39,7 +39,7 @@
    "lib/core/matting/flutter_decode.dart": "6a312a6dae2d3840aa1e76f8175dabb789bc8280",
    "lib/core/matting/image_header.dart": "d8123916a81dfbcfb71b9def09aead38314d9e34",
    "lib/core/matting/image_ops.dart": "e51f4b35e6d92421120cd204c98d51a73fd89b18",
-   "lib/core/matting/iris_roll.dart": "5f65fce144e59cbf3ff51d512b4dd31ff5f5a724",
+   "lib/core/matting/iris_roll.dart": "b31748061f03b6725dbb9080fbc3c488eda16775",
    "lib/core/matting/matting_engine.dart": "7583483a23ca673b207eff1f3934bc9498abbe91",
    "lib/core/matting/matting_worker.dart": "46b7b58cd405fd6101a92a5826175676aafe738c",
    "lib/core/matting/ort_runtime.dart": "c5a6090e7f213a94004f8f90292c976e02b5e61b",
@@ -117,14 +117,14 @@
    "test/batch/sha256_selftest.dart": "a8f314bdcd1adbb99944d242a757d85f14603377",
    "test/batch/sha256_util.dart": "ef91dedf3af855661102f3c5993b9536f15759fa"
   },
-  "headCommit": "9c8212500dd13d4bb5278b4862f7bf5a47edff5d",
+  "headCommit": "fb2f161a77fcdd3b434da6168522b034f628e484",
   "allCommitted": true,
   "uncommittedMeasuredFiles": [],
-  "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 9c8212500dd13d4bb5278b4862f7bf5a47edff5d 的代码。"
+  "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 fb2f161a77fcdd3b434da6168522b034f628e484 的代码。"
  },
  "codeFingerprintAtEnd": {
   "files": 103,
-  "fnv1a64": "0f66aabb3c08105f",
+  "fnv1a64": "cd417a4d254ec1c2",
   "blobHashes": {
    "lib/core/api.dart": "a116f65a79cc80ae9a6df23318d6b147f502e198",
    "lib/core/controller.dart": "e93ee6397c70820604575db12ad1ebc9b8b7249c",
@@ -152,7 +152,7 @@
    "lib/core/matting/flutter_decode.dart": "6a312a6dae2d3840aa1e76f8175dabb789bc8280",
    "lib/core/matting/image_header.dart": "d8123916a81dfbcfb71b9def09aead38314d9e34",
    "lib/core/matting/image_ops.dart": "e51f4b35e6d92421120cd204c98d51a73fd89b18",
-   "lib/core/matting/iris_roll.dart": "5f65fce144e59cbf3ff51d512b4dd31ff5f5a724",
+   "lib/core/matting/iris_roll.dart": "b31748061f03b6725dbb9080fbc3c488eda16775",
    "lib/core/matting/matting_engine.dart": "7583483a23ca673b207eff1f3934bc9498abbe91",
    "lib/core/matting/matting_worker.dart": "46b7b58cd405fd6101a92a5826175676aafe738c",
    "lib/core/matting/ort_runtime.dart": "c5a6090e7f213a94004f8f90292c976e02b5e61b",
@@ -230,20 +230,20 @@
    "test/batch/sha256_selftest.dart": "a8f314bdcd1adbb99944d242a757d85f14603377",
    "test/batch/sha256_util.dart": "ef91dedf3af855661102f3c5993b9536f15759fa"
   },
-  "headCommit": "9c8212500dd13d4bb5278b4862f7bf5a47edff5d",
+  "headCommit": "fb2f161a77fcdd3b434da6168522b034f628e484",
   "allCommitted": true,
   "uncommittedMeasuredFiles": [],
-  "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 9c8212500dd13d4bb5278b4862f7bf5a47edff5d 的代码。"
+  "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 fb2f161a77fcdd3b434da6168522b034f628e484 的代码。"
  },
  "codeStableDuringRun": true,
  "roundValid": true,
  "changedFiles": [],
  "verdict": "有效：被测代码在开跑到收尾之间未变，本读数可钉到该指纹。",
- "composeFingerprint": "0f66aabb3c08105f",
+ "composeFingerprint": "cd417a4d254ec1c2",
  "composeSummaryRead": "ok",
  "composeSummaryReadDetail": null,
  "sameCodeStateAsCompose": true,
  "sameCodeStateNote": "一致：dev_selfcheck 与成片台跑在**同一份被测代码内容**上，本轮判决的两半可以拼。",
- "gitHead": "9c82125",
- "workingTreeDirty": "M docs/PITFALLS.md |  M out/P0_alpha_holes.json |  M out/P0_compose_items.jsonl |  M out/P0_compose_summary.json |  M out/P0_output_residual.json"
+ "gitHead": "fb2f161",
+ "workingTreeDirty": "M docs/PITFALLS.md |  M out/P0_alpha_holes.json |  M out/P0_compose_items.jsonl |  M out/P0_compose_summary.json |  M out/P0_output_residual.json | ?? out/REVIEW_r3_start_baseline.txt"
 }

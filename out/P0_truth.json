@@ -3071,13 +3071,13 @@
    "truth_apply_deg": -4.73,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -4.8247130878563365,
-    "tilt_abs_max_deg": 4.911,
-    "method_spread_deg": 3.137,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": -0.095,
-    "status": "low_confidence",
+    "output_tilt_deg": 0.27478581379482414,
+    "tilt_abs_max_deg": 1.346,
+    "method_spread_deg": 1.108,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -5.038280217217584,
+    "truth_consistency_deg": -0.033,
+    "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d-3__cn_big_1inch.jpg"
    }
@@ -3104,7 +3104,7 @@
     "output_tilt_deg": 1.376737810729919,
     "tilt_abs_max_deg": 2.528,
     "method_spread_deg": 1.206,
-    "roll_source": "unavailable",
+    "roll_source": "pupil",
     "applied_straighten_deg": 0.0,
     "truth_consistency_deg": 0.107,
     "status": "ok",
@@ -3371,14 +3371,14 @@
    "truth_apply_deg": -18.01,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 3.8517803982374024,
-    "tilt_abs_max_deg": 6.004,
-    "method_spread_deg": 2.153,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": 21.862,
+    "output_tilt_deg": 3.3345454333972677,
+    "tilt_abs_max_deg": 16.0,
+    "method_spread_deg": 12.665,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -17.822220223380846,
+    "truth_consistency_deg": 3.522,
     "status": "reliability_mismatch",
-    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 21.862°，测量落到异物上，本项残余不可信",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 3.522°，测量落到异物上，本项残余不可信",
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d-10__cn_big_1inch.jpg"
    }
   },
@@ -4278,7 +4278,7 @@
     "inheritedFrom": "out/P0_compose_summary.json#provenance.codeFingerprint",
     "codeFingerprint": {
      "files": 103,
-     "fnv1a64": "0f66aabb3c08105f",
+     "fnv1a64": "cd417a4d254ec1c2",
      "blobHashes": {
       "lib/core/api.dart": "a116f65a79cc80ae9a6df23318d6b147f502e198",
       "lib/core/controller.dart": "e93ee6397c70820604575db12ad1ebc9b8b7249c",
@@ -4306,7 +4306,7 @@
       "lib/core/matting/flutter_decode.dart": "6a312a6dae2d3840aa1e76f8175dabb789bc8280",
       "lib/core/matting/image_header.dart": "d8123916a81dfbcfb71b9def09aead38314d9e34",
       "lib/core/matting/image_ops.dart": "e51f4b35e6d92421120cd204c98d51a73fd89b18",
-      "lib/core/matting/iris_roll.dart": "5f65fce144e59cbf3ff51d512b4dd31ff5f5a724",
+      "lib/core/matting/iris_roll.dart": "b31748061f03b6725dbb9080fbc3c488eda16775",
       "lib/core/matting/matting_engine.dart": "7583483a23ca673b207eff1f3934bc9498abbe91",
       "lib/core/matting/matting_worker.dart": "46b7b58cd405fd6101a92a5826175676aafe738c",
       "lib/core/matting/ort_runtime.dart": "c5a6090e7f213a94004f8f90292c976e02b5e61b",
@@ -4384,10 +4384,10 @@
       "test/batch/sha256_selftest.dart": "a8f314bdcd1adbb99944d242a757d85f14603377",
       "test/batch/sha256_util.dart": "ef91dedf3af855661102f3c5993b9536f15759fa"
      },
-     "headCommit": "72e1a67b67b41fb0c0b890f5b78cc4772a60bf65",
+     "headCommit": "f56f417e718bbe11b95d999e33d83cce42e73539",
      "allCommitted": true,
      "uncommittedMeasuredFiles": [],
-     "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 72e1a67b67b41fb0c0b890f5b78cc4772a60bf65 的代码。"
+     "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 f56f417e718bbe11b95d999e33d83cce42e73539 的代码。"
     },
     "roundValid": true,
     "note": "本文件是对成片的纯 Python 测量，成片由 lib 代码产出，故**继承**成片台的指纹；刻意不在本脚本运行时刻重取 —— 那记的是本脚本的运行时刻，不是产出成片的代码状态。"
@@ -4396,12 +4396,10 @@
    "composedCount": 110,
    "primaryCount": 100,
    "scored": 93,
-   "primaryAbsMax": 4.825,
+   "primaryAbsMax": 1.377,
    "primaryAbsMedian": 0.158,
-   "primaryAbsMean": 0.293,
-   "primaryOver1p5": [
-    "c06_d-3"
-   ],
+   "primaryAbsMean": 0.244,
+   "primaryOver1p5": [],
    "unreliableMeasurement": [
     "c08_d+10",
     "c08_d+3",
@@ -4422,7 +4420,6 @@
     "c02_d-10",
     "c02_d-3",
     "c06",
-    "c06_d-3",
     "c06_d-5",
     "c06_upright",
     "c07_d-10",
@@ -4447,10 +4444,10 @@
      "evidence": "out/P0_anchors/alpha/c04_d-10_magenta.jpg"
     },
     "c08_d-10": {
-     "magentaInHeadFrac": 0.6037,
-     "largestBlobPx": 66738,
+     "magentaInHeadFrac": 0.5349,
+     "largestBlobPx": 31643,
      "alphaHole": true,
-     "magentaOverallFrac": 0.767,
+     "magentaOverallFrac": 0.7409,
      "evidence": "out/P0_anchors/alpha/c08_d-10_magenta.jpg"
     },
     "c08": {
@@ -4501,7 +4498,7 @@
     "rotated": {
      "n": 78,
      "scored": 72,
-     "absMax": 4.825,
+     "absMax": 1.377,
      "ids": [
       "c01_d+10",
       "c01_d+3",
@@ -4576,9 +4573,7 @@
       "p2_d-3",
       "p2_d-5"
      ],
-     "over1p5": [
-      "c06_d-3"
-     ],
+     "over1p5": [],
      "unreliable": [
       "c08_d+10",
       "c08_d+3",
@@ -4939,27 +4934,27 @@
  ],
  "evaluatedState": {
   "note": "**这不是 HEAD。** 成片/覆盖率/残余三份数字产出于下表记录的工作区状态；此后主会话提交了若干 docs-only commit，按 HEAD 记账会把数字错标到与测量无关的 commit 上。",
-  "gitHeadAtCoverageRun": "dcc5903",
+  "gitHeadAtCoverageRun": "fb2f161",
   "workingTreeDirtyAtCoverageRun": "",
   "roundSelfValid": true,
   "roundChangedFiles": [],
   "codeFingerprintAtFinalize": {
-   "fnv1a64": "0f66aabb3c08105f",
+   "fnv1a64": "cd417a4d254ec1c2",
    "files": 103,
-   "headCommit": "dcc59032f386ed90957d0bb21851fcf74568031d",
+   "headCommit": "fb2f161a77fcdd3b434da6168522b034f628e484",
    "allCommitted": true
   },
   "codeFingerprintAtMeasure": {
-   "fnv1a64": "0f66aabb3c08105f",
+   "fnv1a64": "cd417a4d254ec1c2",
    "files": 103,
-   "headCommit": "72e1a67b67b41fb0c0b890f5b78cc4772a60bf65",
+   "headCommit": "f56f417e718bbe11b95d999e33d83cce42e73539",
    "allCommitted": true,
    "uncommittedMeasuredFiles": [],
-   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 72e1a67b67b41fb0c0b890f5b78cc4772a60bf65 的代码。"
+   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 f56f417e718bbe11b95d999e33d83cce42e73539 的代码。"
   },
   "fingerprintVerdictCode": "attributable",
-  "fingerprintVerdict": "**可归属**：测量当时的被测代码内容与现在逐文件相同，数字未被后续改动污染，可归到 72e1a67b67b41fb0c0b890f5b78cc4772a60bf65。",
-  "headAtFinalize": "dcc5903"
+  "fingerprintVerdict": "**可归属**：测量当时的被测代码内容与现在逐文件相同，数字未被后续改动污染，可归到 f56f417e718bbe11b95d999e33d83cce42e73539。",
+  "headAtFinalize": "fb2f161"
  },
  "gateInputs": {
   "note": "qa-batch 提供的实测数字，供 gatekeeper 判定；本块不含 PASS/FAIL。硬判据按 ACCEPTANCE 计分口径第 5 条用 output_tilt（成片端到端残余）。",
@@ -5337,16 +5332,16 @@
    },
    "reverseCheck": {
     "what": "反向：|truth| > 1.0 却 `straightenDeg == 0.0` 的样本，其 `rollSource` 是什么？",
-    "n": 3,
+    "n": 1,
     "byRollSource": {
-     "unavailable": 3
+     "pupil": 1
     },
     "ids": [
-     "c06_d+3",
-     "c06_d-3",
-     "c08_d-10"
+     "c06_d+3"
     ],
-    "pupilClampedOutsideDeadZone": [],
+    "pupilClampedOutsideDeadZone": [
+     "c06_d+3"
+    ],
     "conclusion": "**空集**：100 条里没有一条 `pupil` 在 |truth| > 1.0 时`straightenDeg == 0.0`（该集合 10 条**全部是 `unavailable`**）。**订正措辞（2026-09-17）**：原文写成「在死区之外被静默钳零」，把真值当成了估计值的代理——死区判的是**估计值**。严格的含义是：对 `pupil` 样本，`applied == 0` ⟺ `|估计| ≤ 1.0`，所以本集合为空 ⟺ **本轮不存在「真值大、而估计小」的样本**。这正是本次事故的形态（真值 −4.4° 被读成 +0.84°），它在本轮缺席——**这是关于估角器的经验结论，不是关于死区安全的结论**。"
    },
    "whyHarmless": "**本条订正（2026-09-17）。原文写「死区 1.0 ≤ P0.1a 容差 1.5，被钳到 0 的样本其残余天然过线，因此死区本身不制造 P0.1a 违规」——该推导**不成立**。死区判的是**估计值**（`crop_geometry.dart:143` `roll.abs() <= deadZoneDeg`，入参来自 `compose_engine.dart:235` 的 `face?.rollDeg`），**不是真值**。被钳到 0 的样本其残余 = **它自己的真值**，≤1.5° 当且仅当真值本来就小，「被钳下」不保证这一点。反例：真值 3.0°、估角器错给 0.5° → 钳零 → 残余 3.0° → P0.1a 违规，且它返回 `pupil` 而非 `unavailable`，**P0.1b 不拦**。**死区不衰减误差，它把小的估计误差透传成满量级残余。**",
@@ -5372,7 +5367,7 @@
    "P0.3a_rotated": {
     "rawFixtures": 78,
     "notScorableDeducted": 6,
-    "visibleDenominator": 70,
+    "visibleDenominator": 72,
     "note": "`c08_upright` 的语料标签是 uprightSynthetic 而非 rotated，其不可计分计入 P0.2 一项；两条合计 6 条。"
    }
   },
@@ -5489,39 +5484,31 @@
    }
   },
   "P0.3a_pupilFixtureRegression": {
-   "n": 70,
+   "n": 72,
    "criterionA_estimate_vs_truth": {
     "note": "ACCEPTANCE P0.3a ①：估计值 rollDeg vs 真值，斜率 ∈[0.85,1.15]。**只作诊断**。",
-    "slope": 1.001,
-    "intercept": 0.078
+    "slope": 1.0,
+    "intercept": 0.052
    },
    "criterionB_outputResidual": {
     "note": "ACCEPTANCE P0.3a ②（口径无关硬判据）：成片残余 vs 真值，|斜率| ≤ 0.15 且 |截距| ≤ 0.5° 且 max|残余| ≤ 1.5°。",
-    "slope": -0.003,
-    "intercept": -0.102,
-    "max_abs_residual_deg": 0.997,
-    "absMaxExcludingGrossOutlier": 0.997,
+    "slope": -0.001,
+    "intercept": -0.074,
+    "max_abs_residual_deg": 1.377,
+    "absMaxExcludingGrossOutlier": 1.377,
     "absMaxExcludingGrossOutlierNote": "剔除的是**全部** |残余| > 1.5° 的样本（见 grossOutliers），不是写死某个 id —— 写死 id 会在该样本不再是离群点时静默剔除错行。"
    },
    "grossOutliers": []
   },
   "P0.3b_fixtureConditionalCoverage": {
    "n": 67,
-   "unavailable": 2,
-   "culprits": [
-    "c06_d-3",
-    "c08_d-10"
-   ],
-   "nearZeroExempt": [
-    "c06_d+3"
-   ]
+   "unavailable": 0,
+   "culprits": [],
+   "nearZeroExempt": []
   },
   "P0.3b_culpritBreakdown": {
-   "note": "2 条违规按源图归并（逐族条数见 bySource，**本句不写死**）。**不得用'真难样本'标签把某一族的违规兜过去**——只有 `c11`(Δ=0, 真值 −0.11) 那一条是死区豁免。",
-   "bySource": {
-    "c06": 1,
-    "c08": 1
-   },
+   "note": "0 条违规按源图归并（逐族条数见 bySource，**本句不写死**）。**不得用'真难样本'标签把某一族的违规兜过去**——只有 `c11`(Δ=0, 真值 −0.11) 那一条是死区豁免。",
+   "bySource": {},
    "c11AllSix": {
     "keyNameIsHistorical": "键名里的 Six 是历史名；条数以 total 为准。",
     "total": 6,
@@ -5591,11 +5578,10 @@
      "pupil": 22
     },
     "rotated": {
-     "pupil": 75,
-     "unavailable": 3
+     "pupil": 78
     }
    },
-   "unavailableCount": 4,
+   "unavailableCount": 1,
    "unavailableWithNonZeroRollDeg": [],
    "coverageRun": "out/P0_coverage_post.json (test/batch/p0_coverage_test.dart, 修后)"
   },
@@ -5625,15 +5611,15 @@
    ]
   },
   "rotationFailureBoundary": {
-   "what": "**不得把「旋转夹具上的失败」一概推广成「夹具伪影」。** c08 的空洞是伪影（生产碰不到面内旋转输入），但 P0.3 的 0 条硬违规 + 2 条覆盖率违规是**估角器真不稳**，必须修。（两条数都由下方产物现算，不写死；估角器一改就整块重测。）",
+   "what": "**不得把「旋转夹具上的失败」一概推广成「夹具伪影」。** c08 的空洞是伪影（生产碰不到面内旋转输入），但 P0.3 的 0 条硬违规 + 0 条覆盖率违规是**估角器真不稳**，必须修。（两条数都由下方产物现算，不写死；估角器一改就整块重测。）",
    "evidenceProvenance": {
     "hardAndCoverageSource": "out/P0_output_residual.json（硬违规）+ out/P0_compose_items.jsonl（覆盖率）",
     "evidenceRowSource": "out/P0_output_residual.json",
     "alphaFractionSource": "out/P0_alpha_holes.json",
     "sourceSha256": {
-     "out/P0_output_residual.json": "249a56ec358f9f5a53db1999fa2ab389b614bd8f2b7aaf2c7986005a6268c08d",
-     "out/P0_compose_items.jsonl": "aea8b3cc9ab95f758e682a8661867e23e00dfc03f85e62e18433193b7cea0310",
-     "out/P0_alpha_holes.json": "67497012047ee0879d7fc41d8ecfeaceb518118e27ccd193b77dab2dd9a1a45f"
+     "out/P0_output_residual.json": "a80d66ee4e81262f28cca79492582d247b55bce8339bd429b06f07190ba9da3b",
+     "out/P0_compose_items.jsonl": "8c39d726caaf970ab7594fb081d9cf4e1d541dc2780503e3ce9821cebff3bc4f",
+     "out/P0_alpha_holes.json": "3ad3a3795106164564fec3c2bf89b7b8b9b2b4ed19febc54b51464e9baadbe29"
     },
     "codeFingerprintOfSources": null,
     "note": "⚠ 上面每一行、以及 what 里的两个条数，都是 finalize 时从这些产物**现算**的；而这些产物**没有记录自己的代码指纹**（无 `provenance` 字段）。所以本块只证明「数字与产物一致」，**不证明产物出自当前被测代码**。估角器（`iris_roll.dart`）在 03:34 的残差产物之后已改过 3 次，本块的行值因此可能描述一个已不存在的代码状态 —— **跨轮比较前必须先重测产物**。"
@@ -5685,9 +5671,9 @@
       "id": "c06_d-3",
       "deltaDeg": -3.0,
       "truthTiltDeg": -4.73,
-      "appliedStraightenDeg": 0.0,
-      "outputTiltDeg": -4.825,
-      "absResidualDeg": 4.825
+      "appliedStraightenDeg": -5.038,
+      "outputTiltDeg": 0.275,
+      "absResidualDeg": 0.275
      },
      {
       "id": "c06_d-5",

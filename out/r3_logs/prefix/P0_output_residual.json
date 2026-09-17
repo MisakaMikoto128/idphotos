@@ -6,7 +6,7 @@
    "inheritedFrom": "out/P0_compose_summary.json#provenance.codeFingerprint",
    "codeFingerprint": {
     "files": 103,
-    "fnv1a64": "cd417a4d254ec1c2",
+    "fnv1a64": "0f66aabb3c08105f",
     "blobHashes": {
      "lib/core/api.dart": "a116f65a79cc80ae9a6df23318d6b147f502e198",
      "lib/core/controller.dart": "e93ee6397c70820604575db12ad1ebc9b8b7249c",
@@ -34,7 +34,7 @@
      "lib/core/matting/flutter_decode.dart": "6a312a6dae2d3840aa1e76f8175dabb789bc8280",
      "lib/core/matting/image_header.dart": "d8123916a81dfbcfb71b9def09aead38314d9e34",
      "lib/core/matting/image_ops.dart": "e51f4b35e6d92421120cd204c98d51a73fd89b18",
-     "lib/core/matting/iris_roll.dart": "b31748061f03b6725dbb9080fbc3c488eda16775",
+     "lib/core/matting/iris_roll.dart": "5f65fce144e59cbf3ff51d512b4dd31ff5f5a724",
      "lib/core/matting/matting_engine.dart": "7583483a23ca673b207eff1f3934bc9498abbe91",
      "lib/core/matting/matting_worker.dart": "46b7b58cd405fd6101a92a5826175676aafe738c",
      "lib/core/matting/ort_runtime.dart": "c5a6090e7f213a94004f8f90292c976e02b5e61b",
@@ -112,10 +112,10 @@
      "test/batch/sha256_selftest.dart": "a8f314bdcd1adbb99944d242a757d85f14603377",
      "test/batch/sha256_util.dart": "ef91dedf3af855661102f3c5993b9536f15759fa"
     },
-    "headCommit": "f56f417e718bbe11b95d999e33d83cce42e73539",
+    "headCommit": "72e1a67b67b41fb0c0b890f5b78cc4772a60bf65",
     "allCommitted": true,
     "uncommittedMeasuredFiles": [],
-    "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 f56f417e718bbe11b95d999e33d83cce42e73539 的代码。"
+    "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 72e1a67b67b41fb0c0b890f5b78cc4772a60bf65 的代码。"
    },
    "roundValid": true,
    "note": "本文件是对成片的纯 Python 测量，成片由 lib 代码产出，故**继承**成片台的指纹；刻意不在本脚本运行时刻重取 —— 那记的是本脚本的运行时刻，不是产出成片的代码状态。"
@@ -124,10 +124,12 @@
   "composedCount": 110,
   "primaryCount": 100,
   "scored": 93,
-  "primaryAbsMax": 1.377,
+  "primaryAbsMax": 4.825,
   "primaryAbsMedian": 0.158,
-  "primaryAbsMean": 0.244,
-  "primaryOver1p5": [],
+  "primaryAbsMean": 0.293,
+  "primaryOver1p5": [
+   "c06_d-3"
+  ],
   "unreliableMeasurement": [
    "c08_d+10",
    "c08_d+3",
@@ -148,6 +150,7 @@
    "c02_d-10",
    "c02_d-3",
    "c06",
+   "c06_d-3",
    "c06_d-5",
    "c06_upright",
    "c07_d-10",
@@ -172,10 +175,10 @@
     "evidence": "out/P0_anchors/alpha/c04_d-10_magenta.jpg"
    },
    "c08_d-10": {
-    "magentaInHeadFrac": 0.5349,
-    "largestBlobPx": 31643,
+    "magentaInHeadFrac": 0.6037,
+    "largestBlobPx": 66738,
     "alphaHole": true,
-    "magentaOverallFrac": 0.7409,
+    "magentaOverallFrac": 0.767,
     "evidence": "out/P0_anchors/alpha/c08_d-10_magenta.jpg"
    },
    "c08": {
@@ -226,7 +229,7 @@
    "rotated": {
     "n": 78,
     "scored": 72,
-    "absMax": 1.377,
+    "absMax": 4.825,
     "ids": [
      "c01_d+10",
      "c01_d+3",
@@ -301,7 +304,9 @@
      "p2_d-3",
      "p2_d-5"
     ],
-    "over1p5": [],
+    "over1p5": [
+     "c06_d-3"
+    ],
     "unreliable": [
      "c08_d+10",
      "c08_d+3",
@@ -4043,8 +4048,8 @@
    "specId": "cn_big_1inch",
    "corpus": "rotated",
    "truthTiltDeg": 1.27,
-   "rollSource": "pupil",
-   "faceRollDeg": 0.7923534440537433,
+   "rollSource": "unavailable",
+   "faceRollDeg": 0.0,
    "straightenDeg": 0.0,
    "outOfBoundsFraction": 0.0,
    "rigid_residual_deg": 1.376737810729919,
@@ -4238,85 +4243,85 @@
    ],
    "H": 567,
    "W": 390,
-   "yunet_eyeline_deg": -1.8866430424098597,
-   "yunet_eyedist": 96.0,
-   "yunet_score": 0.951204776763916,
+   "yunet_eyeline_deg": -7.651941114894414,
+   "yunet_eyedist": 98.8,
+   "yunet_score": 0.9475321173667908,
    "m1_pupil": {
-    "deg": 0.27478581379482414,
+    "deg": -4.8247130878563365,
     "left": [
-     146.67407407407407,
-     231.5037037037037
+     150.86524822695037,
+     234.7872340425532
     ],
     "right": [
-     241.816,
-     231.96
+     245.6694214876033,
+     226.78512396694214
     ],
-    "pairCost": 0.103,
-    "eyedist": 96.0,
+    "pairCost": 0.119,
+    "eyedist": 98.8,
     "seed": "yunet"
    },
    "m2_radon_yunet": {
-    "deg": 1.1950799802054481,
-    "peak_ratio": 2.132,
+    "deg": -1.7980752029067781,
+    "peak_ratio": 1.474,
     "span": 16.0,
     "source": "yunet-band"
    },
    "m1h_pupil_haarseed": {
-    "deg": 0.23770159248769313,
+    "deg": -4.91104331725674,
     "left": [
-     146.6046511627907,
-     231.58139534883722
+     150.4402985074627,
+     234.86567164179104
     ],
     "right": [
-     241.81102362204723,
-     231.9763779527559
+     245.79090909090908,
+     226.6727272727273
     ],
-    "pairCost": 0.307,
-    "eyedist": 93.2
+    "pairCost": 0.469,
+    "eyedist": 87.8
    },
    "m3_haar_eyeline": {
-    "deg": 0.5787255656077621,
+    "deg": -4.354221063069611,
     "left": [
-     142.5,
-     232.5
+     147.5,
+     235.5
     ],
     "right": [
-     241.5,
-     233.5
+     246.0,
+     228.0
     ],
     "box": [
-     66,
-     137,
-     259,
-     259
+     85,
+     143,
+     244,
+     244
     ],
     "sizes": [
-     53.0,
-     55.0
+     51.0,
+     56.0
     ]
    },
    "m4_radon_haar": {
-    "deg": 1.3457969827361587,
-    "peak_ratio": 2.131,
+    "deg": -1.7737932583291314,
+    "peak_ratio": 1.501,
     "span": 16.0,
     "source": "haar-band"
    },
-   "primary_tilt_deg": 0.27478581379482414,
+   "primary_tilt_deg": -4.8247130878563365,
    "primary_method": "m1_pupil",
    "id": "c06_d-3",
    "specId": "cn_big_1inch",
    "corpus": "rotated",
    "truthTiltDeg": -4.73,
-   "rollSource": "pupil",
-   "faceRollDeg": -5.038280217217584,
-   "straightenDeg": -5.038280217217584,
-   "outOfBoundsFraction": 0.0,
-   "rigid_residual_deg": -4.76349440342276,
-   "methodSpreadDeg": 1.108,
+   "rollSource": "unavailable",
+   "faceRollDeg": 0.0,
+   "straightenDeg": 0.0,
+   "outOfBoundsFraction": 1.1102230246251565e-16,
+   "rigid_residual_deg": -4.8247130878563365,
+   "methodSpreadDeg": 3.137,
    "methodCount": 5,
-   "tiltAbsMaxDeg": 1.346,
-   "truthConsistencyDeg": -0.033,
-   "end_to_end_status": "ok"
+   "tiltAbsMaxDeg": 4.911,
+   "truthConsistencyDeg": -0.095,
+   "end_to_end_status": "low_confidence"
   },
   {
    "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d-5__cn_big_1inch.jpg",
@@ -5366,15 +5371,15 @@
    ],
    "H": 413,
    "W": 295,
-   "yunet_eyeline_deg": 4.8641862798559865,
-   "yunet_eyedist": 57.8,
-   "yunet_score": 0.883761465549469,
+   "yunet_eyeline_deg": -12.962768534805086,
+   "yunet_eyedist": 60.3,
+   "yunet_score": 0.8879984021186829,
    "m1_pupil": {
     "error": "no_pair"
    },
    "m2_radon_yunet": {
-    "deg": 14.302770654185869,
-    "peak_ratio": 3.582,
+    "deg": 7.980409558272873,
+    "peak_ratio": 1.137,
     "span": 16.0,
     "source": "yunet-band"
    },
@@ -5391,18 +5396,18 @@
    "specId": "cn_1inch",
    "corpus": "rotated",
    "truthTiltDeg": -18.01,
-   "rollSource": "pupil",
-   "faceRollDeg": -17.822220223380846,
-   "straightenDeg": -17.822220223380846,
-   "outOfBoundsFraction": 0.08581656151024697,
+   "rollSource": "unavailable",
+   "faceRollDeg": 0.0,
+   "straightenDeg": 0.0,
+   "outOfBoundsFraction": 0.2457432698747135,
    "methodSpreadDeg": null,
    "methodCount": 1,
-   "tiltAbsMaxDeg": 14.303,
+   "tiltAbsMaxDeg": 7.98,
    "alphaHoleHint": {
-    "magentaInHeadFrac": 0.5349,
-    "largestBlobPx": 31643,
+    "magentaInHeadFrac": 0.6037,
+    "largestBlobPx": 66738,
     "alphaHole": true,
-    "magentaOverallFrac": 0.7409,
+    "magentaOverallFrac": 0.767,
     "evidence": "out/P0_anchors/alpha/c08_d-10_magenta.jpg"
    },
    "end_to_end_status": "unmeasured"
@@ -5415,26 +5420,26 @@
    ],
    "H": 567,
    "W": 390,
-   "yunet_eyeline_deg": 5.0121130153757,
-   "yunet_eyedist": 75.6,
-   "yunet_score": 0.8808951377868652,
+   "yunet_eyeline_deg": -12.90193806372495,
+   "yunet_eyedist": 88.0,
+   "yunet_score": 0.8720934987068176,
    "m1_pupil": {
-    "deg": 3.3345454333972677,
+    "deg": 3.8517803982374024,
     "left": [
-     187.45098039215685,
-     278.80392156862746
+     199.8695652173913,
+     258.2391304347826
     ],
     "right": [
-     276.2325581395349,
-     283.9767441860465
+     317.12,
+     266.1333333333333
     ],
-    "pairCost": 0.561,
-    "eyedist": 75.6,
+    "pairCost": 0.632,
+    "eyedist": 88.0,
     "seed": "yunet"
    },
    "m2_radon_yunet": {
-    "deg": 15.999999999999886,
-    "peak_ratio": 1.677,
+    "deg": 6.00447646673405,
+    "peak_ratio": 1.196,
     "span": 16.0,
     "source": "yunet-band"
    },
@@ -5447,30 +5452,30 @@
    "m4_radon_haar": {
     "error": "no_band"
    },
-   "primary_tilt_deg": 3.3345454333972677,
+   "primary_tilt_deg": 3.8517803982374024,
    "primary_method": "m1_pupil",
    "id": "c08_d-10",
    "specId": "cn_big_1inch",
    "corpus": "rotated",
    "truthTiltDeg": -18.01,
-   "rollSource": "pupil",
-   "faceRollDeg": -17.822220223380846,
-   "straightenDeg": -17.822220223380846,
-   "outOfBoundsFraction": 0.08581656151024719,
-   "rigid_residual_deg": -14.48767478998358,
-   "methodSpreadDeg": 12.665,
+   "rollSource": "unavailable",
+   "faceRollDeg": 0.0,
+   "straightenDeg": 0.0,
+   "outOfBoundsFraction": 0.24574326987471373,
+   "rigid_residual_deg": 3.8517803982374024,
+   "methodSpreadDeg": 2.153,
    "methodCount": 2,
-   "tiltAbsMaxDeg": 16.0,
+   "tiltAbsMaxDeg": 6.004,
    "alphaHoleHint": {
-    "magentaInHeadFrac": 0.5349,
-    "largestBlobPx": 31643,
+    "magentaInHeadFrac": 0.6037,
+    "largestBlobPx": 66738,
     "alphaHole": true,
-    "magentaOverallFrac": 0.7409,
+    "magentaOverallFrac": 0.767,
     "evidence": "out/P0_anchors/alpha/c08_d-10_magenta.jpg"
    },
-   "truthConsistencyDeg": 3.522,
+   "truthConsistencyDeg": 21.862,
    "end_to_end_status": "reliability_mismatch",
-   "end_to_end_note": "成片瞳孔测量隐含的输入倾角与独立真值差 3.522°，测量落到异物上，本项残余不可信"
+   "end_to_end_note": "成片瞳孔测量隐含的输入倾角与独立真值差 21.862°，测量落到异物上，本项残余不可信"
   },
   {
    "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d-10__visa_us.jpg",
@@ -5480,15 +5485,26 @@
    ],
    "H": 600,
    "W": 600,
-   "yunet_eyeline_deg": 6.658494536794732,
-   "yunet_eyedist": 89.7,
-   "yunet_score": 0.8633297085762024,
+   "yunet_eyeline_deg": -15.242795713364252,
+   "yunet_eyedist": 90.7,
+   "yunet_score": 0.8641939163208008,
    "m1_pupil": {
-    "error": "no_pair"
+    "deg": -14.145922621274433,
+    "left": [
+     335.741935483871,
+     305.5806451612903
+    ],
+    "right": [
+     427.0357142857143,
+     282.57142857142856
+    ],
+    "pairCost": 0.656,
+    "eyedist": 90.7,
+    "seed": "yunet"
    },
    "m2_radon_yunet": {
-    "deg": 14.474030257071956,
-    "peak_ratio": 3.324,
+    "deg": 5.27553064608254,
+    "peak_ratio": 1.174,
     "span": 16.0,
     "source": "yunet-band"
    },
@@ -5501,25 +5517,30 @@
    "m4_radon_haar": {
     "error": "no_band"
    },
+   "primary_tilt_deg": -14.145922621274433,
+   "primary_method": "m1_pupil",
    "id": "c08_d-10",
    "specId": "visa_us",
    "corpus": "rotated",
    "truthTiltDeg": -18.01,
-   "rollSource": "pupil",
-   "faceRollDeg": -17.822220223380846,
-   "straightenDeg": -17.822220223380846,
-   "outOfBoundsFraction": 0.08581656151024708,
-   "methodSpreadDeg": null,
-   "methodCount": 1,
-   "tiltAbsMaxDeg": 14.474,
+   "rollSource": "unavailable",
+   "faceRollDeg": 0.0,
+   "straightenDeg": 0.0,
+   "outOfBoundsFraction": 0.24574326987471362,
+   "rigid_residual_deg": -14.145922621274433,
+   "methodSpreadDeg": 19.421,
+   "methodCount": 2,
+   "tiltAbsMaxDeg": 14.146,
    "alphaHoleHint": {
-    "magentaInHeadFrac": 0.5349,
-    "largestBlobPx": 31643,
+    "magentaInHeadFrac": 0.6037,
+    "largestBlobPx": 66738,
     "alphaHole": true,
-    "magentaOverallFrac": 0.7409,
+    "magentaOverallFrac": 0.767,
     "evidence": "out/P0_anchors/alpha/c08_d-10_magenta.jpg"
    },
-   "end_to_end_status": "unmeasured"
+   "truthConsistencyDeg": 3.864,
+   "end_to_end_status": "reliability_mismatch",
+   "end_to_end_note": "成片瞳孔测量隐含的输入倾角与独立真值差 3.864°，测量落到异物上，本项残余不可信"
   },
   {
    "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d-3__cn_big_1inch.jpg",

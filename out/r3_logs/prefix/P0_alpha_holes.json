@@ -3,7 +3,7 @@
  "provenance": {
   "codeFingerprint": {
    "files": 103,
-   "fnv1a64": "cd417a4d254ec1c2",
+   "fnv1a64": "0f66aabb3c08105f",
    "blobHashes": {
     "lib/core/api.dart": "a116f65a79cc80ae9a6df23318d6b147f502e198",
     "lib/core/controller.dart": "e93ee6397c70820604575db12ad1ebc9b8b7249c",
@@ -31,7 +31,7 @@
     "lib/core/matting/flutter_decode.dart": "6a312a6dae2d3840aa1e76f8175dabb789bc8280",
     "lib/core/matting/image_header.dart": "d8123916a81dfbcfb71b9def09aead38314d9e34",
     "lib/core/matting/image_ops.dart": "e51f4b35e6d92421120cd204c98d51a73fd89b18",
-    "lib/core/matting/iris_roll.dart": "b31748061f03b6725dbb9080fbc3c488eda16775",
+    "lib/core/matting/iris_roll.dart": "5f65fce144e59cbf3ff51d512b4dd31ff5f5a724",
     "lib/core/matting/matting_engine.dart": "7583483a23ca673b207eff1f3934bc9498abbe91",
     "lib/core/matting/matting_worker.dart": "46b7b58cd405fd6101a92a5826175676aafe738c",
     "lib/core/matting/ort_runtime.dart": "c5a6090e7f213a94004f8f90292c976e02b5e61b",
@@ -109,14 +109,14 @@
     "test/batch/sha256_selftest.dart": "a8f314bdcd1adbb99944d242a757d85f14603377",
     "test/batch/sha256_util.dart": "ef91dedf3af855661102f3c5993b9536f15759fa"
    },
-   "headCommit": "fb2f161a77fcdd3b434da6168522b034f628e484",
+   "headCommit": "6bb1cf3f6f3b9f05fdae5c54f6d367a5f6b72826",
    "allCommitted": true,
    "uncommittedMeasuredFiles": [],
-   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 fb2f161a77fcdd3b434da6168522b034f628e484 的代码。"
+   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 6bb1cf3f6f3b9f05fdae5c54f6d367a5f6b72826 的代码。"
   },
   "codeFingerprintAtEnd": {
    "files": 103,
-   "fnv1a64": "cd417a4d254ec1c2",
+   "fnv1a64": "0f66aabb3c08105f",
    "blobHashes": {
     "lib/core/api.dart": "a116f65a79cc80ae9a6df23318d6b147f502e198",
     "lib/core/controller.dart": "e93ee6397c70820604575db12ad1ebc9b8b7249c",
@@ -144,7 +144,7 @@
     "lib/core/matting/flutter_decode.dart": "6a312a6dae2d3840aa1e76f8175dabb789bc8280",
     "lib/core/matting/image_header.dart": "d8123916a81dfbcfb71b9def09aead38314d9e34",
     "lib/core/matting/image_ops.dart": "e51f4b35e6d92421120cd204c98d51a73fd89b18",
-    "lib/core/matting/iris_roll.dart": "b31748061f03b6725dbb9080fbc3c488eda16775",
+    "lib/core/matting/iris_roll.dart": "5f65fce144e59cbf3ff51d512b4dd31ff5f5a724",
     "lib/core/matting/matting_engine.dart": "7583483a23ca673b207eff1f3934bc9498abbe91",
     "lib/core/matting/matting_worker.dart": "46b7b58cd405fd6101a92a5826175676aafe738c",
     "lib/core/matting/ort_runtime.dart": "c5a6090e7f213a94004f8f90292c976e02b5e61b",
@@ -222,10 +222,10 @@
     "test/batch/sha256_selftest.dart": "a8f314bdcd1adbb99944d242a757d85f14603377",
     "test/batch/sha256_util.dart": "ef91dedf3af855661102f3c5993b9536f15759fa"
    },
-   "headCommit": "fb2f161a77fcdd3b434da6168522b034f628e484",
+   "headCommit": "6bb1cf3f6f3b9f05fdae5c54f6d367a5f6b72826",
    "allCommitted": true,
    "uncommittedMeasuredFiles": [],
-   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 fb2f161a77fcdd3b434da6168522b034f628e484 的代码。"
+   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 6bb1cf3f6f3b9f05fdae5c54f6d367a5f6b72826 的代码。"
   },
   "codeStableDuringRun": true,
   "roundValid": true,

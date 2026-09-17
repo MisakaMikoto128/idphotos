@@ -1,0 +1,54 @@
+pre items=110  post items=110
+key set equal: True
+
+=== 差分条目数: 29 （涉 5 个 id/spec 行）===
+  c06_d+3      cn_big_1inch   rollSource            unavailable ->        pupil
+  c06_d+3      cn_big_1inch   faceRollDeg                0.0000 ->       0.7924  Δ=+0.7924
+  c06_d-3      cn_big_1inch   straightenDeg              0.0000 ->      -5.0383  Δ=-5.0383
+  c06_d-3      cn_big_1inch   primary_tilt_deg          -4.8247 ->       0.2748  Δ=+5.0995
+  c06_d-3      cn_big_1inch   rigid_residual_deg        -4.8247 ->      -4.7635  Δ=+0.0612
+  c06_d-3      cn_big_1inch   truthConsistencyDeg       -0.0950 ->      -0.0330  Δ=+0.0620
+  c06_d-3      cn_big_1inch   methodSpreadDeg            3.1370 ->       1.1080  Δ=-2.0290
+  c06_d-3      cn_big_1inch   end_to_end_status    low_confidence ->           ok
+  c06_d-3      cn_big_1inch   rollSource            unavailable ->        pupil
+  c06_d-3      cn_big_1inch   faceRollDeg                0.0000 ->      -5.0383  Δ=-5.0383
+  c08_d-10     cn_1inch       straightenDeg              0.0000 ->     -17.8222  Δ=-17.8222
+  c08_d-10     cn_1inch       rollSource            unavailable ->        pupil
+  c08_d-10     cn_1inch       faceRollDeg                0.0000 ->     -17.8222  Δ=-17.8222
+  c08_d-10     cn_big_1inch   straightenDeg              0.0000 ->     -17.8222  Δ=-17.8222
+  c08_d-10     cn_big_1inch   primary_tilt_deg           3.8518 ->       3.3345  Δ=-0.5172
+  c08_d-10     cn_big_1inch   rigid_residual_deg         3.8518 ->     -14.4877  Δ=-18.3395
+  c08_d-10     cn_big_1inch   truthConsistencyDeg       21.8620 ->       3.5220  Δ=-18.3400
+  c08_d-10     cn_big_1inch   methodSpreadDeg            2.1530 ->      12.6650  Δ=+10.5120
+  c08_d-10     cn_big_1inch   rollSource            unavailable ->        pupil
+  c08_d-10     cn_big_1inch   faceRollDeg                0.0000 ->     -17.8222  Δ=-17.8222
+  c08_d-10     visa_us        straightenDeg              0.0000 ->     -17.8222  Δ=-17.8222
+  c08_d-10     visa_us        primary_tilt_deg     -14.145922621274433 ->         None
+  c08_d-10     visa_us        rigid_residual_deg   -14.145922621274433 ->         None
+  c08_d-10     visa_us        truthConsistencyDeg         3.864 ->         None
+  c08_d-10     visa_us        methodSpreadDeg            19.421 ->         None
+  c08_d-10     visa_us        methodCount                     2 ->            1
+  c08_d-10     visa_us        end_to_end_status    reliability_mismatch ->   unmeasured
+  c08_d-10     visa_us        rollSource            unavailable ->        pupil
+  c08_d-10     visa_us        faceRollDeg                0.0000 ->     -17.8222  Δ=-17.8222
+
+=== 点名样本（门禁规格 cn_big_1inch）===
+  pre  c06_d-3: truth=-4.73 m1=-4.8247130878563365 straighten=0.0 rigid_residual=-4.8247130878563365 rollSource=unavailable status=low_confidence
+  post c06_d-3: truth=-4.73 m1=0.27478581379482414 straighten=-5.038280217217584 rigid_residual=-4.76349440342276 rollSource=pupil status=ok
+  pre  c08_d-10: truth=-18.01 m1=3.8517803982374024 straighten=0.0 rigid_residual=3.8517803982374024 rollSource=unavailable status=reliability_mismatch
+  post c08_d-10: truth=-18.01 m1=3.3345454333972677 straighten=-17.822220223380846 rigid_residual=-14.48767478998358 rollSource=pupil status=reliability_mismatch
+
+=== pre 无角度 / post 有角度 ===
+  共 0 条
+
+=== summary pre -> post ===
+   composedCount                   110 ->        110
+   primaryCount                    100 ->        100
+   scored                           93 ->         93
+ * primaryAbsMax                 4.825 ->      1.377
+   primaryAbsMedian              0.158 ->      0.158
+ * primaryAbsMean                0.293 ->      0.244
+ * primaryOver1p5           ['c06_d-3'] ->         []
+   unreliableMeasurement    ['c08_d+10', 'c08_d+3', 'c08_d+5', 'c08_d-10', 'c08_d-5', 'p2_d-10'] -> ['c08_d+10', 'c08_d+3', 'c08_d+5', 'c08_d-10', 'c08_d-5', 'p2_d-10']
+ * lowConfidence            ['c01_d+3', 'c01_d+5', 'c01_d-10', 'c01_d-3', 'c01_d-5', 'c01_upright', 'c02_d+10', 'c02_d+3', 'c02_d-10', 'c02_d-3', 'c06', 'c06_d-3', 'c06_d-5', 'c06_upright', 'c07_d-10', 'c11_d-10', 'c12', 'c12_d+3', 'c12_d+5', 'c12_d-10', 'c12_d-5', 'p2_d+5', 'p2_d-3'] -> ['c01_d+3', 'c01_d+5', 'c01_d-10', 'c01_d-3', 'c01_d-5', 'c01_upright', 'c02_d+10', 'c02_d+3', 'c02_d-10', 'c02_d-3', 'c06', 'c06_d-5', 'c06_upright', 'c07_d-10', 'c11_d-10', 'c12', 'c12_d+3', 'c12_d+5', 'c12_d-10', 'c12_d-5', 'p2_d+5', 'p2_d-3']
+   unmeasured               ['c08_upright'] -> ['c08_upright']
