@@ -26,6 +26,7 @@ import 'package:muzhao/core/matting/matting_engine.dart';
 import 'package:muzhao/core/matting/ort_runtime.dart' as ort;
 
 import 'code_fingerprint.dart';
+import 'sha256_util.dart';
 
 void _preloadHostOnnxRuntime() {
   if (!Platform.isWindows) return;
@@ -211,6 +212,13 @@ void main() {
       stdout.writeln(jsonEncode(rec));
     }
 
+    // 先落盘 jsonl 再取摘要再写 summary：摘要必须描述**盘上那份字节**，
+    // 不能描述"我打算写的内容"。
+    final String coverageItemsPath =
+        '$repo${sep}out${sep}P0_coverage_items.jsonl';
+    File(coverageItemsPath).writeAsStringSync('${lines.join('\n')}\n');
+    final String coverageItemsSha256 =
+        sha256Hex(File(coverageItemsPath).readAsBytesSync());
     final fpEnd = codeFingerprint();
     final summary = <String, dynamic>{
       'generatedBy': 'qa-batch test/batch/p0_coverage_test.dart',
@@ -240,13 +248,17 @@ void main() {
       'provenance': <String, Object?>{
         'codeFingerprint': fpStart,
         'codeFingerprintAtEnd': fpEnd,
+        'itemsFile': 'out/P0_coverage_items.jsonl',
+        'itemsSha256': coverageItemsSha256,
+        'itemsBindingNote':
+            '`itemsSha256` 是落盘后对 `out/P0_coverage_items.jsonl` 字节取的摘要。'
+            '该 jsonl **自身不含 provenance**，下游读它时必须拿这个摘要复核 —— '
+            '对不上说明它不属于本次运行，**不得当成当轮数据**。',
         ...roundVerdict(fpStart, fpEnd),
       },
     };
     File('$repo${sep}out${sep}P0_coverage_post.json')
         .writeAsStringSync(const JsonEncoder.withIndent(' ').convert(summary));
-    File('$repo${sep}out${sep}P0_coverage_items.jsonl')
-        .writeAsStringSync('${lines.join('\n')}\n');
     stdout.writeln('SUMMARY ${jsonEncode(summary)}');
   }, timeout: const Timeout(Duration(minutes: 85)));
 }

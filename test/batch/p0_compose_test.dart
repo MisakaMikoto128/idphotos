@@ -30,8 +30,8 @@ import 'package:muzhao/core/matting/matting_engine.dart';
 import 'package:muzhao/core/matting/ort_runtime.dart' as ort;
 
 import 'code_fingerprint.dart';
-import 'p0_cases.dart';
 import 'sha256_util.dart';
+import 'p0_cases.dart';
 
 // ---------------------------------------------------------------------------
 // 溯源：成片数字必须能钉到**具体代码内容**，而不只是 HEAD。
@@ -229,8 +229,13 @@ void main() {
       }
     }
 
-    File('$repo${sep}out${sep}P0_compose_items.jsonl')
-        .writeAsStringSync('${lines.join('\n')}\n');
+    final String itemsPath = '$repo${sep}out${sep}P0_compose_items.jsonl';
+    File(itemsPath).writeAsStringSync('${lines.join('\n')}\n');
+    // 逐行 jsonl 自己没有 provenance，而下游（p0_finalize_v1 的覆盖率违规名单）
+    // 直接读它。**"同一个 run 写的所以应该没问题"是推断，不是记录** ——
+    // 这里把落盘后的字节摘要记进 summary，让那个绑定可被机器核对：
+    // 摘要对不上 ⇒ 这份 jsonl 不是本次跑出来的，整块读数作废。
+    final String itemsSha256 = sha256Hex(File(itemsPath).readAsBytesSync());
     final fpEnd = codeFingerprint();
     final summary = <String, Object?>{
       'generatedBy': 'qa-batch test/batch/p0_compose_test.dart',
@@ -258,6 +263,12 @@ void main() {
             _git(<String>['status', '--porcelain']).replaceAll('\n', ' | '),
         'codeFingerprint': fpStart,
         'codeFingerprintAtEnd': fpEnd,
+        'itemsFile': 'out/P0_compose_items.jsonl',
+        'itemsSha256': itemsSha256,
+        'itemsBindingNote':
+            '`itemsSha256` 是落盘后对 `out/P0_compose_items.jsonl` 字节取的摘要。'
+            '该 jsonl **自身不含 provenance**，下游读它时必须拿这个摘要复核 —— '
+            '对不上说明它不属于本次运行，**不得当成当轮数据**。',
         ...roundVerdict(fpStart, fpEnd),
         'stableNote': '两次指纹不一致 = 本轮数字**失效**（跑的过程中被测代码被改过），'
             '不得据此判定；一致则这些数字可钉到该指纹对应的代码内容上。',
