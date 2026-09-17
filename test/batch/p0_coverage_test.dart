@@ -251,22 +251,36 @@ void main() {
   }, timeout: const Timeout(Duration(minutes: 85)));
 }
 
+/// 取 git 输出；**非 0 退出与起不了进程都返回 `'unknown'`**。
+///
+/// `Process.runSync` 只在**起不了进程**时抛异常；git 能启动但退出码非 0 时它
+/// **不抛**，返回 exitCode≠0 + 空 stdout。若只看 stdout，那种失败会得到 `''`
+/// —— 与"干净"**逐字符相同**，于是"仪表看不见对象"被读成"对象清白"。
+/// 这个形状在本项目已出现三次（`_commit_binding`、`gitBlobHashStrict`、
+/// 以及这里的 `dirty`），所以退出码必须单独查。
+///
+/// 注意 `'unknown'` **不得读成"没有改动"**：来源缺失不等于清白。
+String _git(String arg) {
+  try {
+    final r = Process.runSync('git', <String>['status', '--porcelain', arg]);
+    if (r.exitCode != 0) return 'unknown';
+    return (r.stdout as String).trim().replaceAll('\n', ' | ');
+  } catch (_) {
+    return 'unknown';
+  }
+}
+
 String _gitHead() {
   try {
     final r = Process.runSync('git', <String>['rev-parse', '--short', 'HEAD']);
-    return (r.stdout as String).trim();
+    if (r.exitCode != 0) return 'unknown';
+    final String s = (r.stdout as String).trim();
+    return s.isEmpty ? 'unknown' : s;
   } catch (_) {
     return 'unknown';
   }
 }
 
 /// ml-porting 的估角改动是否还在工作区未提交 —— 覆盖率数字必须能追溯到具体状态。
-String _dirtyMatting() {
-  try {
-    final r = Process.runSync('git',
-        <String>['status', '--porcelain', 'lib/core/matting/']);
-    return (r.stdout as String).trim().replaceAll('\n', ' | ');
-  } catch (_) {
-    return 'unknown';
-  }
-}
+/// 返回值 `''` 才表示干净；`'unknown'` 表示**取不到**，不是"干净"。
+String _dirtyMatting() => _git('lib/core/matting/');
