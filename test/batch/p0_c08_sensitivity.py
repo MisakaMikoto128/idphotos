@@ -16,6 +16,11 @@
     H3 = −9.389  （YuNet 眼线原始读数）
 并回答：**P0.1a / P0.1b / P0.3a / P0.3b / P0.2 里有没有任何一条的判定发生翻转。**
 
+⚠️ 读法（2026-09-17 订正）：**"不翻转"不等于"不受影响"**。P0.2 的判据量是
+`[...straight, ...upright]` 整队的 `max|残余|` 对比 1.5°，而 c08_upright 的残余
+随 c08 真值整体平移——所以正确的说法是"**P0.2 在竞争真值下的通过余量还剩多少**"，
+不是"P0.2 与真值无关"。见 `verdicts()` 里 P0.2 段的订正说明。
+
 为什么线性：门禁的残余定义是 `residual = truth_apply_deg − measured_applied_deg`
 （见 `out/gate_P0_sift_align.json` 的逐条数据与 `gate_P0.dart` 的注释）。
 真值挪 δ，该样本残余**恰好挪 δ**，所以本分析可以精确重算，不需要重跑成片。
@@ -72,13 +77,23 @@ def _intercept(pts):
 
 
 def _delta_of(sid):
-    """夹具 id -> 相对锚点真值的旋转量；锚点本身为 0。"""
+    """夹具 id -> 该样本在假设 t 下的**真实倾角**与 t 的差（即 truth = t_c08 + 返回值）。
+
+    订正（2026-09-17，自查）：初版的 `if tag == "upright": return None` 分支是**死代码**——
+    `"c08_upright"` 里没有 `"_d"`，所以上面的 `if "_d" not in sid: return 0.0` 先返回了，
+    永远走不到那个分支。后果：`apply_hypothesis` 把竖直夹具的 truth 写成了 `t_c08`
+    （H2 下 −6.56°），而它的真实倾角应是 **t_c08 − t_recorded**（H2 下 +1.45°）。
+    这个错值会漏进 P0.3a 的回归（该回归用 (truth, residual) 拟合），污染 H2/H3 的斜率与截距。
+
+    竖直夹具的来历：它是把锚点按**记录的真值** `t_recorded` 反向旋转做出来的，
+    所以其倾角 = t_true − t_recorded。H1 下恰好为 0（自洽），H2 下则是 +1.45°。
+    换句话说，**"这条夹具是不是竖直的"完全取决于 c08 真值**——真值错多少，它就歪多少。
+    """
+    if sid.endswith("_upright"):
+        return -C08_RECORDED          # truth = t_c08 + (-t_recorded) = t_c08 - t_recorded
     if "_d" not in sid:
         return 0.0
-    tag = sid.split("_d")[1]
-    if tag == "upright":      # 合成竖直样本：其"应有 tilt"就是 0，不随假设平移
-        return None
-    return float(tag.replace("+", ""))
+    return float(sid.split("_d")[1].replace("+", ""))
 
 
 def load():
@@ -144,10 +159,8 @@ def apply_hypothesis(samples, t_c08):
         s2 = dict(s)
         if (cid == "c08" or cid.startswith("c08_")) and s["residualBy"] in (
                 "gate_sift_align", "derived_identity"):
-            d = _delta_of(cid)
-            if d is not None:
-                s2["truth"] = t_c08 + d
-                s2["residual"] = s["residual"] + shift
+            s2["truth"] = t_c08 + _delta_of(cid)
+            s2["residual"] = s["residual"] + shift
         out[cid] = s2
     return out
 
@@ -187,15 +200,60 @@ def verdicts(samples):
     p3b = not rbad
     p3b_detail = dict(need=len(rneed), bad=[s["id"] for s in rbad])
 
-    # P0.2
+    # P0.2 —— **判据量是整队 max|残余|，不是只看 rollSource**。
+    #
+    # 订正（2026-09-17，team-lead 指出）：本函数初版写成
+    #     p02 = len(upright) >= 9 and not notp
+    # 理由是错的。`gate_P0.dart:471-481` 的实际判据是：
+    #     cohort = [...straight, ...upright]
+    #     maxAbs = max(|residual| for s in cohort)
+    #     pass = instrumentsOk && cohort.isNotEmpty
+    #            && upright.length >= kUprightSyntheticMin
+    #            && maxAbs <= kResidualMaxDeg && notPupil.isEmpty
+    # 即**残余与来源两半都检**，且残余那一半取的是含 p2 在内的整队最大值。
+    # 初版漏掉了 maxAbs 这一半——这会让本脚本对 P0.2 报出一个比门禁更宽松的判据，
+    # 而"c08 真值变了会怎样"恰恰要靠这一半才看得出来。
+    #
+    # `instrumentsOk` 本脚本不建模（它属于门禁的运行期门），故此处只复算
+    # cohort/maxAbs/notPupil 三项；报告里必须注明这一条未复算。
+    straight_l = [s for s in samples.values() if s["corpus"] == "straight"]
+    cohort02 = straight_l + upright
+    res02 = [abs(s["residual"]) for s in cohort02]
+    max_abs = max(res02) if res02 else float("nan")
+    argmax = (max(cohort02, key=lambda s: abs(s["residual"]))["id"]
+              if cohort02 else None)
     notp = [s for s in upright if s["source"] != "pupil"]
-    p02 = len(upright) >= K_UPRIGHT_MIN and not notp
+    p02 = (cohort02 and len(upright) >= K_UPRIGHT_MIN
+           and max_abs <= K_RESIDUAL_MAX and not notp)
+    p02 = bool(p02)
     return dict(p1a=p1a, p1b=p1b, p3a=p3a, p3b=p3b, p02=p02), dict(
-        p1a=p1a_detail, p1b=p1b_detail, p3a=p3a_detail, p3b=p3b_detail)
+        p1a=p1a_detail, p1b=p1b_detail, p3a=p3a_detail, p3b=p3b_detail,
+        p02=dict(n_cohort=len(cohort02), n_straight=len(straight_l),
+                 n_upright=len(upright), max_abs=max_abs, argmax=argmax,
+                 margin=K_RESIDUAL_MAX - max_abs, bad=[s["id"] for s in notp]))
+
+
+def selfcheck(base):
+    """空变换自检：用**现用真值**跑一遍 `apply_hypothesis`，必须逐字节还原输入。
+
+    这是本模型唯一不依赖真值真伪的检验——若 H1 下都有漂移，那么后面所有
+    "H2 变了多少"的数字都掺着建模误差，不能归因给真值假设。
+    它同时钉住 `_delta_of`：竖直夹具在 H1 下必须算回 0.0（= −t_recorded + t_recorded）。
+    比较用 1e-9 容差而非按位相等——真值是用 `t_c08 + delta` **重算**的，浮点上不保证
+    与 JSON 里解析出来的字面量按位相同（如 −8.01+10 → 1.9900000000000002 vs 1.99）。
+    """
+    same = apply_hypothesis(base, C08_RECORDED)
+    bad = [cid for cid in base
+           if abs(same[cid]["truth"] - base[cid]["truth"]) > 1e-9
+           or abs(same[cid]["residual"] - base[cid]["residual"]) > 1e-9]
+    return bad
 
 
 def main():
     base = load()
+    bad = selfcheck(base)
+    print("空变换自检（H1 应逐条还原）：%s\n"
+          % ("PASS" if not bad else "FAIL %s" % bad[:6]))
     print("样本 %d 条（成片台语料）\n" % len(base))
     results = {}
     for name, t in HYPOTHESES:
@@ -214,7 +272,13 @@ def main():
         print("  P0.3b %s  需摆正 %d 条，其中 unavailable %d %s" % (
             "PASS" if v["p3b"] else "FAIL", d["p3b"]["need"],
             len(d["p3b"]["bad"]), d["p3b"]["bad"] or ""))
-        print("  P0.2  %s" % ("PASS" if v["p02"] else "FAIL"))
+        d2 = d["p02"]
+        print("  P0.2  %s  整队 %d 条（straight %d + upright %d）max|残余| = %.3f"
+              "（%s），余量 %.3f；非 pupil %d %s" % (
+                  "PASS" if v["p02"] else "FAIL", d2["n_cohort"],
+                  d2["n_straight"], d2["n_upright"], d2["max_abs"],
+                  d2["argmax"], d2["margin"], len(d2["bad"]),
+                  d2["bad"] or ""))
         print()
 
     print("=== 翻转检查（相对 H1 现用值）===")
@@ -226,7 +290,13 @@ def main():
         print("  %-16s 翻转的判据：%s" % (name, flips or "无"))
         flipped_any = flipped_any or bool(flips)
     print("\n  结论：%s" % ("有判据随 c08 真值改变" if flipped_any
-                          else "**三条判据均不翻转**（c08 真值取 −8.01/−6.56/−9.389 判定一致）"))
+                          else "**五条判据的 PASS/FAIL 均不翻转**"
+                               "（c08 真值取 −8.01/−6.56/−9.389 判定一致）"))
+    print("  但注意：不翻转 ≠ 不受影响。逐条余量见上，最小余量出现在 P0.2。")
+    print("  H3（YuNet 眼线 −9.389°）是**已知失效**的路径——它的 3.7~6.7° 误差正"
+          "是 P0 事故的根因，\n  故 H3 下的任何变化只作**余量评估**读，"
+          "不得当作'P0.1a 有问题'的证据。")
+    print("  本脚本**未复算** `instrumentsOk`（门禁的运行期门），报告须注明。")
 
     # c08 家族明细
     print("\n=== c08 家族逐条（残余随真值整体平移）===")
