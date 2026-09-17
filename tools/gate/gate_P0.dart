@@ -354,10 +354,16 @@ Map<String, dynamic> _roundState() {
   final RunResult st = _gitSync(<String>[
     'status', '--porcelain', '--untracked-files=all', '--', ...kFreezeScopes,
   ]);
+  // **不要在这里 `trim()` 整行再交给 `_porcelainPath`。**
+  // porcelain 的格式是 `XY<空格>路径`，路径从第 3 个字符起；未暂存修改的
+  // XY 首字符是空格（` M docs/PITFALLS.md`）。先 trim 会把那个前导空格吃掉，
+  // `_porcelainPath` 再 `substring(3)` 就切掉路径首字母 ——
+  // `docs/PITFALLS.md` → `ocs/PITFALLS.md`，与 `kFreezeExemptPath` 永不相等。
+  // 后果：只有 PITFALLS 被改（正是要豁免的那种情形）时 `frozen` 反而为 false，
+  // 整轮作废。这里只**判空**，不改动行本身；路径侧的去空白由 `_porcelainPath` 做。
   final List<String> dirtyAll = st.stdout
       .split('\n')
-      .map((String l) => l.trim())
-      .where((String l) => l.isNotEmpty)
+      .where((String l) => l.trim().isNotEmpty)
       .toList();
   // 唯一豁免：`docs/PITFALLS.md`（见 kFreezeExemptPath）。豁免的条目**照记不误**，
   // 只是不计入"未冻结"——登记而公开，不是隐去。

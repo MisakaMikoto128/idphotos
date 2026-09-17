@@ -72,3 +72,17 @@ integration_test/g4_spotcheck_test.dart
 #    而 `tampered` 要求 `!codeChanged` —— `code=` 过期 ⇒ `codeChanged` 恒真 ⇒ 篡改检测**恒假**。
 #    记错指纹不产生假红，产生的是**假绿**。详见 docs/PITFALLS.md 第六批两条。
 #  · `out/hashes_r2_pretag.txt` —— 因上一项重算，单哈希由 d6707936… 变为 13d2dd76…。
+# 2026-09-17 第四批（门禁自修：r2 作废的两处输入完整性缺陷）：
+#  · tools/gate/gate_P0.dart —— `_roundState()` 原先对 porcelain 行先 `trim()`
+#    再交 `_porcelainPath()`。porcelain 格式是 `XY<空格>路径`，未暂存修改的 XY 首字符
+#    是空格；trim 掉它之后 `substring(3)` 会切掉路径首字母
+#    （` M docs/PITFALLS.md` → `ocs/PITFALLS.md`），`kFreezeExemptPath` 永不命中。
+#    后果：只有 PITFALLS 被改（正是要豁免的情形）时 `frozen` 反为 false，整轮作废。
+#  · tools/gate/provenance.dart —— `_verifyOne()` 原先从指纹块内部读
+#    `roundValid`/`codeStableDuringRun`，但生产侧把它们写在**指纹块的父层**
+#    （`codeFingerprint()` 与 `roundVerdict()` 是两个函数、两张表）。
+#    深了一层 → 永远读到 null → 三份测量产出一律被判「无法自证来源」
+#    → `allBound=false` → **每一轮无条件作废**，与被测代码无关。
+#  两处都只动"输入完整性检查怎么读盘"，**判据、阈值、分母一律未动**。
+#  修复前后脚本 SHA256 见 out/hashes_gatefix_before.txt 与本轮报告。
+#  修后实测：三份产出 103/103 条 blob 与当前树相符、`invalidReasons=[]`。

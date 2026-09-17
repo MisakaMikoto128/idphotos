@@ -243,7 +243,22 @@ OutputBinding _verifyOne({
           '缺这个字段的产出**无法自证属于哪份代码**，不得当作本轮的数');
     } else {
       final Map<String, dynamic> fp = fpRaw.cast<String, dynamic>();
-      roundValid = fp['roundValid'] ?? fp['codeStableDuringRun'];
+      // 开跑↔收尾的一致性旗标写在**指纹块的父层**（`provenance` 或
+      // `summary.provenance`），不在指纹块里：指纹块是
+      // `code_fingerprint.codeFingerprint()` 的返回（files/fnv1a64/blobHashes/
+      // headCommit…），而 `roundVerdict()` 是**另一个函数、另一张表**
+      // （codeStableDuringRun/roundValid/changedFiles/verdict），生产侧把两张表
+      // 并排铺在同一层。所以要从 `pointer` 去掉末段那层取。
+      //
+      // 早先这里读的是 `fp['roundValid']`，深了一层 → 永远 null → 三份测量产出
+      // 一律被判「无法自证来源」→ `allBound=false` → **每一轮都无条件作废**，
+      // 与被测代码无关。修好后同一份产出实测 103/103 条 blob 与当前树相符。
+      final Map<String, dynamic> verdict = pointer.length > 1
+          ? (digJson(doc, pointer.sublist(0, pointer.length - 1)) as Map?)
+                  ?.cast<String, dynamic>() ??
+              <String, dynamic>{}
+          : <String, dynamic>{};
+      roundValid = verdict['roundValid'] ?? verdict['codeStableDuringRun'];
       fnv = fp['fnv1a64'];
       final Object? recRaw = fp['blobHashes'];
       if (recRaw is! Map) {
