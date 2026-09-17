@@ -187,13 +187,24 @@ Win32Window::MessageHandler(HWND hwnd,
       RECT border{0, 0, 0, 0};
       AdjustWindowRectExForDpi(&border, style, FALSE, WS_EX_LEFT,
                                GetDpiForWindow(hwnd));
-      const LONG client_w = (rect->right - rect->left) -
-                            (border.right - border.left);
-      const LONG client_h = (rect->bottom - rect->top) -
-                            (border.bottom - border.top);
+      const LONG bw = border.right - border.left;
+      const LONG bh = border.bottom - border.top;
+      const LONG client_w = (rect->right - rect->left) - bw;
+      const LONG client_h = (rect->bottom - rect->top) - bh;
       const double target = 1080.0 / 2220.0;
-      const LONG new_client_h =
-          static_cast<LONG>(client_w / target + 0.5);
+      LONG new_client_h = static_cast<LONG>(client_w / target + 0.5);
+      // 工作区钳制：推算高度若超出显示器工作区（拖到屏幕底边附近），
+      // 封顶到工作区可用高度，否则窗口被系统顶回屏幕时比例必然失真。
+      const HMONITOR monitor =
+          MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+      MONITORINFO mi{};
+      mi.cbSize = sizeof(mi);
+      if (GetMonitorInfo(monitor, &mi)) {
+        const LONG avail_client_h = (mi.rcWork.bottom - mi.rcWork.top) - bh;
+        if (new_client_h > avail_client_h) {
+          new_client_h = avail_client_h;
+        }
+      }
       const LONG dy = new_client_h - client_h;
       const LONG edge = static_cast<LONG>(wparam);
       if (edge == WMSZ_TOP || edge == WMSZ_TOPLEFT ||
@@ -206,8 +217,10 @@ Win32Window::MessageHandler(HWND hwnd,
     }
     case WM_GETMINMAXINFO: {
       // 最小可用尺寸：规格抽屉与候选卡片的最小可辨识宽高。
+      // x 与 y 取 1080:2220 比例一致的值（810 * 1080/2220 ≈ 394.1），
+      // 避免最小尺寸本身破坏锁定比例。
       auto mmi = reinterpret_cast<MINMAXINFO*>(lparam);
-      mmi->ptMinTrackSize.x = 380;
+      mmi->ptMinTrackSize.x = 395;
       mmi->ptMinTrackSize.y = 810;
       return 0;
     }
@@ -229,12 +242,39 @@ Win32Window::MessageHandler(HWND hwnd,
 
       return 0;
     }
+    case WM_ERASEBKGND: {
+      // letterbox 底色：最大化时 Flutter 视图按比例居中，四周留边
+      // 用 woodDark（docs/DESIGN.md 色卡），不留未绘制区域。
+      HDC dc = reinterpret_cast<HDC>(wparam);
+      RECT rc;
+      GetClientRect(hwnd, &rc);
+      static const HBRUSH kLetterboxBrush =
+          CreateSolidBrush(RGB(0x3E, 0x2A, 0x1B));
+      FillRect(dc, &rc, kLetterboxBrush);
+      return 1;
+    }
     case WM_SIZE: {
       RECT rect = GetClientArea();
       if (child_content_ != nullptr) {
-        // Size and position the child window.
-        MoveWindow(child_content_, rect.left, rect.top, rect.right - rect.left,
-                   rect.bottom - rect.top, TRUE);
+        const LONG cw = rect.right - rect.left;
+        const LONG ch = rect.bottom - rect.top;
+        if (wparam == SIZE_MAXIMIZED && ch > 0 && cw > 0) {
+          // 最大化：屏幕工作区是横的，跟随屏幕必然破坏 1080:2220。
+          // 改为在客户区内居中显示保持比例的最大可用尺寸（letterbox）。
+          const double target = 1080.0 / 2220.0;
+          LONG h = static_cast<LONG>(cw / target + 0.5);
+          LONG w = cw;
+          if (h > ch) {
+            h = ch;
+            w = static_cast<LONG>(ch * target + 0.5);
+          }
+          const LONG x = (cw - w) / 2;
+          const LONG y = (ch - h) / 2;
+          MoveWindow(child_content_, x, y, w, h, TRUE);
+        } else {
+          // Size and position the child window.
+          MoveWindow(child_content_, rect.left, rect.top, cw, ch, TRUE);
+        }
       }
       return 0;
     }

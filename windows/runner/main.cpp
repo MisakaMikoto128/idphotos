@@ -25,8 +25,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 
   FlutterWindow window(project);
+  // 初始客户区即锁定 1080:2220（420 * 2220/1080 = 863.3）：WM_SIZING 只在
+  // 用户拖拽时触发，创建时的尺寸必须自己就落在比例上，不能给 1280x720 横屏。
   Win32Window::Point origin(10, 10);
-  Win32Window::Size size(1280, 720);
+  Win32Window::Size size(420, 863);
   if (!window.Create(L"木照", origin, size)) {
     return EXIT_FAILURE;
   }

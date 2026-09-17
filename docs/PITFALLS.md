@@ -891,3 +891,33 @@
 - Python 脚本里 `sys.stdout = TextIOWrapper(sys.stdout.buffer)` 重定向中文输出，若另一脚本 import 它
   会二次包装，旧 wrapper 被 GC 时连带关闭底层 buffer，报 "I/O operation on closed file"；
   应该用 `sys.stdout.reconfigure(encoding="utf-8")`。
+
+## [windows专员] WM_SIZING 比例锁定的验证三坑：SetWindowPos 不触发、DPI 虚拟化坐标、工作区 clamp 被误判成 bug
+- 现象（2026-09-16）：验证 WM_SIZING 比例锁定时，(1) 用 SetWindowPos 设 1200x900 再读回，
+  比例没锁，差点误判处理器失效；(2) 脚本读到的窗口尺寸和 App 内部日志差 1.25 倍，对不上账；
+  (3) 拖宽到 1085px 时读回比例 0.909，像是处理器没生效。
+- 原因与解法：
+  (1) **WM_SIZING 只在用户交互拖拽时发送**，`SetWindowPos`/`MoveWindow` 等编程式改尺寸
+  根本不走它（走 WM_SIZE）。自动化验证必须用 `SetCursorPos` + `mouse_event` 模拟真实
+  拖拽（抓边框角、分步移动、抬起），否则测的不是同一条代码路径。
+  (2) 验证脚本进程是 DPI-unaware，它的 `SetWindowPos`/`GetWindowRect` 坐标被系统按
+  比例因子（本机 1.25）虚拟化缩放，而 per-monitor aware 的 App 用物理像素——两侧数字
+  差 1.25 倍。**比例（w/h）是无量纲的，不受虚拟化影响**，验证脚本一律只比 ratio，别比
+  绝对像素；如需绝对值，脚本要声明 PerMonitorV2 awareness。
+  (3) 拖宽超出的"比例失真"其实是 WM_SIZING 里**工作区 clamp 在正确工作**：宽度超出
+  "工作区高 × 1080/2220"后推算高度封顶（本机 2048x1280 屏最多约 600 逻辑 px 宽）。
+  判定脚本要保证拖拽幅度留在 clamp 阈值内，否则把设计行为当 FAIL。
+- 附带：C4996 把 `fopen` 当 error（/W3 + WX），临时日志用 `fopen_s`；验证完的临时代码
+  必须删干净再出 release 包（本次日志宏在 release 前删除，release 无残留）。
+
+## [ui-woodcraft] 真机在线时 `dart run tools/gate/capture_shots.dart` 会把截图跑在用户手机上
+- 现象（2026-09-16，阶段 6 收尾重拍样张）：用户 vivo X21A（5bc6e093）插着 USB，
+  `capture_shots.dart` 的 `waitForAdbDeviceOnline` 只认"第一台 `device` 状态的 adb 设备"，
+  不区分模拟器/真机——直接命中真机，违反"真机不要碰"铁律。
+- 解法：实现类 agent 手动重拍时不要用该 runner，自启 AVD
+  （`emulator -avd <id> -no-snapshot-save -no-boot-anim -no-window -gpu guest -feature -Vulkan`）
+  并显式 `flutter drive ... -d emulator-5554`；`_rects.json` 需自行合并两次
+  `build/integration_response_data.json`（main 跑完先另存，small 跑完合并）。
+- 附带：后台方式启动 emulator 时，包一层 `&& emulator ... > log 2>&1` 的 bash 后台任务
+  会在 emulator 被杀后报 exit 127，属正常收尾，不是启动失败；判断依据看 `adb devices`
+  是否出现 `emulator-*`，别看 wrapper 退出码。
