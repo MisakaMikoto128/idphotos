@@ -29,6 +29,15 @@
 H2 −0.0247/0.3653 → **−0.0223/0.3730**，H3 0.0076/0.2179 → **0.0039/0.2083**。
 H1 修完**更贴门禁**，这是修对了的旁证——修之前是"更远离门禁却无人察觉"。
 
+⚠️ **行选取规则也订正过一次**（team-lead 2026-09-17 指出）。成片记录的行键是
+**`(id, specId)`**，不是 `id`：110 行 / 100 个 id，5 个 id（`p1`/`p2`/`p1_d-10`/
+`p1_upright`/`c08_d-10`）各按 spec 展开成 `cn_1inch`/`cn_big_1inch`/`visa_us` 三行。
+初版写的是 `{i["id"]: i for i in items}`——**最后一行胜出，静默丢 10 行**。
+没出事**纯属侥幸**：那 5 个 id 的三行在 truth/rollSource/straightenDeg 上完全一致。
+现按门禁的口径（`gate_P0.dart:318` 是按 spec 过滤，不是按 id 合并）先定 spec 再选行，
+spec 从**量测文件自带的 specId** 解出（不写死），并加守卫：过滤后仍有重复 id 就抛错。
+**教训**：按 id 单独去重/计数的消费方都会数错——这与"引用会过期的 id 清单"是同一类错。
+
 ════════════════════════════════════════════════════════════════════════════
 **未自证清单**（team-lead 2026-09-17 要求逐项交代；凡不在此列的，都别当成已验过）
 
@@ -181,6 +190,11 @@ def gate_revision(path=GATE_SRC):
                 head_blob=(head_blob or "")[:12], head_commit=head_commit)
 
 
+# `load()` 的元信息（成片规格、行数账）。放模块级而不是塞进样本表里当一个
+# 保留键——保留键会污染每一次对样本表的迭代与计数，正是本文件反复在批的毛病。
+LOAD_META = {}
+
+
 _C = load_constants()
 K_RESIDUAL_MAX = _C["K_RESIDUAL_MAX"]              # |residual| 上限
 K_RESIDUAL_MEDIAN_MAX = _C["K_RESIDUAL_MEDIAN_MAX"]  # 中位残余上限
@@ -308,9 +322,38 @@ def load():
     sift = {r["id"]: r for r in json.load(
         open(os.path.join(L.REPO, "out", "gate_P0_sift_align.json"),
              encoding="utf-8"))["rows"]}
-    comp = {i["id"]: i for i in json.load(
-        open(os.path.join(L.REPO, "out", "P0_output_residual.json"),
-             encoding="utf-8"))["items"]}
+
+    # 成片记录的行键是 **(id, specId)**，不是 id：110 行 / 100 个 id，
+    # 有 5 个 id 各按 spec 展开成 3 行（p1 / p2 / p1_d-10 / p1_upright / c08_d-10，
+    # specId 为 cn_1inch / cn_big_1inch / visa_us）。**按 id 单独去重会静默丢 10 行。**
+    #
+    # 门禁的口径（`gate_P0.dart:318`）是**按 spec 过滤**，不是按 id 合并：
+    #     if (inputs['spec'] != null && c['specId'] != inputs['spec']) continue;
+    # 所以这里照它的口径来——先定 spec，再选行，最后才按 id 建表。
+    #
+    # 我初版写成 `{i["id"]: i for i in items}`（最后一行胜出，即 visa_us），
+    # 之所以没出事纯属侥幸：那 5 个 id 的三行在 truth/rollSource/straightenDeg
+    # 上**完全一致**。值一旦按 spec 分化，它就会静默取错行。
+    #
+    # spec 不写死，从**量测文件自己带的 specId** 解出（数据来源，不是我的记忆）；
+    # 不唯一就抛错，不猜。
+    spec_ids = sorted({r["specId"] for r in eyeline.values() if r.get("specId")})
+    if len(spec_ids) != 1:
+        raise RuntimeError(
+            "量测文件的 specId 不唯一（%s），无法确定成片规格，拒绝猜测" % spec_ids)
+    spec = spec_ids[0]
+
+    items_all = json.load(open(
+        os.path.join(L.REPO, "out", "P0_output_residual.json"),
+        encoding="utf-8"))["items"]
+    comp_list = [c for c in items_all if c.get("specId") == spec]
+    comp = {c["id"]: c for c in comp_list}
+    if len(comp) != len(comp_list):
+        raise RuntimeError(
+            "按 specId=%s 过滤后仍有重复 id（%d 行 -> %d 个 id），"
+            "行选取规则与门禁口径不一致" % (spec, len(comp_list), len(comp)))
+    LOAD_META.update(spec=spec, rows_in_file=len(items_all),
+                     rows_at_spec=len(comp_list), unique_ids=len(comp))
 
     out = {}
     for cid, c in comp.items():
@@ -486,6 +529,23 @@ def main():
     print("空变换自检（H1 应逐条还原）：%s\n"
           % ("PASS" if not bad else "FAIL %s" % bad[:6]))
     print("样本 %d 条（成片台语料）\n" % len(base))
+
+    # 与 gatekeeper 的握手：**先对①，再对②③**（team-lead 2026-09-17 定的顺序）。
+    # ① 对不上 = 谓词/行选取规则没对齐，此时比 ②③ 等于比两个不同的东西。
+    # 谓词钉的是 `corpus=anchor && rollSource=pupil`，id 从**当轮记录**解出，
+    # 不跨轮沿用——r1 的 id 清单在 c11 由 unavailable 翻成 pupil 后就会过期。
+    co0 = [s for s in base.values()
+           if s["corpus"] == "anchor" and s["source"] == "pupil"]
+    ids0 = sorted(s["id"] for s in co0)
+    print("P0.1a 队列握手（对照用；先对①再对②③）：")
+    print("  ① id 序列: %s" % " ".join(ids0))
+    print("  ② 行数: %d    ③ 不同照片数: %d"
+          % (len(ids0), count_distinct_photos(ids0)))
+    print("  行选取规则: specId == %s（取自量测文件自带的 specId）；"
+          "账：文件 %d 行 → 该规格 %d 行 → %d 个 id"
+          % (LOAD_META["spec"], LOAD_META["rows_in_file"],
+             LOAD_META["rows_at_spec"], LOAD_META["unique_ids"]))
+    print()
     results = {}
     for name, t in HYPOTHESES:
         v, d = verdicts(apply_hypothesis(base, t))
