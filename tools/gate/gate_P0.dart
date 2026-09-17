@@ -16,8 +16,16 @@
 //
 // 运行（项目根目录）：
 // ```
-// dart run tools/gate/gate_P0.dart --round 1
+// dart run tools/gate/gate_P0.dart
 // ```
+// **轮次号自动推**（`nextRound()`：1 + `out/` 下已有的最大轮次，md/json 两种产物都算）。
+// 需要指定时用 `--round N`；输出默认落在 `out/gate_P0_r<N>.json`，
+// 报告固定写 `out/GATE_P0_r<N>.md`。
+//
+// 注意：`out/` 下**不要**留测试性的 `GATE_P0_r<N>.md` / `gate_P0_r<N>.json` ——
+// `nextRound()` 取最大值，一个残留的 r99 会把真正的下一轮顶到 100。
+// `--reuse` 只跳过两条量具自检，**不**跳过测量与 dev_selfcheck，不是"快速干跑"。
+//
 // 阈值全部抄自 docs/ACCEPTANCE.md；本文件里的数字若与 ACCEPTANCE 不符，
 // 以 ACCEPTANCE 为准并视为 gatekeeper 的 bug。
 
