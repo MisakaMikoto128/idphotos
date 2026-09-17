@@ -336,3 +336,13 @@ body {
   .spec-table { font-size: 14px; }
   .spec-table th, .spec-table td { padding: 8px 10px; }
 }
+
+/* 顶栏 GitHub 仓库链接（阶段 6：开源项目要有显眼的仓库入口） */
+.nav-gh {
+  display: inline-flex;
+  align-items: center;
+  color: var(--paper, #F4E9D6);
+  opacity: .85;
+  transition: opacity .18s ease, color .18s ease;
+}
+.nav-gh:hover { opacity: 1; color: var(--brass, #B08D3F); }
