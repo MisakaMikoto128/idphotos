@@ -47,12 +47,38 @@
 |---|---|---|---|---|
 | P0.1a 锚点端到端残余 | 12 | 0 | absMax 0.575 / absMed 0.145 | 0 |
 | P0.1b 锚点条件覆盖率 | 8 | 0 | — | 0 |
-| P0.2 竖直合成残余 | 1 | 0 | absMax 0.21 | 0 |
+| P0.2 竖直残余（`p2` + 9 `uprightSynthetic`） | **10** | 0（1 条 notScorable，已单列于 §2.1） | 引擎 `output_tilt` 残余 absMax **0.290**（`c10_upright`；`p2` 0.210） | 0 |
 | P0.3a 瞳孔夹具回归 | 70 | — | — | 0 |
 | **P0.3b 夹具条件覆盖率** | **67** | **2** | — | **2：`c06_d-3`、`c08_d-10`**（`c06_d+3` 走 nearZeroExempt） |
 | P0.4 滚转来源分布 | — | 4 | — | — |
 
 分母口径：锚点栏原始 13 条 − `c03`/`c04` 真重复 = **11 张不同照片**；P0.3b 分母 67 = 78 夹具 − 11 条 `|expectedTiltDeg| ≤ 1.5` 豁免。
+
+### 2.1 P0.2 逐条清单（分母 10，按 ACCEPTANCE:105 不得有样本静默消失）
+
+构成为 `ACCEPTANCE.md:73` 写死的 **10 条** = 用户 `2.jpg`（即 `p2`）1 条 + 合成竖直 9 条。逐条列出，残余 = 引擎 `output_tilt_deg` 与「摆正后应为 0」之差：
+
+| id | 引擎 `output_tilt_deg` | 残余 |
+|---|---|---|
+| `p2`（用户 `2.jpg`，真值 −0.200） | −0.2099 | **0.210** |
+| `p1_upright` | 0.0467 | 0.047 |
+| `c01_upright` | −0.0817 | 0.082 |
+| `c03_upright` | −0.2527 | 0.253 |
+| `c04_upright` | −0.2438 | 0.244 |
+| `c05_upright` | −0.0421 | 0.042 |
+| `c06_upright` | −0.0557 | 0.056 |
+| `c08_upright` | **null** | **notScorable**（见下） |
+| `c10_upright` | 0.2899 | **0.290 ← 最大** |
+| `c12_upright` | −0.1285 | 0.128 |
+
+`c08_upright` 单列，不静默消失：`end_to_end.output_tilt_deg = null`，原因是 `m1_pupil: {error: "no_pair"}`（`m2_radon_yunet` 给出 16.0 的越界值）。故可计分 9 条，最大残余 **0.290**。10 条全部 ≤1.5°，P0.2 无违规。
+
+**口径对齐（防止误读）**：gatekeeper 的 `out/gate_P0_r2.json` 里 P0.2 记的是「max|残余| = 0.637」，与上表**不是一个量**，请勿混用：
+
+- `0.6365935759634865` 在本报告可追溯的**唯一**出处是 `out/P0_truth.json` 的 `anchors[4].end_to_end.output_tilt_by_method.m3_haar_eyeline` —— 它是**某条锚点**的一个**按方法（Haar 眼线）**的倾角读数，**不是**竖直样本的残余，也**不是** `c05_upright`。
+- `c05_upright` 的引擎残余是 **0.042**（上表），是 9 条里**最小**之一；其 `m3_haar_eyeline` 为 −0.659、`measuredTiltDeg.m3_haar_eyeline` 为 0.616 —— 三个读法都对不上 0.637。
+- 因此 **0.637 不能作为 P0.2 的上界**写进产物。本表采用引擎 `output_tilt` 口径（与 P0.1a/P0.3b 同一量具），上界为 **0.290**。若 gatekeeper 的 0.637 另有其源（如其 Haar 量具在 10 条上的独立读数），**请给出该读数的 id 与字段**，我再按你的口径核；在核清之前本文件不用这个数。
+- 顺带一条待核：gatekeeper 称「`c08_upright` 由 SIFT 兜底」，但盘上该条 `m1_pupil` 为 `no_pair`、`m1h_pupil_haarseed` 与 `m3_haar_eyeline` 均为 `null` —— **未见 SIFT 兜底生效**。是兜底没触发，还是兜底写在别处（哪一字段）？请指认字段，我复核。
 
 端到端覆盖率（`P0_coverage_post.json`，spec `cn_big_1inch` 390×567）：总 188，产出 **188/188**，faceDetected 122，noFace 53，rejected 13，**crash 0**。滚转来源：pupil 118 / none 66 / unavailable 4。
 
