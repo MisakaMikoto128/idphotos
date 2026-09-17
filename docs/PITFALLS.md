@@ -2248,3 +2248,26 @@ invalidReasons(): 只有 if (pin.tampered) 才作废本轮   （provenance.dart:
 "只在**没人需要检测**的时候才可接受"。凡是"某字段不参与判定"的论证，
 都要同时回答**"那它参与什么"** —— 只回答"它不会造成假红"是不够的，
 因为失效的检测**从不报假红，它报的是没看见**。
+
+## [qa-batch] `git commit` 不带 pathspec 提交整个索引：并行时会卷走别人的 staged 内容
+
+本仓库多 agent 并行，`git commit`（不带 pathspec）提交的是**整个索引**。别人 `M `
+（已 staged）的改动会被顺手卷进你的提交，且**不报错**。实例：qa-batch 提交自己 2 个
+`test/batch/` 文件时，把 ml-porting 已 staged 的 3 个 `lib/core/matting/*.dart`、一个
+staged 删除（`native/bench/iris_order_control_test.dart`）、以及另一个 bench 文件的
+staged 部分一并提交（`b402eee`，7 files，+66 −503）。
+
+三条规矩：
+
+1. 提交前看 staged 集（`git status --porcelain` **首列**非空 = 已 staged），一律**带
+   pathspec**：`git commit -m "…" -- <file>…`。
+2. **pathspec 隔离不了同一文件里别人的未提交行**——`git commit -- <file>` 用的是该路径的
+   **工作区内容**。提交共用文件（本文件就是）前先跑 `git diff -- <file>`，确认**整个 diff
+   都是自己的**；文件级状态看不出来。多人共写的文件必须**串行**：前一个人提交完，后一个
+   人再追加。
+3. **误提交后的恢复**：`git reset --soft HEAD~1` —— 索引与工作区**一字不动**，别人的 staged
+   内容原样留在索引里，无内容丢失。比 `--mixed`/`--hard` 安全，更比重写历史安全（重写历史
+   是本项目红线，且会波及并行 agent）。随后用带 pathspec 的 `git commit` 重做自己那一次。
+
+可核事实：`b402eee` 已不在可达历史（`git merge-base --is-ancestor b402eee HEAD` 为假、
+`git for-each-ref --contains b402eee` 空），未做任何历史重写。
