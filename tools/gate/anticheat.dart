@@ -344,6 +344,47 @@ Future<Map<String, dynamic>> scanDir(
   };
 }
 
+/// 条款 3 / 条款 5 扫描的**区域表**。三处扫描循环共用这一份。
+///
+/// 为什么必须是**一个**常量而不是三处各写一遍字面量：三份列表只要有一次不同步，
+/// 就会得到"条款 3 扫了 A 区域、条款 5 漏了 A 区域"这种**没有任何人会发现**的
+/// 覆盖缺口 —— 报告里两条都写"命中 0"，读起来完全健康。本项目已经栽过三次
+/// "判据是条款的严格子集"（`lib` 域 29 vs 101、`files` 计数相等而集合不同、
+/// 扫描范围漏掉 `tools/gate`），这是把那个形状从"人记得同步"变成"机器保证同步"。
+const List<String> kScanRoots = <String>[
+  'lib',
+  'test',
+  'tools/gate',
+  'integration_test',
+];
+
+/// **刻意不扫**的区域，连同理由。**每轮原样打印**（见 `scanRootsMdSection`）。
+///
+/// 这一节存在的理由与 `kTruthLeafExcludedPrefixes` 完全相同：
+/// 一份扫描报告如果只写"我扫了什么"，读者就分不清"这个区域扫过、0 命中"
+/// 与"这个区域根本没进扫描范围"。**两者的报告文本一模一样，而含义相反。**
+///
+/// `native/` 是 2026-09-17 主会话明确**收回**的一条：曾提出把它纳入条款 5，
+/// 后裁定不纳入（理由见下）。收回这件事必须留在表里 —— 否则下一轮又会有人
+/// 提"`native/` 好像没扫"，然后要么重提一遍、要么被当成疏漏补进去。
+const Map<String, String> kScanRootsExcluded = <String, String>{
+  'native': '主会话 2026-09-17 裁定**不纳入**条款 5。它是 ml-porting 的'
+      '基准/对照试验目录（`native/bench/`），不是交付代码：不进 App、不进测量链。'
+      '其中 `iris_order_control_test.dart` 刻意保留一个"已知会变红"的正向对照，'
+      '那处若被条款 5 扫到会被判违规，而它恰恰是证据本身。'
+      '**注意这不等价于"native/ 干净"** —— 它意味着本门禁对它没有读数。',
+  'android': 'release 的势力范围（构建/权限/签名），条款 3/5 不覆盖；'
+      '它的风险面（联网权限、SDK 依赖）由条款与 `/security-review` 覆盖，'
+      '不由源码扫描覆盖。',
+  'ios': '本阶段不打包（开发机无 Xcode，见 CLAUDE.md §2.5）；同样不在扫描范围内。',
+  'assets': '模型/材质/字体，非源码；无 `skip:`/`catch` 可扫。',
+  'out': '共享输出目录，**每轮重生成**。扫它等于把上一轮的产物当本轮的证据，'
+      '而且 `out/P0_selftest_tmp/` 里是源码的完整副本（会双倍计数）。',
+  'docs': '文档，非源码。`docs/ACCEPTANCE.md` 与 `docs/RUBRIC.md` 由条款 1 的'
+      'diff 与条款 2 的 SHA256 两条独立通道保护。',
+  'store': 'store-assets 的势力范围，非交付代码。',
+};
+
 /// 把「注释」与「字符串字面量」的**内容**替换成空格，长度与换行保持不变。
 ///
 /// 目的：让"找 `catch` 并配平括号"只看到**真正的代码**。不这么做的话，
@@ -754,7 +795,7 @@ Future<Map<String, dynamic>> patrol({
   // 且互相把对方的条目算进自己的命中数（r1 再生成时就踩了这个）。
   final Map<String, dynamic> skipScans = <String, dynamic>{};
   final Map<String, List<String>> skipHits = <String, List<String>>{};
-  for (final String dir in <String>['lib', 'test', 'tools/gate', 'integration_test']) {
+  for (final String dir in kScanRoots) {
     final Map<String, dynamic> s = await scanDir(
       dir,
       pattern: RegExp(r'skip:|@Skip|@skip'),
@@ -782,7 +823,7 @@ Future<Map<String, dynamic>> patrol({
   // 条款 3 的**第三款**「注释掉的断言」：直接扫，不靠 diff 兜。
   final Map<String, dynamic> assertScans = <String, dynamic>{};
   final Map<String, List<String>> assertHits = <String, List<String>>{};
-  for (final String dir in <String>['lib', 'test', 'tools/gate', 'integration_test']) {
+  for (final String dir in kScanRoots) {
     final Map<String, dynamic> s = await scanCommentedAssertions(dir);
     assertScans['commented_assertion:$dir'] = s;
     if (s['undecidable'] == true) undecidable.add('条款 3(注释掉的断言) @ $dir');
@@ -842,7 +883,7 @@ Future<Map<String, dynamic>> patrol({
   final Map<String, dynamic> catchScans = <String, dynamic>{};
   final List<String> catchBare = <String>[];
   final List<String> catchCommented = <String>[];
-  for (final String dir in <String>['lib', 'test', 'tools/gate', 'integration_test']) {
+  for (final String dir in kScanRoots) {
     final Map<String, dynamic> s = await scanEmptyCatches(dir);
     catchScans['catch:$dir'] = s;
     if (s['undecidable'] == true) undecidable.add('条款 5 @ $dir');
@@ -929,6 +970,14 @@ Future<Map<String, dynamic>> patrol({
     }
   }
   evidence['hash_diffs'] = hashDiffs;
+
+  // ---- 扫描区域表：**每轮原样带出来** ----
+  //
+  // 只报"命中多少"是不够的：一个区域没进扫描范围，与一个区域扫过且 0 命中，
+  // 在报告里长得一模一样。把区域表（含**没扫的**与理由）一路带到摘要里，
+  // 读的人才能分辨这两件事。
+  evidence['scan_roots'] = kScanRoots;
+  evidence['scan_roots_excluded'] = kScanRootsExcluded;
 
   // ---- 条款 2 补：判据的**输入**（真值文件）不许被改 ----
   //

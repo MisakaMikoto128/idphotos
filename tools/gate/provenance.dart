@@ -46,7 +46,29 @@ const List<String> kFingerprintRequiredDirs = <String>['lib', 'test/batch'];
 const Set<String> kFingerprintSourceExt = <String>{'.dart', '.py'};
 
 /// 量具自检的标定靶（`p0_eyeline.py selftest` / `p0_rigid_check.py selftest` 的 `--image`）。
-const String kSelfcheckImagePath = 'out/P0_anchors/composed/c01__cn_big_1inch.jpg';
+///
+/// **必须是 `test/` 下的冻结夹具源，不能是 `out/P0_anchors/composed/` 的成片。**
+/// 那个目录是**可再生的混合态**（2026-09-17 实测只剩 93/110：一次脏树轮的覆盖
+/// 把 17 张顶掉了），把量具的自证挂在一张随时可能不在的成片上，
+/// "量具没自证"与"量具不准"会报成同一个结果。
+/// 同理：不要把任何成片的**字节哈希**钉成冻结基准。
+const String kSelfcheckImagePath = 'test/golden/src/g01.jpg';
+
+/// 标定靶**换对象**的登记簿。键 `旧图 -> 新图`，值 = 理由（含日期与裁定人）。
+///
+/// 与判据分母那根钉同一个道理：内容钉只对**某一个文件**有意义。换了靶子而不换钉，
+/// 唯一的症状是"内容变了"——而这正是 `tampered` 的判据，会报成"有人换过这张图"。
+/// 一个看起来像篡改、实际只是换了靶的假阳性，比漏报更贵：它会烧掉整轮预算。
+///
+/// 所以换靶要同时满足：变更在代码里（受条款 2 的 SHA256 保护）**且**这一对在
+/// 下面登记过理由。没登记 → 照旧按内容变处理（即 `tampered` 生效）。
+/// 登记过 → 重钉并原样印进报告，**不判违规**：换靶本身不改变任何一份测量，
+/// 真正约束标定靶的是条款 1 的 `test/` 冻结与这张图在 git 里的历史。
+const Map<String, String> kSelfcheckRetargetLedger = <String, String>{
+  'out/P0_anchors/composed/c01__cn_big_1inch.jpg -> $kSelfcheckImagePath':
+      '2026-09-17 主会话裁定：标定靶改钉 `test/` 下的冻结夹具源。'
+          '理由：原靶在可再生的 `out/P0_anchors/composed/` 里，已被一次脏树轮覆盖。',
+};
 
 /// 标定靶的内容钉。**首行 `sha256=<哈希>`，随后 `image=<路径>`**。
 const String kSelfcheckImagePinPath = 'out/hashes_P0_selftest_image.txt';
@@ -363,6 +385,11 @@ class SelfcheckPin {
   /// 本轮看到的代码指纹摘要。
   final String? currentCode;
 
+  /// 钉里记的标定靶**换成了本轮的靶**（且已在 `kSelfcheckRetargetLedger` 登记）。
+  /// 为真时 `changed` / `tampered` 一律不成立 —— 比的是两份**不同文件**的哈希，
+  /// 那种"不一致"没有任何证据力。
+  final bool retargeted;
+
   SelfcheckPin({
     required this.path,
     required this.fileExists,
@@ -372,10 +399,13 @@ class SelfcheckPin {
     required this.pinnedImage,
     this.pinnedCode,
     this.currentCode,
+    this.retargeted = false,
   });
 
-  /// 内容变了。
+  /// 内容变了。**换靶时恒为假** —— 换了靶子还按"内容变了"判，就是在拿
+  /// 两份不同文件的哈希做比较，结论只能是噪声。
   bool get changed =>
+      !retargeted &&
       !baselineEstablished &&
       pinnedHash != null &&
       currentHash != null &&
@@ -394,6 +424,12 @@ class SelfcheckPin {
   String describe() {
     if (!fileExists) {
       return '$path **不存在**，无法钉住（本轮量具自检会因此失败）';
+    }
+    if (retargeted) {
+      return '标定靶**换过**：钉里记的是 `$pinnedImage`，本轮指向 `$path`'
+          '（已在 `kSelfcheckRetargetLedger` 登记）。'
+          '内容钉已按新靶重钉 sha256=${_short(currentHash)}；'
+          '**本轮不作"内容变了"的判定**——两份不同文件的哈希没有可比性。';
     }
     if (baselineEstablished) {
       return '$path 首轮建立内容钉 sha256=${_short(currentHash)}'
@@ -491,6 +527,9 @@ SelfcheckPin pinSelfcheckImage({
       pinnedCode = v.isEmpty ? null : v;
     }
   }
+  final bool retargeted = pinnedImage != null &&
+      pinnedImage != kSelfcheckImagePath &&
+      kSelfcheckRetargetLedger.containsKey('$pinnedImage -> $kSelfcheckImagePath');
   final SelfcheckPin out = SelfcheckPin(
     path: kSelfcheckImagePath,
     fileExists: f.existsSync(),
@@ -500,7 +539,13 @@ SelfcheckPin pinSelfcheckImage({
     pinnedImage: pinnedImage,
     pinnedCode: pinnedCode,
     currentCode: codeDigest,
+    retargeted: retargeted,
   );
+  // 换靶：钉记的是**另一张图**的哈希，比下去只会得到"内容变了"这个假阳性。
+  // 只认登记过的那一对（未登记的一对 `retargeted` 为假，照旧走内容变/被换的判定）。
+  if (retargeted && cur != null) {
+    write(cur, codeDigest);
+  }
   // 什么时候前移这根钉：
   //   · **只在 `codeBinds` 时**。只有测量产出确实来自当前代码，才能断定标定靶
   //     也是当前代码产出的。产出绑不上时，盘上的标定靶是**上一版代码**留下的，
@@ -620,6 +665,8 @@ class ProvenanceReport {
           'pinnedHash': pin.pinnedHash,
           'pinnedCode': pin.pinnedCode,
           'currentCode': pin.currentCode,
+          'pinnedImage': pin.pinnedImage,
+          'retargeted': pin.retargeted,
           'changed': pin.changed,
           'tampered': pin.tampered,
           'describe': pin.describe(),
@@ -687,14 +734,24 @@ String provenanceMdSection(Map<String, dynamic>? pv) {
       ((pv['selfcheckPin'] as Map?) ?? <String, dynamic>{}).cast<String, dynamic>();
   b.writeln('- **量具标定靶**（`tools/gate/p0_eyeline.py selftest` 注入已知角用的那张图，'
       '`${pin['path']}`）：${pin['describe']}。');
-  b.writeln('  - 该文件 **untracked 且被 `.gitignore` 忽略**，`git diff` 与逐轮哈希基线'
-      '两条路都堵死，所以它的绑定只能靠内容钉。钉里同时记「当时是哪份代码」'
-      '（代码摘要），因为只钉内容的话，代码一改、产物跟着重生成，读数天天变，'
-      '这个钉会退化成噪声；配上代码摘要才能把「换份代码重跑」（预期）与'
-      '「代码没动但文件被换」（不允许）分开。');
+  b.writeln('  - 标定靶是 `test/` 下的**冻结夹具源**（入库、被条款 1 的 `test/` 冻结'
+      '与 git 历史双重覆盖）——**不是** `out/P0_anchors/composed/` 的成片。'
+      '后者是可再生的混合态：2026-09-17 实测只剩 93/110（一次脏树轮的覆盖顶掉了 17 张）。'
+      '把量具的自证挂在一张随时可能不在的成片上，「量具没自证」与「量具不准」'
+      '会报成同一个结果。');
+  b.writeln('  - 钉里同时记「当时是哪份代码」（代码摘要）：只钉内容的话，代码一改、'
+      '产物跟着重生成，读数天天变，这个钉会退化成噪声；配上代码摘要才能把'
+      '「换份代码重跑」（预期）与「代码没动但文件被换」（不允许）分开。');
   b.writeln('  - **重钉只发生在前一条成立时**（测量产出确实绑上了当前代码）；'
       '产出绑不上时盘上的标定靶是**上一版代码**留下的，把它钉到当前代码摘要上'
       '就是就地洗白，下一轮再也看不见。');
+  if (pin['retargeted'] == true) {
+    b.writeln('  - **本轮标定靶换过对象**：钉里记的是 `${pin['pinnedImage']}`，'
+        '本轮指向 `${pin['path']}`（已在 `kSelfcheckRetargetLedger` 登记）。'
+        '内容钉已按新靶重钉，**本轮不作「内容变了」的判定** ——'
+        '两份**不同文件**的哈希做比较，那个"不一致"没有任何证据力，'
+        '只会报成一次看起来像篡改的假阳性。');
+  }
   final List<dynamic> reasons = pv['reasons'] as List<dynamic>? ?? <dynamic>[];
   if (reasons.isEmpty) {
     b.writeln('- 结论：**绑定成立**，本轮读数可用于判人。');

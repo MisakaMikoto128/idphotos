@@ -45,3 +45,30 @@ tools/gate/gate_G5.dart
 # 而"无法解释"与"有问题"在报告里看起来是一样的。
 integration_test/g4_memcheck_test.dart
 integration_test/g4_spotcheck_test.dart
+# 2026-09-17 第五批（主会话裁定的 pre-tag 两件 + 四项收尾）：
+#  · gate_P0.dart —— 内容钉从生成的 `out/P0_truth.json` 改钉手写的
+#    `out/P0_truth_v0.json`；新增 `denominatorAgreement`（生成件与手写分母逐条
+#    相等）与 `evidenceProvenanceCheck`（溯源块 sourceSha256 对盘上产物）；
+#    基线戳新增 `pin=` / `retarget=` 两行（换钉必须登记才生效）；
+#    `nextRound()` 认回无轮次号的 `out/gate_P0.json`（第 1 轮的另一个名字）；
+#    每轮打印扫描根 + 逐区域命中数（含 0 与"无记录"）与条款 1 的执行史附注。
+#  · anticheat.dart —— 三处写死的扫描根收敛成 `kScanRoots`，并显式登记
+#    **未扫**的区域及理由（`native/` 不在条款 5 范围内，这是主会话的裁定，
+#    连同"曾要求加、后撤回"一起记在 `kScanRootsExcluded` 里，防止以后被"再修一次"）。
+#  · provenance.dart —— 自测图从已不存在的
+#    `out/P0_anchors/composed/c01__cn_big_1inch.jpg` 换成现存的
+#    `test/golden/src/g01.jpg`，并登记换图记录（`kSelfcheckRetargetLedger`）。
+#  · 上述三个 test/gate 文件 —— 对应的正负对照（P'/Q'/R'…AM，另加 Y2/Z2）。
+#  · docs/PITFALLS.md —— 追加三条（只追加，未删改他人条目）。
+# 另：探针脚本在真实仓库上跑了一次 `provenanceReport()`，因此
+# `out/hashes_P0_selftest_image.txt` 是**本轮新生成**的（原文件不存在，
+# 不是在旧文件上覆盖）。它随后入库为自测图内容钉 —— 记在这里，
+# 免得下一轮把它当成"来源不明的改动"。
+# 2026-09-17 第六批（tag 前收口）：
+#  · `out/hashes_P0_selftest_image.txt` —— 建立时记的 `code=09cfed7f071282f8` 已过期，
+#    入库前重新钉：内容哈希未变（sha256=25b14d07…，仍是 test/golden/src/g01.jpg），
+#    只把 `code=` 更新为**入库时的**当前代码指纹 `0f66aabb3c08105f`（103 文件，lib/ + test/batch/）。
+#    为什么必须更新而不是"标注一下旧的"：`provenance.dart:614` 只在 `pin.tampered` 时作废本轮，
+#    而 `tampered` 要求 `!codeChanged` —— `code=` 过期 ⇒ `codeChanged` 恒真 ⇒ 篡改检测**恒假**。
+#    记错指纹不产生假红，产生的是**假绿**。详见 docs/PITFALLS.md 第六批两条。
+#  · `out/hashes_r2_pretag.txt` —— 因上一项重算，单哈希由 d6707936… 变为 13d2dd76…。

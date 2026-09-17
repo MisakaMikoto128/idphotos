@@ -32,7 +32,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'dart:convert';
 import 'dart:io';
 
+import '../../tools/gate/anticheat.dart' as ac;
 import '../../tools/gate/gate_P0.dart' as gate;
+import '../../tools/gate/sha256.dart' as sha;
 
 const String kSpec = 'cn_big_1inch';
 
@@ -94,6 +96,23 @@ Map<String, dynamic> inputs({
       <String, dynamic>{'a': 'c03', 'b': 'c04', 'mae': 2.33},
     ],
   },
+  /// 生成分母 vs 手写分母的逐条比对结论。真实内容由 `denominatorAgreement()`
+  /// 产出；本文件测的是**判定函数怎么用这个结论**，结论本身怎么算出来由下面
+  /// 那一组用例负责。
+  Object? denominatorAgreement = const <String, dynamic>{
+    'readable': true,
+    'pass': true,
+    'problems': <String>[],
+    'extraUndeclared': <String>[],
+    'summary': '测试桩：逐条相等',
+  },
+  /// 派生块证据溯源的结论。同上。
+  Object? evidenceProvenance = const <String, dynamic>{
+    'readable': true,
+    'pass': true,
+    'problems': <String>[],
+    'summary': '测试桩：逐份相符',
+  },
 }) {
   final List<Map<String, dynamic>> rows = <Map<String, dynamic>>[];
   measured.forEach((String id, double v) {
@@ -142,6 +161,8 @@ Map<String, dynamic> inputs({
     'anticheat': anticheat,
     'overlap': overlap,
     'provenance': provenance,
+    'denominatorAgreement': denominatorAgreement,
+    'evidenceProvenance': evidenceProvenance,
     'roundState': roundState ?? goodRoundState(),
   };
 }
@@ -546,99 +567,135 @@ void main() {
   });
 
   // ---------------------------------------------------------------------
-  // 判据分母（`out/P0_truth.json`）数值叶基线的**排除集**。
+  // 判据分母的钉子：**钉哪个文件、换目标怎么处理、改了一个数怎么报**。
   //
-  // 存在理由：`evaluatedState` 那一块记的是"这份文件在什么状态下收尾"
-  // （`headAtFinalize`、`codeFingerprintAtFinalize.*`），是 **HEAD 与工作区的函数**。
-  // r2 在 tag 之后重新生成该文件时它必然变，逐叶通道会真报差异——不是理论风险。
-  // 所以主会话 2026-09-17 裁定：**只排这一块**。
+  // 2026-09-17 主会话裁定换了钉子对象：内容钉从**生成**的 `out/P0_truth.json`
+  // 换到**手写**的 `out/P0_truth_v0.json`。理由两条：
+  //   · 生成件含每轮必变的溯源块（`evaluatedState`：`headAtFinalize`、
+  //     `codeFingerprintAtFinalize.*`），钉它就得在**判据分母**上永久开一个
+  //     不受内容钉保护的洞，还要靠 review 兜；
+  //   · 改 v0 才是"改判据分母"的正路 —— 钉产物钉不住动机。
   //
-  // 豁免写歪的后果是把"判据输入可被改动而不响"重新打开，而那正是这个钉存在的原因。
-  // 所以豁免的**每一条性质**都要有对照，尤其是**不许宽一个字节**：
-  // 上一轮已经栽过三次"判据是条款的严格子集"（`lib` 域 29 vs 101、`files` 计数相等
-  // 而集合不同、扫描范围漏掉 `tools/gate`），这里是第四次机会。
-  group('判据分母数值叶基线：排除集', () {
+  // **保护没减少，换了形式**：整文件字节相等 → ①分母一致性（生成件 vs 手写件
+  // 逐条）②派生数字的证据溯源（叙述 vs 盘上产物）。前者的覆盖其实更宽：
+  // 它不只知道"数变了"，还知道**变的是哪一条的哪个字段**。
+  //
+  // 这一组同时钉住"换目标"这个动作本身：换目标要**两件事同时成立** ——
+  // 变更在代码里（受条款 2 的 SHA256 保护）**且** `旧 -> 新` 这一对在
+  // `kPinRetargetLedger` 里登记过理由。只做到前者，等于把"删掉基线文件重设锚"
+  // 换成"改一个常数重设锚"，同一条绕过路径换了个入口。
+  //
+  // 排除集机制**保留但当前为空**（v0 是人写的，里面没有一块该豁免）。
+  // 机制本身照旧可测：`truthLeafExcluded` / `truthDrift` 都接受显式前缀表，
+  // 于是"哪天真要豁免"时那段代码不是没人跑过的。
+  group('判据分母的钉子与两道替代保护', () {
     const String kTmp = 'out/tmp_gk_truth_test';
-    const String kTruth = '$kTmp/truth.json';
+    const String kTruthV0 = '$kTmp/truth_v0.json';
+    const String kGen = '$kTmp/truth_gen.json';
     const String kBase = '$kTmp/leaves.txt';
+    // 排除集机制的对照用表。生产路径上是**空的**（见 P'）。
+    const List<String> kLegacy = <String>['evaluatedState'];
 
-    void writeTruth(Map<String, dynamic> m) {
-      final File f = File(kTruth);
+    void writeJson(String path, Map<String, dynamic> m) {
+      final File f = File(path);
       f.parent.createSync(recursive: true);
       f.writeAsStringSync(jsonEncode(m));
     }
 
+    void writeTruth(Map<String, dynamic> m) => writeJson(kTruthV0, m);
+
     /// 基线用**门禁自己的抽叶函数**生成，不手搓格式 ——
     /// 手搓一份"我以为的"基线格式，测的是我的想象，不是生产路径。
-    void writeBaseline(Map<String, dynamic> m) {
+    /// `pin=` 行必须写：没有它，锚就不知道自己钉的是哪个文件。
+    void writeBaseline(Map<String, dynamic> m, {String pin = kTruthV0}) {
       final List<String> leaves = gate.numericLeaves(m)..sort();
       final File f = File(kBase);
       f.parent.createSync(recursive: true);
-      f.writeAsStringSync('sha256=deadbeef\n${leaves.join("\n")}\n');
+      f.writeAsStringSync(
+          'sha256=deadbeef\n${gate.kPinStampPrefix}$pin\n${leaves.join("\n")}\n');
     }
 
-    gate.TruthDrift drift() =>
-        gate.truthDrift(truthPath: kTruth, baselinePath: kBase);
+    gate.TruthDrift drift({List<String> prefixes = gate.kTruthLeafExcludedPrefixes}) =>
+        gate.truthDrift(
+            truthPath: kTruthV0, baselinePath: kBase, excludedPrefixes: prefixes);
 
     tearDown(() {
       final Directory d = Directory(kTmp);
       if (d.existsSync()) d.deleteSync(recursive: true);
     });
 
-    test('P 排除集被钉在**唯一命名的块**上（放宽必须在 diff 里可见）', () {
-      // 这不是"测逻辑"，是把豁免本身钉住：谁想多豁免一处，必须先改这里，
-      // 于是改动必然出现在 diff 里，而不是靠改数据悄悄做到。
-      expect(gate.kTruthLeafExcludedPrefixes, <String>['evaluatedState'],
-          reason: '这是**唯一**被允许的豁免块。加一条 = 放宽判据 = 必须留痕。'
-              '真有必要加，请连同 docs/ACCEPTANCE.md 的说明一起改，别加个常量了事。');
+    test("P' 钉子对象是**手写件**，生成件不在受钉集里，且排除集为空", () {
+      // 把钉子本身钉住：谁想换目标或加豁免，必须先改这里，于是改动必然出现在
+      // diff 里，而不是靠改数据悄悄做到。
+      expect(gate.kPinnedJudgmentInputs, contains(gate.kTruthV0Path),
+          reason: '内容钉要钉**手写**分母 —— 那才是"改一个真值让不合格样本过关"的正路');
+      expect(gate.kPinnedJudgmentInputs, isNot(contains(gate.kTruthPath)),
+          reason: '生成件是**产出**：它每轮重生成，钉它只会每轮报一次假阳性。'
+              '它由 `denominatorAgreement` 按条目对，不是按字节对');
+      expect(gate.kTruthLeafExcludedPrefixes, isEmpty,
+          reason: '手写分母里**没有一块该豁免**。非空 = 判据分母上有个洞，'
+              '加一条必须留痕并说明为什么那个块不是判据输入');
+      expect(gate.kPinRetargetLedger.containsKey('${gate.kTruthPath} -> ${gate.kTruthV0Path}'),
+          true,
+          reason: '这次换目标本身必须登记 —— 否则"改常数重设锚"就是一条新绕过路径');
     });
 
-    test('Q 排除按**路径段**匹配：evaluatedStateX 不许被顺带豁免', () {
-      // 该排的（真形状来自 out/P0_truth.json）。
-      expect(gate.truthLeafExcluded('evaluatedState'), true);
-      expect(gate.truthLeafExcluded('evaluatedState.files'), true);
-      expect(gate.truthLeafExcluded('evaluatedState.codeFingerprintAtFinalize.files'), true);
-      expect(gate.truthLeafExcluded('evaluatedState.roundChangedFiles[0]'), true);
+    test("Q' 排除按**路径段**匹配：evaluatedStateX 不许被顺带豁免", () {
+      // 机制在，只是生产上不启用（空表）。用显式前缀表验它的行为。
+      expect(gate.truthLeafExcluded('evaluatedState', prefixes: kLegacy), true);
+      expect(gate.truthLeafExcluded('evaluatedState.files', prefixes: kLegacy), true);
+      expect(
+          gate.truthLeafExcluded('evaluatedState.codeFingerprintAtFinalize.files',
+              prefixes: kLegacy),
+          true);
+      expect(gate.truthLeafExcluded('evaluatedState.roundChangedFiles[0]', prefixes: kLegacy),
+          true);
       // **不该排的**：同前缀但不是那个块。子串匹配会误伤，这里钉死。
-      expect(gate.truthLeafExcluded('evaluatedStateX'), false);
-      expect(gate.truthLeafExcluded('evaluatedStateX.files'), false);
-      expect(gate.truthLeafExcluded('myEvaluatedState.files'), false);
-      expect(gate.truthLeafExcluded('anchors[0].truthTiltDeg'), false);
-      expect(gate.truthLeafExcluded('straight'), false);
+      expect(gate.truthLeafExcluded('evaluatedStateX', prefixes: kLegacy), false);
+      expect(gate.truthLeafExcluded('evaluatedStateX.files', prefixes: kLegacy), false);
+      expect(gate.truthLeafExcluded('myEvaluatedState.files', prefixes: kLegacy), false);
+      expect(gate.truthLeafExcluded('anchors[0].truthTiltDeg', prefixes: kLegacy), false);
+      expect(gate.truthLeafExcluded('straight', prefixes: kLegacy), false);
+      // 生产路径（空表）：上面全部为假。
+      expect(gate.truthLeafExcluded('evaluatedState.files'), false,
+          reason: '当前**一个都不排** —— 这是收紧，不是放宽');
     });
 
-    test('R 正向对照：evaluatedState 的数值叶变了 → 不报改动，但**必须逐条列出**', () {
+    test("R' 排除机制的正向对照：被排的块变了 → 不报改动，但**必须逐条列出**", () {
       final Map<String, dynamic> before = <String, dynamic>{
         'anchors': <dynamic>[
           <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
         ],
         'evaluatedState': <String, dynamic>{
-          'headAtFinalize': 'aaa',
           'codeFingerprintAtFinalize': <String, dynamic>{'files': 29},
         },
       };
       writeBaseline(before);
       writeTruth(before);
-
-      // 只有 evaluatedState 里的那个数值叶变了 —— 正是 r2 会真实发生的事。
       final Map<String, dynamic> after =
           jsonDecode(jsonEncode(before)) as Map<String, dynamic>;
       (after['evaluatedState'] as Map<String, dynamic>)['codeFingerprintAtFinalize'] =
           <String, dynamic>{'files': 101};
       writeTruth(after);
 
-      final gate.TruthDrift d = drift();
+      final gate.TruthDrift d = drift(prefixes: kLegacy);
       expect(d.numericChanges, isEmpty,
-          reason: '这一块的漂移是**预期的**（HEAD 的函数），不该判 FAIL；'
-              '判了就是拿一个必然变化的东西当判据，等于每轮都红，'
-              '红到后来就没人看了 —— 那是比不判更坏的结局');
+          reason: '被排的块不参与比对 —— 但**只有显式排了才这样**，'
+              '默认（空表）下它就必须红');
       expect(d.leafCount, 1, reason: '参与比对的只剩 anchors[0].truthTiltDeg');
-      expect(d.excludedLeafPaths, <String>['evaluatedState.codeFingerprintAtFinalize.files'],
+      expect(d.excludedLeafPaths,
+          <String>['evaluatedState.codeFingerprintAtFinalize.files'],
           reason: '**排除必须被打印**：命名、钉住、打印。'
               '静默跳过的豁免和一个没写出来的豁免是一样的');
+
+      // 同一份数据、**不排**任何前缀 → 必须红。这是"排了"与"没排"的对照，
+      // 否则上面那个 isEmpty 分不清"排掉了"和"根本没看"。
+      final gate.TruthDrift d0 = drift(prefixes: const <String>[]);
+      expect(d0.numericChanges.isNotEmpty, true,
+          reason: '不排就该看见 —— 生产路径正是这一档');
     });
 
-    test('R2 深层排除不误伤兄弟：同一份文件里换个判据输入改了 → 必须红', () {
+    test("R2' 深层排除不误伤兄弟：同一份文件里换个判据输入改了 → 必须红", () {
       writeBaseline(<String, dynamic>{
         'anchors': <dynamic>[
           <String, dynamic>{'id': 'c06', 'truthTiltDeg': -15.424},
@@ -655,13 +712,13 @@ void main() {
           'codeFingerprintAtFinalize': <String, dynamic>{'files': 101},
         },
       });
-      final gate.TruthDrift d = drift();
+      final gate.TruthDrift d = drift(prefixes: kLegacy);
       expect(d.numericChanges, <String>['anchors[0].truthTiltDeg: -15.424 → -4.4'],
           reason: '改真值让不合格样本过关，是这个钉**唯一**要拦的事。'
               '它必须在豁免生效的同时照旧拦住 —— 否则豁免就不是豁免，是拆门');
     });
 
-    test('S 两侧同用：基线里有、现值里没有 → 不许报成"删除"（纯假阳性）', () {
+    test("S' 两侧同用：基线里有、现值里没有 → 不许报成「删除」（纯假阳性）", () {
       writeBaseline(<String, dynamic>{
         'anchors': <dynamic>[
           <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
@@ -670,8 +727,6 @@ void main() {
           'codeFingerprintAtFinalize': <String, dynamic>{'files': 29},
         },
       });
-      // 现值里这一项变成了字符串（不再是数值叶）——
-      // 生产者换个写法就会这样，什么都没做错。
       writeTruth(<String, dynamic>{
         'anchors': <dynamic>[
           <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
@@ -680,7 +735,7 @@ void main() {
           'codeFingerprintAtFinalize': <String, dynamic>{'files': '101'},
         },
       });
-      final gate.TruthDrift d = drift();
+      final gate.TruthDrift d = drift(prefixes: kLegacy);
       expect(d.numericChanges, isEmpty,
           reason: '只过滤当前侧的话，基线里那个叶子会被报成'
               '「evaluatedState.codeFingerprintAtFinalize.files: 删除（原 29）」——'
@@ -688,7 +743,7 @@ void main() {
               '排除的定义是"这块不参与比对"，对两侧必须对称');
     });
 
-    test('T 豁免清单在"排除 0 个"时**也要打印**，且必须点名排除集', () {
+    test("T' 排除清单在「排除 0 个」时**也要打印**，且要点名排除集本身", () {
       writeBaseline(<String, dynamic>{
         'anchors': <dynamic>[
           <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
@@ -702,39 +757,35 @@ void main() {
       final gate.TruthDrift d = drift();
       expect(d.excludedLeafPaths, isEmpty);
       final String n = d.exclusionNote();
-      expect(n.contains('实际排除 0 个'), true,
+      expect(n.contains('空'), true,
           reason: '一条只在非空时才出现的说明，读者分不清"没有豁免"和"豁免没被打印"。'
               '豁免清单必须每轮出现，哪怕内容是 0');
-      expect(n.contains('evaluatedState'), true,
-          reason: '要点名**排除集本身**，不只报个数 —— 只看个数看不出豁免了什么');
-      expect(d.describe().contains('evaluatedState'), true,
+      final String n2 = drift().describe();
+      expect(n2.contains('排除集'), true,
           reason: 'AC 条目里渲染的是 describe()，豁免说明必须跟着进报告');
     });
 
-    test('U 端到端：判据分母被改一个数 → 报告文本里看得见，且判 FAIL 的原料齐备', () {
+    test("U' 端到端：手写分母被改一个数 → 报告文本里看得见，且判 FAIL 的原料齐备", () {
       writeBaseline(<String, dynamic>{
         'anchors': <dynamic>[
           <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
         ],
-        'evaluatedState': <String, dynamic>{'files': 29},
       });
       writeTruth(<String, dynamic>{
         'anchors': <dynamic>[
           <String, dynamic>{'id': 'p1', 'truthTiltDeg': 0.0},
         ],
-        'evaluatedState': <String, dynamic>{'files': 101},
       });
       final gate.TruthDrift d = drift();
       expect(d.numericChanges.isNotEmpty, true);
       final String s = d.describe();
       expect(s.contains('truthTiltDeg'), true, reason: '要指名道姓，不是"有 1 处改动"');
       expect(s.contains('改动了'), true);
-      expect(s.contains('evaluatedState'), true, reason: '同一句里也要带上豁免说明');
+      expect(s.contains('排除集'), true, reason: '同一句里也要带上豁免说明');
+      expect(s.contains(kTruthV0), true, reason: '要写明钉的是哪个文件');
     });
 
-    test('V 渲染：缺输入 → 判不了（不许默认清白）；有输入 → 豁免逐条印出来', () {
-      // 缺输入时必须显式说"判不了"，而不是渲染成空串 —— 空串在报告里
-      // 与"这一节没内容"长得一模一样。
+    test("V' 渲染：缺输入 → 判不了（不许默认清白）；有输入 → 钉子与豁免都印出来", () {
       final String missing = gate.truthPinMdSection(null);
       expect(missing.contains('无法证明'), true);
       expect(missing.contains('不判通过'), true);
@@ -743,43 +794,41 @@ void main() {
         'anchors': <dynamic>[
           <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
         ],
-        'evaluatedState': <String, dynamic>{
-          'codeFingerprintAtFinalize': <String, dynamic>{'files': 29},
-        },
       });
       writeTruth(<String, dynamic>{
         'anchors': <dynamic>[
           <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
         ],
-        'evaluatedState': <String, dynamic>{
-          'codeFingerprintAtFinalize': <String, dynamic>{'files': 101},
-        },
       });
       final String md = gate.truthPinMdSection(drift());
-      // 每一条豁免都要能被读者看见，而不是"排除了 1 个"了事。
-      expect(md.contains('evaluatedState.codeFingerprintAtFinalize.files'), true,
-          reason: '被排除的路径要逐条印出来');
+      expect(md.contains(gate.kTruthV0Path), true, reason: '要写明钉子对象是哪个文件');
+      expect(md.contains('本轮未变'), true,
+          reason: '钉子对象没换也要**显式说没换** —— 只在变了时才出现的说明，'
+              '读者分不清"没换"与"换了没印"');
       expect(md.contains('kTruthLeafExcludedPrefixes'), true,
           reason: '要写明排除集定义在哪，读者才能去查它受不受条款 2 保护');
       expect(md.contains('SHA256'), true);
+      // 换目标的两条件必须写在报告里，否则读的人以为改常数就能换。
+      expect(md.contains('kPinRetargetLedger'), true);
+      // 内容钉覆盖不到的地方要**主动列出**，不能留给人自己发现。
+      expect(md.contains('convention'), true,
+          reason: '字符串字段（convention/generatedBy/baselineTag/version）不在内容钉里，'
+              '这是已知缺口，必须写在报告里而不是藏着');
+      expect(md.contains('已知缺口'), true);
       // 这条附注是这个豁免最容易被误读的地方：叶没变 ≠ 数据仍然成立。
       expect(md.contains('不是"数据仍然成立"的证据') || md.contains('证据仍然有效'), true,
           reason: '必须写明"叶哈希未变 ≠ 证据仍然有效"，'
               '否则下一轮就会有人拿"叶没变"论证数据没问题');
       expect(md.contains('c06_d-3'), true, reason: '附注要带可复核的实例，不是泛泛而谈');
       expect(md.contains('-15.424'), true);
-      // 渲染事故的回归：`'$b.path'` 曾渲染成 `Instance of ...`。
-      expect(md.contains('Instance of'), false);
+      expect(md.contains('Instance of'), false,
+          reason: '渲染事故的回归：StringBuffer 插值写歪时曾渲染出 Instance of ...');
     });
 
-    test('W 删掉基线文件 = 重置锚点：必须买不到"本轮免疫"', () {
-      // 这是我**在自己门禁里找到的洞**，不是设想的：
-      // `truthDrift` 在基线文件不存在时会建立一份新的并返回 `baselineEstablished: true`，
-      // 而旧措辞是"本轮不判 FAIL"。于是
+    test("W' 删掉基线文件 = 重置锚点：必须买不到「本轮免疫」", () {
+      // 这是我在自己门禁里找到的洞，不是设想的：
       //     del out\hashes_P0_truth_leaves_baseline.txt
-      // 一步就能把"改过判据分母"洗掉 —— 比改一个数容易得多，
-      // 且与 `kTruthPath` 当初两边都不在是同一个洞，只换了入口。
-      //
+      // 旧措辞是"本轮不判 FAIL"，于是删一个文件就能把"改过判据分母"洗掉。
       // 现在的规则：重建轮**整轮作废**。删文件买到的是 void，不是放过。
       final Directory d = Directory(kTmp);
       if (d.existsSync()) d.deleteSync(recursive: true);
@@ -795,7 +844,6 @@ void main() {
           reason: '**不许再出现"本轮不判 FAIL"** —— 这句话就是那条绕过路径的门');
       expect(fresh.describe().contains('整轮作废'), true);
 
-      // 端到端：重建轮必须整轮作废，且**不许**消耗实现方的修复轮次。
       final List<Map<String, dynamic>> compose = goodCorpus();
       final Map<String, dynamic> inp =
           inputs(compose: compose, measured: goodMeasured(compose));
@@ -811,12 +859,418 @@ void main() {
           reason: '要写明是重建轮，不能让人以为是普通作废');
     });
 
-    test('X 基线文件本身在受钉之列（改它 / 删它都要看得见）', () {
-      // 只把 `kTruthPath` 放进受钉集是不够的：钉的**锚**不受钉，
-      // 绕过就只是"删一个文件"。
-      expect(gate.kPinnedJudgmentInputs, contains(gate.kTruthPath));
+    test("X' 基线文件本身在受钉之列（改它 / 删它都要看得见）", () {
       expect(gate.kPinnedJudgmentInputs, contains(gate.kTruthLeavesBaselinePath),
           reason: '锚必须在受钉集里，否则删掉它 = 重置 = 免疫');
+    });
+
+    // ---- 换钉子对象：两种情形都要有对照 ----
+
+    test("AA 基线带 pin= 行：目标一致 → 走正常比对，不报换靶", () {
+      writeTruth(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+      });
+      writeBaseline(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+      });
+      final gate.TruthDrift d = drift();
+      expect(d.pinRetargeted, false);
+      expect(d.pinRetargetUndeclared, isNull);
+      expect(d.pinFrom, kTruthV0);
+      expect(d.pinTo, kTruthV0);
+      expect(d.numericChanges, isEmpty);
+      expect(d.describe().contains('本轮未变'), true);
+    });
+
+    test("AB 换目标但**没登记** → 必须判违规（不许静默重设锚）", () {
+      writeTruth(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+      });
+      // 基线是给**另一个**文件建的，而那个 `旧 -> 新` 对不在登记簿里。
+      writeBaseline(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+      }, pin: '$kTmp/some_other_truth.json');
+      final gate.TruthDrift d = drift();
+      expect(d.pinRetargetUndeclared, isNotNull,
+          reason: '换目标要**两件事同时成立**：变更在代码里 + 这一对登记过理由。'
+              '只做到前者 = 把"删掉基线文件重设锚"换成"改常数重设锚"');
+      expect(d.pinRetargeted, false);
+      expect(d.describe().contains('未登记'), true);
+      expect(d.describe().contains('kPinRetargetLedger'), true);
+    });
+
+    test("AC 换目标且**已登记** → 重钉锚，本轮不报数值差异，且原样印出来", () {
+      // 用登记簿里真实的那一对：旧 = 生成的真值文件，新 = 手写真值文件。
+      writeTruth(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+      });
+      // 基线里存的是**另一份**文件的叶子（故意与现值的数不同），
+      // 若无条件比对会报一堆"改动" —— 那些"改动"全是假的。
+      writeBaseline(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': 99.0},
+        ],
+      }, pin: gate.kTruthPath);
+      // 目标必须是**登记簿里那一对**的新端（`kTruthV0Path`），不能用临时路径：
+      // 用临时路径测的就是"未登记"那一档，与 AB 重复了。
+      gate.TruthDrift d() =>
+          gate.truthDrift(truthPath: gate.kTruthV0Path, baselinePath: kBase);
+      expect(d().pinRetargeted, true);
+      expect(d().pinRetargetUndeclared, isNull);
+      expect(d().numericChanges, isEmpty,
+          reason: '锚是新的，本轮没有可比对象；拿旧锚的叶子报"改动"是纯假阳性');
+      expect(File(kBase).readAsStringSync().contains(gate.kPinStampPrefix + gate.kTruthV0Path),
+          true,
+          reason: '重钉要真的落盘，否则每一轮都重钉一次');
+      // 第二次读：pin 已前移，不再报换靶 —— 但**换靶这件事必须还看得见**。
+      final gate.TruthDrift d2 = d();
+      expect(d2.pinRetargeted, false);
+      expect(d2.retargetHistory, <String>['${gate.kTruthPath} -> ${gate.kTruthV0Path}'],
+          reason: '换靶历史要落盘并且**只增不删**。只写在当轮报告里的话，'
+              '一次"改常数重设锚"熬过当轮就在此后所有报告里彻底消失');
+      expect(d2.describe().contains('本轮未变'), true);
+      expect(d2.describe().contains(gate.kTruthV0Path), true,
+          reason: '钉子对象是哪个文件，每轮都要说');
+      expect(d2.describe().contains('换靶历史'), true);
+    });
+
+    // ---- 替代保护①：生成件 vs 手写件，逐条 ----
+
+    Map<String, dynamic> v0Doc() => <String, dynamic>{
+          'anchors': <dynamic>[
+            <String, dynamic>{'id': 'p1', 'trueRollDeg': -4.4, 'eyedistPx': 412.0},
+            <String, dynamic>{'id': 'c01', 'trueRollDeg': 3.72, 'eyedistPx': 388.0},
+          ],
+          'straight': <dynamic>[
+            <String, dynamic>{'id': 'p2', 'trueRollDeg': -0.2},
+          ],
+          'nonPortrait': <dynamic>['C:/x/a.jpeg', 'C:/x/b.jpeg'],
+        };
+
+    test('AD 分母一致：生成件改了手写件里的一个真值 → 必须逐条报出来', () {
+      writeJson(kTruthV0, v0Doc());
+      final Map<String, dynamic> gen =
+          jsonDecode(jsonEncode(v0Doc())) as Map<String, dynamic>;
+      ((gen['anchors'] as List<dynamic>)[0] as Map<String, dynamic>)['trueRollDeg'] = -1.0;
+      writeJson(kGen, gen);
+      final gate.DenominatorAgreement a =
+          gate.denominatorAgreement(v0Path: kTruthV0, generatedPath: kGen);
+      expect(a.readable, true);
+      expect(a.pass, false);
+      expect(a.problems.any((String s) =>
+          s.contains('anchors/p1.trueRollDeg') && s.contains('-4.4')), true,
+          reason: '要指名道姓到"哪一条的哪个字段"，不是"不相等"了事');
+      expect(a.summary().contains('anchors=2'), true, reason: '比了多少条要能被看见');
+    });
+
+    test('AE 分母一致：生成件**丢了一条** → 整条缺失必须报出来', () {
+      writeJson(kTruthV0, v0Doc());
+      final Map<String, dynamic> gen =
+          jsonDecode(jsonEncode(v0Doc())) as Map<String, dynamic>;
+      (gen['anchors'] as List<dynamic>).removeAt(1);
+      writeJson(kGen, gen);
+      final gate.DenominatorAgreement a =
+          gate.denominatorAgreement(v0Path: kTruthV0, generatedPath: kGen);
+      expect(a.pass, false);
+      expect(a.problems.any((String s) => s.contains('anchors/c01') && s.contains('缺失')),
+          true);
+    });
+
+    test('AF 分母一致：生成件**凭空多出一条** → 未登记，判违规', () {
+      writeJson(kTruthV0, v0Doc());
+      final Map<String, dynamic> gen =
+          jsonDecode(jsonEncode(v0Doc())) as Map<String, dynamic>;
+      (gen['anchors'] as List<dynamic>)
+          .add(<String, dynamic>{'id': 'ghost', 'trueRollDeg': 0.1});
+      writeJson(kGen, gen);
+      final gate.DenominatorAgreement a =
+          gate.denominatorAgreement(v0Path: kTruthV0, generatedPath: kGen);
+      expect(a.pass, false,
+          reason: '凭空加一条分母 = 改判据的分母。这正是内容钉改钉手写件之后'
+              '必须由这条补上的保护');
+      expect(a.extraUndeclared.any((String s) => s.contains('anchors/ghost')), true);
+    });
+
+    test('AG 分母一致：登记过、且在 v0 出现过的条目才允许多出来', () {
+      writeJson(kTruthV0, v0Doc());
+      final Map<String, dynamic> gen =
+          jsonDecode(jsonEncode(v0Doc())) as Map<String, dynamic>;
+      // `p2` 在 v0 的 `straight` 里，生成件把它并进 `anchors` —— 这是已知形状。
+      (gen['anchors'] as List<dynamic>)
+          .add(<String, dynamic>{'id': 'p2', 'trueRollDeg': -0.2});
+      writeJson(kGen, gen);
+      final gate.DenominatorAgreement a =
+          gate.denominatorAgreement(v0Path: kTruthV0, generatedPath: kGen);
+      expect(a.extraAllowed, <String>['anchors/p2']);
+      expect(a.extraUndeclared, isEmpty);
+      expect(a.pass, true, reason: '并集化是已知且被审过的形状，不算改动分母');
+      // 反向对照：**登记了但 v0 里根本没有这个 id** → 仍然不许。
+      final Map<String, dynamic> gen2 =
+          jsonDecode(jsonEncode(v0Doc())) as Map<String, dynamic>;
+      writeJson(kGen, gen2);
+      final gate.DenominatorAgreement a2 =
+          gate.denominatorAgreement(v0Path: kTruthV0, generatedPath: kGen);
+      expect(a2.pass, true, reason: '没有多出来的条目就是相等');
+    });
+
+    test('AH 分母一致：读不到手写件 → 不可判，**不默认相等**', () {
+      writeJson(kGen, v0Doc());
+      final gate.DenominatorAgreement a =
+          gate.denominatorAgreement(v0Path: kTruthV0, generatedPath: kGen);
+      expect(a.readable, false);
+      expect(a.pass, false);
+      expect(a.summary().contains('不可判'), true);
+    });
+
+    test('AH2 路径的两种写法（仓库相对 vs 盘上绝对）是**同一个文件**，不报', () {
+      // 实测形状：手写件记 `out/P0_anchors/c01_d+3.png`，生成件记
+      // `C:/Users/.../out/P0_anchors/c01_d+3.png`。对它报 FAIL 是纯假阳性，
+      // 而一个在诚实数据上永远红的检查，最后一定会被豁免掉。
+      writeJson(kTruthV0, <String, dynamic>{
+        'rotated': <dynamic>[
+          <String, dynamic>{'id': 'p1_d+3', 'path': 'out/P0_anchors/p1_d+3.png'},
+        ],
+      });
+      writeJson(kGen, <String, dynamic>{
+        'rotated': <dynamic>[
+          <String, dynamic>{
+            'id': 'p1_d+3',
+            'path': 'C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_d+3.png',
+          },
+        ],
+      });
+      final gate.DenominatorAgreement ok =
+          gate.denominatorAgreement(v0Path: kTruthV0, generatedPath: kGen);
+      expect(ok.pass, true, reason: '同一份文件的两个写法，不是分母改动');
+      expect(ok.problems, isEmpty);
+
+      // 归一化是**收窄**：去掉前缀之后必须逐字符相等 —— 指到别的文件上照样红。
+      writeJson(kGen, <String, dynamic>{
+        'rotated': <dynamic>[
+          <String, dynamic>{
+            'id': 'p1_d+3',
+            'path': 'C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_d-3.png',
+          },
+        ],
+      });
+      final gate.DenominatorAgreement bad =
+          gate.denominatorAgreement(v0Path: kTruthV0, generatedPath: kGen);
+      expect(bad.pass, false, reason: 'd+3 与 d-3 是两个文件，前缀一样也不行');
+      expect(bad.problems.any((String s) => s.contains('p1_d+3.path')), true);
+    });
+
+    test('AH3 形状豁免**必须打印**；未登记的形状差异一律报出来', () {
+      // 登记过的字段（`methods`：简表 vs 逐量具记录）跳过，但**跳过本身要看得见**。
+      writeJson(kTruthV0, <String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'methods': <String>['a', 'b']},
+        ],
+      });
+      writeJson(kGen, <String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{
+            'id': 'p1',
+            'methods': <dynamic>[
+              <String, dynamic>{'name': 'm1'},
+              <String, dynamic>{'name': 'm2'},
+              <String, dynamic>{'name': 'm3'},
+            ],
+          },
+        ],
+      });
+      final gate.DenominatorAgreement a =
+          gate.denominatorAgreement(v0Path: kTruthV0, generatedPath: kGen);
+      expect(a.pass, true);
+      expect(a.shapeSkipped['methods'], 1);
+      expect(a.summary().contains('methods×1'), true,
+          reason: '**豁免了多少次要印出来** —— 一条只在"没豁免时"才不出现的说明，'
+              '读者分不清"没豁免"与"豁免没被打印"');
+      expect(a.summary().contains('kDenominatorShapeAllowance'), true,
+          reason: '要写明豁免表定义在哪，读者才能去核它受不受条款 2 保护');
+
+      // 没登记的字段形状变了 → 报。
+      writeJson(kTruthV0, <String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'trueRollDeg': '-4.4'},
+        ],
+      });
+      writeJson(kGen, <String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'trueRollDeg': -4.4},
+        ],
+      });
+      final gate.DenominatorAgreement b =
+          gate.denominatorAgreement(v0Path: kTruthV0, generatedPath: kGen);
+      expect(b.pass, false,
+          reason: '一个真值从字符串变成数字是**形状**变化，必须有人看一眼 ——'
+              '"类型不同所以跳过"是一条谁都想不到去查的滑过去的路');
+      expect(b.problems.any((String s) => s.contains('两种东西')), true);
+    });
+
+    // ---- 替代保护②：派生数字 vs 盘上产物 ----
+
+    test('AI 证据溯源：摘要不符 → 报出来；相符 → 通过', () {
+      const String src = '$kTmp/src.json';
+      writeJson(src, <String, dynamic>{'a': 1});
+      final String good = sha.sha256Hex(File(src).readAsBytesSync());
+      final Map<String, dynamic> doc = <String, dynamic>{
+        'gateInputs': <String, dynamic>{
+          'rotationFailureBoundary': <String, dynamic>{
+            'evidenceProvenance': <String, dynamic>{
+              'sourceSha256': <String, dynamic>{src: good},
+            },
+          },
+        },
+      };
+      writeJson(kGen, doc);
+      final gate.EvidenceProvenanceCheck ok =
+          gate.evidenceProvenanceCheck(generatedPath: kGen);
+      expect(ok.readable, true);
+      expect(ok.pass, true);
+
+      // 产物在 finalize 之后被改过 → 摘要对不上。
+      writeJson(src, <String, dynamic>{'a': 2});
+      final gate.EvidenceProvenanceCheck bad =
+          gate.evidenceProvenanceCheck(generatedPath: kGen);
+      expect(bad.pass, false);
+      expect(bad.problems.any((String s) => s.contains('被改过')), true,
+          reason: '要说明这意味着**叙述描述的不是现在这份产物**');
+
+      // 产物不在了。
+      File(src).deleteSync();
+      final gate.EvidenceProvenanceCheck gone =
+          gate.evidenceProvenanceCheck(generatedPath: kGen);
+      expect(gone.pass, false);
+      expect(gone.problems.any((String s) => s.contains('不存在')), true);
+    });
+
+    test('AJ 证据溯源：指针取不到 → 不可判，**不默认相符**', () {
+      writeJson(kGen, <String, dynamic>{'gateInputs': <String, dynamic>{}});
+      final gate.EvidenceProvenanceCheck c =
+          gate.evidenceProvenanceCheck(generatedPath: kGen);
+      expect(c.readable, false);
+      expect(c.pass, false);
+      expect(c.error!.contains('rotationFailureBoundary'), true);
+      expect(c.summary().contains('不可判'), true);
+    });
+
+    test('AK 两道替代保护**不可判**时整轮作废；**不等**时判 FAIL 并点名', () {
+      final List<Map<String, dynamic>> compose = goodCorpus();
+      final Map<String, dynamic> base =
+          inputs(compose: compose, measured: goodMeasured(compose));
+
+      // (1) 不可判 → void，不赖实现方。
+      final Map<String, dynamic> voided = <String, dynamic>{
+        ...base,
+        'denominatorAgreement': <String, dynamic>{
+          'readable': false,
+          'pass': false,
+          'error': '测试桩：读不到手写分母',
+        },
+      };
+      final List<Map<String, dynamic>> vi = gate.evaluateP0(voided);
+      expect(vi.every((Map<String, dynamic> i) => i['roundInvalid'] == true), true);
+      expect(vi.first['actual'].toString().contains('不可判'), true);
+
+      // (2) 读得到但不等 → PIN 条目 FAIL，且**不**把整轮标成作废
+      //     （那是"实现方要修"的措辞，不是"输入不可信"）。
+      final Map<String, dynamic> failed = <String, dynamic>{
+        ...base,
+        'denominatorAgreement': <String, dynamic>{
+          'readable': true,
+          'pass': false,
+          'problems': <String>['anchors/p1.trueRollDeg：手写 -4.4 ≠ 生成 -1'],
+          'extraUndeclared': <String>[],
+          'summary': '测试桩',
+        },
+      };
+      final List<Map<String, dynamic>> fi = gate.evaluateP0(failed);
+      final Map<String, dynamic> pin = row(fi, 'PIN');
+      expect(pin['pass'], false);
+      expect(pin['manual'], false, reason: '读得到就不算"不可判"，是可判的 FAIL');
+      expect(pin['owner'].toString().contains('qa-batch'), true,
+          reason: '要回派给持有这两份文件的人，不是笼统说"不通过"');
+      expect((pin['actual'] as String).contains('anchors/p1.trueRollDeg'), true,
+          reason: '错在哪一条要进报告');
+      expect(fi.every((Map<String, dynamic> i) => i['roundInvalid'] == true), false,
+          reason: '内容不等不是"输入不可信"，是判据分母被改 —— 应当 FAIL 并点名');
+    });
+
+    test('AL 扫描区域表：逐区印出来，**0 与「根本没扫」都要看得见**', () {
+      // 存在理由：一份只写"命中 0"的扫描报告，读者分不清两件含义相反的事 ——
+      // 「这个区域扫过、干干净净」与「这个区域根本没进扫描范围」。
+      // 报告文本一模一样，而本项目已经栽过三次同形状的坑。
+      final Map<String, dynamic> ev = <String, dynamic>{
+        'scan_roots': <String>['lib', 'test', 'tools/gate', 'integration_test'],
+        'scan_roots_excluded': <String, String>{
+          'native': '主会话裁定不纳入条款 5（对照试验目录，不是交付代码）',
+        },
+        'skip_scans': <String, dynamic>{
+          'skip:lib': <String, dynamic>{'files_scanned': 67, 'hits': <String>[]},
+          'skip:test': <String, dynamic>{
+            'files_scanned': 22,
+            'hits': <String>['test/x.dart:1: @Skip'],
+          },
+          // 故意缺 tools/gate 与 integration_test → 必须显示"无记录"，
+          // 不许因为"没有这个键"就从表里消失。
+        },
+        'commented_assertion_scans': <String, dynamic>{},
+        'catch_scans': <String, dynamic>{
+          'catch:lib': <String, dynamic>{
+            'files_scanned': 67,
+            'hits': <String>[],
+            'undecidable': false,
+          },
+        },
+      };
+      final String md =
+          gate.scanRootsMdSection(<String, dynamic>{'evidence': ev});
+      for (final String d in <String>['lib', 'test', 'tools/gate', 'integration_test']) {
+        expect(md.contains('`$d`'), true,
+            reason: '每个**声称扫了**的区域都要逐行出现，不能只给一句"全部区域"');
+      }
+      expect(md.contains('67 个文件 / 0 命中'), true,
+          reason: '**0 命中也要印** —— 只印非零的话，"扫过且干净"会从表里消失');
+      expect(md.contains('22 个文件 / 1 命中'), true);
+      expect(md.contains('**无记录**'), true,
+          reason: '声称扫了、却没有扫描记录的区域，必须报"无记录"，'
+              '不许因为键不存在就静默跳过（那正是"漏扫"与"0 命中"同形的入口）');
+      expect(md.contains('native'), true);
+      expect(md.contains('刻意不扫'), true,
+          reason: '「根本没扫」必须与「扫过、0 命中」分开写 —— 两者在报告里长得一样');
+      expect(md.contains('kScanRoots'), true,
+          reason: '要写明三处循环共用一个常数，读者才能去核它们有没有不同步');
+      // 整块缺失时不许默认"都扫了"。
+      final String none = gate.scanRootsMdSection(<String, dynamic>{});
+      expect(none.contains('无从核对'), true);
+      expect(none.contains('不默认'), true);
+    });
+
+    test('AM 三处扫描循环必须共用同一个区域常数（结构对照，不是行为对照）', () {
+      // 行为对照测不出"三份列表不同步"：条款 3 扫了 lib、条款 5 漏了 lib 时，
+      // 两条的报告**都写"命中 0"**，任何一条单测都不会红。
+      // 所以这条直接扫源码：那个字面量数组不许再出现，`kScanRoots` 必须被三处引用。
+      final String src = File('tools/gate/anticheat.dart').readAsStringSync();
+      expect(src.contains("['lib', 'test', 'tools/gate', 'integration_test']"), false,
+          reason: '区域表不许有第二份字面量副本 —— 副本一多，'
+              '就必然出现"条款 3 扫了某区域、条款 5 漏了它"这种没人会发现的覆盖缺口');
+      final int uses =
+          RegExp(r'for \(final String dir in kScanRoots\)').allMatches(src).length;
+      expect(uses, 3,
+          reason: '三处循环（skip / 注释掉的断言 / 空 catch）都要走同一张表。'
+              '改成两处或四条，这条会红 —— 这正是它存在的意义');
+      expect(ac.kScanRoots.contains('lib'), true);
+      expect(ac.kScanRoots.contains('integration_test'), true);
     });
   });
 
@@ -863,8 +1317,48 @@ void main() {
     }
   });
 
-  test('Z 真仓库上的轮次号必须 > 1（回归：r1 的 md 已经存在）', () {
-    // 这条针对真实仓库状态：`out/GATE_P0_r1.md` 存在（重写轮的记录）。
+  test('Y2 无编号的 `gate_P0.json` 就是第 1 轮，不许把它漏出账本', () {
+    // 残洞（team-lead 2026-09-17 指出）：`nextRound` 只认带 `_r<N>` 的名字。
+    // 于是只要 `out/GATE_P0_r1.md` **不在**（被删、被移走、被一次死运行覆盖），
+    // 光有 `out/gate_P0.json`（r1 的 JSON）时仍会算出"下一轮 = 1" ——
+    // 与"只看 json 不看 md"是同一类错误：**账本漏了一个曾经存在的条目**，
+    // 只不过这次漏的是那个不带编号的名字。
+    final Directory tmp = Directory('out/tmp_gk_round_test2');
+    if (tmp.existsSync()) tmp.deleteSync(recursive: true);
+    tmp.createSync(recursive: true);
+    try {
+      final String d = tmp.path.replaceAll('\\', '/');
+      expect(gate.nextRound(dir: d), 1);
+      File('$d/gate_P0.json').writeAsStringSync('{}\n');
+      expect(gate.nextRound(dir: d), 2,
+          reason: '它就是第 1 轮的机读产物。不认它 → r1 的编号会被再用一次');
+      // 大写的旧名同样算。
+      File('$d/gate_P0.json').deleteSync();
+      File('$d/GATE_P0.md').writeAsStringSync('# r1\n');
+      expect(gate.nextRound(dir: d), 2);
+    } finally {
+      if (tmp.existsSync()) tmp.deleteSync(recursive: true);
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // 真仓库上的**金丝雀**：不去断言"必须全等"（`out/` 是可再生的，
+  // 每轮重生成后数值本来就会变），只断言那条**任何情况下都不该发生**的事：
+  // 生成件里出现手写分母没有、也没登记过的条目。出现了就说明有人
+  // 造了一条新的判据分母 —— 那是"为通过而放宽"最直接的一种做法。
+  test('Z2 真仓库：生成件不许凭空多出手写分母里没有的条目', () {
+    final gate.DenominatorAgreement da = gate.denominatorAgreement();
+    expect(da.readable, true,
+        reason: '两份真值文件都该在（它们都是入库件，不是临时文件）');
+    expect(da.extraUndeclared, isEmpty,
+        reason: '凭空多出来的分母条目必须为零。要加，先加进手写分母 '
+            '`${gate.kTruthV0Path}`，或在 `kDenominatorExtraAllowance` 里登记 ——'
+            '两条路都留痕');
+    expect(da.extraAllowed, <String>['anchors/p2'],
+        reason: '登记豁免只此一条（判据口径第 6 条：p2 归 straight，生成件做了并集）');
+  });
+
+  test('Z 真仓库上的轮次号必须 > 1（回归：r1 的 md 已经存在）', () {    // 这条针对真实仓库状态：`out/GATE_P0_r1.md` 存在（重写轮的记录）。
     // 若下一轮算成 1，r2 会把 r1 的报告覆盖掉 —— 证据被销毁，而且没人会发现。
     final int n = gate.nextRound();
     expect(n >= 2, true,

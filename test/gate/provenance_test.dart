@@ -37,6 +37,30 @@ void _rmSandbox() {
   if (d.existsSync()) d.deleteSync(recursive: true);
 }
 
+/// 取出渲染文本里的围栏代码块（``` … ```）内容。
+///
+/// 有它才能把断言打准：整篇报告里有好几节（域清单、标定靶、逐条绑定），
+/// 对整篇断言"不许出现某个路径"会对着正确行为开火 —— 报告本来就该提
+/// 标定靶是哪张图，那张图跟"域里有哪些文件"是两件事。
+List<String> _fencedBlocks(String md) {
+  final List<String> out = <String>[];
+  final List<String> lines = md.split('\n');
+  bool inBlock = false;
+  final StringBuffer cur = StringBuffer();
+  for (final String l in lines) {
+    if (l.trim() == '```') {
+      if (inBlock) {
+        out.add(cur.toString());
+        cur.clear();
+      }
+      inBlock = !inBlock;
+      continue;
+    }
+    if (inBlock) cur.writeln(l);
+  }
+  return out;
+}
+
 /// 构造一个沙箱：`lib/` 与 `test/batch/` 里各放几个文件（受钉域），
 /// 其余后缀/目录用来验证**域本身没被放宽**。
 void _buildSandbox() {
@@ -452,9 +476,18 @@ void main() {
       expect(rep.requiredCount, dom.length,
           reason: '数目与清单必须出自同一处 —— 分两处算就是下一次"数目相等而内容不同"');
       // 不在域里的不许混进来（域被放宽 = 检查形同虚设）。
-      expect(md, isNot(contains('lib/readme.md')));
-      expect(md, isNot(contains('g01.jpg')));
-      expect(md, isNot(contains('__pycache__')));
+      // 断言范围是**那份清单本身**（围栏代码块），不是整篇报告 ——
+      // 报告里另有一节讲量具标定靶，它当然要提 `kSelfcheckImagePath`，
+      // 拿整篇去断言"不许出现 g01.jpg"会对着正确行为开火。
+      final List<String> fence = _fencedBlocks(md);
+      expect(fence, isNotEmpty, reason: '域清单要以围栏块给出，才谈得上"逐行 diff"');
+      final String domainBlock = fence.first;
+      for (final String p in dom) {
+        expect(domainBlock, contains(p), reason: '域里的 `$p` 必须在清单里逐行出现');
+      }
+      expect(domainBlock, isNot(contains('lib/readme.md')));
+      expect(domainBlock, isNot(contains('g01.jpg')));
+      expect(domainBlock, isNot(contains('__pycache__')));
     });
 
     test('git 不可用时：域清单仍在、数目不塌成 0（仪表故障 ≠ 样本消失）', () {
