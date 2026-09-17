@@ -249,12 +249,6 @@ mixin MattingEngineMixin {
       // 与 removeBackground 同理：闭包只捕获所需变量，未命中降采样路径时
       // 不把 imageBytes 拷进 worker。降采样路径同样在宿主预计算 letterbox
       // 输入（G4 r3），worker 只收 4.9MB 的 Float32。
-      //
-      // 对照臂开关在**宿主**读一次再捕获进闭包：worker 是独立 isolate，
-      // 读不到宿主改过的全局量（见 [setPupilProbe]）。
-      final bool pupilShuffle = debugShuffleCandidates;
-      final bool pupilIrisPrior = debugUseIrisPrior;
-      final bool pupilGreedy = debugGreedyGrouping;
       final FaceInfo? result;
       if (rgba != null && plan != null) {
         final r = rgba;
@@ -264,19 +258,12 @@ mixin MattingEngineMixin {
         final Uint8List gray = grayPlaneFromRgba(r, p.width, p.height);
         result = await Isolate.run(() {
           return faceFromYunetInput(yunet, session, p.width, p.height,
-              gray: gray,
-              pupilShuffle: pupilShuffle,
-              pupilIrisPrior: pupilIrisPrior,
-              pupilGreedy: pupilGreedy);
+              gray: gray);
         });
       } else {
         result = await Isolate.run(() {
           return runFaceSync(imageBytes, session,
-              maxEdge: kEngineMaxEdge,
-              targetEdge: kBigImageWorkEdge,
-              pupilShuffle: pupilShuffle,
-              pupilIrisPrior: pupilIrisPrior,
-              pupilGreedy: pupilGreedy);
+              maxEdge: kEngineMaxEdge, targetEdge: kBigImageWorkEdge);
         });
       }
       _faceCacheKey = imageBytes;
