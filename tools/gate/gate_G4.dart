@@ -602,6 +602,11 @@ Future<Map<String, dynamic>> _ac6DocChanges() async {
     final r = await runProcess(
       'git', ['log', '-1', '--format=%h %s', '--', doc],
       timeout: const Duration(seconds: 30),
+      // `%h`/`%s` 里的 `%` 在本地 shell 下会被 cmd 当变量展开前缀。
+      // 展成空串的话 git 收到的是 `--format=`，输出是空 ——
+      // 而下面 `if (lastCommit.contains('授权'))` 就会判"无授权字样"，
+      // 把一条**合法**的口径变更记成问题。取不到与"没有"必须分开。
+      runInShell: false,
     );
     final lastCommit =
         r.success ? r.stdout.trim() : 'git log 失败: ${r.tail(maxChars: 120)}';
@@ -1480,7 +1485,10 @@ Future<RunResult> _pushWithRetry(String deviceId, String localPath,
     }
     await runProcess('adb', ['-s', deviceId, 'shell',
         'mkdir -p $kDeviceGateDir/g4_spot && chmod 777 $kDeviceGateDir/g4_spot'],
-        timeout: const Duration(seconds: 15));
+        timeout: const Duration(seconds: 15),
+        // `&&` 是给**设备端** shell 的。开着本地 shell 时 cmd.exe 先解释一遍，
+        // 命令被拆开、只跑第一段 —— 而第一段成功就是 exit 0，看起来一切正常。
+        runInShell: false);
     await Future<void>.delayed(Duration(seconds: 2 * attempt));
     push = await adbPush(deviceId, localPath, remotePath);
     attempt++;

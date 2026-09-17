@@ -35,21 +35,69 @@ class RunResult {
   }
 }
 
+/// shell 语法字符。`runInShell: true` 时 Dart **不做任何转义**：
+/// 整个命令被拼成一行交给 `cmd.exe /c`，这些字符全部会被 cmd 当成**语法**解释掉。
+///
+/// 后果不是"报错"，而是"**换个方式执行并给出看起来正常的结果**"——
+/// 本项目的原话是「仪表失败时报告更少，而不是看不到」，这里是它的最坏形态：
+/// 仪表**报告了一个错误的值**。
+///
+/// 实证（2026-09-17，就在本仓库）：
+/// `git log --name-only --format=@@%h|%s baseline-p6p0..HEAD`
+///   → cmd 把 `|` 当管道 → `'%s' is not recognized...` →
+///     **exit 255、stdout 空**。而调用方没查 exitCode，于是
+///     「条款 1（实现类 agent 越界写考卷）」拿到空列表 → 判**清白**。
+///     这条最重要的防作弊条款自写下起就没工作过，每一轮都在报"清白"。
+const List<String> kShellSyntaxChars = <String>['|', '&', '>', '<', '^', '%'];
+
+/// 参数里是否含会被 `cmd.exe` 解释掉的字符。
+String? shellSyntaxIn(String arg) {
+  for (final String c in kShellSyntaxChars) {
+    if (arg.contains(c)) return c;
+  }
+  return null;
+}
+
 /// 跑一个子进程，带超时。找不到命令 / 超时都不抛异常，全部体现在 RunResult 里，
 /// 由调用方决定如何映射到 gate 判定。
+///
+/// [runInShell] 默认 `true`（保持既有行为：`flutter`/`adb` 在 Windows 上是
+/// `.bat`，没有 shell 就解析不到）。但**开着 shell 时参数不做转义**，
+/// 所以任何含 [kShellSyntaxChars] 的参数会被**当场拒绝**，返回一个说明原因的
+/// 失败结果 —— 宁可让调用方看见一个明确的错误，也不要它拿到一个被篡改过的执行结果。
+/// 需要传含这些字符的参数时，改用 `runInShell: false`。
 Future<RunResult> runProcess(
   String executable,
   List<String> args, {
   String? workingDirectory,
   Duration timeout = const Duration(minutes: 5),
+  bool runInShell = true,
 }) async {
+  if (runInShell) {
+    for (final String a in args) {
+      final String? c = shellSyntaxIn(a);
+      if (c != null) {
+        return RunResult(
+          ok: false,
+          exitCode: -1,
+          stdout: '',
+          stderr: '**拒绝执行**：参数 `$a` 含 shell 语法字符 `$c`，而 `runInShell: true` '
+              '时 Dart 不转义该参数，它会被 cmd.exe 解释成语法 —— 命令会以**另一种形式**'
+              '执行，且往往返回 exit 0 与看似正常的结果。'
+              '改用 `runInShell: false`（adb/git 这类把剩余参数原样拼给远端 shell 的'
+              '工具，去掉本地 shell 后行为才正确）。',
+        );
+      }
+    }
+  }
+
   Process? proc;
   try {
     proc = await Process.start(
       executable,
       args,
       workingDirectory: workingDirectory,
-      runInShell: true,
+      runInShell: runInShell,
     );
   } catch (e) {
     return RunResult(ok: false, exitCode: -1, stdout: '', stderr: '启动失败: $e');

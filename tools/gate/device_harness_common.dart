@@ -136,6 +136,12 @@ Future<RunResult> prepareDeviceGateDir(String deviceId, String remoteDir) async 
          '$remoteDir/probe_dir/x && touch $remoteDir/probe_dir/x/.probe && '
          'rm -rf $remoteDir/probe_dir'],
     timeout: const Duration(seconds: 30),
+    // 这个参数里全是远端 shell 的 `&&`。开着本地 shell 时 cmd.exe 会先把它
+    // 解释一遍：命令被拆开，只跑了第一段（`mkdir -p`），后面的"写探针并删掉"
+    // **根本没执行** —— 而第一段成功就会 `probe.success == true`。
+    // 结果是"可写性探针"从来没探过，却一直报告"可写"。
+    // adb 自己会把剩余参数拼起来交给设备端 shell，所以本地必须关掉 shell。
+    runInShell: false,
   );
   if (probe.success) return probe;
 
@@ -150,6 +156,7 @@ Future<RunResult> prepareDeviceGateDir(String deviceId, String remoteDir) async 
      'rm -rf $remoteDir && mkdir -p $remoteDir && chmod 777 $remoteDir && '
          'touch $remoteDir/.gate_probe && rm $remoteDir/.gate_probe'],
     timeout: const Duration(seconds: 30),
+    runInShell: false, // 同上：`&&` 是给设备端 shell 的，不是给 cmd.exe 的
   );
 }
 

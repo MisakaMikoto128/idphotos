@@ -22,6 +22,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'dart:io';
 
 import '../../tools/gate/anticheat.dart';
+import '../../tools/gate/gate_common.dart';
 import '../../tools/gate/gate_P0.dart' as gate;
 
 /// 探针文件名：故意用 `.tmp` 后缀且放在 tools/gate/ 下，测完立刻删除。
@@ -127,18 +128,51 @@ void main() {
     expect(ownerOfSubject('qa-batch: 冻结数据集'), 'qa-batch');
     expect(ownerOfSubject('imaging: 裁剪几何'), 'imaging');
     expect(ownerOfSubject('ui-woodcraft: 木纹材质'), 'ui-woodcraft');
-    expect(ownerOfSubject('acceptance: 冻结判据'), '未知（前缀 `acceptance` 不在角色表）',
-        reason: '主会话的 acceptance 前缀没登记；未登记一律"未知"，不硬猜');
+    // 主会话的前缀是**登记过的**：它是 CLAUDE.md §4 里 ACCEPTANCE/RUBRIC 的
+    // 唯一写入者，它写法典是本职。登记之前 `acceptance:` 会被判成"未知"，
+    // 而"未知一律从严" → 主会话每次订正判据都变成条款 1 违规。
+    expect(ownerOfSubject('acceptance: 冻结判据'), '主会话');
+    expect(ownerOfSubject('api: 更正 landmarks 用途'), '主会话');
+    expect(ownerOfSubject('pitfalls: 追加教训'), '主会话');
+    // 带括号限定的前缀要先剥括号再查表 —— `gate(P0):` 是本仓库真实在用的写法。
+    // 不剥的话它查不到 → 归属"未知" → 把门禁自己的提交判成越界。
+    expect(ownerOfSubject('gate(P0): 排除集'), 'gatekeeper');
+    expect(ownerOfSubject('gate(G4): 某某'), 'gatekeeper');
+    // **未登记的归属必须仍然"未知"，不许硬猜。** 用真正没登记的词来钉这一条，
+    // 不要用已经登记的前缀 —— 那会把"不硬猜"钉成一句空话。
+    expect(ownerOfSubject('whatever: 没登记的前缀'), '未知（前缀 `whatever` 不在角色表）',
+        reason: '未登记一律"未知"，不硬猜');
+    expect(ownerOfSubject('没有冒号的提交信息'), startsWith('未知'));
+
     // 未登记的归属必须**从严**，不能因为认不出来就放行
     expect(isForbiddenFor('tools/gate/gate_P0.dart', '未知（前缀 x 不在角色表）'), true,
         reason: '认不出归属时必须从严，否则改个前缀就能绕过条款 1');
+    expect(isForbiddenFor('test/batch/p0_lib.py', '未知（前缀 x 不在角色表）'), true,
+        reason: '归属不明与"确认是裁判写的"是两回事，前者从严');
     // 实现类 agent 碰 test/ tools/gate/ 必须是违规
     expect(isForbiddenFor('test/gate/x_test.dart', 'ml-porting'), true);
     expect(isForbiddenFor('tools/gate/gate_P0.dart', 'imaging'), true);
     expect(isForbiddenFor('docs/ACCEPTANCE.md', 'ui-woodcraft'), true);
+    expect(isForbiddenFor('docs/ACCEPTANCE.md', 'gatekeeper'), true,
+        reason: '法典只有主会话能写 —— 裁判改了法典就不再中立（CLAUDE.md §4）');
+    expect(isForbiddenFor('docs/ACCEPTANCE.md', 'qa-batch'), true);
+    expect(isForbiddenFor('docs/ACCEPTANCE.md', '主会话'), false);
+    expect(isForbiddenFor('docs/RUBRIC.md', '主会话'), false);
     // 裁判碰自己的领地不是违规
     expect(isForbiddenFor('test/batch/p0_selftest.dart', 'qa-batch'), false);
     expect(isForbiddenFor('test/adversarial/a.dart', 'adversarial'), false);
+
+    // **跨领地提交的回归**：`p0: 提交 P0 门禁与测量台` 一条提交里
+    // 同时有 `tools/gate/**` 与 `test/batch/**`。归属只能取一个，
+    // 于是 qa-batch 的正经产物会顶着 gatekeeper 的归属 —— 此时
+    // `test/` 下**不能**因为它不是 qa-batch 就判违规，靶子只是实现类。
+    expect(isForbiddenFor('test/batch/p0_lib.py', 'gatekeeper'), false,
+        reason: '跨领地提交不许把 qa-batch 的产物判成越界（曾产生 20 多处假阳性）');
+    expect(isForbiddenFor('test/batch/p0_lib.py', 'ml-porting'), true,
+        reason: '但实现类碰 test/ 仍然必须是违规 —— 放松只针对归属，不针对靶子');
+    expect(isForbiddenFor('tools/gate/anticheat.dart', 'qa-batch'), true,
+        reason: '监考工具仍只有 gatekeeper 能碰，这一条不放松');
+    expect(isForbiddenFor('test/gate/x.dart', 'qa-batch'), true);
   });
 
   test('E 条款 5：单行与**跨行**空 catch 都必须抓到（正例），非空 catch 不得误报（负例）',
@@ -475,5 +509,76 @@ void main() {
     expect((ac['undecidable'] as List<dynamic>).isNotEmpty, true,
         reason: '哈希算不出来属于"巡检自己判不了"，不得当清白');
     expect(ac['clean'], false, reason: '有违规就不是清白');
+  });
+
+  test('L2 shell 语法参数必须被**当场拒绝**，不许静默换个方式执行', () async {
+    // 存在理由（2026-09-17，实证）：`runInShell: true` 时 Dart **不转义**参数，
+    // 整个命令行被拼给 cmd.exe。`--format=@@%h|%s` 里的 `|` 于是变成管道：
+    //     '%s' is not recognized as an internal or external command
+    //     → exit 255、stdout 空、**没有任何异常**
+    // 而调用方当时不查 exitCode，于是拿到空列表判"无越界 = 清白"。
+    // 条款 1（防实现类 agent 自己出考卷）自写下起就没工作过。
+    for (final String bad in <String>[
+      '--format=@@%h|%s',
+      'x && y',
+      'a > b',
+      'a < b',
+      '%PATH%',
+      'a ^ b',
+    ]) {
+      final RunResult r = await runProcess('git', <String>['log', bad]);
+      expect(r.ok, false, reason: '含 shell 语法的参数 `$bad` 必须被拒绝，而不是照跑');
+      expect(r.exitCode, -1);
+      expect(r.stderr.contains('拒绝执行'), true,
+          reason: '拒绝的理由要写清楚，否则调用方只会看到一个莫名的失败');
+      expect(r.stderr.contains('runInShell'), true,
+          reason: '要告诉调用方怎么改（runInShell: false）');
+    }
+    // **负例**：不含语法字符的参数照常执行 —— 拒绝必须是窄的，
+    // 宽了就把正常调用也挡掉，那是另一种失效。
+    final RunResult good =
+        await runProcess('git', <String>['rev-parse', '--is-inside-work-tree']);
+    expect(good.ok, true, reason: '参数干净时不许误伤');
+    expect(good.exitCode, 0);
+    expect(good.stdout.trim(), 'true');
+    // 显式关掉 shell 之后，同样的参数可以正常传（不是禁止使用这些字符，
+    // 而是禁止**经 shell** 使用它们）。
+    final RunResult viaNoShell = await runProcess(
+      'git',
+      <String>['log', '-1', '--format=@@%h|%s'],
+      runInShell: false,
+    );
+    expect(viaNoShell.ok, true);
+    expect(viaNoShell.success, true,
+        reason: 'runInShell: false 时 git 应当正常返回 —— 这正是修好条款 1 的那一步');
+    expect(viaNoShell.stdout.contains('@@'), true,
+        reason: '格式串必须原样到达 git，否则解析端又拿到一张空表');
+  });
+
+  test('L3 条款 1 的读数不许塌成空表（回归：它曾是空的，且被判成"清白"）', () async {
+    // 这条是**针对具体事故的回归**：`git log` 的参数被 cmd 吃掉后，
+    // `committed_changes` 是 `[]`，于是"没有任何越界" —— 一个把
+    // "读不到" 伪装成 "没问题" 的检查。
+    // 真仓库在 baseline 之后有大量提交，读出来必然非空。
+    // 若哪天它又变成 0（换实现、换调用方式、shell 又吃参数），这条立刻红。
+    final Map<String, dynamic> ac = await patrol(
+      baseline: 'baseline-p6p0',
+      currentHashes: <String, String>{},
+      prevHashes: null,
+      goldenSrcCount: 8,
+      goldenRefCount: 8,
+    );
+    final Map<String, dynamic> ev = (ac['evidence'] as Map).cast<String, dynamic>();
+    final List<dynamic> committed = ev['committed_changes'] as List<dynamic>? ?? <dynamic>[];
+    expect(committed.isNotEmpty, true,
+        reason: '条款 1 读不到任何变更 = 这条检查没在工作。'
+            '取不到 ≠ 没有：必须报"不可判"，绝不当成清白');
+    // 归属必须是**算出来的**，不是一串空值。
+    final List<dynamic> vs = (ac['violations'] as List<dynamic>?) ?? <dynamic>[];
+    final bool claimedBlind = vs.any((dynamic v) =>
+        '${(v as Map)['detail']}'.contains('条款 1 无法执行'));
+    expect(claimedBlind, false,
+        reason: '本轮 git log 应当能跑通；跑不通时也必须报违规（判不可判），'
+            '这里只是记下"没触发"这个事实');
   });
 }

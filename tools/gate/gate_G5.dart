@@ -377,6 +377,12 @@ Future<void> main(List<String> args) async {
       problems.add('git ls-files 失败');
     }
     // (3) 被跟踪文本文件中无明文口令赋值（storePassword/keyPassword = 具体值）
+    //
+    // **`runInShell: false` 是必须的，不是偏好。** 这个正则在本地 shell 下会被
+    // cmd.exe 当成语法切碎（`|` 是管道、`%` 是变量展开、`&` 是命令分隔、
+    // `*` 可能被展开）—— 于是执行的**根本不是这条 grep**，
+    // 而 G5.7「无密钥泄漏」会据此报"没找到明文口令"。
+    // 与条款 1 那次是同一个形状：命令没跑成，检查读成"干净"。
     final grep = await runProcess(
         'git',
         [
@@ -387,7 +393,8 @@ Future<void> main(List<String> args) async {
           ':!',
           'android/app/build.gradle.kts'
         ],
-        timeout: const Duration(seconds: 30));
+        timeout: const Duration(seconds: 30),
+        runInShell: false);
     // build.gradle.kts 里是属性引用（keystoreProperties["..."]），也单独确认不含字面量
     final kts = File('android/app/build.gradle.kts');
     final ktsHit = (await kts.readAsString())

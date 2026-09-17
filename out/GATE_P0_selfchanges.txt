@@ -32,3 +32,9 @@ tools/gate/gate_common.dart
 #    TruthDrift.describe() 在重建时**不再**写"本轮不判 FAIL"（那句话就是绕过路径的门）；
 #  · p0_gate_judgment_test.dart —— 测试 W（删基线买不到免疫）、X（锚在受钉集里）；
 #  · docs/PITFALLS.md —— 追加一条（只追加，未删改他人条目）。
+# 2026-09-17 第三批（shell 参数事故）：新增登记以下文件 —— 它们此前从未被改过，
+# 因此不在清单里；本轮修 `runInShell` 事故时动了它们，必须登记，
+# 否则下一轮会把我自己判成越界。
+tools/gate/device_harness_common.dart
+tools/gate/gate_G4.dart
+tools/gate/gate_G5.dart

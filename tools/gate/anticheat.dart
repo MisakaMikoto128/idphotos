@@ -61,14 +61,46 @@ const Map<String, String> kSubjectPrefixOwner = <String, String>{
   'adversarial': 'adversarial',
   'visual': 'visual-critic',
   'visual-critic': 'visual-critic',
+  // 主会话的几种前缀。主会话是 CLAUDE.md §4 里 `docs/ACCEPTANCE.md` 与
+  // `docs/RUBRIC.md` 的**唯一写入者**，它写法典是本职，不是越界。
+  'acceptance': '主会话',
+  'api': '主会话',
+  'docs': '主会话',
+  'build': '主会话',
+  'gitignore': '主会话',
+  'pitfalls': '主会话',
+  // P0 阶段的落地前缀。它下面的提交**跨领地**：同一个提交里既有
+  // `tools/gate/**`（gatekeeper 的）又有 `test/batch/**`（qa-batch 的）——
+  // "p0: 提交 P0 门禁与测量台"就是这样一条。
+  // 单个前缀无法逐文件归对主，这里归给 gatekeeper，配套地让
+  // `test/` 下的越界判定只针对**实现类** agent（见 isForbiddenFor）。
+  'p0': 'gatekeeper',
 };
 
 String ownerOfSubject(String subject) {
   final int i = subject.indexOf(':');
   if (i < 0) return '未知（提交信息无前缀：$subject）';
-  final String prefix = subject.substring(0, i).trim().toLowerCase();
+  String prefix = subject.substring(0, i).trim().toLowerCase();
+  // `gate(P0):` / `gate(G4):` 这类带括号限定的前缀：先剥掉括号再查表。
+  // 不剥的话 `gate(p0)` 查不到 → 归属成"未知" → 撞上"未知一律从严" →
+  // **把门禁自己的提交判成条款 1 违规**。判据误报的害处与漏报相同：
+  // 它会把"每一轮都是红的"变成常态，于是没人再认真看这一栏。
+  final int paren = prefix.indexOf('(');
+  if (paren > 0) prefix = prefix.substring(0, paren).trim();
   return kSubjectPrefixOwner[prefix] ?? '未知（前缀 `$prefix` 不在角色表）';
 }
+
+/// 实现类 agent：**干活的人**。条款 1 就是冲它们来的 ——
+/// 自己给自己出考卷（改 `test/`）、自己改监考工具（`tools/gate/`）、
+/// 自己改法典（`docs/ACCEPTANCE.md`），三种都必须是 FAIL。
+const Set<String> kImplementationAgents = <String>{
+  'ml-porting',
+  'imaging',
+  'ui-woodcraft',
+  'release',
+  'store-assets',
+  'env-setup',
+};
 
 /// 实现类 agent 一律不许碰的路径。`test/gate/` 是 gatekeeper 自己的，不在其中。
 ///
@@ -77,7 +109,15 @@ String ownerOfSubject(String subject) {
 /// 不能一刀切 —— 误报会把别人的正常工作判成作弊，和漏报一样有害。
 bool isForbiddenFor(String path, String owner) {
   final String p = path.replaceAll('\\', '/');
-  if (p == 'docs/ACCEPTANCE.md' || p == 'docs/RUBRIC.md') return true;
+  final bool impl = kImplementationAgents.contains(owner) ||
+      owner.startsWith('未知'); // 归属不明一律从严，见下
+  if (p == 'docs/ACCEPTANCE.md' || p == 'docs/RUBRIC.md') {
+    // 只有主会话能写法典（CLAUDE.md §4「唯一写入者」）。
+    // 实现类改它 = 直接 FAIL（条款 1 原文点名了这四个）；
+    // 裁判类也不许 —— 改法典的人就不再中立了。
+    return owner != '主会话';
+  }
+  // 监考工具与门禁自己的考卷：只有 gatekeeper 能碰。这一条不放松。
   if (p.startsWith('tools/gate/')) return owner != 'gatekeeper';
   if (p.startsWith('test/gate/')) return owner != 'gatekeeper';
   if (p.startsWith('test/')) {
@@ -89,7 +129,18 @@ bool isForbiddenFor(String path, String owner) {
     }
     if (owner == 'adversarial' && p.startsWith('test/adversarial/')) return false;
     if (owner == 'gatekeeper') return false;
-    return true;
+    // **只对实现类 agent 判违规。**
+    //
+    // 条款 1 的原文就是"**实现类 agent** 写入了 test/…"，靶子从来是
+    // "自己给自己出考卷"。此前这里写的是"剩下的归属一律 true"，
+    // 于是一条**跨领地**的提交（如 `p0: 提交 P0 门禁与测量台`，
+    // 同一个提交里既有 tools/gate 又有 test/batch）会让 qa-batch 的正经产物
+    // 顶着 gatekeeper 的归属被判违规 —— 20 多处假阳性。
+    // 假阳性的害处与漏报相同：整栏长红，就没人再认真看它。
+    //
+    // 归属不明（`未知…`）仍然从严：那是"说不上来谁写的"，
+    // 与"确认是裁判写的"是两回事。
+    return impl;
   }
   return false;
 }
@@ -109,10 +160,12 @@ bool isUniversallyProtected(String path) {
 /// 绝不硬猜一个 agent 名字按在别人头上：猜错的代价是冤枉一个没做错事的 agent，
 /// 比"未定位"差得多。
 String attributeWorktree(String path) {
+  // 同 `git()`：`--format=%s` 里的 `%` 会被 cmd 当变量展开前缀，
+  // 开着 shell 时这颗参数同样不可靠。runInShell: false 才是原样传参。
   final ProcessResult r = Process.runSync(
     'git',
     <String>['log', '-1', '--format=%s', '--', path],
-    runInShell: true,
+    runInShell: false,
   );
   if (r.exitCode == 0) {
     final String s = (r.stdout as String).trim();
@@ -124,8 +177,17 @@ String attributeWorktree(String path) {
 }
 
 /// git 子进程的一次调用（失败不抛，交给调用方映射为 FAIL）。
-Future<RunResult> git(List<String> args) =>
-    runProcess('git', args, timeout: const Duration(seconds: 60));
+///
+/// **`runInShell: false` 不是风格问题，是正确性问题。** 本函数的调用方传的
+/// `--format=@@%h|%s` 含 `|`；开着 shell 时 cmd.exe 把它当管道，
+/// git 以 exit 255、stdout 空收场，而调用方拿到空列表会判"无越界 = 清白"。
+/// 条款 1 因此静默失效了很久。git 是 `.exe`，不需要 shell。
+Future<RunResult> git(List<String> args) => runProcess(
+      'git',
+      args,
+      runInShell: false,
+      timeout: const Duration(seconds: 60),
+    );
 
 /// 空 catch 的模式。**跨行**（`catch (e) {` 换行 `}`）必须也匹配。
 ///
@@ -605,6 +667,20 @@ Future<Map<String, dynamic>> patrol({
     '--format=@@%h|%s',
     '$baseline..HEAD',
   ]);
+  // **取不到 ≠ 没有。** 这段以前不查 exitCode：`git log` 因为参数被 cmd 吃掉而以
+  // exit 255、空 stdout 收场时，下面的解析得到的是一张空表，条款 1 于是判**清白** ——
+  // 最重要的那条防作弊检查自写下起就没工作过，每一轮都在报"清白"。
+  // 所以：命令失败 ⇒ 这条查不了 ⇒ **判不可判**，绝不当成"没查到违规"。
+  if (!logR.success) {
+    violations.add(Violation(
+      '1',
+      '$baseline..HEAD',
+      '未定位',
+      '**条款 1 无法执行**：`git log` 未成功（exitCode=${logR.exitCode}，'
+          'timedOut=${logR.timedOut}）。取不到 ≠ 没有越界 —— 本条判"不可判"，'
+          '不得当作清白。诊断：${logR.tail(maxChars: 300)}',
+    ));
+  }
   final Map<String, String> pathOwners = <String, String>{};
   String subject = '';
   for (final String line in logR.stdout.split('\n')) {

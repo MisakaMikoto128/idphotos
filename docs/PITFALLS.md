@@ -2052,3 +2052,46 @@ SHA256（`evidenceProvenance.sourceSha256`）；但源产物自己没有代码�
    只跑负对照（全都红）时，这个 bug **完全看不出来**：
    一个永远报错的判据，与一个正确报错的判据，在负对照里长得一模一样。
 
+
+## [gatekeeper] `runInShell: true` 把参数喂给 cmd.exe —— 条款 1 因此静默失效了整段时间
+
+日期：2026-09-17　范围：`tools/gate/gate_common.dart`、`tools/gate/anticheat.dart`
+
+`Process.start(..., runInShell: true)` 在 Windows 上把命令行拼给 `cmd.exe /c`，
+**Dart 不转义参数**。于是参数里的 `|` `&` `>` `<` `^` `%` 全部变成 cmd 的语法。
+
+实证（就在本仓库，可复现）：
+
+```
+git log --name-only --format=@@%h|%s baseline-p6p0..HEAD
+  → cmd 把 `|` 当管道 → '%s' is not recognized as an internal or external command
+  → exit 255、stdout 空、没有异常
+```
+
+调用方没查 `exitCode`，把空 stdout 解析成"没有越界" ⇒ **条款 1（实现类 agent 越界写
+`test/` `tools/gate/` `ACCEPTANCE/RUBRIC`）自写下起就没工作过**，每一轮报告里
+"防作弊巡查：清白"都是把"读不到"说成了"没问题"。
+
+同一个形态在本仓库至少还有三处，全部是"命令没按预期跑，而检查读成干净"：
+
+| 位置 | 参数里的语法字符 | 后果 |
+|---|---|---|
+| `anticheat.dart` `git log --format=@@%h\|%s` | `\|` | 条款 1 恒为空表 |
+| `anticheat.dart` `--format=%s` | `%` | 工作区改动的归属算不出来 |
+| `device_harness_common.dart` `adb shell 'mkdir … && …'` | `&&` | 设备目录可写性探针**只跑了第一段**，探针本身从未执行，却一直报"可写" |
+| `gate_G5.dart` `git grep -nIE '(storePassword\|keyPassword)…'` | `\|` `%` `&` `*` | G5.7"无密钥泄漏"跑的不是这条 grep |
+| `gate_G4.dart` `git log --format=%h %s` | `%` | 口径变更的"授权"字样读不到 → 把合法变更记成问题 |
+
+五处的共同点：**exit code 都可能是 0，或失败后无人查**，而返回值"看起来正常"。
+
+三条教训：
+
+1. **没有 shell 就别开 shell。** `git`、`adb` 都是 `.exe`，`runInShell: false` 才是
+   原样传参。`adb shell '… && …'` 尤其反直觉：`&&` 是给**设备端** shell 的，
+   本地再解释一遍就是重复执行 + 拆散命令。需要 `flutter`/`gradlew` 这类
+   `.bat`/`.cmd` 才真的需要 shell。
+2. **拒绝比转义好，报错比静默好。** 现在 `runProcess` 在 `runInShell: true` 且参数
+   含语法字符时**当场返回失败并说明原因**，而不是换个方式执行。
+3. **每个检查都要问一句"它失败时长什么样"。** 这五处失败的样子都是"干净"。
+   凡是"取不到"与"没有"在返回值上不可区分的检查，都必须显式加一条
+   "本条无法执行 ⇒ 判不可判"，而不是让它落进默认的"没问题"分支。
