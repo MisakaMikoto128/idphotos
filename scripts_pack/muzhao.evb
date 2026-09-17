@@ -425,6 +425,18 @@
           </File>
           <File>
             <Type>2</Type>
+            <Name>native_assets.json</Name>
+            <File>C:\Users\liuyu\Desktop\WorkPlace\idPhotos\build\windows\x64\runner\Release\native_assets.json</File>
+            <ActiveX>False</ActiveX>
+            <ActiveXInstall>False</ActiveXInstall>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <PassCommandLine>False</PassCommandLine>
+            <HideFromDialogs>0</HideFromDialogs>
+          </File>
+          <File>
+            <Type>2</Type>
             <Name>onnxruntime.dll</Name>
             <File>C:\Users\liuyu\Desktop\WorkPlace\idPhotos\build\windows\x64\runner\Release\onnxruntime.dll</File>
             <ActiveX>False</ActiveX>
