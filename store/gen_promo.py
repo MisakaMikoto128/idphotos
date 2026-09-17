@@ -169,7 +169,7 @@ def feature_graphic():
     d.rectangle([14, 14, W - 15, H - 15], outline=WOOD_DARK + (255,), width=4)
     d.rectangle([22, 22, W - 23, H - 23], outline=WOOD_LIGHT + (150,), width=2)
 
-    icon = Image.open(os.path.join(STORE, "icon_512.png")).resize((230, 230), Image.LANCZOS)
+    icon = Image.open(os.path.join(STORE, "icon_512.png")).convert("RGBA").resize((230, 230), Image.LANCZOS)
     canvas.alpha_composite(icon, (150, 120))
     # 铭牌托底
     d.rounded_rectangle([142, 350, 388, 394], radius=6, fill=BRASS + (255,))
