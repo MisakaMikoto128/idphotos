@@ -231,6 +231,7 @@ body {
   padding: 10px 8px 20px;
   scrollbar-width: thin;
   scrollbar-color: var(--brass) transparent;
+  justify-content: safe center;   /* 宽屏内容居中（不溢出时） */
 }
 .car-track li {
   flex: 0 0 auto; width: 250px;
