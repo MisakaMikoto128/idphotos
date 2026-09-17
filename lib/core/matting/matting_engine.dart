@@ -27,6 +27,7 @@ import 'dart:typed_data';
 import '../api.dart';
 import 'flutter_decode.dart';
 import 'image_ops.dart';
+import 'iris_roll.dart';
 import 'matting_worker.dart';
 import 'ort_runtime.dart';
 import 'session_factory.dart';
@@ -167,6 +168,10 @@ mixin MattingEngineMixin {
         final LetterboxInput? yunet =
             runGate ? yunetInputFromRgba(r, p.width, p.height, kFaceInputSize)
                 : null;
+        // 瞳孔估计要的灰度平面也在宿主从同一份 rgba 备好：worker 里没有
+        // rgba，而 1 字节/像素的灰度是这条路径上最小的一份拷贝。
+        final Uint8List? gray =
+            runGate ? grayPlaneFromRgba(r, p.width, p.height) : null;
         final Float32List modnet =
             modnetInputFromRgba(r, p.width, p.height, kMattingInputSize);
         payload = await Isolate.run(() {
@@ -176,6 +181,7 @@ mixin MattingEngineMixin {
           return runMattingPrecomputed(
             modnetInput: modnet,
             yunetInput: yunet,
+            gray: gray,
             sessionAddress: session,
             faceSessionAddress: runGate ? faceSession : null,
             width: p.width,
@@ -249,8 +255,10 @@ mixin MattingEngineMixin {
         final p = plan;
         final LetterboxInput yunet =
             yunetInputFromRgba(r, p.width, p.height, kFaceInputSize);
+        final Uint8List gray = grayPlaneFromRgba(r, p.width, p.height);
         result = await Isolate.run(() {
-          return faceFromYunetInput(yunet, session, p.width, p.height);
+          return faceFromYunetInput(yunet, session, p.width, p.height,
+              gray: gray);
         });
       } else {
         result = await Isolate.run(() {

@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import '../api.dart';
 import 'image_ops.dart';
+import 'iris_roll.dart';
 import 'ort_runtime.dart';
 import 'yunet_decoder.dart';
 
@@ -269,9 +270,16 @@ MattingPayload runMattingAlphaOnly(DecodedImage image, int sessionAddress,
 /// [faceSessionAddress] 非 null 时先跑人像门槛（同 [runFaceFromRgb] 口径：
 /// YuNet + pickSubjectFace + kMinFaceAreaRatio），检不到抛
 /// [NoFaceException]。此时 [yunetInput] 必须非 null。
+///
+/// [gray] 是工作分辨率灰度平面（宿主从同一份 rgba 备好），供瞳孔级眼线
+/// 估计用；它是 1 字节/像素的额外拷贝（相对本路径已有的 8MB Float32 输入
+/// 是 +w·h 字节），换来的是人像门槛返回的 [FaceInfo] 与 detectFace 逐位
+/// 同口径——controller 先 removeBackground 再 detectFace 会命中缓存，
+/// 两者给不出不同的 rollDeg。传 null 则该次门槛不产摆正角。
 MattingPayload runMattingPrecomputed({
   required Float32List modnetInput,
   LetterboxInput? yunetInput,
+  Uint8List? gray,
   required int sessionAddress,
   int? faceSessionAddress,
   required int width,
@@ -281,8 +289,8 @@ MattingPayload runMattingPrecomputed({
 }) {
   FaceInfo? subjectFace;
   if (faceSessionAddress != null) {
-    subjectFace = faceFromYunetInput(yunetInput!, faceSessionAddress,
-        width, height);
+    subjectFace = faceFromYunetInput(yunetInput!, faceSessionAddress, width,
+        height, gray: gray);
     if (subjectFace == null) {
       // 文案/控制流与 _mattingCore 的门槛分支逐字一致。
       throw const NoFaceException(cause: 'face gate: no subject face');
@@ -385,17 +393,33 @@ FaceInfo? runFaceSync(Uint8List bytes, int sessionAddress,
 }
 
 /// 人脸检测推理 + 主体选择。输入是已解码好的 RGB（引擎工作分辨率）。
-FaceInfo? runFaceFromRgb(DecodedImage image, int sessionAddress) {
+///
+/// [gray] 为 null 时跳过瞳孔级眼线估计，[FaceInfo.rollSource] 为
+/// `unavailable`、`rollDeg` 为 0.0（诚实失败，不回退眼睑关键点）。
+FaceInfo? runFaceFromRgb(DecodedImage image, int sessionAddress,
+    {bool withPupilRoll = true}) {
   final input =
       yunetInput(image.rgb, image.width, image.height, kFaceInputSize);
-  return faceFromYunetInput(input, sessionAddress, image.width, image.height);
+  return faceFromYunetInput(
+    input,
+    sessionAddress,
+    image.width,
+    image.height,
+    gray: withPupilRoll
+        ? grayPlaneFromRgb(image.rgb, image.width, image.height)
+        : null,
+  );
 }
 
 /// [runFaceFromRgb] 的核心：从备好的 YuNet letterbox 输入跑检测。
 ///
 /// 供 rgb 路径与预计算输入路径（G4 r3）共用；同一输入产出同一 FaceInfo。
-FaceInfo? faceFromYunetInput(
-    LetterboxInput input, int sessionAddress, int imgW, int imgH) {
+///
+/// [gray] 是**工作分辨率**灰度平面（长度 `imgW*imgH`），用于瞳孔级眼线
+/// 估计（P0 修复）。传 null 则该次检测放弃摆正角（`rollSource =
+/// unavailable`），而不是退回 YuNet 眼睑连线。
+FaceInfo? faceFromYunetInput(LetterboxInput input, int sessionAddress, int imgW,
+    int imgH, {Uint8List? gray}) {
   final outputs = runFloatInput(
     sessionAddress,
     input.data,
@@ -422,13 +446,27 @@ FaceInfo? faceFromYunetInput(
   if (raw.isEmpty) return null;
   final kept = nonMaxSuppression(raw);
   if (kept.isEmpty) return null;
-  final face = toFaceInfo(
-      pickSubjectFace(kept, imgW, imgH), input.scale, imgW, imgH);
-  final ratio = face.box.width * face.box.height / (imgW * imgH);
-  if (ratio < kMinFaceAreaRatio) {
+  final face = pickSubjectFace(kept, imgW, imgH);
+  // 主脸面积门槛（判据与旧实现逐位一致，只是提前到建 FaceInfo 之前，
+  // 免得对注定被拒的图白跑一次瞳孔估计）。
+  final double boxW = face.w / input.scale;
+  final double boxH = face.h / input.scale;
+  if (boxW * boxH / (imgW * imgH) < kMinFaceAreaRatio) {
     return null;
   }
-  return face;
+  PupilRoll? pupil;
+  if (gray != null) {
+    pupil = estimatePupilRoll(
+      gray: gray,
+      width: imgW,
+      height: imgH,
+      eyeAx: face.landmarks[0] / input.scale,
+      eyeAy: face.landmarks[1] / input.scale,
+      eyeBx: face.landmarks[2] / input.scale,
+      eyeBy: face.landmarks[3] / input.scale,
+    );
+  }
+  return toFaceInfo(face, input.scale, imgW, imgH, pupil: pupil);
 }
 
 /// `[1,1,512,512]` 的嵌套输出 → 512*512 的 uint8。

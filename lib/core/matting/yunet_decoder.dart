@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
 import '../api.dart';
+import 'iris_roll.dart';
 
 /// YuNet 的三个特征图步长，对应 640/8=80、640/16=40、640/32=20 的网格。
 const List<int> kYunetStrides = <int>[8, 16, 32];
@@ -184,7 +185,17 @@ const double kEyeToChinInD = 1.61;
 /// 把模型坐标系的检测结果换算成原图坐标系的 [FaceInfo]。
 ///
 /// [scale] 是 letterbox 的缩放比：原图坐标 = 模型坐标 / scale。
-FaceInfo toFaceInfo(RawFace f, double scale, int imageW, int imageH) {
+///
+/// [pupil] 是调用方在**工作分辨率灰度平面**上跑出的瞳孔级眼线估计
+/// （[estimatePupilRoll]）。它成功时 `rollDeg` 取瞳孔值、
+/// `rollSource` 为 [RollSource.pupil]；失败或未提供时 `rollDeg` **恒为
+/// 0.0**、`rollSource` 为 [RollSource.unavailable]。
+///
+/// **绝不回退到 YuNet 眼球关键点连线**：那正是本次 P0 事故的元凶
+/// （眼点落在上睑褶而非瞳孔，真实照片上误差 3.7–6.7° 且可反号，
+/// 见 `iris_roll.dart` 头注与 `docs/PITFALLS.md`）。"测不出"远好于"测错"。
+FaceInfo toFaceInfo(RawFace f, double scale, int imageW, int imageH,
+    {PupilRoll? pupil}) {
   final x = f.x / scale;
   final y = f.y / scale;
   final w = f.w / scale;
@@ -222,9 +233,18 @@ FaceInfo toFaceInfo(RawFace f, double scale, int imageW, int imageH) {
     chinY = y + math.max(h, 1.0);
   }
 
-  // roll：两眼连线倾角。landmarks[0..1] 是右眼、[2..3] 是左眼
-  //（模型输出的"右/左"是相对被摄者），从右眼指向左眼即图像上的从左到右。
-  final rollDeg = math.atan2(lm[3] - lm[1], lm[2] - lm[0]) * 180 / math.pi;
+  // roll：**待施加的摆正角**，来自瞳孔级眼线估计（P0 修复）。
+  //
+  // 曾经这里是 `atan2(lm[3]−lm[1], lm[2]−lm[0])`（YuNet 眼球关键点连线）。
+  // 那两个点在真实照片上落在上睑褶/眼睑而非瞳孔，误差 3.7–6.7° 且可反号：
+  // p2（本来就是竖直证件照）被它读成 −3.91° 而主动转歪 3.7°，正是用户报
+  // 的事故；p1 真值 −4.4° 被读成 +0.84°，方向都相反。多线（眼/嘴/鼻）
+  // 融合已实测为**零和**（三线同源、强相关，104 组差 ±0.02°），换线救不了。
+  // 故此处只认瞳孔结果，拿不到就给 0.0 + unavailable。
+  final bool pupilOk = pupil != null && pupil.available;
+  final double rollDeg = pupilOk ? pupil.rollDeg : 0.0;
+  final RollSource rollSource =
+      pupilOk ? RollSource.pupil : RollSource.unavailable;
 
   // 五关键点透传（P0 歪斜修复，契约语义扩展记录）：按 [FaceInfo.landmarks]
   // 的契约顺序 [左眼, 右眼, 鼻尖, 左嘴角, 右嘴角] 重排。"左/右"沿用模型
@@ -250,6 +270,7 @@ FaceInfo toFaceInfo(RawFace f, double scale, int imageW, int imageH) {
     chinY: chinY,
     headTopY: headTopY,
     rollDeg: rollDeg,
+    rollSource: rollSource,
     confidence: f.score.clamp(0.0, 1.0),
     landmarks: kps,
   );
