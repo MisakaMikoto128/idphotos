@@ -28,6 +28,7 @@ import 'crop_geometry.dart';
 import 'jpeg_dpi.dart';
 import 'matte_clean.dart';
 import 'render.dart';
+import 'roll_fusion.dart';
 
 /// 成品 JPEG 质量。95 是「肉眼无损」与体积的常规平衡点。
 ///
@@ -79,6 +80,12 @@ class ComposeDiagnostics {
   /// 说明文字。
   final String note;
 
+  /// 多线融合估角结果（P0 歪斜修复接力第三棒）。null = 无人脸输入。
+  ///
+  /// [RollFusion.rollDeg] 是最终采纳角（送进 [planRotation] 的就是它，
+  /// 与 [straightenDeg] 只差死区/钳制）；三线原始角与来源供回归与排查。
+  final RollFusion? rollFusion;
+
   const ComposeDiagnostics({
     required this.cropRect,
     required this.straightened,
@@ -88,6 +95,7 @@ class ComposeDiagnostics {
     required this.achievedHeadHeightRatio,
     required this.achievedHeadTopRatio,
     required this.note,
+    this.rollFusion,
   });
 }
 
@@ -222,10 +230,16 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
 
     final CleanForeground clean = _cleanForegroundOf(matting);
 
+    // 多线融合估角：landmarks != null 时用眼线/嘴线融合（鼻轴仅诊断，
+    // 见 roll_fusion.dart 库注释的数据依据），否则回退解码器 rollDeg。
+    final RollFusion rollFusion = fuseRollDeg(
+      landmarks: face?.landmarks,
+      legacyRollDeg: face?.rollDeg ?? 0.0,
+    );
     final RotationPlan plan = planRotation(
       srcWidth: matting.width,
       srcHeight: matting.height,
-      rollDeg: face?.rollDeg ?? 0.0,
+      rollDeg: rollFusion.rollDeg,
     );
 
     final CropSolution solution = _solveCrop(
@@ -245,6 +259,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
       achievedHeadHeightRatio: solution.achievedHeadHeightRatio,
       achievedHeadTopRatio: solution.achievedHeadTopRatio,
       note: solution.note,
+      rollFusion: face == null ? null : rollFusion,
     );
 
     final BackgroundRamp ramp = BackgroundRamp.build(
