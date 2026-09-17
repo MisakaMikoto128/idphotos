@@ -2249,6 +2249,28 @@ invalidReasons(): 只有 if (pin.tampered) 才作废本轮   （provenance.dart:
 都要同时回答**"那它参与什么"** —— 只回答"它不会造成假红"是不够的，
 因为失效的检测**从不报假红，它报的是没看见**。
 
+## [gatekeeper] `grep 方法名` 一次没命中，我就差点宣布"这段没接进判决" —— 它是被 `toJson()` 带过去的
+
+r2 前核"测量产出缺 `codeFingerprint` 会不会作废本轮"。我 grep `prov.invalidReasons()`，
+**零命中**；全文件里 `prov` 只出现在两行：`final ProvenanceReport prov = provenanceReport();`
+和 `'provenance': prov.toJson(),`。按"没人调它"读，结论就是
+**`allBound=false` 不作废本轮，只写进 JSON** —— 而我先前已经跟 team-lead 和 qa-batch
+说过"必须重跑否则整轮作废"。差一步就是一次对全队的错误更正。
+
+往下读一层才对上：`provenance.dart:641` 的 `toJson()` 里有 `'reasons': invalidReasons()`，
+`gate_P0.dart` 的 `_roundInvalidReasons` 读 `pv['reasons']` 并逐条 `r.add(x)`。
+**调用链是 `prov.toJson() → 'reasons' → void`，方法名一次都不出现。**
+所以原结论是对的，我的"更正"才是错的。
+
+**判据：跨对象核对"这个值有没有被用"时，不能只 grep 方法名 —— 要 grep 那个值最终落在的
+键名（这里是 `reasons`）。** 本仓库的 `toJson()`/`describe()`/`summary()` 这类
+"打包给人看"的方法，同时也是**值的搬运通道**；它们在调用点上长得像纯展示，
+实际承担判决输入。这一条与"仪表看不见对象时说了'没有'"同源，只是仪表换成了 `grep`：
+**grep 没命中不等于没接，只等于这个名字没出现。**
+
+**可操作的复核姿势**：从"这个值最后去哪了"倒着走 —— 先找它落进哪个 map 键，
+再从键名反查消费方；不要从自己以为的方法名正着走。
+
 ## [qa-batch] `git commit` 不带 pathspec 提交整个索引：并行时会卷走别人的 staged 内容
 
 本仓库多 agent 并行，`git commit`（不带 pathspec）提交的是**整个索引**。别人 `M `
