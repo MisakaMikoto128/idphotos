@@ -921,3 +921,15 @@
 - 附带：后台方式启动 emulator 时，包一层 `&& emulator ... > log 2>&1` 的 bash 后台任务
   会在 emulator 被杀后报 exit 127，属正常收尾，不是启动失败；判断依据看 `adb devices`
   是否出现 `emulator-*`，别看 wrapper 退出码。
+
+## 横向 ListView 在 Windows 鼠标滚轮下不动（ui-woodcraft，2026-09-16）
+
+- 现象：区域 B 横向候选列表，Windows 实测鼠标滚轮滚不动，只有触摸板双指可用。
+- 根因：`Scrollable` 对 `Axis.horizontal` 列表只取 `PointerScrollEvent.scrollDelta.dx`；
+  Windows 桌面鼠标滚轮只报 `dy`（按住 Shift 才被翻转为轴），dy 事件被整个丢弃。
+- 修法：列表外层包 `Listener`，`onPointerSignal` 里经 `GestureBinding.pointerSignalResolver.register`
+  把 `dy` 交给 `ScrollPosition.pointerScroll`（与原生同路径，自带物理与边界钳制）。
+  因 dx==0 时原生 Scrollable 不会注册同一事件，无 resolver 抢占冲突；Shift+滚轮行为不受影响。
+- 复用件：`lib/ui/widgets/mouse_wheel_scroller.dart`（MouseWheelScroller）；
+  widget 自测在 `lib/ui/dev/mouse_wheel_scroller_selftest.dart`（4 例全过）。
+- 注意：不要直接 `jumpTo(pixels + dy)`——绕过物理，与拖拽手势/Bouncing 回弹互相打断。

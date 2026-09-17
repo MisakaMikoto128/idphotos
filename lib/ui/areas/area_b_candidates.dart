@@ -22,12 +22,27 @@ import '../theme/wood_painter.dart';
 import '../widgets/candidate_card.dart';
 import '../widgets/developing.dart';
 import '../widgets/metal.dart';
+import '../widgets/mouse_wheel_scroller.dart';
 
-class AreaBCandidates extends ConsumerWidget {
+class AreaBCandidates extends ConsumerStatefulWidget {
   const AreaBCandidates({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AreaBCandidates> createState() => _AreaBCandidatesState();
+}
+
+class _AreaBCandidatesState extends ConsumerState<AreaBCandidates> {
+  // 滚轮横滚（Windows 鼠标滚轮只报 dy，见 mouse_wheel_scroller.dart）。
+  final ScrollController _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final AppState app = ref.watch(appStateProvider);
     final WorkbenchState wb = ref.watch(workbenchProvider);
     final double aspect = app.spec.aspectRatio;
@@ -46,47 +61,50 @@ class AreaBCandidates extends ConsumerWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              _Header(
-                stage: app.stage,
-                count: app.candidates.length,
-              ),
+              _Header(stage: app.stage, count: app.candidates.length),
               Expanded(
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints c) {
                     // 相框高度由可用高度倒推：铭牌 24 + 间隙 5 + 木框内边距 14
                     // + 上浮 4 + 投影 6
-                    final double photoH =
-                        (c.maxHeight - 24 - 5 - 14 - 4 - 8).clamp(56.0, 420.0);
-                    final double cardW =
-                        math.max(56.0, photoH * aspect) + 14;
-                    return ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-                      itemCount: kBuiltInBackgrounds.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 12),
-                      itemBuilder: (BuildContext context, int i) {
-                        final BackgroundStyle style = kBuiltInBackgrounds[i];
-                        final Candidate? found = _find(app.candidates, style.id);
-                        return CandidateCard(
-                          key: Key('candidate_${style.id}'),
-                          style: style,
-                          thumb: found?.thumbBytes,
-                          aspectRatio: aspect,
-                          selected:
-                              hasResult && wb.selectedStyleId == style.id,
-                          width: cardW,
-                          seed: 11 + i * 13,
-                          onTap: found == null
-                              ? null
-                              : () => ref
-                                  .read(workbenchProvider.notifier)
-                                  .select(style.id),
-                          placeholder: developing
-                              ? DevelopingPlate(aspectRatio: aspect)
-                              : const _EmptySlot(),
-                        );
-                      },
+                    final double photoH = (c.maxHeight - 24 - 5 - 14 - 4 - 8)
+                        .clamp(56.0, 420.0);
+                    final double cardW = math.max(56.0, photoH * aspect) + 14;
+                    return MouseWheelScroller(
+                      controller: _scroll,
+                      child: ListView.separated(
+                        controller: _scroll,
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                        itemCount: kBuiltInBackgrounds.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: 12),
+                        itemBuilder: (BuildContext context, int i) {
+                          final BackgroundStyle style = kBuiltInBackgrounds[i];
+                          final Candidate? found = _find(
+                            app.candidates,
+                            style.id,
+                          );
+                          return CandidateCard(
+                            key: Key('candidate_${style.id}'),
+                            style: style,
+                            thumb: found?.thumbBytes,
+                            aspectRatio: aspect,
+                            selected:
+                                hasResult && wb.selectedStyleId == style.id,
+                            width: cardW,
+                            seed: 11 + i * 13,
+                            onTap: found == null
+                                ? null
+                                : () => ref
+                                      .read(workbenchProvider.notifier)
+                                      .select(style.id),
+                            placeholder: developing
+                                ? DevelopingPlate(aspectRatio: aspect)
+                                : const _EmptySlot(),
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
@@ -175,12 +193,12 @@ class _Header extends StatelessWidget {
   const _Header({required this.stage, required this.count});
 
   String get _status => switch (stage) {
-        Stage.idle => '等待照片',
-        Stage.matting => '正在抠图',
-        Stage.composing => '正在冲洗 $count / 6',
-        Stage.ready => '已完成 6 张',
-        Stage.error => '未能完成',
-      };
+    Stage.idle => '等待照片',
+    Stage.matting => '正在抠图',
+    Stage.composing => '正在冲洗 $count / 6',
+    Stage.ready => '已完成 6 张',
+    Stage.error => '未能完成',
+  };
 
   @override
   Widget build(BuildContext context) {
