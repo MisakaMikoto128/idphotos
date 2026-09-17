@@ -50,37 +50,102 @@ H1 修完**更贴门禁**，这是修对了的旁证——修之前是"更远离
   5. `_median` / `_slope` / `_intercept` —— 没有对已知答案的单元检验。它们"对"是因为
      与门禁打印的聚合数一致；但这三个函数是**从门禁抄来的**，共用同一个错误时仍会自我一致，
      所以"一致"不构成独立验证。
-  6. **七个常量** —— 本文件不校验它们与 `gate_P0.dart` 是否同步。2026-09-17 用一次性命令
-     核过（七个全一致），但没有任何机制防止 gatekeeper 改阈值后本文件静默漂移。
+  6. ~~**七个常量** —— 本文件不校验它们与 `gate_P0.dart` 是否同步。~~
+     **已由构造消除**（2026-09-17）：改为从 `gate_P0.dart` 正则抽取，找不到就抛错、
+     不回退内置值。运行时会打印源文件与 sha256 前 12 位，报告可据此注明用了哪一版阈值。
+     注意仍有**未消除**的一半：**判据的语义**（如 P0.1a 数行数还是数不同照片）
+     仍是手抄镜像，抽常量管不到它。见下条。
   7. **上游输入**（`gate_P0_eyeline.json` / `gate_P0_sift_align.json` /
      `P0_output_residual.json`）整体继承。其中眼线那份与门禁复核成片用的是**同族**量具，
      它的系统误差本文件无法察觉（即 `m3_haar_eyeline` 那条已知局限）。
+  8. **判据的语义**是手抄镜像，抽常量管不到。已知一例：P0.1a 门禁写
+     `cohort.length >= kMinDistinctPhotos`（数**行数**），而同项 expected 写的是
+     "样本 ≥ 8 张**不同照片**"。当前 11 行 / 10 张不同照片（`c03`≡`c04`），都 ≥ 8 故不改结论，
+     但**本脚本原样抄了这道松法**。gatekeeper 已回派在打 tag 前改成数不同照片，
+     改完本脚本需对齐一次——那一次对齐**没有自检能替你发现漏做**。
+
+**关于本脚本"复算与门禁一致"的正确口径**（team-lead 2026-09-17 裁定，别引用错）：
+一致性是**转录正确性检查**，**不是**独立验证。理由就是第 4 条——`_median`/`_slope`/
+`_intercept` 与判据都是抄门禁的，共用同一个错误时仍会自我一致。
+它挣到的是"**暴露自己的错**"（`_delta_of` 死代码、取数优先级抄漏），
+**不是**"第二方确认了门禁的数"。报告里一律写"复算一致性（转录核对）"。
 ════════════════════════════════════════════════════════════════════════════
 
 为什么线性：门禁的残余定义是 `residual = truth_apply_deg − measured_applied_deg`
 （见 `out/gate_P0_sift_align.json` 的逐条数据与 `gate_P0.dart` 的注释）。
 真值挪 δ，该样本残余**恰好挪 δ**，所以本分析可以精确重算，不需要重跑成片。
 
-判据与常量照抄 `tools/gate/gate_P0.dart`（本脚本只读它，不改它）。
+判据的**语义**镜像 `tools/gate/gate_P0.dart`（本脚本只读它，不改它）；
+七个数**直接抽**自它，不再手抄（见 `load_constants()`）。
 
 用法：python test/batch/p0_c08_sensitivity.py
 """
+import hashlib
 import json
 import math
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import p0_lib as L  # noqa: E402
 
-# ---- 照抄 gate_P0.dart 的常量与判据 ----
-K_RESIDUAL_MAX = 1.5          # |residual| 上限
-K_RESIDUAL_MEDIAN_MAX = 1.0   # 中位残余上限
-K_SLOPE_ABS_MAX = 0.15
-K_INTERCEPT_ABS_MAX = 0.5
-K_COVERAGE_MIN_TRUTH = 1.5    # |truth| > 1.5 必须给出 pupil
-K_MIN_DISTINCT = 8
-K_UPRIGHT_MIN = 9
+# ---- 常量：从 gate_P0.dart **直接抽取**，不手抄 ----
+#
+# 为什么不手抄（team-lead 2026-09-17 指出）：本文件初版把七个常量抄了一遍，
+# "与门禁保持同步"全靠人记得核对——而抄本会在门禁改阈值后**静默漂移**，
+# 后果是敏感性分析与门禁判的是两套判据，且看不出来。改成解析后，**漂移由构造消除**，
+# 不再依赖纪律。这与本脚本 `load()` 照抄取数优先级的理由相反——那里的"照抄"是
+# 有意的（要复现门禁的语义），这里的"照抄数值"是无意的耦合。区别在于：
+# 语义必须镜像，数值必须引用。
+GATE_SRC = os.path.join(L.REPO, "tools", "gate", "gate_P0.dart")
+
+_CONST_RE = re.compile(r"^const\s+(double|int)\s+(\w+)\s*=\s*([0-9.]+)\s*;", re.M)
+
+# 本脚本用的名字 -> 门禁里的名字
+_CONST_NAMES = {
+    "K_RESIDUAL_MAX": "kResidualMaxDeg",
+    "K_RESIDUAL_MEDIAN_MAX": "kResidualMedianMaxDeg",
+    "K_SLOPE_ABS_MAX": "kResidSlopeAbsMax",
+    "K_INTERCEPT_ABS_MAX": "kResidInterceptAbsMax",
+    "K_COVERAGE_MIN_TRUTH": "kCoverageMinTruthDeg",
+    "K_MIN_DISTINCT": "kMinDistinctPhotos",
+    "K_UPRIGHT_MIN": "kUprightSyntheticMin",
+}
+
+
+def load_constants(path=GATE_SRC):
+    """读 `gate_P0.dart`，抽回七个阈值。**找不到就抛错，绝不回退到内置值。**
+
+    静默回退等于把刚拆掉的隐患原样装回去：门禁改了阈值、本脚本却还在用旧值，
+    而且报告上看不出来。宁可让脚本红掉，也不要让它拿一套过期判据算出好看的数字。
+    """
+    with open(path, encoding="utf-8") as f:
+        src = f.read()
+    found = {m.group(2): (m.group(1), float(m.group(3)))
+             for m in _CONST_RE.finditer(src)}
+    missing = [k for k in _CONST_NAMES.values() if k not in found]
+    if missing:
+        raise RuntimeError(
+            "gate_P0.dart 里找不到这些常量，拒绝用内置值兜底：%s\n（源文件 %s）"
+            % ("、".join(missing), path))
+    vals = {}
+    for mine, gate in _CONST_NAMES.items():
+        kind, v = found[gate]
+        vals[mine] = int(v) if kind == "int" else v
+    vals["_src_sha256"] = hashlib.sha256(src.encode("utf-8")).hexdigest()[:12]
+    vals["_src_path"] = path
+    return vals
+
+
+_C = load_constants()
+K_RESIDUAL_MAX = _C["K_RESIDUAL_MAX"]              # |residual| 上限
+K_RESIDUAL_MEDIAN_MAX = _C["K_RESIDUAL_MEDIAN_MAX"]  # 中位残余上限
+K_SLOPE_ABS_MAX = _C["K_SLOPE_ABS_MAX"]
+K_INTERCEPT_ABS_MAX = _C["K_INTERCEPT_ABS_MAX"]
+K_COVERAGE_MIN_TRUTH = _C["K_COVERAGE_MIN_TRUTH"]  # |truth| > 此值必须给出 pupil
+K_MIN_DISTINCT = _C["K_MIN_DISTINCT"]
+K_UPRIGHT_MIN = _C["K_UPRIGHT_MIN"]
 
 C08_RECORDED = -8.01
 HYPOTHESES = [("H1 手写值", -8.01), ("H2 稳健估计", -6.56), ("H3 YuNet 眼线", -9.389)]
@@ -298,6 +363,9 @@ def selfcheck(base):
 
 def main():
     base = load()
+    print("阈值来源 %s @ %s" % (_C["_src_path"], _C["_src_sha256"]))
+    print("  " + "  ".join("%s=%s" % (n, _C[n]) for n in sorted(_CONST_NAMES)))
+    print()
     bad = selfcheck(base)
     print("空变换自检（H1 应逐条还原）：%s\n"
           % ("PASS" if not bad else "FAIL %s" % bad[:6]))
