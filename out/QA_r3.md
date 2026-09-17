@@ -45,8 +45,9 @@
 
 把 r2 那份产物（`git show HEAD:out/…`，记 `0f66aabb…`）与 r3 逐条对比（110 行）：
 
-**整批 110 行里只有 3 个夹具、5 个 id×spec 行发生了变化；其余 105 行逐字段相同。**
-差分全集（含 0.1° 量级，一条不漏）：
+**整批 110 行里只有 3 个夹具、5 个 id×spec 行发生了变化；其余 105 行的每一个字段都相同。**
+（口径：逐行取并集比对**全部 30 个字段**，不是只比残余那几个。变化行如下。）
+下列为其中**残余/角度相关**的字段；同一批还变了 13 个别的字段，见 §3.4：
 
 ```
 c06_d+3   cn_big_1inch  rollSource      unavailable -> pupil
@@ -107,6 +108,39 @@ c08_d-10  visa_us       faceRollDeg        0.0000 -> -17.8222 Δ=-17.8222
 `c06_d+3`（真值 +1.27°）：估角器现在给出 `faceRollDeg=0.7924`（pre 为 `unavailable`/0.0），但
 **`straightenDeg` 仍是 0.0** —— 0.79° 落在 1.0° 死区内，引擎按设计不动。成片倾角逐位不变（+1.3767°）。
 即：**估到了，但没施加**。这是设计行为，不是回归，但它意味着 ≤1° 的倾角在成片上依旧保留。
+
+### 3.4 同批变化里另外 13 个字段（判据会读到的都在这里）
+
+| 字段 | 样本 | pre → post |
+|---|---|---|
+| `alphaHoleHint.largestBlobPx` | `c08_d-10`（三个 spec 同值） | 66738 → **31643** |
+| `alphaHoleHint.magentaInHeadFrac` | 同上 | 0.6037 → 0.5349 |
+| `alphaHoleHint.alphaHole` | 同上 | `true` → `true`（**仍在**） |
+| `outOfBoundsFraction` | `c08_d-10`（三个 spec） | 0.2457 → **0.0858** |
+| `yunet_eyeline_deg` | `c08_d-10` | −12.9019 → +5.0121 |
+| `yunet_score` | `c08_d-10` | 0.8721 → 0.8809 |
+| `m2_radon_yunet.deg` | `c08_d-10 @ cn_big_1inch` | 6.0045 → **+16.0000（轨值）** |
+| `tiltAbsMaxDeg` | `c08_d-10 @ cn_big_1inch` | 6.0040 → **16.0000（轨值）** |
+| `primary_method` | `c08_d-10 @ visa_us` | `m1_pupil` → `None` |
+| `m1_pupil` | `c08_d-10 @ visa_us` | 有读数 → `{"error": "no_pair"}` |
+| `end_to_end_note` | `c08_d-10` | "…差 21.862°…" → "…差 3.522°…"（`visa_us` 变为 `None`） |
+| `m1h_pupil_haarseed` / `m3_haar_eyeline` / `m4_radon_haar` | `c06_d-3` | 随施加角一起转（符合预期） |
+| `methodCount` | `c08_d-10 @ visa_us` | 2 → 1 |
+
+**两件要单独点出来的：**
+
+1. **`m2_radon_yunet` 报的是搜索轨值，不是读数。** `c08_d-10 @ cn_big_1inch` 上它给出
+   `deg=15.999999999999886`、`span=16.0`。查 `test/batch/p0_lib.py:217`
+   `angs = np.arange(-span, span + 1e-9, step)`（`span=16.0`）——
+   **这个值就是搜索区间的右端点**，即真实最优点在 +16° 之外、方法回退到边界。
+   后果：`tiltAbsMaxDeg` 由 6.004 变成 16.0（轨值），`methodSpreadDeg` 由 2.153 涨到 **12.665**。
+   ⇒ **该行的 `methodSpreadDeg` 与 `tiltAbsMaxDeg` 现在是轨值产物，不能当作"方法间分歧"读**，
+   也不能据此判 `low_confidence`（该行已被 `reliability_mismatch` 排除，暂未造成错判）。
+   根因是 `span=16° < |真值 −18.01°|`，量程本身不够。
+2. **洞小了但没消失。** `alphaHoleHint`（成片上的洋红透出证据）在两个可见量上都改善：
+   最大连通块 **66738 → 31643 px（−53%）**、头内占比 0.6037 → 0.5349，但 `alphaHole` 仍为 `true`。
+   与 §5 的输入侧 alpha 扫描（`c08_d-10` eyeBandZero 0.9677）一致：**这是同一个未修好的缺陷，只是变小了。**
+   另外 `outOfBoundsFraction` 0.2457 → 0.0858（越界裁剪改善，注意该量按 AABB 算、与 θ 反相，见 `docs/PITFALLS.md`）。
 
 ## 4. `out/P0_alpha_scan/` 的两问（主会话）
 
