@@ -21,6 +21,9 @@ out/shots/
 out/P0_anchors/
 out/GATE_ort/
 out/P0_alpha_scan/
+# qa-batch 指纹自测的沙箱：里面是 lib/ 与 test/ 的**完整副本**。
+# 不忽略的话，一次 `git add -A` 就会把整个源码树复制一份提交进去。
+out/P0_selftest_tmp/
 # ml-porting 的瞳孔目视证据（overlay 图，32MB，可再生产物）
 native/bench/out/
 
