@@ -152,6 +152,25 @@ ui-woodcraft **只依赖 `IdPhotoController` 和 `AppState`**，阶段 2 用 `Fa
 配套新增 `RollSource`（`pupil` / `unavailable` / `given`）仅供门禁与排查，
 消费方不得据此改变行为。
 
+**符号口径（事故级，必须按公式理解，不要用"顺/逆时针"口头描述）**：记
+`φ = atan2(y_图像右眼 − y_图像左眼, x_图像右眼 − x_图像左眼)`（图像坐标 y 向下），
+则 **`rollDeg == φ`，不取负**。实现侧的恒等式是
+
+```
+输出倾角 = φ − rollDeg          （实测印证：p2 φ=−0.22 注入 rollDeg=−3.913 → 输出 +3.69）
+```
+
+所以摆平当且仅当 `rollDeg == φ`。
+
+⚠️ **已出过一次反向事故**：本文件早先的措辞写过"正值 = 把图像顺时针转"，
+**与实现相反**（`RotationPlan.toRotated` 用 `R(−angleRad)`，正 θ 使内容在
+atan2 口径下转 −θ；而 y 向下时 atan2 正向恰好是视觉顺时针，故正 `rollDeg`
+实际让画面**逆**时针转）。该措辞已把 qa-batch 的真值文件带偏成
+`expectedCorrectionDeg = −φ`，采用它会让 p1 的残差从 +0.02 变成 8.82（PASS→FAIL）。
+相关三处（本文件、`api.dart`、qa-batch 真值文件）已一并改正。
+另有独立第二证：`RotationPlan.angleDeg == rollDeg`（`planRotation` 不取负），
+故门禁读到的 `ComposeDiagnostics.straightenDeg` 与 `rollDeg` 同号同值。
+
 上一版（同阶段更早，已被本次取代）：暴露 `landmarks` 给 imaging 做多线融合。
 实测否决——眼线、嘴线、鼻线同源于同一组 YuNet 眼睑关键点，强相关，融合是零和的
 （`docs/PITFALLS.md` imaging 两条归因条目，104 组系列实测差 ±0.02°）；根因在
