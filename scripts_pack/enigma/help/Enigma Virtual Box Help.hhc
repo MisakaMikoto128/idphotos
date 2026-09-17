@@ -1,0 +1,52 @@
+<HTML>
+ <HEAD>
+  <META name="GENERATOR" content="htm2chm 3.0.9.3">
+  <!-- Sitemap 1.0 -->
+ </HEAD>
+<BODY>
+ <OBJECT type="text/site properties">
+  <PARAM name="Window Styles" value="0x800027">
+ </OBJECT>
+<UL>
+ <LI><OBJECT type="text/sitemap">
+  <PARAM name="Name" value="Overview">
+  <PARAM name="Local" value="Overview.htm">
+  <PARAM name="ImageNumber" value="12">
+ </OBJECT>
+ <LI><OBJECT type="text/sitemap">
+  <PARAM name="Name" value="Settings">
+  <PARAM name="Local" value="Settings.htm">
+ </OBJECT>
+<UL>
+ <LI><OBJECT type="text/sitemap">
+  <PARAM name="Name" value="Files">
+  <PARAM name="Local" value="Settings\Files.htm">
+ </OBJECT>
+ <LI><OBJECT type="text/sitemap">
+  <PARAM name="Name" value="Registry">
+  <PARAM name="Local" value="Settings\Registry.htm">
+ </OBJECT>
+ <LI><OBJECT type="text/sitemap">
+  <PARAM name="Name" value="Packaging">
+  <PARAM name="Local" value="Settings\Packaging.htm">
+ </OBJECT>
+ <LI><OBJECT type="text/sitemap">
+  <PARAM name="Name" value="Options">
+  <PARAM name="Local" value="Settings\Options.htm">
+ </OBJECT>
+</UL>
+ <LI><OBJECT type="text/sitemap">
+  <PARAM name="Name" value="Command line">
+  <PARAM name="Local" value="Command_line.htm">
+ </OBJECT>
+ <LI><OBJECT type="text/sitemap">
+  <PARAM name="Name" value="License">
+  <PARAM name="Local" value="License.htm">
+ </OBJECT>
+ <LI><OBJECT type="text/sitemap">
+  <PARAM name="Name" value="Support">
+  <PARAM name="Local" value="Support.htm">
+  <PARAM name="ImageNumber" value="27">
+ </OBJECT>
+</BODY>
+</HTML>

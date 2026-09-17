@@ -1,0 +1,35 @@
+<html>
+
+<head>
+  <title>Registry</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+
+<body>
+
+  <h1>Registry</h1>
+  <p>Specify registry virtualization options. </p>
+  <p class="fig"><img src="fig_settings1.png"></p>
+  <p> Left panel contains a list of the registry keys and the right panel contains a list of values for the selected registry key. </p>
+  <p><strong>Registry List</strong></p>  
+  <p>Right click on a key or value to activate popup menu with additional options.</p>
+  <p class="fig"><img src="fig_reg_popup1.png"></p>
+  <p>For the string types of value (String, Multi-String, Expandable String) the text may contain a special path variables that will be replaced while the execution on a real path. Path variables match the names of root folders for <a href="Files.htm">Files Virtualization</a>. For example, if the registry item has a value %WINDOWS FOLDER%, while execution this value will be replaced with "C:\Windows" (w/o quotes, the Windows installation folder). Note, path variables do not include path delimiter at the end.</p>
+  <p><em>New</em> - create new key or value with necessary type</p>
+  <p><em>Delete</em> - delete the key (including sub-keys and values) or value</p>
+  <p><em>Rename</em> - rename key or value</p>
+  <p class="fig"><img src="fig_reg_popup2.png"></p>
+  <p><em>Virtualization</em> - determines if the key or value is virtualized. If the key/value is marked as virtual, then all attempts of application to write or change information of this key/value will be emulated in memory, real registry won't be affected. If the key/value is marked as real, then Enigma Virtual Box will redirect all requests (read, write) to real registry instead of virtual. Please note, if the system will try to create a value or sub-keys for virtual key then all the changes will be virtual (made in memory only), otherwise, all the sub-keys/values will be written to the real registry. Also note that HKEY_CLASSES_ROOT uses for registering of ActiveX/COM components, and it is recommended to always mark this key as virtual.</p>  
+  <p><em>Import from *.reg File</em> - allows to import keys and values from the .reg file (i.e. files that are exported from Registry Editor).</p>  
+  
+  
+  <h3>Registry Options </h3>
+  <p class="fig"><img src="fig_reg_settings.png"></p>
+  
+  
+  <p><em>Enable Registry Virtualization</em> -  enables virtualization of registry</p>
+  <p>&nbsp;</p>
+</body>
+
+</html>

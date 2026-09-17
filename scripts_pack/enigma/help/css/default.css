@@ -1,0 +1,361 @@
+body {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	color:#000000;
+	background-color: #ffffff;
+	margin: 5px;
+	padding: 0px;
+}
+
+a {
+	text-decoration:none
+}
+
+a:link { 
+	color: #0066CC 
+}
+
+a:hover { 
+	text-decoration:underline
+}
+
+a:visited { 
+	color: #0066CC
+}
+
+h1, h2, h3 {
+	text-align:left;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	margin:0 0 0 0;
+	padding: 0 0 0 0;
+	line-height:24px;
+	margin-top:6px;
+	margin-bottom:6px;
+}
+
+h1 {
+	font-size:20px;
+	font-weight:bold;
+	background-color:#CCF5FF;
+	line-height:42px;
+	margin-top:6px;
+	margin-bottom:6px;
+}
+
+h2 {
+	font-size:14px;
+	font-weight:bold;
+	line-height:18px;
+	margin-top:18px;
+	/*background-color:#CCF5FF;*/
+}
+
+h3 {
+	font-size:12px;
+	font-weight:bold;
+	/*background-color:#CCF5FF;*/
+}
+
+p {
+	line-height:18px;
+	font-size:12px;
+	text-align:justify;
+	margin:0 0 0 0;
+	padding:0 0 0 0;
+	margin-bottom:9px;
+	margin-top:9px;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+ol {
+	line-height:18px;
+	font-size:12px;
+	text-align:justify;
+	margin:0 0 0 0;
+	list-style-position: outside;
+	margin-top: 9px;
+	margin-bottom: 9px;
+}
+			
+ul {
+	line-height:18px;
+	font-size:12px;
+	color:#000000;
+	text-align:justify;
+	margin:0 0 0 0;
+	list-style-position: outside;
+	margin-bottom: 18px;
+}
+
+li {
+	margin:0 0 0 0;
+	padding:0 0 0 0;
+	line-height:18px;
+	font-size:12px;
+	margin-left: 54px;
+}
+
+p.fig {
+	text-align:center;
+	text-indent:0;
+	padding:18px 18px 18px 18px;
+	margin:0;
+	border:0;
+}
+
+p.fig1 {
+	text-align:center;
+	text-indent:0;
+	line-height:18px;
+	padding: 0 0 0 0;
+}
+
+p.fig1 img {
+	border: 1px solid #DDDDD8;
+	margin:18px 18px 18px 18px;
+}
+
+
+code, kbd, var {
+	line-height:18px;
+	font-size:12px;
+	font-family:"Courier New", Courier, monospace;
+	background-color:#CCCCCC;
+	padding:0;
+	margin:0;
+}
+
+div.listing {
+	text-align:left;
+}
+
+div.listing pre {
+	line-height:18px;
+	font-size:12px;
+	padding:0.5em;
+	text-align:left;
+	font-family: "Courier New", Courier, monospace;
+	margin:0;
+	border: 1px solid #F0F0F0;
+	width: 100%;
+	background-color:#DFF4FF;
+}
+
+var {
+	font-style:normal;
+}
+
+kbd {
+	display:inline;
+}
+
+/*
+pre.listing {
+	font-family:"Courier New", Courier, monospace;
+	font-size: 1em;
+	margin: 1.5%;
+	padding-left:1.5%;
+	padding-right:1.5%;
+	border:1px solid #999999;
+	white-space:normal;
+}
+*/
+
+a.apiref {
+	color:#00CC33;
+}
+
+p.apititle {
+	font-weight:bold;
+}
+
+p.faqq {
+	font-weight:bold;
+}
+
+p.faqa{
+	color:#006600;
+}
+
+		/* begin of tabel formatting section*/
+		
+		table {
+			margin-top:1%;
+			margin-bottom:1%;
+		}
+		
+		table, th, td {
+			border:1px solid #666666;
+			font-size:0.9em;
+			border-collapse: collapse;
+		}
+		
+		th, td {
+			padding:2px;
+			padding-left:0.9em;
+			padding-right:0.9em;
+		}
+		
+		th {
+			text-align: center;
+			font-weight: bold;
+			vertical-align: middle;
+		}
+
+		td {
+			vertical-align: middle;
+			text-align: center;
+		}
+		
+		/* end of tabel formatting section*/
+		
+		.retvals td {
+			text-align:left;
+		}
+	
+		.qablock {
+			margin-top:1em;
+			margin-bottom:1em;
+		}			
+
+/* BEZEL */
+
+	#bezel_table {
+		width:100%;
+		height:100%;
+		border:0;
+		margin:0;
+		padding:0;
+	}
+	
+	#main_window {
+	vertical-align:top;
+	margin:0;
+	border:0;
+	padding-top: 1%;
+	padding-right: 1%;
+	padding-bottom: 2%;
+	padding-left: 1%;
+	text-align: left;
+	}
+	
+	#footer_window {
+		border:0;
+		vertical-align:bottom;
+		margin:0;
+		padding:0;
+	}
+	
+	#copyright {
+	text-align:right;
+	margin:0;
+	color:#999999;
+	padding: 1%;
+	padding-top: 1%;
+	padding-right: 1%;
+	padding-bottom: 0.5%;
+	padding-left: 1%;
+	}
+
+	/* SOURCE CODE */
+/* Generated with hrd2css.pl from fmx.hrd */
+
+.def-Text {
+	color: #000000;
+	background-color: #ffffff;
+}
+
+.def-HorzCross {
+	color: #000000;
+	background-color: #e1ebe0;
+}
+
+.def-VertCross {
+	color: #000000;
+	background-color: #e1ebe0;
+}
+
+.def-String {
+	color: #0000ff;
+}
+
+.def-Comment {
+	color: #808080;
+}
+
+.def-CommentContent {
+	color: #808080;
+	font-weight: bold;
+}
+
+.def-CommentDoc {
+	color: #808080;
+}
+
+.def-Keyword {
+	color: #000084;
+	font-weight: bold;
+}
+
+.def-Directive {
+	color: #000084;
+}
+
+.def-Tag {
+	color: #7F0055;
+}
+
+.def-OpenTag {
+	color: #7F0055;
+}
+
+.def-CloseTag {
+	color: #7F0055;
+}
+
+.def-Insertion {
+	color: #000000;
+	background-color: #ffffe8;
+}
+
+.def-InsertionStart {
+	color: #800000;
+	background-color: #ffffa4;
+}
+
+.def-InsertionEnd {
+	color: #800000;
+	background-color: #ffffa4;
+}
+
+.def-Error {
+	color: #ffffff;
+	background-color: #dd0000;
+	font-weight: bold;
+	font-style: italic;
+}
+
+.def-ErrorText {
+	color: #ee00ee;
+}
+
+.def-TODO {
+	color: #ffffff;
+	background-color: #808000;
+}
+
+.def-Debug {
+	color: #80abfd;
+	background-color: #007084;
+}
+
+.def-URI {
+	color: #3f3fbf;
+}
+
+.def-PairStart {
+	color: #a0a0a0;
+}
+
+.def-PairEnd {
+	color: #a0a0a0;
+}

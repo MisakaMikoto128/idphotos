@@ -1,0 +1,2 @@
+34db21ee213418573c0a6dc3f6e3a55d590d3ddaa565953457c0125c262bade7 *muzhao-portable.exe
+999a1f9c078306efe40fe246484bcec728817eef7a3ca530e4fd7df7611e766a *muzhao-windows-portable.zip

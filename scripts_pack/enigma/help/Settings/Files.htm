@@ -1,0 +1,111 @@
+<html>
+
+<head>
+  <title>Files</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+
+<body>
+
+  <h1>Files</h1>
+  <p>Allows to specify a list of a files/folders/drives that should be virtualized. </p>
+  <p class="fig"><img src="fig_settings.png"></p>
+  <h3>Files List</h3>
+  <p>Right click on a file or folder to activate popup menu with additional options. The most easy way to add files and folders - using drag and drop from explorer to the tree.</p>
+   <p class="fig"><img src="fig_files_popup1.png"></p> 
+  <p><em>Add</em> - after you click the popup menu will apear, it allows to add:</p>
+  <ul>
+    <li>File(s), single file or multiple files from a open file dialog</li>
+    <li>Root Folder - base relative folder for virtual files and folders</li>
+    <li>Folder Recursive - add all files and folders from the specified folder recursively</li>
+    <li>New Folder - creates a new virtual folder</li>
+  </ul>
+  <p><em>Edit</em> - edit file or folder properties</p>
+  <p><em>Remove</em> - remove the file(s) or folder(s)</p>
+  <p><strong>Files Options </strong></p>
+  <p class="fig"><img src="fig_files_settings.png"></p>  
+  <p><em>Enable Files Virtualization</em> - enables virtualization of file system </p>
+  <p><em>Compress Files</em> - enable this option to compress embedded files. This may decrease the size of resulting executable file</p>
+  <p><em>Delete Extracted On Exit</em> - this option allows to delete extracted files after application has finished. Note, this option works for files with &quot;Always Write to Disk&quot; or &quot;Write if not Present&quot; virtualization methods.</p>
+  <h3>File Properties </h3>
+  <p class="fig"><img src="fig_files_prop.png"></p>
+  <p><em>File Path</em> - points to the real file that will be embedded. This file must exists. Click on Browse button to change the file.
+  <p><em>Virtual Path</em> -   specify the position of the file in the virtual files list. Note, virtual path can be started from a root folder (relative path) or from a drive letter (absolute path). There are following root folder names that can be used for Virtual Path:
+  <ul>
+    <li>%DEFAULT FOLDER% - folder where the protected module is located;</li>
+    <li>%SYSTEM FOLDER% - System32 (WinNt) or System (Win9X) subfolder of the Windows installation folder;</li>
+    <li>%WINDOWS FOLDER% - Windows installation folder;</li>
+    <li>%My Documents FOLDER% - My Documents folder. <strong>Attention:</strong> For operating systems of Windows NT family there are individual &quot;My Documents&quot; folders for each user;</li>
+    <li>%My Pictures FOLDER% - My Pictures folder. It has same warning as for My Documents folder;</li>
+    <li>%Program Files FOLDER% - Program Files folder;</li>
+    <li>%Program Files, Common FOLDER% - Program Files\Common folder;</li>
+    <li>%AllUsers, Documents FOLDER% - AllUsers\Documents folder;</li>
+    <li>%History FOLDER% - History folder. It has same warning as for My Documents folder;</li>
+    <li>%Cookies FOLDER% - Cookies folder. It has same warning as for My Documents folder;</li>
+    <li>%InternetCache FOLDER% - InternetCache folder. It has same warning as for My Documents folder;</li>
+    <li>%ApplicationData FOLDER% - Application Data folder. It has same warning as for My Documents folder.</li>
+    <li>%Temp FOLDER% - Temporary folder; </li>
+    <li>%AllUsers, ApplicationData FOLDER% - AllUsers\Application Data folder;</li>
+    <li>%Local, ApplicationData FOLDER% - LocalSettings\Application Data folder.<br>
+    </li>
+  </ul>
+  <p>Examples:</p>
+  <ul>
+    <li>%DEFAULT FOLDER%\mydll.dll, means mydll.dll will be placed in the same folder with the packed executable file;</li>
+    <li>%DEFAULT FOLDER%\data\intro.avi, the file will be placed in the data folder that is located in the same folder with packed file;</li>
+    <li>%SYSTEM FOLDER%\key.dat - the file will be placed in the system folder with the name key.dat (for example, in to the folder c:\Windows\System32\) </li>
+    <li>C:\myfile.key, it is absolute path where the file will be located. </li>
+  </ul>
+  <p><em>Register as ActiveX (COM) component</em> - if the option is enabled, Enigma Virtual Box will try to register this file as an ActiveX (COM) library at while start (the function DllRegisterServer is called). Please note, if the file run without administrator privileges then the registry access is limited and attempt to register ActiveX component in real registry fails. To avoid it, enable <a href="Registry.htm">Registry Virtualization</a> and make sure HKEY_CLASSES_ROOT key is set to virtual, so all registry changes (changes are being performed while ActiveX registration) are done in virtual registry only, without care of administrator privileges.</p>
+  <p><em>Install and setup ActiveX (COM) component</em> - this option should be used with ActiveX files, it calls DllInstall function. The option Pass Command Line can be used to pass parameters to DllInstall. </p>
+  <p><em>Virtualization Method </em> - specifies how the file will be processed, extracted to the disk on start or fully emulated in memory (recommended). There are available following options:</p>
+  <ul>
+    <li>Never Write to Disk - embedded file will never be written to disk, it will be emulated in process memory. This feature is the core function of Enigma Virtual Box, so very recommended to use;</li>
+    <li>Always Write to Disk - embedded file will be always overwritten to the disk when packed file starts;</li>
+    <li>Write if not Present - embedded file will be written to the disk if such file does not already exist;</li>    
+    <li>Never Write to Disk, Use File from Disk (if Exists) - embedded file will never be written to disk, it will be emulated in process memory. However, if the file with the same name, will exist in the same folder on the disk, the file from the disk will be used.</li>
+  </ul>
+  <p><em>Overwrite File Date/Time</em> - enter the date and the time values that will be applied to embedded file. If option is not checked, the time settings of real file are used.</p>
+  <p><em>Overwrite File Attributes</em> - specify attributes for virtual file. If option is not checked, attributes of real file are used.</p>
+  <p><em>Hide files and folders from File Open/Save dialogs</em> - Available in <a href="https://enigmaprotector.com/">Enigma Protector</a> only.</p>    
+<h3>Folder Properties </h3>
+  <p class="fig"><img src="fig_folder_prop.png"></p>
+  <p><em>File Path</em> - points to the real file that will be embedded. This file must exists. Click on Browse button to change the file.</p>    
+  <p><em>Overwrite File Date/Time</em> - enter the date and the time values that will be applied to this folder</p>
+  <p><em>Overwrite File Attributes</em> - specify attributes for virtual folder</p>  
+  <p><em>New Content in Folder</em> - determines the behavior of virtualization system if application attempts to create new files and folders within virtual folder, it can be either:</p>
+  <ul>
+    <li>New Folders and Files Become Real</li> - new files and folders will be written to disk;
+    <li>New Folders Become Real but Files Virtual</li> - new folder will be written to disk, but files enumated in memory;
+    <li>New Folders Become Virtual but Files Real</li> - new folders will be enumated in memory, but files written to disk;
+    <li>New Folder and Files Become Virtual</li> - new files and folders will be emulated in memory;
+  </ul>
+  <p><em>Hide files and folders from File Open/Save dialogs</em> - Available in <a href="https://enigmaprotector.com/">Enigma Protector</a> only.</p>      
+  <p><em>Apply same properties for all child folders and properties recursively</em> - assigns same properties to all nested files and folders</p>  
+<h3>Replacement variables</h3>  
+  <p>For some applications, the name of virtual file could be tied to the name of boxing file. Example, .NET applications that contain .config file, which name is tied the name of the main .exe file (eg, application main .exe file is application.exe and tied config file has a name application.exe.config). Adding such files to Virtual Box works well, until the boxed file got renamed. When boxed file is renamed, system can't find the tied config file (since the name of virtual file does not change) and application behavior could change.</p>
+  <p>To avoid such problems with boxed files, there are added so called "replacement variables", that can be used on virtual file name to make sure it matches the current name of boxed file. Such variables are:</p>
+    <ul>
+    <li>{FILENAME}</li> - it is being replaced to the current name of boxed file;
+    <li>{FILENAMENOEXT}</li> - same as {FILENAME}, but file name without extension;
+  </ul>
+  <p>Using replacement variables, the issue with .config files described above could be fixed, system will replace name of the virtual file to the name of the boxed file</p>
+  <p class="fig"><img src="fig_replacementvar.png"></p>
+<h3>Wildcards</h3>  
+  <p>It is possible to configure Virtual Box to add a set of virtual files automatically, during boxing (or package building) from files on the disk, using wildcard in file name.</p>
+  <p>Sometimes developers may need to force Virtual Box to load all files from the disk and add them to virtual box list (eg, in case the set of virtual files changes, to avoid re-configuration of Virtual Box every build), wildcard in a file name provides this ability.</p>
+  <p>Note, wildcards are working recursively for embedded folders.</p>
+  
+  <p>Examples of wildcards</p>
+    <ul>
+    <li>C:\My Documents\Application\*</li> - add all files and folders to virtual content from "C:\My Documents\Application\" folder on the disk;
+    <li>C:\My Documents\Application\*.*</li> - add all files to virtual content from "C:\My Documents\Application\" folder on the disk;
+    <li>C:\My Documents\Application\*.txt</li> - add all .txt files to virtual content from "C:\My Documents\Application\" folder on the disk;
+  </ul>
+  
+  <p>To configure a wirdcard, add any file to necessary virtual folder of Virtual Box. Open file Properties dialog. Add a wirdcard to the parameter File Name. Wildcard will be automatically accepted by Virtual Path parameter.</p>
+  <p class="fig"><img src="fig_wildcard.png"></p>     
+</body>
+
+</html>

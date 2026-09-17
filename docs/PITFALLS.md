@@ -933,3 +933,27 @@
 - 复用件：`lib/ui/widgets/mouse_wheel_scroller.dart`（MouseWheelScroller）；
   widget 自测在 `lib/ui/dev/mouse_wheel_scroller_selftest.dart`（4 例全过）。
 - 注意：不要直接 `jumpTo(pixels + dy)`——绕过物理，与拖拽手势/Bouncing 回弹互相打断。
+
+## Enigma Virtual Box 打包 Windows 单文件版的三个坑（packaging，2026-09-17）
+
+- 坑 1：enigmavb.exe 安装包是 Inno Setup 且要求管理员（UAC）。无人值守会话里
+  UAC 弹窗没人点会永远挂起（consent.exe 常驻）。免管理员方案：`scoop install innoextract`
+  后 `innoextract -e -d portable enigmavb.exe` 解出便携版
+  enigmavb.exe/enigmavbconsole.exe（已存于 `scripts_pack/enigma/portable/app/`），
+  打包本身不需要驱动、不需要提权。
+- 坑 2：手写 .evb 工程文件（XML）给 enigmavbconsole 用，虚拟文件列表**必须**包在
+  一个 `<Type>3</Type><Name>%DEFAULT FOLDER%</Name>` 的根文件夹节点里，
+  否则虚拟盘不生效（进程能起，但 LoadLibrary/文件读取拿不到虚拟文件）。
+- 坑 3：Options 节点若带旧版的 `<TemporaryFileMask/>` 和
+  `<ProcessesOfAnyPlatforms>`，v11.30 console 打出的包一启动就 0xC0000005
+  （连原生 notepad 都崩）；v11.30 GUI 保存的 Options 只有 ShareVirtualSystem /
+  MapExecutableWithTemporaryFile / AllowRunningOfVirtualExeFiles 三个节点，照抄即好。
+  另：wrapper 格式下 `<CompressFiles>True</CompressFiles>` 会被 console 静默忽略
+  （日志打 "Compress file" 但产物不压缩，45MB→50MB），压缩产物（25MB）只在旧格式下
+  生成而旧格式运行必崩——即压缩与可用性二选一，当前选可用性。
+- 复用件：`scripts_pack/make_evb.py`（生成 .evb）+ `scripts_pack/muzhao.evb` +
+  `scripts_pack/enigma/portable/app/enigmavbconsole.exe`；
+  一条命令重建：`python scripts_pack/make_evb.py build/windows/x64/runner/Release
+  muzhao.exe dist/muzhao-portable.exe scripts_pack/muzhao.evb` 后跑 console。
+- .NET 程序被 Enigma 包后读不到虚拟文件时会弹隐藏对话框挂死（不是崩溃），
+  验证虚拟盘是否生效要用原生 exe 写结果文件到包目录外来判断。
