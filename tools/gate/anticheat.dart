@@ -278,6 +278,273 @@ Future<Map<String, dynamic>> scanDir(
   };
 }
 
+/// 把「注释」与「字符串字面量」的**内容**替换成空格，长度与换行保持不变。
+///
+/// 目的：让"找 `catch` 并配平括号"只看到**真正的代码**。不这么做的话，
+/// `/// } catch (_) {}` 这种文档注释里的示例、以及字符串里的 `"catch (e) {}"`
+/// 都会被当成真代码。长度不变 → 偏移量仍能映射回原文；换行不变 → 行号仍准。
+/// [commentSpansOut] 非空时，把**注释**的字符区间（原文下标，`[start, end)`）追加进去。
+/// 条款 3 第三款要用它：判「注释掉的断言」必须只看**注释里**的文字，否则
+/// `expect(hits.contains('// expect(...)'), true)` 这种"真断言里带着注释样字符串"
+/// 会被误判成「注释掉的断言」。
+String maskNonCode(String src, {List<List<int>>? commentSpansOut}) {
+  final List<int> out = src.codeUnits.toList();
+  void blank(int from, int to) {
+    for (int k = from; k < to && k < out.length; k++) {
+      if (out[k] != 0x0A && out[k] != 0x0D) out[k] = 0x20;
+    }
+  }
+
+  bool identAt(int k) {
+    if (k < 0 || k >= src.length) return false;
+    final int c = src.codeUnitAt(k);
+    return (c >= 0x30 && c <= 0x39) ||
+        (c >= 0x41 && c <= 0x5A) ||
+        (c >= 0x61 && c <= 0x7A) ||
+        c == 0x5F ||
+        c == 0x24;
+  }
+
+  int i = 0;
+  while (i < src.length) {
+    final String c = src[i];
+    if (c == '/' && i + 1 < src.length && src[i + 1] == '/') {
+      int j = i + 2;
+      while (j < src.length && src[j] != '\n') j++;
+      blank(i, j);
+      commentSpansOut?.add(<int>[i, j]);
+      i = j;
+    } else if (c == '/' && i + 1 < src.length && src[i + 1] == '*') {
+      int j = i + 2;
+      while (j + 1 < src.length && !(src[j] == '*' && src[j + 1] == '/')) j++;
+      j = j + 1 < src.length ? j + 2 : src.length;
+      blank(i, j);
+      commentSpansOut?.add(<int>[i, j]);
+      i = j;
+    } else if (c == "'" || c == '"') {
+      // raw string（`r'...'` / `r"..."`）里的反斜杠不是转义。
+      final bool raw = i > 0 && (src[i - 1] == 'r' || src[i - 1] == 'R') && !identAt(i - 2);
+      final String delim = src.startsWith(c * 3, i) ? c * 3 : c;
+      int j = i + delim.length;
+      while (j < src.length) {
+        if (!raw && !delim.contains(c * 3) && src[j] == '\\') {
+          j += 2;
+          continue;
+        }
+        if (src.startsWith(delim, j)) {
+          j += delim.length;
+          break;
+        }
+        j++;
+      }
+      blank(i, j);
+      i = j;
+    } else {
+      i++;
+    }
+  }
+  return String.fromCharCodes(out);
+}
+
+int _skipWs(String s, int i) {
+  while (i < s.length && (s[i] == ' ' || s[i] == '\t' || s[i] == '\n' || s[i] == '\r')) {
+    i++;
+  }
+  return i;
+}
+
+/// 从 `s[open]`（应为 [o]）出发配平到配对的 [c]，返回其下标；配不平返回 -1。
+/// 调用前必须已经过 [maskNonCode]，否则字符串/注释里的括号会干扰配平。
+int matchBracket(String s, int open, String o, String c) {
+  if (open >= s.length || s[open] != o) return -1;
+  int depth = 0;
+  for (int i = open; i < s.length; i++) {
+    if (s[i] == o) depth++;
+    if (s[i] == c) {
+      depth--;
+      if (depth == 0) return i;
+    }
+  }
+  return -1;
+}
+
+/// 一处 catch 站点。 [body] 是**原文**里的体内文本（注释保留）。
+class CatchSite {
+  final int offset;
+  final String body;
+  CatchSite(this.offset, this.body);
+}
+
+/// 找出所有**体内没有任何语句**的 `catch`。
+///
+/// 为什么必须是状态机而不是正则：条款 5 的正文是"通过 catch-all 吞异常
+/// （`catch (_) {}` 空实现）"，而**"空"这件事正则表达不了**。上一版用
+/// `catch\s*\(...\)\s*\{\s*\}`，只认空白，于是
+///     } catch (_) {
+///       // 换下一个候选。
+///     }
+/// 和 `catch (_) { ; }` 全都漏掉 —— `lib/` 里正好有 2 处注释体漏网。
+/// **判据是条款的严格子集，就等于悄悄放行了一个子集**，和"空 stdout 当成零命中"
+/// 是同一个病，只差一层。
+///
+/// 这里剥掉注释与字符串后配平括号：体内除了空白和 `;` 什么都没有 ⇒ 空实现。
+List<CatchSite> emptyCatchSites(String src) {
+  final String masked = maskNonCode(src);
+  final List<CatchSite> out = <CatchSite>[];
+  for (final RegExpMatch m in RegExp(r'\bcatch\b').allMatches(masked)) {
+    int i = _skipWs(masked, m.end);
+    if (i >= masked.length || masked[i] != '(') continue;
+    final int cp = matchBracket(masked, i, '(', ')');
+    if (cp < 0) continue;
+    i = _skipWs(masked, cp + 1);
+    if (i >= masked.length || masked[i] != '{') continue;
+    final int cb = matchBracket(masked, i, '{', '}');
+    if (cb < 0) continue;
+    if (masked.substring(i + 1, cb).replaceAll(';', '').trim().isNotEmpty) continue;
+    out.add(CatchSite(m.start, src.substring(i + 1, cb).trim()));
+  }
+  return out;
+}
+
+/// 体内是否带**说明**（注释）。带注释的吞异常与光秃秃的 `catch (_) {}` 分开登记：
+/// 前者至少留下了作者自述的理由，后者什么也没有。
+bool catchBodyHasReason(String body) => body.contains('//') || body.contains('/*');
+
+/// 扫空 catch。两个引擎互相校验：
+///  - A：状态机 [emptyCatchSites]（**权威**，覆盖注释体 / `;` 体）；
+///  - B：正则 [kEmptyCatchPattern]（只认空白体，是 A 的**真子集**）。
+/// A ⊇ B 是设计约束，一旦 B 命中而 A 没命中就说明状态机漏了 ⇒ [undecidable]。
+///
+/// 返回 {empty_body_hits, commented_body_hits, files_scanned, undecidable, why,
+/// definition}。两类命中**都全量登记**；只有前者自动计违规（见 patrol）。
+Future<Map<String, dynamic>> scanEmptyCatches(String dir) async {
+  final List<String> bare = <String>[];
+  final List<String> commented = <String>[];
+  final List<String> disagreement = <String>[];
+  final List<String> unreadable = <String>[];
+  final RegExp regexEngine = RegExp(kEmptyCatchPattern);
+  int scanned = 0;
+
+  for (final File f in _sourceFiles(dir)) {
+    final String p = f.path.replaceAll('\\', '/');
+    String src;
+    try {
+      src = await f.readAsString();
+    } catch (e) {
+      unreadable.add('$p: $e');
+      continue;
+    }
+    scanned++;
+    final List<CatchSite> sites = emptyCatchSites(src);
+    int lineOf(int off) {
+      int line = 1;
+      for (int i = 0; i < off && i < src.length; i++) {
+        if (src.codeUnitAt(i) == 0x0A) line++;
+      }
+      return line;
+    }
+
+    final Set<int> machineOffsets = <int>{};
+    for (final CatchSite s in sites) {
+      machineOffsets.add(s.offset);
+      final String body = s.body.replaceAll(RegExp(r'\s+'), ' ').trim();
+      final String rendered = body.isEmpty
+          ? '$p:${lineOf(s.offset)}: catch (_) { }'
+          : '$p:${lineOf(s.offset)}: catch (_) { $body }'
+              '${body.length > 120 ? ' …' : ''}';
+      if (catchBodyHasReason(s.body)) {
+        commented.add(rendered);
+      } else {
+        bare.add(rendered);
+      }
+    }
+
+    // 引擎 B 的超集校验：正则命中的位置状态机必须也命中。
+    final String masked = maskNonCode(src);
+    for (final RegExpMatch m in regexEngine.allMatches(masked)) {
+      final bool covered = machineOffsets.any((int o) => (o - m.start).abs() < 200);
+      if (!covered) {
+        disagreement.add('$p:${lineOf(m.start)}: 正则命中但状态机未命中（状态机可能漏判）');
+      }
+    }
+  }
+
+  final bool undecidable = unreadable.isNotEmpty || disagreement.isNotEmpty;
+  return <String, dynamic>{
+    'empty_body_hits': bare..sort(),
+    'commented_body_hits': commented..sort(),
+    'files_scanned': scanned,
+    'unreadable': unreadable,
+    'disagreements': disagreement,
+    'undecidable': undecidable,
+    'why': <String>[
+      if (unreadable.isNotEmpty) '有文件读不出来（${unreadable.length} 个）',
+      if (disagreement.isNotEmpty) '两个引擎结论打架（${disagreement.length} 处）',
+    ].join('；'),
+    'engine': '状态机(权威) ⊇ 正则(空白体子集)',
+    'definition': '体内剥掉注释与字符串后，除空白与 `;` 外没有任何语句 ⇒ 空实现。'
+        '**含注释体与 `catch (_) { ; }`**，不是只认 `{}`。',
+  };
+}
+
+/// 条款 3 第三款「注释掉的断言」的直接扫描。
+///
+/// 只认**注释里、且以断言调用开头**的那一行（`// expect(`、`// await expect(`…）。
+/// 判据必须落在**注释区间**上，不能拿整行原文去匹配 —— 否则
+/// `expect(hits.contains('// expect(...)'), true)` 这种"真断言里带着注释样字符串"
+/// 会被误判成「注释掉的断言」（第一版就是这么错的，自己误报了自己 4 处）。
+/// 反过来，散文里顺带提到的 `expect` 不算 —— 误报和漏报一样有害。
+final RegExp kCommentedAssertionLine =
+    RegExp(r'^(await\s+)?(expect|assert|test|verify|checks?)\s*\(');
+
+/// 扫「注释掉的断言」。返回与 [scanDir] 同形。
+Future<Map<String, dynamic>> scanCommentedAssertions(String dir) async {
+  final List<String> hits = <String>[];
+  final List<String> unreadable = <String>[];
+  int scanned = 0;
+  for (final File f in _sourceFiles(dir)) {
+    final String p = f.path.replaceAll('\\', '/');
+    String src;
+    try {
+      src = await f.readAsString();
+    } catch (e) {
+      unreadable.add('$p: $e');
+      continue;
+    }
+    scanned++;
+    final List<List<int>> spans = <List<int>>[];
+    maskNonCode(src, commentSpansOut: spans);
+    for (final List<int> sp in spans) {
+      int baseLine = 1;
+      for (int i = 0; i < sp[0] && i < src.length; i++) {
+        if (src.codeUnitAt(i) == 0x0A) baseLine++;
+      }
+      final List<String> lines = src.substring(sp[0], sp[1]).split('\n');
+      for (int i = 0; i < lines.length; i++) {
+        String t = lines[i].trim();
+        // 剥掉注释标记：`//`、`/*`、`*/`、行首的 `*`。
+        while (t.isNotEmpty && (t[0] == '/' || t[0] == '*')) {
+          t = t.substring(1).trim();
+        }
+        if (kCommentedAssertionLine.hasMatch(t)) {
+          hits.add('$p:${baseLine + i}: ${lines[i].trim()}');
+        }
+      }
+    }
+  }
+  return <String, dynamic>{
+    'hits': hits..sort(),
+    'files_scanned': scanned,
+    'unreadable': unreadable,
+    'disagreements': <String>[],
+    'undecidable': unreadable.isNotEmpty,
+    'why': unreadable.isEmpty ? '' : '有文件读不出来（${unreadable.length} 个）',
+    'engine': 'dart-regexp(仅在注释区间内匹配)',
+    'definition': '**注释里**以断言调用开头的那一行（`//`、`/* */` 皆算）；'
+        '真断言里的字符串、散文里提到的 expect 都不算。',
+  };
+}
+
 /// 完整巡查。
 ///
 /// [baseline] 阶段基线 tag；[prevHashes] 上一轮 gatekeeper 记录的脚本哈希；
@@ -405,40 +672,80 @@ Future<Map<String, dynamic>> patrol({
   }
   evidence['skip_hits_self_reference'] = skipSelf;
 
-  // ---- 条款 5：catch-all 空吞异常 ----
-  //
-  // **跨行写法必须也抓得到。** 原来的 `grep -rn` 是逐行匹配，
-  //     } catch (e) {
-  //     }
-  // 这种换行写的空 catch 永远匹配不到——而格式化之后这是最自然的写法。
-  // 现在两条规则一起上：单行 `-rnE` + 跨行 `-rPzoE`（PCRE + NUL 分隔），
-  // 取并集。任何一条判不了就在 AC 里显式标"不可判"，不静默当零命中。
-  final Map<String, dynamic> catchScans = <String, dynamic>{};
-  final Map<String, List<String>> catchHits = <String, List<String>>{};
-  for (final String dir in <String>['lib', 'test']) {
-    final Map<String, dynamic> s = await scanDir(
-      dir,
-      pattern: RegExp(kEmptyCatchPattern),
-      prefilter: const <String>['catch'],
-    );
-    catchScans['catch:$dir'] = s;
-    if (s['undecidable'] == true) undecidable.add('条款 5 @ $dir');
-    final List<String> lines = (s['hits'] as List<dynamic>).cast<String>();
-    if (lines.isNotEmpty) catchHits[dir] = lines;
+  // 条款 3 的**第三款**「注释掉的断言」：直接扫，不靠 diff 兜。
+  final Map<String, dynamic> assertScans = <String, dynamic>{};
+  final Map<String, List<String>> assertHits = <String, List<String>>{};
+  for (final String dir in <String>['lib', 'test', 'tools/gate', 'integration_test']) {
+    final Map<String, dynamic> s = await scanCommentedAssertions(dir);
+    assertScans['commented_assertion:$dir'] = s;
+    if (s['undecidable'] == true) undecidable.add('条款 3(注释掉的断言) @ $dir');
+    final List<String> lines2 = (s['hits'] as List<dynamic>).cast<String>();
+    if (lines2.isNotEmpty) assertHits[dir] = lines2;
   }
-  evidence['catch_scans'] = catchScans;
-  evidence['empty_catch_hits'] = catchHits;
-  final Map<String, List<String>> catchSelf = <String, List<String>>{};
-  for (final MapEntry<String, List<String>> e in catchHits.entries) {
+  evidence['commented_assertion_scans'] = assertScans;
+  evidence['commented_assertion_hits'] = assertHits;
+  final Map<String, List<String>> assertSelf = <String, List<String>>{};
+  for (final MapEntry<String, List<String>> e in assertHits.entries) {
     for (final String h in e.value) {
       if (isScannerSelfTerritory(hitPath(h))) {
-        catchSelf.putIfAbsent(hitPath(h), () => <String>[]).add(h);
+        assertSelf.putIfAbsent(hitPath(h), () => <String>[]).add(h);
       } else {
-        violations.add(Violation('5', hitPath(h), '未定位', '空 catch 吞异常：$h'));
+        violations.add(Violation('3', hitPath(h), '未定位', '注释掉的断言：$h'));
       }
     }
   }
+  evidence['commented_assertion_hits_self_reference'] = assertSelf;
+
+  // 条款 3 的**第四款**「被放宽的阈值常量」：**没有独立扫描器，是结构性覆盖**。
+  // 如实写明覆盖方式，免得报告读起来像"条款 3 已被完整扫描"。
+  evidence['clause3_coverage'] = <String, dynamic>{
+    'skip_token': '直接扫描（skip: / @Skip / @skip）',
+    'commented_assertion': '直接扫描（仅在注释区间内匹配 ${kCommentedAssertionLine.pattern}）',
+    'relaxed_thresholds': '**结构性覆盖，无独立扫描器**：'
+        '本项目的阈值常量只存在于两处 —— `docs/ACCEPTANCE.md`（防作弊条款 1 绝对保护，'
+        '任何 agent 改动即 FAIL）与 `tools/gate/`（条款 2 SHA256 逐轮比对）。'
+        '二者任一被改都会在条款 1 或条款 2 上现形，故不另设扫描；'
+        '**但这不等于"扫过了"**——若将来阈值常量被挪到第三处，本条覆盖即失效。',
+  };
+
+  // ---- 条款 5：catch-all 空吞异常 ----
+  //
+  // 判据是**状态机**（`emptyCatchSites`），不是正则：正则表达不了"空"。
+  // 上一版用 `catch\s*\(...\)\s*\{\s*\}` 只认空白体，把
+  //     } catch (_) { // 理由 }
+  // 和 `catch (_) { ; }` 全漏掉 —— `lib/` 里正好漏了 2 处注释体。
+  // **判据是条款的严格子集，等于悄悄放行了一个子集。**
+  //
+  // 两类命中**都全量登记**，区别只在是否自动计违规：
+  //  - 体内**什么说明都没有** → 直接计违规（条款 5 字面所指）；
+  //  - 体内**带注释理由** → 登记并列出来（含原文），但**不自动定罪**：
+  //    脚本分不出"有理由的降级"和"作弊的吞"，这一层必须留给人/adversarial。
+  //    **这不等于放行**：它每次都会出现在报告里，藏不掉；能变的只是"是否自动判死"。
+  final Map<String, dynamic> catchScans = <String, dynamic>{};
+  final List<String> catchBare = <String>[];
+  final List<String> catchCommented = <String>[];
+  for (final String dir in <String>['lib', 'test']) {
+    final Map<String, dynamic> s = await scanEmptyCatches(dir);
+    catchScans['catch:$dir'] = s;
+    if (s['undecidable'] == true) undecidable.add('条款 5 @ $dir');
+    catchBare.addAll((s['empty_body_hits'] as List<dynamic>).cast<String>());
+    catchCommented.addAll((s['commented_body_hits'] as List<dynamic>).cast<String>());
+  }
+  evidence['catch_scans'] = catchScans;
+  evidence['empty_catch_hits'] = catchBare..sort();
+  evidence['commented_catch_hits'] = catchCommented..sort();
+  final List<String> catchSelf = <String>[];
+  for (final String h in catchBare) {
+    if (isScannerSelfTerritory(hitPath(h))) {
+      catchSelf.add(h);
+    } else {
+      violations.add(Violation('5', hitPath(h), '未定位', '空 catch 吞异常：$h'));
+    }
+  }
   evidence['empty_catch_hits_self_reference'] = catchSelf;
+  evidence['commented_catch_registered'] = catchCommented
+      .map((String h) => isScannerSelfTerritory(hitPath(h)) ? '[自身领地] $h' : '[待裁定] $h')
+      .toList();
 
   // ---- 条款 4：黄金集不得减少 ----
   evidence['golden_src_count'] = goldenSrcCount;

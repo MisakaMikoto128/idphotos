@@ -1787,35 +1787,60 @@ String _scanSummary(Map<String, dynamic> ac) {
   final Object? ev = ac['evidence'];
   if (ev is! Map<String, dynamic>) return '无扫描证据';
   final List<String> parts = <String>[];
-  for (final String family in <String>['skip', 'catch']) {
-    final Object? scans = ev['${family}_scans'];
-    if (scans is! Map<String, dynamic>) {
-      parts.add('$family=无记录');
-      continue;
+  int countAll(Object? map) {
+    if (map is! Map<String, dynamic>) return 0;
+    int n = 0;
+    for (final Object v in map.values) {
+      if (v is List<dynamic>) n += v.length;
     }
-    int hits = 0;
-    final List<String> bad = <String>[];
-    for (final MapEntry<String, dynamic> e in scans.entries) {
-      final Map<String, dynamic> s = e.value as Map<String, dynamic>;
-      if (s['undecidable'] == true) bad.add(e.key);
-      hits += (s['hits'] as List<dynamic>).length;
-    }
-    // 自身领地的命中**只在本族里数一次**。
-    // （上一版把它放在逐个扫描目录的循环里，同一个 map 被数 4 遍，
-    //   报出"命中 28、其中 138 条自身领地"这种自相矛盾的数字。）
-    final String selfKey =
-        family == 'skip' ? 'skip_hits_self_reference' : 'empty_catch_hits_self_reference';
-    int selfHits = 0;
-    final Object? sh = ev[selfKey];
-    if (sh is Map<String, dynamic>) {
-      for (final Object v in sh.values) {
-        if (v is List<dynamic>) selfHits += v.length;
-      }
-    }
-    parts.add('$family 命中 $hits'
-        '${selfHits == 0 ? "" : "（其中 $selfHits 条落在巡检自身领地 tools/gate、test/gate，已登记不判违规）"}'
-        '${bad.isEmpty ? "" : "（**判不了：${bad.join("、")}**）"}');
+    return n;
   }
+
+  /// 逐族汇总：把"命中数"与"判不了"拆开数，命中数按**当前证据结构**取，
+  /// 不再假设每个族只有 `hits` 一个键。
+  List<String> badDirs(Object? scans) {
+    if (scans is! Map<String, dynamic>) return <String>['无记录'];
+    return scans.entries
+        .where((MapEntry<String, dynamic> e) =>
+            (e.value as Map<String, dynamic>)['undecidable'] == true)
+        .map((MapEntry<String, dynamic> e) => e.key)
+        .toList();
+  }
+
+  String tail(List<String> bad) =>
+      bad.isEmpty || bad.first == '无记录' ? '' : '（**判不了：${bad.join("、")}**）';
+
+  // 条款 3 只有 skip 款是"直接扫 + 可能判违规"；注释掉的断言另算；
+  // 被放宽的阈值常量是结构性覆盖，**必须在摘要里露出来**，
+  // 否则"条款 3 命中 0"会被读成"条款 3 已完整扫描"。
+  final int skipHits = countAll(ev['skip_hits']);
+  final List<String> skipBad = badDirs(ev['skip_scans']);
+  final int skipSelf = countAll(ev['skip_hits_self_reference']);
+  final int assertHits = countAll(ev['commented_assertion_hits']);
+  final int assertSelf = countAll(ev['commented_assertion_hits_self_reference']);
+  final List<String> assertBad = badDirs(ev['commented_assertion_scans']);
+  parts.add('条款 3：skip 命中 $skipHits'
+      '${skipSelf == 0 ? "" : "（其中 $skipSelf 条落在巡检自身领地，已登记不判违规）"}'
+      '${tail(skipBad)}'
+      '；注释掉的断言命中 $assertHits'
+      '${assertSelf == 0 ? "" : "（其中 $assertSelf 条落在巡检自身领地）"}'
+      '${tail(assertBad)}'
+      '；**被放宽的阈值常量：无独立扫描器，靠基线 tag diff 结构性覆盖**'
+      '（阈值只在 ACCEPTANCE.md 与 tools/gate/ 两处，分别受条款 1、条款 2 保护）');
+
+  // 条款 5：空体与"带注释理由的吞"分开报，两类都必须露出来。
+  final int bareHits = countAll(<String, dynamic>{'x': ev['empty_catch_hits']});
+  final int bareSelf = countAll(<String, dynamic>{'x': ev['empty_catch_hits_self_reference']});
+  final int commentedHits = countAll(<String, dynamic>{'x': ev['commented_catch_hits']});
+  final List<String> catchBad = badDirs(ev['catch_scans']);
+  final Object? defn = (ev['catch_scans'] as Map<String, dynamic>?)?['catch:lib'];
+  parts.add('条款 5：无说明的空 catch 命中 $bareHits'
+      '${bareSelf == 0 ? "" : "（其中 $bareSelf 条落在巡检自身领地）"}'
+      '；**带注释理由的吞异常 $commentedHits 处已逐条登记、不自动定罪**'
+      '（脚本分不出"有理由的降级"与"作弊的吞"，这一层留给人/adversarial；'
+      '它们每次都会印在报告里，藏不掉）'
+      '${tail(catchBad)}'
+      '${defn is Map<String, dynamic> ? "；判据定义：${defn['definition']}" : ""}');
   final List<dynamic> und = (ac['undecidable'] as List<dynamic>? ?? <dynamic>[]);
   if (und.isNotEmpty) {
     parts.add('**巡检自身不可判：${und.join("；")}**');

@@ -162,25 +162,115 @@ void main() {
         'void e() {\n  try { f(); } catch (err) {\n    log(err);\n  }\n}\n',
       );
 
-      final Map<String, dynamic> s = await scanDir(
-        root,
-        pattern: RegExp(kEmptyCatchPattern),
-        prefilter: const <String>['catch'],
-      );
-      final String all = (s['hits'] as List<dynamic>).cast<String>().join('\n');
+      final Map<String, dynamic> s = await scanEmptyCatches(root);
+      final String bare = (s['empty_body_hits'] as List<dynamic>).cast<String>().join('\n');
+      final String commented =
+          (s['commented_body_hits'] as List<dynamic>).cast<String>().join('\n');
 
       expect(s['undecidable'], false,
           reason: '临时目录上的扫描该是可判的（why=${s['why']}）');
       expect(s['files_scanned'], 3,
           reason: '三个 .dart 都得真被读到 —— '
               '"扫了 0 个文件"和"扫了但没命中"不是一回事');
-      expect(all.contains('single.dart'), true,
+      expect(bare.contains('single.dart'), true,
           reason: '单行空 catch `catch (_) {}` 必须报违规');
-      expect(all.contains('multiline.dart'), true,
+      expect(bare.contains('multiline.dart'), true,
           reason: '跨行空 catch `catch (e) {\\n}` 必须报违规 —— '
               '这正是原来逐行 grep 漏掉的那一半');
-      expect(all.contains('handled.dart'), false,
+      expect(bare.contains('handled.dart'), false,
           reason: '有实参的非空 catch 不是违规，误报和漏报一样有害');
+      expect(commented.contains('handled.dart'), false,
+          reason: '有实参的非空 catch 也不该出现在"带理由的吞"名单里');
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  });
+
+  test('H 条款 5 的判据不是它的严格子集：注释体、分号体、字符串/注释里的假 catch', () async {
+    // 上一版的 `catch\\s*\\(...\\)\\s*\\{\\s*\\}` 只认**空白**体，于是
+    //     } catch (_) {
+    //       // 换下一个候选。
+    //     }
+    // 和 `catch (_) { ; }` 全都漏掉 —— `lib/` 里正好漏了 2 处注释体。
+    // **判据是条款的严格子集，就等于悄悄放行了一个子集。**
+    final Directory tmp = Directory.systemTemp.createTempSync('gate_anticheat_');
+    try {
+      final String root = tmp.path.replaceAll('\\', '/');
+      // ① 注释体：体内只有一句说明 → 必须命中，且归入"带理由"那一类。
+      File('${tmp.path}/comment_body.dart').writeAsStringSync(
+        'void a() {\n  try { b(); }\n  catch (_) {\n    // 换下一个候选。\n  }\n}\n',
+      );
+      // ② 分号体：`;` 是空语句，也等于什么都没做。
+      File('${tmp.path}/semi_body.dart').writeAsStringSync(
+        'void c() {\n  try { d(); } catch (_) { ; }\n}\n',
+      );
+      // ③ 负例：体内有真语句，不许命中。
+      File('${tmp.path}/real_body.dart').writeAsStringSync(
+        'void e() {\n  try { f(); } catch (err) {\n    log(err);\n  }\n}\n',
+      );
+      // ④ 负例：**注释与字符串里的 `catch (_) {}` 不是代码**，不许命中。
+      //    不遮罩的话，文档注释里写个示例就会被判成违规。
+      File('${tmp.path}/in_comment.dart').writeAsStringSync(
+        '/// 反例：`} catch (_) {}` 这种写法不要用。\n'
+        'const String sample = "catch (_) {}";\n'
+        'void g() {\n  try { h(); } catch (err) {\n    log(err);\n  }\n}\n',
+      );
+
+      final Map<String, dynamic> s = await scanEmptyCatches(root);
+      final String bare = (s['empty_body_hits'] as List<dynamic>).cast<String>().join('\n');
+      final String commented =
+          (s['commented_body_hits'] as List<dynamic>).cast<String>().join('\n');
+      final String all = '$bare\n$commented';
+
+      expect(s['undecidable'], false, reason: 'why=${s['why']}');
+      expect(commented.contains('comment_body.dart'), true,
+          reason: '注释体的空 catch 必须命中，且归入带理由的一类');
+      expect(commented.contains('换下一个候选'), true,
+          reason: '命中里要带上作者自述的理由，供人裁定 —— 只报"有违规"没法回派');
+      expect(bare.contains('semi_body.dart'), true,
+          reason: '`catch (_) { ; }` 是空语句体，必须命中');
+      expect(all.contains('real_body.dart'), false,
+          reason: '体内有真语句的不许命中');
+      expect(all.contains('in_comment.dart'), false,
+          reason: '注释与字符串里的 `catch (_) {}` 不是代码，遮罩没做好就会误报');
+
+      // 状态机 vs 正则：正则只是空白体的子集，两者必须一致到"正则命中 ⊆ 状态机命中"。
+      expect(emptyCatchSites('void a() { try { b(); } catch (_) { ; } }').length, 1);
+      expect(emptyCatchSites('void a() { try { b(); } catch (e) { log(e); } }').length, 0);
+      expect(emptyCatchSites('// catch (_) {}').length, 0,
+          reason: '注释里的不算 —— 文档注释里写示例是常事');
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  });
+
+  test('I 条款 3 第三款「注释掉的断言」直接扫，不靠 diff 兜', () async {
+    // 条款 3 正文有四款：skip: / @Skip / **注释掉的断言** / **被放宽的阈值常量**。
+    // 后两款此前没有任何扫描器，报告却读起来像"条款 3 已完整扫描"。
+    // 这里把第三款补成直接扫描；第四款是结构性覆盖（写进 evidence，见 patrol）。
+    final Directory tmp = Directory.systemTemp.createTempSync('gate_anticheat_');
+    try {
+      final String root = tmp.path.replaceAll('\\', '/');
+      File('${tmp.path}/commented.dart').writeAsStringSync(
+        'void a() {\n'
+        '  // expect(result, 42);\n'
+        '  // assert(x > 0);\n'
+        '  expect(real, 1);\n'
+        '  // 这里顺带提一句 expect 这个词，不算注释掉的断言。\n'
+        '}\n',
+      );
+
+      final Map<String, dynamic> s = await scanCommentedAssertions(root);
+      final String hits = (s['hits'] as List<dynamic>).cast<String>().join('\n');
+      expect(s['undecidable'], false, reason: 'why=${s['why']}');
+      expect(hits.contains('// expect(result, 42);'), true,
+          reason: '注释掉的 expect 必须命中');
+      expect(hits.contains('// assert(x > 0);'), true,
+          reason: '注释掉的 assert 也必须命中');
+      expect(hits.contains('expect(real, 1)'), false,
+          reason: '**真跑着的** expect 不是违规 —— 误报会给实现方制造假回派');
+      expect(hits.split('\n').length, 2,
+          reason: '散文里顺带提到 expect 不算，只该有 2 条');
     } finally {
       tmp.deleteSync(recursive: true);
     }
