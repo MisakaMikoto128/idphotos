@@ -881,3 +881,13 @@
   卸载残留包的已知噪音，截图已正常落盘，不要当成流水线失败重跑。
 - 杀掉模拟器后 serial 会被下一台复用（5554 → 5554），"等 emulator-5556 上线"的轮询会白等；
   等 boot 用实际出现的 serial 轮询 `sys.boot_completed` 即可。
+- Edge 新版默认禁止对默认 User Data 目录开 CDP（报错 "DevTools remote debugging requires a
+  non-default data directory"），launch_persistent_context 复用登录态必须先把 profile 复制到
+  非默认路径；且 robocopy 复制 Default 后 Cookies 库可能不完整（31 条 doubao cookie 只带出 11
+  条，sessionid 丢失），需单独再 Copy-Item 一次 Cookies 文件才拿得到登录态。
+- 用 Playwright 自动化豆包出图时：生成图的 DOM 特征是 img[src*="/rc_gen_image/"] 且 alt="image"，
+  其余 img 全是 UI 图标（用 naturalWidth 过滤会误抓聊天气泡图标）；CDN URL 的 ~tplv 后缀含签名，
+  剥掉去拿"原图"会 403，必须按页面渲染的完整 URL 原样下载；豆包出一次通常给 4 张候选，无需补发。
+- Python 脚本里 `sys.stdout = TextIOWrapper(sys.stdout.buffer)` 重定向中文输出，若另一脚本 import 它
+  会二次包装，旧 wrapper 被 GC 时连带关闭底层 buffer，报 "I/O operation on closed file"；
+  应该用 `sys.stdout.reconfigure(encoding="utf-8")`。
