@@ -134,17 +134,23 @@ const double kRigidMaxErrDeg = 1.0;
 Future<void> main(List<String> args) async {
   int round = 0;
   bool reuse = false;
-  String outPath = 'out/gate_P0.json';
+  // 空串 = "没指定，按轮次推"。**不能在这里就定死一个固定默认值**：
+  // 默认值写死成 `out/gate_P0.json` 的话，每一轮的 JSON 都落在同一个文件上，
+  // 于是 `_nextRound()` 找 `out/gate_P0_r<n>.json` 永远找不到 —— 下一轮又算回 r1，
+  // 把上一轮的 `out/GATE_P0_r1.md` **覆盖掉**。r1 就是这么写出来的，
+  // 所以第 2 轮若不显式传 `--round 2` 就会毁掉 r1 的报告。
+  String? outPathArg;
   for (int i = 0; i < args.length; i++) {
     if (args[i] == '--round' && i + 1 < args.length) {
       round = int.parse(args[i + 1]);
     } else if (args[i] == '--out' && i + 1 < args.length) {
-      outPath = args[i + 1];
+      outPathArg = args[i + 1];
     } else if (args[i] == '--reuse') {
       reuse = true;
     }
   }
-  if (round == 0) round = _nextRound();
+  if (round == 0) round = nextRound();
+  final String outPath = outPathArg ?? 'out/gate_P0_r$round.json';
 
   // 坏行账要在读输入之前清零，否则会把上一轮（或 `_roundState` 里的重复读取）
   // 的条目算进本轮。
@@ -1196,12 +1202,33 @@ Future<void> _finish({
   exit(allPass ? 0 : 1);
 }
 
-int _nextRound() {
-  int r = 1;
-  while (File('out/gate_P0_r$r.json').existsSync()) {
-    r++;
+/// 下一轮轮次号 = 1 + 已存在的最大轮次。
+///
+/// **两种产物都要看**：`out/GATE_P0_r<N>.md`（人读报告）与
+/// `out/gate_P0_r<N>.json`（机读结果）。
+///
+/// 只看 JSON 是不够的，而且已经出过事：r1 的 JSON 落在了当时写死的默认路径
+/// `out/gate_P0.json` 上，于是只认 `out/gate_P0_r<N>.json` 的旧版本会算出
+/// "下一轮 = 1" —— 把 `out/GATE_P0_r1.md` **覆盖掉**，同时让第 2 轮顶着 r1 的
+/// 编号去套 `kRoundErrata` 与修复轮次记账。轮次号是账本，账本算错等于前面
+/// 所有的"第几轮"都不可信。
+///
+/// 取最大值而不是"找到第一个空位"：中间缺一个号（比如 r2 的 JSON 被删了）
+/// 时，"第一个空位"会把新一轮塞进那个洞里、盖掉它的 md。
+int nextRound({String dir = 'out'}) {
+  final RegExp re = RegExp(r'[/\\](?:GATE_P0_r|gate_P0_r)(\d+)\.(?:md|json)$');
+  int maxRound = 0;
+  final Directory d = Directory(dir);
+  if (d.existsSync()) {
+    for (final FileSystemEntity e in d.listSync()) {
+      if (e is! File) continue;
+      final RegExpMatch? m = re.firstMatch(e.path.replaceAll('\\', '/'));
+      if (m == null) continue;
+      final int n = int.parse(m.group(1)!);
+      if (n > maxRound) maxRound = n;
+    }
   }
-  return r;
+  return maxRound + 1;
 }
 
 /// 哈希扫描的结果：算出来的哈希 + **算不出来的**文件。

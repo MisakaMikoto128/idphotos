@@ -819,4 +819,55 @@ void main() {
           reason: '锚必须在受钉集里，否则删掉它 = 重置 = 免疫');
     });
   });
+
+  // ---------------------------------------------------------------------
+  // 轮次号是**账本**：它错了，前面所有"第几轮"的说法都不可信。
+  test('Y 轮次号由产物推出，且不许把已有的轮次覆盖掉', () {
+    // 事故原样（2026-09-17，就在 r2 之前发现）：
+    //   `_nextRound()` 只看 `out/gate_P0_r<N>.json`，而 r1 的 JSON 落在了当时写死的
+    //   默认路径 `out/gate_P0.json` 上 —— 于是它算出的"下一轮" = **1**，
+    //   把 `out/GATE_P0_r1.md`（重写轮的记录）直接盖掉，
+    //   并让真正的第 2 轮顶着 r1 的编号去套 `kRoundErrata` 与修复轮次记账。
+    final Directory tmp = Directory('out/tmp_gk_round_test');
+    if (tmp.existsSync()) tmp.deleteSync(recursive: true);
+    tmp.createSync(recursive: true);
+    try {
+      final String d = tmp.path.replaceAll('\\', '/');
+      expect(gate.nextRound(dir: d), 1, reason: '一个产物都没有 → 从第 1 轮开始');
+
+      // **只有 md、没有 json** —— 正是 r1 的实际形状。
+      File('$d/GATE_P0_r1.md').writeAsStringSync('# r1\n');
+      expect(gate.nextRound(dir: d), 2,
+          reason: '只看 json 会算出 1，然后把 r1 的 md 覆盖掉 —— 这就是那条事故');
+
+      File('$d/gate_P0_r2.json').writeAsStringSync('{}\n');
+      expect(gate.nextRound(dir: d), 3);
+
+      // 取**最大值**，不是"第一个空位"。造一个**真正的**缺号：有 r1 和 r3、
+      // 没有 r2。按"第一个空位"实现会算出 2 —— 而 r2 是**已经跑过、产物后来
+      // 被删掉**的那一轮，把新一轮塞进 2 号位就等于让两轮共用一个编号，
+      // `kRoundErrata` 与修复轮次记账会串台。
+      File('$d/gate_P0_r3.json').writeAsStringSync('{}\n');
+      File('$d/gate_P0_r2.json').deleteSync();
+      expect(gate.nextRound(dir: d), 4,
+          reason: '缺号必须按最大值前进 —— 空位是"那一轮的产物没了"，不是"可以用"');
+
+      // 负例：不匹配的文件名不许被当成轮次产物。
+      File('$d/GATE_P0_rX.md').writeAsStringSync('x\n');
+      File('$d/gate_P0_eyeline.json').writeAsStringSync('{}\n');
+      File('$d/hashes_P0_r9.txt').writeAsStringSync('x\n');
+      expect(gate.nextRound(dir: d), 4,
+          reason: '非轮次产物不许把轮次号顶上去（否则会凭空跳过修复轮次）');
+    } finally {
+      if (tmp.existsSync()) tmp.deleteSync(recursive: true);
+    }
+  });
+
+  test('Z 真仓库上的轮次号必须 > 1（回归：r1 的 md 已经存在）', () {
+    // 这条针对真实仓库状态：`out/GATE_P0_r1.md` 存在（重写轮的记录）。
+    // 若下一轮算成 1，r2 会把 r1 的报告覆盖掉 —— 证据被销毁，而且没人会发现。
+    final int n = gate.nextRound();
+    expect(n >= 2, true,
+        reason: 'out/ 下已有 r1 的产物，下一轮不能再是 1。实算 = $n');
+  });
 }
