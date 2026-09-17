@@ -1,0 +1,3 @@
+{"id": "c06_d-3", "composed": "out/P0_anchors/c06_d-3.png", "specId": "cn_big_1inch", "corpus": "rotated", "truthTiltDeg": -4.73, "expectedEngineRollDeg": -4.73, "rollSource": "n/a-fixture", "applied_straighten_deg": 0.0}
+{"id": "c08_d-10", "composed": "out/P0_anchors/c08_d-10.png", "specId": "cn_big_1inch", "corpus": "rotated", "truthTiltDeg": -18.01, "expectedEngineRollDeg": -18.01, "rollSource": "n/a-fixture", "applied_straighten_deg": 0.0}
+{"id": "p1", "composed": "C:/Users/liuyu/Pictures/1 (2).jpg", "specId": "cn_big_1inch", "corpus": "anchor", "truthTiltDeg": -4.4, "expectedEngineRollDeg": -4.4, "rollSource": "n/a-fixture", "applied_straighten_deg": 0.0}

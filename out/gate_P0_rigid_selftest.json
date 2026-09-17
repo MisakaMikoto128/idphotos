@@ -1,49 +1,49 @@
 {
- "image": "out/P0_anchors/composed/c01__cn_big_1inch.jpg",
+ "image": "test/golden/src/g01.jpg",
  "rows": [
   {
    "injected_deg": 3.0,
-   "recovered_deg": 3.000000000000001,
-   "err_deg": 8.881784197001252e-16,
-   "iou": 0.9999610096929903,
+   "recovered_deg": 3.0499999999999994,
+   "err_deg": 0.04999999999999938,
+   "iou": 0.9736148605932081,
    "scale": 1.0
   },
   {
    "injected_deg": -3.0,
-   "recovered_deg": -2.8700000000000006,
-   "err_deg": 0.12999999999999945,
-   "iou": 0.9904303242019435,
+   "recovered_deg": -2.99,
+   "err_deg": 0.009999999999999787,
+   "iou": 0.9738271752826138,
    "scale": 1.0
   },
   {
    "injected_deg": 5.0,
-   "recovered_deg": 4.879999999999999,
-   "err_deg": -0.120000000000001,
-   "iou": 0.990615370249323,
-   "scale": 1.0
+   "recovered_deg": 4.709999999999997,
+   "err_deg": -0.2900000000000027,
+   "iou": 0.9647785737253921,
+   "scale": 0.9950000000000001
   },
   {
    "injected_deg": -5.0,
-   "recovered_deg": -4.760000000000002,
-   "err_deg": 0.23999999999999844,
-   "iou": 0.9802538019785053,
-   "scale": 1.0
+   "recovered_deg": -4.730000000000002,
+   "err_deg": 0.2699999999999978,
+   "iou": 0.9650970327284424,
+   "scale": 0.9950000000000001
   },
   {
    "injected_deg": 10.0,
-   "recovered_deg": 9.730000000000002,
-   "err_deg": -0.2699999999999978,
-   "iou": 0.9665853885817233,
-   "scale": 1.0
+   "recovered_deg": 9.5,
+   "err_deg": -0.5,
+   "iou": 0.9436741317900497,
+   "scale": 0.9900000000000001
   },
   {
    "injected_deg": -10.0,
-   "recovered_deg": -9.45,
-   "err_deg": 0.5500000000000007,
-   "iou": 0.9589445549477872,
-   "scale": 1.0
+   "recovered_deg": -9.740000000000004,
+   "err_deg": 0.25999999999999623,
+   "iou": 0.9435754906283462,
+   "scale": 0.9950000000000001
   }
  ],
- "max_abs_err_deg": 0.5500000000000007,
- "pass": false
+ "max_abs_err_deg": 0.5,
+ "pass": true
 }

@@ -1,8 +1,8 @@
 {
  "generatedBy": "gatekeeper tools/gate/p0_rigid_check.py align",
  "method": "SIFT + estimateAffinePartial2D，旋转分量即实际施加角（符号已实测钉死）",
- "n": 100,
- "n_ok": 98,
+ "n": 110,
+ "n_ok": 107,
  "rows": [
   {
    "id": "p1",
@@ -17,6 +17,34 @@
    "matches": 46,
    "residual_deg": 0.06872454890829705,
    "applied_delta_vs_record": -0.00565319300301681
+  },
+  {
+   "id": "p1",
+   "source": "C:/Users/liuyu/Pictures/1 (2).jpg",
+   "composed": "out/P0_anchors/composed/p1__cn_1inch.jpg",
+   "truth_apply_deg": -4.4,
+   "recorded_applied_deg": -4.463071355905281,
+   "ok": true,
+   "measured_applied_deg": -4.45649968286097,
+   "scale": 0.07996395696975184,
+   "inliers": 22,
+   "matches": 53,
+   "residual_deg": 0.05649968286097007,
+   "applied_delta_vs_record": 0.006571673044310167
+  },
+  {
+   "id": "p1",
+   "source": "C:/Users/liuyu/Pictures/1 (2).jpg",
+   "composed": "out/P0_anchors/composed/p1__visa_us.jpg",
+   "truth_apply_deg": -4.4,
+   "recorded_applied_deg": -4.463071355905281,
+   "ok": true,
+   "measured_applied_deg": -4.472027647525738,
+   "scale": 0.11598878613995091,
+   "inliers": 28,
+   "matches": 34,
+   "residual_deg": 0.07202764752573731,
+   "applied_delta_vs_record": -0.00895629162045708
   },
   {
    "id": "c01",
@@ -187,6 +215,34 @@
    "applied_delta_vs_record": -0.005989141137668541
   },
   {
+   "id": "p2",
+   "source": "C:/Users/liuyu/Pictures/2.jpg",
+   "composed": "out/P0_anchors/composed/p2__cn_1inch.jpg",
+   "truth_apply_deg": -0.2,
+   "recorded_applied_deg": 0.0,
+   "ok": true,
+   "measured_applied_deg": 0.08514809038388527,
+   "scale": 0.2856147826128539,
+   "inliers": 75,
+   "matches": 95,
+   "residual_deg": -0.2851480903838853,
+   "applied_delta_vs_record": 0.08514809038388527
+  },
+  {
+   "id": "p2",
+   "source": "C:/Users/liuyu/Pictures/2.jpg",
+   "composed": "out/P0_anchors/composed/p2__visa_us.jpg",
+   "truth_apply_deg": -0.2,
+   "recorded_applied_deg": 0.0,
+   "ok": true,
+   "measured_applied_deg": 0.026248132341597438,
+   "scale": 0.4150902501964347,
+   "inliers": 114,
+   "matches": 134,
+   "residual_deg": -0.22624813234159746,
+   "applied_delta_vs_record": 0.026248132341597438
+  },
+  {
    "id": "p1_upright",
    "source": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_upright.png",
    "composed": "out/P0_anchors/composed/p1_upright__cn_big_1inch.jpg",
@@ -199,6 +255,34 @@
    "matches": 54,
    "residual_deg": -0.004781354858012988,
    "applied_delta_vs_record": 0.004781354858012988
+  },
+  {
+   "id": "p1_upright",
+   "source": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_upright.png",
+   "composed": "out/P0_anchors/composed/p1_upright__cn_1inch.jpg",
+   "truth_apply_deg": 0.0,
+   "recorded_applied_deg": 0.0,
+   "ok": true,
+   "measured_applied_deg": 0.04694408539079143,
+   "scale": 0.19485925823996986,
+   "inliers": 22,
+   "matches": 49,
+   "residual_deg": -0.04694408539079143,
+   "applied_delta_vs_record": 0.04694408539079143
+  },
+  {
+   "id": "p1_upright",
+   "source": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_upright.png",
+   "composed": "out/P0_anchors/composed/p1_upright__visa_us.jpg",
+   "truth_apply_deg": 0.0,
+   "recorded_applied_deg": 0.0,
+   "ok": true,
+   "measured_applied_deg": -0.0017013924820405227,
+   "scale": 0.5078227606730233,
+   "inliers": 46,
+   "matches": 76,
+   "residual_deg": 0.0017013924820405227,
+   "applied_delta_vs_record": -0.0017013924820405227
   },
   {
    "id": "c01_upright",
@@ -325,6 +409,34 @@
    "matches": 56,
    "residual_deg": -0.07390747526974373,
    "applied_delta_vs_record": 0.05492592403425256
+  },
+  {
+   "id": "p1_d-10",
+   "source": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_d-10.png",
+   "composed": "out/P0_anchors/composed/p1_d-10__cn_1inch.jpg",
+   "truth_apply_deg": -14.4,
+   "recorded_applied_deg": -14.38101844876451,
+   "ok": true,
+   "measured_applied_deg": -14.348757237683175,
+   "scale": 0.19687254405780372,
+   "inliers": 21,
+   "matches": 47,
+   "residual_deg": -0.05124276231682501,
+   "applied_delta_vs_record": 0.03226121108133384
+  },
+  {
+   "id": "p1_d-10",
+   "source": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_d-10.png",
+   "composed": "out/P0_anchors/composed/p1_d-10__visa_us.jpg",
+   "truth_apply_deg": -14.4,
+   "recorded_applied_deg": -14.38101844876451,
+   "ok": true,
+   "measured_applied_deg": -14.387982437201199,
+   "scale": 0.28504517344552793,
+   "inliers": 36,
+   "matches": 45,
+   "residual_deg": -0.012017562798801507,
+   "applied_delta_vs_record": -0.006963988436689661
   },
   {
    "id": "p1_d-5",
@@ -992,6 +1104,29 @@
    "recorded_applied_deg": 0.0,
    "ok": false,
    "reason": "weak_alignment(inl=67,scale=0.000)"
+  },
+  {
+   "id": "c08_d-10",
+   "source": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-10.png",
+   "composed": "out/P0_anchors/composed/c08_d-10__cn_1inch.jpg",
+   "truth_apply_deg": -18.01,
+   "recorded_applied_deg": 0.0,
+   "ok": false,
+   "reason": "weak_alignment(inl=67,scale=0.000)"
+  },
+  {
+   "id": "c08_d-10",
+   "source": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-10.png",
+   "composed": "out/P0_anchors/composed/c08_d-10__visa_us.jpg",
+   "truth_apply_deg": -18.01,
+   "recorded_applied_deg": 0.0,
+   "ok": true,
+   "measured_applied_deg": -0.025368600608804016,
+   "scale": 0.7210984530729179,
+   "inliers": 101,
+   "matches": 211,
+   "residual_deg": -17.984631399391198,
+   "applied_delta_vs_record": -0.025368600608804016
   },
   {
    "id": "c08_d-5",

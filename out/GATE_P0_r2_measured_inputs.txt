@@ -1,0 +1,8 @@
+# r2 独立复核（ACCEPTANCE:106）所测文件的字节绑定
+# 目的：若链重跑 compose，被测量的文件一旦变化，逐行 sha256 即可检出
+aea8b3cc9ab95f758e682a8661867e23e00dfc03f85e62e18433193b7cea0310 *out/P0_compose_items.jsonl
+1da49d3062531409f956b0422351430ab4028a370bec8c45785c8c5771979eec *out/P0_anchors/composed/c06_d-3__cn_big_1inch.jpg
+884b042730f1adf1b3c0d25a7e5eb7153ed75ed63f9dcfacafdca492bef0d780 *out/P0_anchors/composed/c08_d-10__cn_big_1inch.jpg
+4bf963fb652a985e74d6578440e89a229e86b98e811980fc4167abd3da03a4ab *out/P0_anchors/composed/c08_d-10__visa_us.jpg
+3fa56d4ac27135315a2f7ce9ab24b10ed63f32fa469128c4894b5681995e6507 *out/P0_anchors/c06_d-3.png
+4d0eebaf897ee37b2773cacf5c61b050689645db8d254dcb70680af21c072178 *out/P0_anchors/c08_d-10.png

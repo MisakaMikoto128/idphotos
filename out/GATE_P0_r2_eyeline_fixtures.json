@@ -1,0 +1,79 @@
+{
+ "generatedBy": "gatekeeper tools/gate/p0_eyeline.py",
+ "method": "Haar 正脸级联 + Haar 眼级联，取最大两个检测按 x 分左右",
+ "n": 3,
+ "n_measured": 2,
+ "rows": [
+  {
+   "ok": true,
+   "tilt_deg": -4.05101091775668,
+   "method": "haar_eyeline_2x",
+   "n_eyes": 3,
+   "left": [
+    189.75,
+    269.25
+   ],
+   "right": [
+    278.0,
+    263.0
+   ],
+   "eyedist": 88.5,
+   "face": [
+    123,
+    181,
+    232,
+    232
+   ],
+   "id": "c06_d-3",
+   "path": "out/P0_anchors/c06_d-3.png",
+   "specId": "cn_big_1inch",
+   "corpus": "rotated",
+   "truthTiltDeg": -4.73,
+   "rollSource": "n/a-fixture",
+   "applied_straighten_deg": null,
+   "expectedEngineRollDeg": -4.73
+  },
+  {
+   "ok": false,
+   "reason": "no_face",
+   "tilt_deg": null,
+   "id": "c08_d-10",
+   "path": "out/P0_anchors/c08_d-10.png",
+   "specId": "cn_big_1inch",
+   "corpus": "rotated",
+   "truthTiltDeg": -18.01,
+   "rollSource": "n/a-fixture",
+   "applied_straighten_deg": null,
+   "expectedEngineRollDeg": -18.01
+  },
+  {
+   "ok": true,
+   "tilt_deg": -4.190072255428293,
+   "method": "haar_eyeline_2x",
+   "n_eyes": 42,
+   "left": [
+    1082.25,
+    2444.75
+   ],
+   "right": [
+    1891.0,
+    2385.5
+   ],
+   "eyedist": 810.9,
+   "face": [
+    474,
+    1580,
+    2132,
+    2132
+   ],
+   "id": "p1",
+   "path": "C:/Users/liuyu/Pictures/1 (2).jpg",
+   "specId": "cn_big_1inch",
+   "corpus": "anchor",
+   "truthTiltDeg": -4.4,
+   "rollSource": "n/a-fixture",
+   "applied_straighten_deg": null,
+   "expectedEngineRollDeg": -4.4
+  }
+ ]
+}
