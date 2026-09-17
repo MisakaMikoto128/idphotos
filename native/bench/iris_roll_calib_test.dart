@@ -473,8 +473,8 @@ void main() {
       for (final (String tag, Uint8List b, double shift) in variants) {
         final FaceInfo? fi = await engine.detectFace(b);
         final bool ok = fi != null && fi.rollSource == RollSource.pupil;
-        if (tag == 'base') base = ok ? fi!.rollDeg : null;
-        final double? v = ok ? fi!.rollDeg : null;
+        if (tag == 'base') base = ok ? fi.rollDeg : null;
+        final double? v = ok ? fi.rollDeg : null;
         if (!ok) miss.add(tag);
         if (ok && base != null) dev.add((v! - base) - shift);
         line.add('$tag=${ok ? v!.toStringAsFixed(2) : 'unavail'}');
