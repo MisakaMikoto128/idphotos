@@ -90,19 +90,19 @@
    "visual_review": "正视、无遮挡，瞳孔边界清晰；四条方法线肉眼重合，无异议。",
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.059211699678763045,
+    "output_tilt_deg": 0.05367190607222276,
     "output_tilt_by_method": {
-     "m1_pupil": 0.059211699678763045,
-     "m2_radon_yunet": -0.021392446154509474,
-     "m1h_pupil_haarseed": 0.019404280158708195,
+     "m1_pupil": 0.05367190607222276,
+     "m2_radon_yunet": -0.020691046078847777,
+     "m1h_pupil_haarseed": 0.12071809935568484,
      "m3_haar_eyeline": 0.0,
-     "m4_radon_haar": -0.6921534431671921
+     "m4_radon_haar": -0.025608013175205238
     },
-    "tilt_abs_max_deg": 0.692,
-    "method_spread_deg": 0.751,
+    "tilt_abs_max_deg": 0.121,
+    "method_spread_deg": 0.146,
     "roll_source": "pupil",
-    "applied_straighten_deg": -4.415601499027407,
-    "truth_consistency_deg": 0.044,
+    "applied_straighten_deg": -4.463071355905281,
+    "truth_consistency_deg": -0.009,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1__cn_big_1inch.jpg"
@@ -194,19 +194,19 @@
    "visual_review": "正视证件照，细金属镜框；瞳孔可见，M1/M3 一致。",
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.013058206679473827,
+    "output_tilt_deg": -0.03663456322903104,
     "output_tilt_by_method": {
-     "m1_pupil": -0.013058206679473827,
-     "m2_radon_yunet": 1.3601893505998617,
-     "m1h_pupil_haarseed": 0.2564851922025551,
-     "m3_haar_eyeline": 0.6030911943805325,
-     "m4_radon_haar": 1.135949760982821
+     "m1_pupil": -0.03663456322903104,
+     "m2_radon_yunet": 1.3690478929275764,
+     "m1h_pupil_haarseed": 0.03527248388149357,
+     "m3_haar_eyeline": 0.2999751623039078,
+     "m4_radon_haar": 1.0368408461357843
     },
-    "tilt_abs_max_deg": 1.36,
-    "method_spread_deg": 1.373,
+    "tilt_abs_max_deg": 1.369,
+    "method_spread_deg": 1.406,
     "roll_source": "pupil",
-    "applied_straighten_deg": -1.3638506215196127,
-    "truth_consistency_deg": -0.077,
+    "applied_straighten_deg": -1.373705067919201,
+    "truth_consistency_deg": -0.11,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01__cn_big_1inch.jpg"
@@ -402,19 +402,19 @@
    "visual_review": "正视，眼镜反光轻微；瞳孔清晰。",
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.15708465989599982,
+    "output_tilt_deg": -0.10936571232280042,
     "output_tilt_by_method": {
-     "m1_pupil": -0.15708465989599982,
-     "m2_radon_yunet": -0.016983450532655715,
-     "m1h_pupil_haarseed": -0.17547194458895174,
-     "m3_haar_eyeline": -0.6295986084102668,
-     "m4_radon_haar": -0.02372968283034986
+     "m1_pupil": -0.10936571232280042,
+     "m2_radon_yunet": -0.010831042359322038,
+     "m1h_pupil_haarseed": -0.1492292106918563,
+     "m3_haar_eyeline": -0.31654804727300767,
+     "m4_radon_haar": -0.02637595861834593
     },
-    "tilt_abs_max_deg": 0.63,
-    "method_spread_deg": 0.613,
+    "tilt_abs_max_deg": 0.317,
+    "method_spread_deg": 0.306,
     "roll_source": "pupil",
-    "applied_straighten_deg": -3.7294607041078276,
-    "truth_consistency_deg": -0.167,
+    "applied_straighten_deg": -3.772627224615808,
+    "truth_consistency_deg": -0.162,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03__cn_big_1inch.jpg"
@@ -610,19 +610,19 @@
    "visual_review": "近景正视，眼镜；瞳孔清晰但画幅小。",
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.06783336416359524,
+    "output_tilt_deg": 0.08907503886359613,
     "output_tilt_by_method": {
-     "m1_pupil": 0.06783336416359524,
-     "m2_radon_yunet": -0.007914063821371624,
-     "m1h_pupil_haarseed": 0.11059675510551703,
-     "m3_haar_eyeline": 0.31654804727300767,
-     "m4_radon_haar": -0.016214967182313755
+     "m1_pupil": 0.08907503886359613,
+     "m2_radon_yunet": -0.006075611006986222,
+     "m1h_pupil_haarseed": 0.0921021559174042,
+     "m3_haar_eyeline": 0.0,
+     "m4_radon_haar": -0.01890677367798512
     },
-    "tilt_abs_max_deg": 0.317,
-    "method_spread_deg": 0.333,
+    "tilt_abs_max_deg": 0.092,
+    "method_spread_deg": 0.111,
     "roll_source": "pupil",
-    "applied_straighten_deg": -3.935848835105331,
-    "truth_consistency_deg": 0.042,
+    "applied_straighten_deg": -3.9189455546926166,
+    "truth_consistency_deg": 0.08,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05__cn_big_1inch.jpg"
@@ -714,19 +714,19 @@
    "visual_review": "蓝底证件照，正视；瞳孔清晰。",
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.213628980316119,
+    "output_tilt_deg": -0.1589023537611634,
     "output_tilt_by_method": {
-     "m1_pupil": 0.213628980316119,
-     "m2_radon_yunet": 1.1119166225624542,
-     "m1h_pupil_haarseed": 0.2085095147984149,
-     "m3_haar_eyeline": 0.2822429362708571,
-     "m4_radon_haar": 1.9115011031500175
+     "m1_pupil": -0.1589023537611634,
+     "m2_radon_yunet": 0.8880179371176158,
+     "m1h_pupil_haarseed": -0.08320136500455066,
+     "m3_haar_eyeline": 0.2850512775838264,
+     "m4_radon_haar": 1.419883336783918
     },
-    "tilt_abs_max_deg": 1.912,
-    "method_spread_deg": 1.703,
+    "tilt_abs_max_deg": 1.42,
+    "method_spread_deg": 1.579,
     "roll_source": "pupil",
-    "applied_straighten_deg": -1.842595453260513,
-    "truth_consistency_deg": 0.101,
+    "applied_straighten_deg": -1.7106473406601992,
+    "truth_consistency_deg": -0.14,
     "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06__cn_big_1inch.jpg"
@@ -899,19 +899,19 @@
    "visual_review": "宿舍广角实拍，人脸在画面中很小（眼距 ~86px@工作分辨率），有床帘/梯子等杂物；瞳孔可辨但抠图在成片上把下半脸挖空（见 end_to_end）。",
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.09591854156219518,
+    "output_tilt_deg": 0.4652623474880455,
     "output_tilt_by_method": {
-     "m1_pupil": 0.09591854156219518,
-     "m2_radon_yunet": 0.7155442567343727,
+     "m1_pupil": 0.4652623474880455,
+     "m2_radon_yunet": 1.3439265986753253,
      "m1h_pupil_haarseed": null,
      "m3_haar_eyeline": null,
      "m4_radon_haar": null
     },
-    "tilt_abs_max_deg": 0.716,
-    "method_spread_deg": 0.62,
+    "tilt_abs_max_deg": 1.344,
+    "method_spread_deg": 0.879,
     "roll_source": "pupil",
-    "applied_straighten_deg": -7.330065325554254,
-    "truth_consistency_deg": 0.776,
+    "applied_straighten_deg": -7.850384376405561,
+    "truth_consistency_deg": 0.625,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08__cn_big_1inch.jpg"
@@ -1003,19 +1003,19 @@
    "visual_review": "**五人合影**，主体为画面中央最近者；多张脸，选中的是最大且最居中的一张。与 c11/c12 为同一场景的不同裁切（结构相关 0.68–0.84），非独立场景。",
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.07178909346025818,
+    "output_tilt_deg": 0.575334494739214,
     "output_tilt_by_method": {
-     "m1_pupil": -0.07178909346025818,
-     "m2_radon_yunet": -0.0198476839086279,
-     "m1h_pupil_haarseed": -0.07178909346025818,
-     "m3_haar_eyeline": 0.9290393194220559,
-     "m4_radon_haar": 0.0037198228558617294
+     "m1_pupil": 0.575334494739214,
+     "m2_radon_yunet": 0.00856770609997999,
+     "m1h_pupil_haarseed": 0.5514610267361635,
+     "m3_haar_eyeline": 1.2188752351312977,
+     "m4_radon_haar": 0.032331935029003916
     },
-    "tilt_abs_max_deg": 0.929,
-    "method_spread_deg": 1.001,
+    "tilt_abs_max_deg": 1.219,
+    "method_spread_deg": 1.21,
     "roll_source": "pupil",
-    "applied_straighten_deg": -3.312672210678832,
-    "truth_consistency_deg": 0.056,
+    "applied_straighten_deg": -3.6244039820725558,
+    "truth_consistency_deg": 0.391,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10__cn_big_1inch.jpg"
@@ -1117,7 +1117,7 @@
     },
     "tilt_abs_max_deg": 0.235,
     "method_spread_deg": 0.25,
-    "roll_source": "unavailable",
+    "roll_source": "pupil",
     "applied_straighten_deg": 0.0,
     "truth_consistency_deg": -0.125,
     "status": "ok",
@@ -1211,20 +1211,20 @@
    "visual_review": "与 c10/c11 同场景（合影）；瞳孔在合影里偏小，M1/M3 一致。",
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.2591146938957241,
+    "output_tilt_deg": 0.13143152522404805,
     "output_tilt_by_method": {
-     "m1_pupil": 0.2591146938957241,
-     "m2_radon_yunet": 0.02796359979804507,
-     "m1h_pupil_haarseed": 0.07050129781227717,
-     "m3_haar_eyeline": -0.6030911943805325,
-     "m4_radon_haar": 0.037151728646445246
+     "m1_pupil": 0.13143152522404805,
+     "m2_radon_yunet": 0.030058562189281386,
+     "m1h_pupil_haarseed": 0.13143152522404805,
+     "m3_haar_eyeline": -0.8905362533605713,
+     "m4_radon_haar": 0.8396982246631604
     },
-    "tilt_abs_max_deg": 0.603,
-    "method_spread_deg": 0.862,
+    "tilt_abs_max_deg": 0.891,
+    "method_spread_deg": 1.73,
     "roll_source": "pupil",
-    "applied_straighten_deg": -2.116266315338468,
-    "truth_consistency_deg": 0.233,
-    "status": "ok",
+    "applied_straighten_deg": -2.1435469302790247,
+    "truth_consistency_deg": 0.078,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12__cn_big_1inch.jpg"
    }
@@ -1931,12 +1931,12 @@
    "truth_apply_deg": -14.4,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.17905324054006846,
-    "tilt_abs_max_deg": 0.623,
-    "method_spread_deg": 0.802,
+    "output_tilt_deg": -0.1700689886898158,
+    "tilt_abs_max_deg": 0.32,
+    "method_spread_deg": 0.304,
     "roll_source": "pupil",
-    "applied_straighten_deg": -14.379378979584397,
-    "truth_consistency_deg": -0.158,
+    "applied_straighten_deg": -14.38101844876451,
+    "truth_consistency_deg": -0.151,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d-10__cn_big_1inch.jpg"
@@ -1961,12 +1961,12 @@
    "truth_apply_deg": -9.4,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.03938645154249437,
-    "tilt_abs_max_deg": 0.651,
-    "method_spread_deg": 0.684,
+    "output_tilt_deg": 0.04756383925676171,
+    "tilt_abs_max_deg": 0.324,
+    "method_spread_deg": 0.373,
     "roll_source": "pupil",
-    "applied_straighten_deg": -9.378051214021582,
-    "truth_consistency_deg": 0.061,
+    "applied_straighten_deg": -9.401410669926934,
+    "truth_consistency_deg": 0.046,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d-5__cn_big_1inch.jpg"
@@ -1991,12 +1991,12 @@
    "truth_apply_deg": -7.4,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.03143064025693831,
-    "tilt_abs_max_deg": 0.324,
-    "method_spread_deg": 0.303,
+    "output_tilt_deg": -0.0352402833297067,
+    "tilt_abs_max_deg": 0.038,
+    "method_spread_deg": 0.038,
     "roll_source": "pupil",
-    "applied_straighten_deg": -7.367855446906796,
-    "truth_consistency_deg": 0.001,
+    "applied_straighten_deg": -7.402687875005788,
+    "truth_consistency_deg": -0.038,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d-3__cn_big_1inch.jpg"
@@ -2021,12 +2021,12 @@
    "truth_apply_deg": -1.4,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.15722435455506917,
-    "tilt_abs_max_deg": 0.324,
-    "method_spread_deg": 0.354,
+    "output_tilt_deg": -0.15765213321228216,
+    "tilt_abs_max_deg": 0.948,
+    "method_spread_deg": 0.931,
     "roll_source": "pupil",
-    "applied_straighten_deg": -1.3889577704791785,
-    "truth_consistency_deg": -0.146,
+    "applied_straighten_deg": -1.407906160842623,
+    "truth_consistency_deg": -0.166,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d+3__cn_big_1inch.jpg"
@@ -2081,12 +2081,12 @@
    "truth_apply_deg": 5.6,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.11730022683938973,
-    "tilt_abs_max_deg": 0.317,
-    "method_spread_deg": 0.434,
+    "output_tilt_deg": -0.09038711221341762,
+    "tilt_abs_max_deg": 0.637,
+    "method_spread_deg": 0.623,
     "roll_source": "pupil",
-    "applied_straighten_deg": 5.617097152088607,
-    "truth_consistency_deg": -0.1,
+    "applied_straighten_deg": 5.596318418614751,
+    "truth_consistency_deg": -0.094,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d+10__cn_big_1inch.jpg"
@@ -2111,12 +2111,12 @@
    "truth_apply_deg": -11.3,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.39568215723911826,
-    "tilt_abs_max_deg": 1.656,
-    "method_spread_deg": 1.718,
+    "output_tilt_deg": -0.4681458786558503,
+    "tilt_abs_max_deg": 12.942,
+    "method_spread_deg": 13.41,
     "roll_source": "pupil",
-    "applied_straighten_deg": -11.231427969986935,
-    "truth_consistency_deg": 0.464,
+    "applied_straighten_deg": -10.98395774006162,
+    "truth_consistency_deg": -0.152,
     "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d-10__cn_big_1inch.jpg"
@@ -2141,13 +2141,13 @@
    "truth_apply_deg": -6.3,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.05148733447604965,
-    "tilt_abs_max_deg": 1.319,
-    "method_spread_deg": 1.319,
+    "output_tilt_deg": -0.14727145860674662,
+    "tilt_abs_max_deg": 1.345,
+    "method_spread_deg": 1.623,
     "roll_source": "pupil",
-    "applied_straighten_deg": -6.304487534131175,
-    "truth_consistency_deg": 0.047,
-    "status": "ok",
+    "applied_straighten_deg": -6.075563985718258,
+    "truth_consistency_deg": 0.077,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d-5__cn_big_1inch.jpg"
    }
@@ -2171,12 +2171,12 @@
    "truth_apply_deg": -4.3,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.2549771022583899,
-    "tilt_abs_max_deg": 1.348,
-    "method_spread_deg": 1.66,
+    "output_tilt_deg": -0.1706736081001213,
+    "tilt_abs_max_deg": 1.303,
+    "method_spread_deg": 2.593,
     "roll_source": "pupil",
-    "applied_straighten_deg": -3.9625600376436845,
-    "truth_consistency_deg": 0.082,
+    "applied_straighten_deg": -3.9844995537470984,
+    "truth_consistency_deg": 0.145,
     "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d-3__cn_big_1inch.jpg"
@@ -2201,12 +2201,12 @@
    "truth_apply_deg": 1.7,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.7375495123972398,
-    "tilt_abs_max_deg": 1.355,
-    "method_spread_deg": 2.092,
+    "output_tilt_deg": -0.8405140373995703,
+    "tilt_abs_max_deg": 1.422,
+    "method_spread_deg": 2.262,
     "roll_source": "pupil",
-    "applied_straighten_deg": 1.970102411429241,
-    "truth_consistency_deg": -0.467,
+    "applied_straighten_deg": 1.9041178146478732,
+    "truth_consistency_deg": -0.636,
     "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d+3__cn_big_1inch.jpg"
@@ -2261,13 +2261,13 @@
    "truth_apply_deg": 8.7,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 8.816544825466154,
-    "tilt_abs_max_deg": 9.26,
-    "method_spread_deg": 14.973,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": 0.117,
-    "status": "low_confidence",
+    "output_tilt_deg": 0.23877464098714157,
+    "tilt_abs_max_deg": 1.245,
+    "method_spread_deg": 1.355,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 8.694962978145634,
+    "truth_consistency_deg": 0.234,
+    "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d+10__cn_big_1inch.jpg"
    }
@@ -2291,13 +2291,13 @@
    "truth_apply_deg": -10.25,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.04209762337398896,
-    "tilt_abs_max_deg": 0.597,
-    "method_spread_deg": 0.639,
+    "output_tilt_deg": 0.15556488470593988,
+    "tilt_abs_max_deg": 1.925,
+    "method_spread_deg": 3.502,
     "roll_source": "pupil",
-    "applied_straighten_deg": -10.287674239188384,
-    "truth_consistency_deg": 0.004,
-    "status": "ok",
+    "applied_straighten_deg": -10.321486193800409,
+    "truth_consistency_deg": 0.084,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d-10__cn_big_1inch.jpg"
    }
@@ -2321,13 +2321,13 @@
    "truth_apply_deg": -5.25,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.22224274298421093,
-    "tilt_abs_max_deg": 2.816,
-    "method_spread_deg": 2.809,
+    "output_tilt_deg": 0.13756448080871322,
+    "tilt_abs_max_deg": 0.282,
+    "method_spread_deg": 0.42,
     "roll_source": "pupil",
-    "applied_straighten_deg": -5.0852714329003685,
-    "truth_consistency_deg": -0.058,
-    "status": "low_confidence",
+    "applied_straighten_deg": -5.329197844930843,
+    "truth_consistency_deg": 0.058,
+    "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d-5__cn_big_1inch.jpg"
    }
@@ -2351,13 +2351,13 @@
    "truth_apply_deg": -3.25,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.28044685050606133,
-    "tilt_abs_max_deg": 0.567,
-    "method_spread_deg": 0.543,
+    "output_tilt_deg": -0.09138081600678488,
+    "tilt_abs_max_deg": 3.424,
+    "method_spread_deg": 5.23,
     "roll_source": "pupil",
-    "applied_straighten_deg": -3.0002112194414403,
-    "truth_consistency_deg": -0.031,
-    "status": "ok",
+    "applied_straighten_deg": -3.2320119635637505,
+    "truth_consistency_deg": -0.073,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d-3__cn_big_1inch.jpg"
    }
@@ -2381,13 +2381,13 @@
    "truth_apply_deg": 2.75,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.20793951742497097,
-    "tilt_abs_max_deg": 0.567,
-    "method_spread_deg": 0.562,
+    "output_tilt_deg": 0.054764376552214875,
+    "tilt_abs_max_deg": 3.863,
+    "method_spread_deg": 6.59,
     "roll_source": "pupil",
-    "applied_straighten_deg": 2.9367307379969882,
-    "truth_consistency_deg": -0.021,
-    "status": "ok",
+    "applied_straighten_deg": 2.7829629993501284,
+    "truth_consistency_deg": 0.088,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d+3__cn_big_1inch.jpg"
    }
@@ -2411,12 +2411,12 @@
    "truth_apply_deg": 4.75,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.3323908805595536,
-    "tilt_abs_max_deg": 0.332,
-    "method_spread_deg": 0.332,
+    "output_tilt_deg": 0.09341571941259322,
+    "tilt_abs_max_deg": 0.891,
+    "method_spread_deg": 0.984,
     "roll_source": "pupil",
-    "applied_straighten_deg": 5.01139410075245,
-    "truth_consistency_deg": -0.071,
+    "applied_straighten_deg": 4.781703830910147,
+    "truth_consistency_deg": 0.125,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d+5__cn_big_1inch.jpg"
@@ -2441,13 +2441,13 @@
    "truth_apply_deg": 9.75,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.2906075542545368,
-    "tilt_abs_max_deg": 0.291,
-    "method_spread_deg": 0.291,
+    "output_tilt_deg": -0.06083904854263905,
+    "tilt_abs_max_deg": 3.24,
+    "method_spread_deg": 5.059,
     "roll_source": "pupil",
-    "applied_straighten_deg": 9.447727535134849,
-    "truth_consistency_deg": -0.012,
-    "status": "ok",
+    "applied_straighten_deg": 9.724377311815225,
+    "truth_consistency_deg": -0.086,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d+10__cn_big_1inch.jpg"
    }
@@ -2471,12 +2471,12 @@
    "truth_apply_deg": -13.72,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.26494900277547395,
-    "tilt_abs_max_deg": 0.32,
-    "method_spread_deg": 0.605,
+    "output_tilt_deg": -0.19652651246415465,
+    "tilt_abs_max_deg": 0.324,
+    "method_spread_deg": 0.52,
     "roll_source": "pupil",
-    "applied_straighten_deg": -13.77280332328947,
-    "truth_consistency_deg": -0.318,
+    "applied_straighten_deg": -13.755927356452538,
+    "truth_consistency_deg": -0.232,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d-10__cn_big_1inch.jpg"
@@ -2501,12 +2501,12 @@
    "truth_apply_deg": -8.72,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.14406161853760896,
-    "tilt_abs_max_deg": 0.317,
-    "method_spread_deg": 0.461,
+    "output_tilt_deg": -0.08817565729849836,
+    "tilt_abs_max_deg": 0.088,
+    "method_spread_deg": 0.122,
     "roll_source": "pupil",
-    "applied_straighten_deg": -8.783470799507937,
-    "truth_consistency_deg": -0.208,
+    "applied_straighten_deg": -8.806794412632932,
+    "truth_consistency_deg": -0.175,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d-5__cn_big_1inch.jpg"
@@ -2531,12 +2531,12 @@
    "truth_apply_deg": -6.72,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.07368680965343322,
-    "tilt_abs_max_deg": 0.637,
-    "method_spread_deg": 0.627,
+    "output_tilt_deg": -0.08588557847339824,
+    "tilt_abs_max_deg": 0.086,
+    "method_spread_deg": 0.086,
     "roll_source": "pupil",
-    "applied_straighten_deg": -6.789835242484218,
-    "truth_consistency_deg": -0.144,
+    "applied_straighten_deg": -6.805209226212733,
+    "truth_consistency_deg": -0.171,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d-3__cn_big_1inch.jpg"
@@ -2591,12 +2591,12 @@
    "truth_apply_deg": 1.28,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.13206709952525833,
-    "tilt_abs_max_deg": 0.132,
-    "method_spread_deg": 0.132,
+    "output_tilt_deg": -0.033051281235142047,
+    "tilt_abs_max_deg": 0.63,
+    "method_spread_deg": 0.663,
     "roll_source": "pupil",
-    "applied_straighten_deg": 1.2396783751511418,
-    "truth_consistency_deg": -0.172,
+    "applied_straighten_deg": 1.2227054194657994,
+    "truth_consistency_deg": -0.09,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d+5__cn_big_1inch.jpg"
@@ -2621,12 +2621,12 @@
    "truth_apply_deg": 6.28,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.15892376993327156,
-    "tilt_abs_max_deg": 0.324,
-    "method_spread_deg": 0.311,
+    "output_tilt_deg": -0.11891731518463687,
+    "tilt_abs_max_deg": 0.32,
+    "method_spread_deg": 0.439,
     "roll_source": "pupil",
-    "applied_straighten_deg": 6.179332739611024,
-    "truth_consistency_deg": -0.26,
+    "applied_straighten_deg": 6.212564708816534,
+    "truth_consistency_deg": -0.186,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d+10__cn_big_1inch.jpg"
@@ -2651,13 +2651,13 @@
    "truth_apply_deg": -13.82,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -13.953130425024135,
-    "tilt_abs_max_deg": 14.265,
-    "method_spread_deg": 1.608,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": -0.133,
-    "status": "low_confidence",
+    "output_tilt_deg": -0.2265255544679912,
+    "tilt_abs_max_deg": 0.637,
+    "method_spread_deg": 0.863,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -13.839766951302082,
+    "truth_consistency_deg": -0.246,
+    "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d-10__cn_big_1inch.jpg"
    }
@@ -2681,12 +2681,12 @@
    "truth_apply_deg": -8.82,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -8.830888047174069,
-    "tilt_abs_max_deg": 9.039,
-    "method_spread_deg": 1.452,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": -0.011,
+    "output_tilt_deg": -0.03158812603476955,
+    "tilt_abs_max_deg": 0.324,
+    "method_spread_deg": 0.308,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -8.795517998990926,
+    "truth_consistency_deg": -0.007,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d-5__cn_big_1inch.jpg"
@@ -2711,12 +2711,12 @@
    "truth_apply_deg": -6.82,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.06404627398206422,
-    "tilt_abs_max_deg": 0.112,
-    "method_spread_deg": 0.112,
+    "output_tilt_deg": -0.049170152582819114,
+    "tilt_abs_max_deg": 0.331,
+    "method_spread_deg": 0.369,
     "roll_source": "pupil",
-    "applied_straighten_deg": -6.794538258946012,
-    "truth_consistency_deg": -0.039,
+    "applied_straighten_deg": -6.806525469557262,
+    "truth_consistency_deg": -0.036,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d-3__cn_big_1inch.jpg"
@@ -2771,12 +2771,12 @@
    "truth_apply_deg": 1.18,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.0628638113524252,
+    "output_tilt_deg": 0.08407820579944637,
     "tilt_abs_max_deg": 0.32,
-    "method_spread_deg": 0.383,
+    "method_spread_deg": 0.345,
     "roll_source": "pupil",
-    "applied_straighten_deg": 1.1825800565023346,
-    "truth_consistency_deg": -0.06,
+    "applied_straighten_deg": 1.1312985739719246,
+    "truth_consistency_deg": 0.035,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d+5__cn_big_1inch.jpg"
@@ -2801,12 +2801,12 @@
    "truth_apply_deg": 6.18,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.05726444687076775,
+    "output_tilt_deg": 0.03436589577933952,
     "tilt_abs_max_deg": 0.32,
-    "method_spread_deg": 0.341,
+    "method_spread_deg": 0.385,
     "roll_source": "pupil",
-    "applied_straighten_deg": 6.158159532605739,
-    "truth_consistency_deg": 0.035,
+    "applied_straighten_deg": 6.173181354086949,
+    "truth_consistency_deg": 0.028,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d+10__cn_big_1inch.jpg"
@@ -2831,12 +2831,12 @@
    "truth_apply_deg": -13.91,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.15456797581946002,
-    "tilt_abs_max_deg": 0.317,
-    "method_spread_deg": 0.471,
+    "output_tilt_deg": 0.07093461981954088,
+    "tilt_abs_max_deg": 0.306,
+    "method_spread_deg": 0.318,
     "roll_source": "pupil",
-    "applied_straighten_deg": -13.883658931462653,
-    "truth_consistency_deg": 0.181,
+    "applied_straighten_deg": -13.904075488277183,
+    "truth_consistency_deg": 0.077,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d-10__cn_big_1inch.jpg"
@@ -2861,12 +2861,12 @@
    "truth_apply_deg": -8.91,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.11750408733478555,
-    "tilt_abs_max_deg": 0.118,
-    "method_spread_deg": 0.14,
+    "output_tilt_deg": -0.11947866891072734,
+    "tilt_abs_max_deg": 0.313,
+    "method_spread_deg": 0.437,
     "roll_source": "pupil",
-    "applied_straighten_deg": -8.817624380498811,
-    "truth_consistency_deg": 0.21,
+    "applied_straighten_deg": -8.867591052445938,
+    "truth_consistency_deg": -0.077,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d-5__cn_big_1inch.jpg"
@@ -2891,12 +2891,12 @@
    "truth_apply_deg": -6.91,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.0937598288451183,
-    "tilt_abs_max_deg": 0.094,
-    "method_spread_deg": 0.094,
+    "output_tilt_deg": -0.0620793345730284,
+    "tilt_abs_max_deg": 0.637,
+    "method_spread_deg": 0.699,
     "roll_source": "pupil",
-    "applied_straighten_deg": -6.891543620708224,
-    "truth_consistency_deg": -0.075,
+    "applied_straighten_deg": -6.927895169347221,
+    "truth_consistency_deg": -0.08,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d-3__cn_big_1inch.jpg"
@@ -2951,12 +2951,12 @@
    "truth_apply_deg": 1.09,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.014130434119584421,
-    "tilt_abs_max_deg": 0.324,
-    "method_spread_deg": 0.338,
+    "output_tilt_deg": 0.10620562891439292,
+    "tilt_abs_max_deg": 0.32,
+    "method_spread_deg": 0.339,
     "roll_source": "pupil",
-    "applied_straighten_deg": 1.1059476013454275,
-    "truth_consistency_deg": 0.03,
+    "applied_straighten_deg": 1.0622447757835665,
+    "truth_consistency_deg": 0.078,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d+5__cn_big_1inch.jpg"
@@ -2981,12 +2981,12 @@
    "truth_apply_deg": 6.09,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.175424354128826,
-    "tilt_abs_max_deg": 0.317,
-    "method_spread_deg": 0.321,
+    "output_tilt_deg": -0.11580963547342342,
+    "tilt_abs_max_deg": 0.31,
+    "method_spread_deg": 0.435,
     "roll_source": "pupil",
-    "applied_straighten_deg": 6.012611011947333,
-    "truth_consistency_deg": 0.098,
+    "applied_straighten_deg": 6.112672861460527,
+    "truth_consistency_deg": -0.093,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d+10__cn_big_1inch.jpg"
@@ -3011,11 +3011,11 @@
    "truth_apply_deg": -11.73,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.07455017246098754,
-    "tilt_abs_max_deg": 1.294,
-    "method_spread_deg": 1.219,
+    "output_tilt_deg": 0.05089116387678281,
+    "tilt_abs_max_deg": 1.319,
+    "method_spread_deg": 1.275,
     "roll_source": "pupil",
-    "applied_straighten_deg": -11.708188867545914,
+    "applied_straighten_deg": -11.685176706610463,
     "truth_consistency_deg": 0.096,
     "status": "ok",
     "note": null,
@@ -3041,12 +3041,12 @@
    "truth_apply_deg": -6.73,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.020444633240139343,
-    "tilt_abs_max_deg": 1.718,
-    "method_spread_deg": 1.752,
+    "output_tilt_deg": 0.07133581989585672,
+    "tilt_abs_max_deg": 1.748,
+    "method_spread_deg": 1.676,
     "roll_source": "pupil",
-    "applied_straighten_deg": -6.573848646678336,
-    "truth_consistency_deg": 0.136,
+    "applied_straighten_deg": -6.722638228719635,
+    "truth_consistency_deg": 0.079,
     "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d-5__cn_big_1inch.jpg"
@@ -3071,12 +3071,12 @@
    "truth_apply_deg": -4.73,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 10.637902718194356,
-    "tilt_abs_max_deg": 11.54,
-    "method_spread_deg": 1.525,
-    "roll_source": "pupil",
-    "applied_straighten_deg": -15.4237237499913,
-    "truth_consistency_deg": -0.056,
+    "output_tilt_deg": -4.8247130878563365,
+    "tilt_abs_max_deg": 4.911,
+    "method_spread_deg": 3.137,
+    "roll_source": "unavailable",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.095,
     "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d-3__cn_big_1inch.jpg"
@@ -3131,12 +3131,12 @@
    "truth_apply_deg": 3.27,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.25734243821055336,
-    "tilt_abs_max_deg": 1.371,
-    "method_spread_deg": 1.147,
+    "output_tilt_deg": 0.26513932541513213,
+    "tilt_abs_max_deg": 1.377,
+    "method_spread_deg": 1.191,
     "roll_source": "pupil",
-    "applied_straighten_deg": 3.105364147970009,
-    "truth_consistency_deg": 0.093,
+    "applied_straighten_deg": 3.0945565625117863,
+    "truth_consistency_deg": 0.09,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d+5__cn_big_1inch.jpg"
@@ -3191,13 +3191,13 @@
    "truth_apply_deg": -10.35,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.24198030698659986,
-    "tilt_abs_max_deg": 0.3,
-    "method_spread_deg": 0.311,
+    "output_tilt_deg": -0.14629154657239396,
+    "tilt_abs_max_deg": 3.366,
+    "method_spread_deg": 5.188,
     "roll_source": "pupil",
-    "applied_straighten_deg": -10.292746829636107,
-    "truth_consistency_deg": -0.185,
-    "status": "ok",
+    "applied_straighten_deg": -10.30212883942154,
+    "truth_consistency_deg": -0.098,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d-10__cn_big_1inch.jpg"
    }
@@ -3221,12 +3221,12 @@
    "truth_apply_deg": -5.35,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.17844889274831363,
-    "tilt_abs_max_deg": 0.31,
-    "method_spread_deg": 0.316,
+    "output_tilt_deg": 0.13719469629015824,
+    "tilt_abs_max_deg": 0.3,
+    "method_spread_deg": 0.31,
     "roll_source": "pupil",
-    "applied_straighten_deg": -5.4644246292313134,
-    "truth_consistency_deg": 0.064,
+    "applied_straighten_deg": -5.427867811535823,
+    "truth_consistency_deg": 0.059,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d-5__cn_big_1inch.jpg"
@@ -3251,12 +3251,12 @@
    "truth_apply_deg": -3.35,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.26844907397410106,
-    "tilt_abs_max_deg": 0.268,
-    "method_spread_deg": 0.268,
+    "output_tilt_deg": 0.2020325889963863,
+    "tilt_abs_max_deg": 0.939,
+    "method_spread_deg": 0.937,
     "roll_source": "pupil",
-    "applied_straighten_deg": -3.5651240042937395,
-    "truth_consistency_deg": 0.053,
+    "applied_straighten_deg": -3.5453040275514085,
+    "truth_consistency_deg": 0.007,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d-3__cn_big_1inch.jpg"
@@ -3281,12 +3281,12 @@
    "truth_apply_deg": 2.65,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.2676607739257733,
-    "tilt_abs_max_deg": 0.597,
-    "method_spread_deg": 0.589,
+    "output_tilt_deg": -0.20221097627450166,
+    "tilt_abs_max_deg": 0.202,
+    "method_spread_deg": 0.202,
     "roll_source": "pupil",
-    "applied_straighten_deg": 2.8211519821032827,
-    "truth_consistency_deg": -0.097,
+    "applied_straighten_deg": 2.816761968066399,
+    "truth_consistency_deg": -0.035,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d+3__cn_big_1inch.jpg"
@@ -3341,12 +3341,12 @@
    "truth_apply_deg": 9.65,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.11610475523470655,
-    "tilt_abs_max_deg": 0.603,
-    "method_spread_deg": 0.602,
+    "output_tilt_deg": 0.11214784080650943,
+    "tilt_abs_max_deg": 0.591,
+    "method_spread_deg": 0.595,
     "roll_source": "pupil",
-    "applied_straighten_deg": 9.706999363376793,
-    "truth_consistency_deg": -0.059,
+    "applied_straighten_deg": 9.558564288020603,
+    "truth_consistency_deg": 0.021,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d+10__cn_big_1inch.jpg"
@@ -3371,14 +3371,14 @@
    "truth_apply_deg": -18.01,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 7.915272595359732,
-    "tilt_abs_max_deg": 16.0,
-    "method_spread_deg": 8.085,
-    "roll_source": "pupil",
-    "applied_straighten_deg": -18.07466482795446,
-    "truth_consistency_deg": 7.851,
+    "output_tilt_deg": 3.8517803982374024,
+    "tilt_abs_max_deg": 6.004,
+    "method_spread_deg": 2.153,
+    "roll_source": "unavailable",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 21.862,
     "status": "reliability_mismatch",
-    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 7.851°，测量落到异物上，本项残余不可信",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 21.862°，测量落到异物上，本项残余不可信",
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d-10__cn_big_1inch.jpg"
    }
   },
@@ -3401,14 +3401,14 @@
    "truth_apply_deg": -13.01,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -2.998363327974144,
-    "tilt_abs_max_deg": 2.998,
-    "method_spread_deg": 4.038,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": 10.012,
+    "output_tilt_deg": 2.0283804480566934,
+    "tilt_abs_max_deg": 15.904,
+    "method_spread_deg": 13.876,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -12.79207266687958,
+    "truth_consistency_deg": 2.246,
     "status": "reliability_mismatch",
-    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 10.012°，测量落到异物上，本项残余不可信",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 2.246°，测量落到异物上，本项残余不可信",
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d-5__cn_big_1inch.jpg"
    }
   },
@@ -3431,12 +3431,12 @@
    "truth_apply_deg": -11.01,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.5741322731826344,
-    "tilt_abs_max_deg": 0.692,
-    "method_spread_deg": 0.118,
+    "output_tilt_deg": 0.5219985212654528,
+    "tilt_abs_max_deg": 1.392,
+    "method_spread_deg": 0.87,
     "roll_source": "pupil",
-    "applied_straighten_deg": -10.734051177132498,
-    "truth_consistency_deg": 0.85,
+    "applied_straighten_deg": -10.893957623427655,
+    "truth_consistency_deg": 0.638,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d-3__cn_big_1inch.jpg"
@@ -3461,14 +3461,14 @@
    "truth_apply_deg": -5.01,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": null,
-    "tilt_abs_max_deg": 14.951,
-    "method_spread_deg": null,
+    "output_tilt_deg": -11.349364149262529,
+    "tilt_abs_max_deg": 16.0,
+    "method_spread_deg": 27.349,
     "roll_source": "pupil",
-    "applied_straighten_deg": -4.653038062384673,
-    "truth_consistency_deg": null,
-    "status": "unmeasured",
-    "note": null,
+    "applied_straighten_deg": -4.593422845178222,
+    "truth_consistency_deg": -10.933,
+    "status": "reliability_mismatch",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 -10.933°，测量落到异物上，本项残余不可信",
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d+3__cn_big_1inch.jpg"
    }
   },
@@ -3521,14 +3521,14 @@
    "truth_apply_deg": 1.99,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -2.765156208178358,
-    "tilt_abs_max_deg": 2.765,
-    "method_spread_deg": 4.459,
+    "output_tilt_deg": -3.4445381071166996,
+    "tilt_abs_max_deg": 3.445,
+    "method_spread_deg": 4.782,
     "roll_source": "pupil",
-    "applied_straighten_deg": 1.8343842073579524,
-    "truth_consistency_deg": -2.921,
+    "applied_straighten_deg": 2.170720696338135,
+    "truth_consistency_deg": -3.264,
     "status": "reliability_mismatch",
-    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 -2.921°，测量落到异物上，本项残余不可信",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 -3.264°，测量落到异物上，本项残余不可信",
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d+10__cn_big_1inch.jpg"
    }
   },
@@ -3551,12 +3551,12 @@
    "truth_apply_deg": -13.44,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.10203369295291292,
-    "tilt_abs_max_deg": 0.102,
-    "method_spread_deg": 0.107,
+    "output_tilt_deg": 0.000911471108063353,
+    "tilt_abs_max_deg": 0.61,
+    "method_spread_deg": 0.62,
     "roll_source": "pupil",
-    "applied_straighten_deg": -13.327901992118688,
-    "truth_consistency_deg": 0.01,
+    "applied_straighten_deg": -13.485572239592011,
+    "truth_consistency_deg": -0.045,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_d-10__cn_big_1inch.jpg"
@@ -3581,12 +3581,12 @@
    "truth_apply_deg": -8.44,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.44601578477883114,
-    "tilt_abs_max_deg": 0.891,
-    "method_spread_deg": 0.887,
+    "output_tilt_deg": 0.5455747184391945,
+    "tilt_abs_max_deg": 0.591,
+    "method_spread_deg": 0.587,
     "roll_source": "pupil",
-    "applied_straighten_deg": -8.65168367212562,
-    "truth_consistency_deg": 0.234,
+    "applied_straighten_deg": -8.602625119187575,
+    "truth_consistency_deg": 0.383,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_d-5__cn_big_1inch.jpg"
@@ -3671,12 +3671,12 @@
    "truth_apply_deg": 1.56,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.21686732293712999,
-    "tilt_abs_max_deg": 0.61,
-    "method_spread_deg": 0.826,
+    "output_tilt_deg": -0.21147001686365002,
+    "tilt_abs_max_deg": 0.603,
+    "method_spread_deg": 0.62,
     "roll_source": "pupil",
-    "applied_straighten_deg": 1.412058589508159,
-    "truth_consistency_deg": -0.365,
+    "applied_straighten_deg": 1.4020981149743508,
+    "truth_consistency_deg": -0.369,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_d+5__cn_big_1inch.jpg"
@@ -3701,12 +3701,12 @@
    "truth_apply_deg": 6.56,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.2847671670483291,
-    "tilt_abs_max_deg": 0.603,
-    "method_spread_deg": 0.604,
+    "output_tilt_deg": 0.3923715137930647,
+    "tilt_abs_max_deg": 0.909,
+    "method_spread_deg": 0.906,
     "roll_source": "pupil",
-    "applied_straighten_deg": 6.449487810749706,
-    "truth_consistency_deg": 0.174,
+    "applied_straighten_deg": 6.416236377638337,
+    "truth_consistency_deg": 0.249,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_d+10__cn_big_1inch.jpg"
@@ -3731,13 +3731,13 @@
    "truth_apply_deg": -10.11,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -10.149035718980677,
-    "tilt_abs_max_deg": 10.149,
-    "method_spread_deg": 1.358,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": -0.039,
-    "status": "ok",
+    "output_tilt_deg": -0.5915512679559018,
+    "tilt_abs_max_deg": 1.5,
+    "method_spread_deg": 2.146,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -9.632509194320276,
+    "truth_consistency_deg": -0.114,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d-10__cn_big_1inch.jpg"
    }
@@ -3761,12 +3761,12 @@
    "truth_apply_deg": -5.11,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -5.244169949481348,
-    "tilt_abs_max_deg": 5.261,
-    "method_spread_deg": 1.133,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": -0.134,
+    "output_tilt_deg": -0.7502407993310182,
+    "tilt_abs_max_deg": 0.757,
+    "method_spread_deg": 0.727,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -4.4393214858726235,
+    "truth_consistency_deg": -0.08,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d-5__cn_big_1inch.jpg"
@@ -3791,12 +3791,12 @@
    "truth_apply_deg": -3.11,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -3.111168813205946,
-    "tilt_abs_max_deg": 4.063,
-    "method_spread_deg": 1.095,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": -0.001,
+    "output_tilt_deg": -0.48723458814117704,
+    "tilt_abs_max_deg": 0.49,
+    "method_spread_deg": 0.49,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -2.685270150255213,
+    "truth_consistency_deg": -0.063,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d-3__cn_big_1inch.jpg"
@@ -3821,12 +3821,12 @@
    "truth_apply_deg": 2.89,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.6323253730932155,
-    "tilt_abs_max_deg": 0.632,
-    "method_spread_deg": 0.632,
+    "output_tilt_deg": -0.6797409432148382,
+    "tilt_abs_max_deg": 0.681,
+    "method_spread_deg": 0.681,
     "roll_source": "pupil",
-    "applied_straighten_deg": 3.283734533519061,
-    "truth_consistency_deg": -0.239,
+    "applied_straighten_deg": 3.4268785148717997,
+    "truth_consistency_deg": -0.143,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d+3__cn_big_1inch.jpg"
@@ -3851,12 +3851,12 @@
    "truth_apply_deg": 4.89,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 4.851436455194022,
-    "tilt_abs_max_deg": 5.036,
-    "method_spread_deg": 0.682,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": -0.039,
+    "output_tilt_deg": -0.7076516923147333,
+    "tilt_abs_max_deg": 0.708,
+    "method_spread_deg": 1.292,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 5.48085362901651,
+    "truth_consistency_deg": -0.117,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d+5__cn_big_1inch.jpg"
@@ -3881,12 +3881,12 @@
    "truth_apply_deg": 9.89,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 9.80317177929655,
-    "tilt_abs_max_deg": 10.047,
-    "method_spread_deg": 0.399,
-    "roll_source": "unavailable",
-    "applied_straighten_deg": 0.0,
-    "truth_consistency_deg": -0.087,
+    "output_tilt_deg": -0.4168499469517184,
+    "tilt_abs_max_deg": 0.448,
+    "method_spread_deg": 0.428,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 10.282848636884268,
+    "truth_consistency_deg": -0.024,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d+10__cn_big_1inch.jpg"
@@ -3911,13 +3911,13 @@
    "truth_apply_deg": -12.09,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.008783013064059285,
-    "tilt_abs_max_deg": 0.854,
-    "method_spread_deg": 1.167,
+    "output_tilt_deg": 0.004968847400003898,
+    "tilt_abs_max_deg": 1.548,
+    "method_spread_deg": 2.393,
     "roll_source": "pupil",
-    "applied_straighten_deg": -12.044661817712804,
-    "truth_consistency_deg": 0.037,
-    "status": "ok",
+    "applied_straighten_deg": -12.018617756514107,
+    "truth_consistency_deg": 0.076,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12_d-10__cn_big_1inch.jpg"
    }
@@ -3941,13 +3941,13 @@
    "truth_apply_deg": -7.09,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.10441623841230652,
-    "tilt_abs_max_deg": 0.753,
-    "method_spread_deg": 0.781,
+    "output_tilt_deg": 0.22306757440267155,
+    "tilt_abs_max_deg": 1.232,
+    "method_spread_deg": 1.984,
     "roll_source": "pupil",
-    "applied_straighten_deg": -7.040606734349834,
-    "truth_consistency_deg": 0.154,
-    "status": "ok",
+    "applied_straighten_deg": -7.055278051092716,
+    "truth_consistency_deg": 0.258,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12_d-5__cn_big_1inch.jpg"
    }
@@ -3975,7 +3975,7 @@
     "tilt_abs_max_deg": 0.93,
     "method_spread_deg": 1.233,
     "roll_source": "pupil",
-    "applied_straighten_deg": -5.1167317739669835,
+    "applied_straighten_deg": -5.116731773967019,
     "truth_consistency_deg": 0.318,
     "status": "ok",
     "note": null,
@@ -4061,13 +4061,13 @@
    "truth_apply_deg": 7.91,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": 0.1693460799994634,
-    "tilt_abs_max_deg": 1.193,
-    "method_spread_deg": 2.178,
+    "output_tilt_deg": -0.05893541987171626,
+    "tilt_abs_max_deg": 0.99,
+    "method_spread_deg": 1.049,
     "roll_source": "pupil",
-    "applied_straighten_deg": 7.932066666251911,
-    "truth_consistency_deg": 0.191,
-    "status": "low_confidence",
+    "applied_straighten_deg": 7.914669286254607,
+    "truth_consistency_deg": -0.054,
+    "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12_d+10__cn_big_1inch.jpg"
    }
@@ -4091,14 +4091,14 @@
    "truth_apply_deg": -10.2,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.3352024168905197,
-    "tilt_abs_max_deg": 0.421,
-    "method_spread_deg": 0.413,
+    "output_tilt_deg": -17.937498860373793,
+    "tilt_abs_max_deg": 17.937,
+    "method_spread_deg": 17.952,
     "roll_source": "pupil",
-    "applied_straighten_deg": -9.892321170227008,
-    "truth_consistency_deg": -0.028,
-    "status": "ok",
-    "note": null,
+    "applied_straighten_deg": -10.167373079912387,
+    "truth_consistency_deg": -17.905,
+    "status": "reliability_mismatch",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 -17.905°，测量落到异物上，本项残余不可信",
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d-10__cn_big_1inch.jpg"
    }
   },
@@ -4121,12 +4121,12 @@
    "truth_apply_deg": -5.2,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.2919862074349904,
-    "tilt_abs_max_deg": 0.63,
-    "method_spread_deg": 0.623,
+    "output_tilt_deg": -0.17477422454593175,
+    "tilt_abs_max_deg": 0.175,
+    "method_spread_deg": 0.179,
     "roll_source": "pupil",
-    "applied_straighten_deg": -4.960848581515805,
-    "truth_consistency_deg": -0.053,
+    "applied_straighten_deg": -5.15009377393073,
+    "truth_consistency_deg": -0.125,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d-5__cn_big_1inch.jpg"
@@ -4151,13 +4151,13 @@
    "truth_apply_deg": -3.2,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.26499602700498853,
-    "tilt_abs_max_deg": 0.265,
-    "method_spread_deg": 0.265,
+    "output_tilt_deg": -0.2718805027650909,
+    "tilt_abs_max_deg": 4.399,
+    "method_spread_deg": 4.386,
     "roll_source": "pupil",
-    "applied_straighten_deg": -3.0663873378810886,
-    "truth_consistency_deg": -0.131,
-    "status": "ok",
+    "applied_straighten_deg": -3.017605837360954,
+    "truth_consistency_deg": -0.089,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d-3__cn_big_1inch.jpg"
    }
@@ -4181,12 +4181,12 @@
    "truth_apply_deg": 2.8,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.18530891851707404,
-    "tilt_abs_max_deg": 0.96,
-    "method_spread_deg": 0.964,
+    "output_tilt_deg": -0.23714848614058961,
+    "tilt_abs_max_deg": 0.644,
+    "method_spread_deg": 0.643,
     "roll_source": "pupil",
-    "applied_straighten_deg": 2.89526678095256,
-    "truth_consistency_deg": -0.09,
+    "applied_straighten_deg": 2.9827403913006973,
+    "truth_consistency_deg": -0.054,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d+3__cn_big_1inch.jpg"
@@ -4211,13 +4211,13 @@
    "truth_apply_deg": 4.8,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.25738046373346113,
-    "tilt_abs_max_deg": 0.95,
-    "method_spread_deg": 0.948,
+    "output_tilt_deg": -0.26028105853144184,
+    "tilt_abs_max_deg": 3.796,
+    "method_spread_deg": 4.056,
     "roll_source": "pupil",
-    "applied_straighten_deg": 4.97288285676806,
-    "truth_consistency_deg": -0.084,
-    "status": "ok",
+    "applied_straighten_deg": 5.0024575003711895,
+    "truth_consistency_deg": -0.058,
+    "status": "low_confidence",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d+5__cn_big_1inch.jpg"
    }
@@ -4241,12 +4241,12 @@
    "truth_apply_deg": 9.8,
    "end_to_end": {
     "spec": "cn_big_1inch",
-    "output_tilt_deg": -0.5558266938887728,
-    "tilt_abs_max_deg": 0.659,
-    "method_spread_deg": 0.643,
+    "output_tilt_deg": -0.18596442477226868,
+    "tilt_abs_max_deg": 0.666,
+    "method_spread_deg": 0.668,
     "roll_source": "pupil",
-    "applied_straighten_deg": 10.139736371240462,
-    "truth_consistency_deg": -0.216,
+    "applied_straighten_deg": 9.899788541571638,
+    "truth_consistency_deg": -0.086,
     "status": "ok",
     "note": null,
     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d+10__cn_big_1inch.jpg"
@@ -4274,71 +4274,190 @@
   "summary": {
    "generatedBy": "qa-batch test/batch/p0_output_residual.py",
    "note": "成片眼线残余（口径无关）：理想 0。测量只用 Python/PIL/OpenCV。",
+   "provenance": {
+    "inheritedFrom": "out/P0_compose_summary.json#provenance.codeFingerprint",
+    "codeFingerprint": {
+     "files": 103,
+     "fnv1a64": "0f66aabb3c08105f",
+     "blobHashes": {
+      "lib/core/api.dart": "a116f65a79cc80ae9a6df23318d6b147f502e198",
+      "lib/core/controller.dart": "e93ee6397c70820604575db12ad1ebc9b8b7249c",
+      "lib/core/engine_impl.dart": "06598685727a41f010eb977ce020f937c949d4fc",
+      "lib/core/image_header.dart": "3c40b16fbb48f709bb8b4749333ea6ff4c1eebfc",
+      "lib/core/imaging/compose_engine.dart": "6034a9924ee0a259572be368d7c6fa662e3d41ff",
+      "lib/core/imaging/compose_only_engine.dart": "8e2dbdab3960b4ab7bb12487e58f329c02a25c58",
+      "lib/core/imaging/crop_geometry.dart": "ae4e36fa55ca75819fdb43008006c1b8c4e9a97b",
+      "lib/core/imaging/dev_compose_memprofile.dart": "3a2bb93d100a3d5d8692101b16c393a8556c7b02",
+      "lib/core/imaging/dev_gate_repro.dart": "697148f95ede24daf3d46ba4b659e6778d758c74",
+      "lib/core/imaging/dev_pool_audit.dart": "855872160627a0c049cde76ceb3af9e870a32e02",
+      "lib/core/imaging/dev_pool_bitcheck.dart": "4d6b444b33c3acb210e15a9e78c8a8ef15e1ccc2",
+      "lib/core/imaging/dev_repro_g4.dart": "6fe6080b221668c0c4931f9a5eb1ad38157ba417",
+      "lib/core/imaging/dev_roll_ab.dart": "6a5612e3fbf26cc6cdb416f86b67155215517bb9",
+      "lib/core/imaging/dev_roll_markers.dart": "0554d4946c10a92db39a765e5bd571d9c120f529",
+      "lib/core/imaging/dev_roll_probe.dart": "0ffe33463e0274e80cec7c54eba3da2404f6d904",
+      "lib/core/imaging/dev_roll_probe2.dart": "d9f720ba2c02e15e9b5f92b6bedc995939a71adf",
+      "lib/core/imaging/dev_roll_repro.dart": "bb3a883a80237586ea5b88c96f1a98aa7f7bcaba",
+      "lib/core/imaging/dev_roll_scale.dart": "00268ea356d5043920d30c79d77b8b07b8621db1",
+      "lib/core/imaging/dev_selfcheck.dart": "536ec9a90d7d942c661d7b801e06c97febe0a3c3",
+      "lib/core/imaging/dev_synth.dart": "5ad526c98a781c89275c7d3445b6bbc6438b3246",
+      "lib/core/imaging/jpeg_dpi.dart": "50f68da670488e7546cddaaf4e730c10d191d749",
+      "lib/core/imaging/matte_clean.dart": "9e5713c52cbe9aaf8429e5fbb1b554237559e91d",
+      "lib/core/imaging/render.dart": "270dacaf9c51d2e75f91f987c8c995011e4872f0",
+      "lib/core/matting/flutter_decode.dart": "6a312a6dae2d3840aa1e76f8175dabb789bc8280",
+      "lib/core/matting/image_header.dart": "d8123916a81dfbcfb71b9def09aead38314d9e34",
+      "lib/core/matting/image_ops.dart": "e51f4b35e6d92421120cd204c98d51a73fd89b18",
+      "lib/core/matting/iris_roll.dart": "5f65fce144e59cbf3ff51d512b4dd31ff5f5a724",
+      "lib/core/matting/matting_engine.dart": "7583483a23ca673b207eff1f3934bc9498abbe91",
+      "lib/core/matting/matting_worker.dart": "46b7b58cd405fd6101a92a5826175676aafe738c",
+      "lib/core/matting/ort_runtime.dart": "c5a6090e7f213a94004f8f90292c976e02b5e61b",
+      "lib/core/matting/session_factory.dart": "e05eb06730bc685d3614241c53ccb4c90fd78def",
+      "lib/core/matting/yunet_decoder.dart": "b8be3bfa310e4c4123b4bd09e2ff0731d95455db",
+      "lib/core/specs/photo_specs.dart": "1fd3a365440627ecf366a3e0a57b240088efe617",
+      "lib/main.dart": "8fc91ae4c88ad8e61681bb717341e0a5c5b83863",
+      "lib/ui/app.dart": "7501d89cd2047820350f1549d168eba380682d1b",
+      "lib/ui/areas/area_a_source.dart": "96b6ef9d15908f53cae976116e34acb33d0d8dff",
+      "lib/ui/areas/area_b_candidates.dart": "ba55003f539793f2301c0b7ebb822185c88d1838",
+      "lib/ui/areas/area_c_save.dart": "e2c8b9bf963abb64ac67bc6769d7f7e33636ff25",
+      "lib/ui/dev/fake_controller.dart": "288d85cb68cb85e9801e862213399ba741fa477c",
+      "lib/ui/dev/fake_thumbs.dart": "c2f11bfa4b1f1ade5302a67da4cad8d3c0180657",
+      "lib/ui/dev/mouse_wheel_scroller_selftest.dart": "70bb74c60307b1286b68f35adc93cc941074eef0",
+      "lib/ui/dev/sample_photo.dart": "1bb10dd5f3833e5157ba1188fde47fb857c649be",
+      "lib/ui/dev/shot_app.dart": "43bc80a6b2f8c0826baf9f2485a28ee35919d725",
+      "lib/ui/dev/shot_harness.dart": "3f5dd69820cadf35ab8fa7c173ab1f6f46af0901",
+      "lib/ui/state/photo_source.dart": "ad25a152b43e7a206a40dc5501fcf4cb6b679e04",
+      "lib/ui/state/providers.dart": "e59b583a6baa7a377fab5aef7fe1cd979b722ba9",
+      "lib/ui/theme/brass.dart": "afd07e3ea86ba58187770980da46b5eb1622e8dc",
+      "lib/ui/theme/fonts.dart": "116c5a5a0bb5e2fd2b8589ce9367931c2bb3d812",
+      "lib/ui/theme/noise.dart": "629d141f725cc6033d7ca68bef53c202bcfd2f60",
+      "lib/ui/theme/paper_painter.dart": "b576c09e01a26a9c365bd75562ec82e644e5bc5b",
+      "lib/ui/theme/surfaces.dart": "78499d790144b475c8088464daeb68e1a94e4570",
+      "lib/ui/theme/tokens.dart": "69337b5157388ea4ae8ed917c5eee0b71f399ee2",
+      "lib/ui/theme/typography.dart": "35c6045dd30cd85a538faf988189be7a50d5fdc5",
+      "lib/ui/theme/wood_painter.dart": "5b2d46aea29bd149a0183720ecef5025fab7d633",
+      "lib/ui/util/crop_geometry.dart": "4b64f6624d0c96d7123fef3efd3810472bd74968",
+      "lib/ui/util/error_text.dart": "70aaef74ea230f7c68c1e3f34635aafc86214e87",
+      "lib/ui/util/image_size.dart": "8cc5b647da132e2e0cf023fd6ebfc4aa1baea001",
+      "lib/ui/widgets/about_sheet.dart": "94482b6cafa905e8484d5770d5c76bc4c32640ff",
+      "lib/ui/widgets/candidate_card.dart": "f7dfb5354fa15ebbbce3471d0ed13cb63db14a8c",
+      "lib/ui/widgets/crop_overlay.dart": "7a9a1d0d6877f1fa69f77dd9ac150fc0414c358f",
+      "lib/ui/widgets/developing.dart": "3b670296f9f110e5d99471e7fc95f3c0199b26e8",
+      "lib/ui/widgets/metal.dart": "ffcd63cf22d45695fbcfcccb941753067f3a1c09",
+      "lib/ui/widgets/mouse_wheel_scroller.dart": "253f0692a48080a5b9ad2a2a04beb6e7591f220a",
+      "lib/ui/widgets/press_effect.dart": "3829b81139d56680e9d9655cadebea99668c92e7",
+      "lib/ui/widgets/spec_drawer.dart": "7f2014e5773d8d282db29ee2b74be32850fc60e6",
+      "lib/ui/widgets/spec_ruler.dart": "7ad3e92933f379ad627ebaccc3594dba560bef31",
+      "lib/ui/widgets/sync_raster.dart": "23444aab4b0316898d5d7631e627b047548ecd56",
+      "test/batch/batch_runner.dart": "63d8dbd05a960de654a96e68e9863d3f4eaaf0a6",
+      "test/batch/build_golden.py": "2bedd7a0a77efebb3ab5061b8405d24b2b8d952c",
+      "test/batch/build_grid.py": "ffd96967b85b2b57ee2ba02bd894a56732f2ce12",
+      "test/batch/code_fingerprint.dart": "d2ad061f70012b3ed7937be3b8b443461801569c",
+      "test/batch/code_fingerprint.py": "a02cf485d22bdb444fb3ecd86ac4ea2920eaf479",
+      "test/batch/fingerprint_selftest.dart": "53f0678ae71fc79ecd5b556a96371864d38ae247",
+      "test/batch/freeze_dataset.py": "13883a8ba8d273cb30a661b2795469fb82589b9f",
+      "test/batch/merge_results.py": "6ddc33d324a916ac9fd285809f49a7a3ee5cb8cd",
+      "test/batch/p0_alpha_dump_test.dart": "9bb4535848f1fbc15e00ad3727219911ee7503d4",
+      "test/batch/p0_alpha_holes.py": "2cadcc9d385aed1ce7d6b285ea9164100649ce8b",
+      "test/batch/p0_alpha_scan_test.dart": "2cf359f96ec748d27c3288bf5f330f479e5d0e18",
+      "test/batch/p0_c08_sensitivity.py": "9a01c07d9667138adb4445a2322d045be8f6e788",
+      "test/batch/p0_cases.dart": "6f22480825c3c60b246790d75eb75812192ee24b",
+      "test/batch/p0_compose_test.dart": "30619848a79250c31c8a763528e1117d72fc853f",
+      "test/batch/p0_coverage_split.py": "a6e58f6d11dfb271a23a84ba1fa8e5a78741d838",
+      "test/batch/p0_coverage_test.dart": "25b5afb3901c8e68df792c68e0a477bf607403c3",
+      "test/batch/p0_diff_rounds.py": "c1c585a056b164be558661e7400e107914a0e5dd",
+      "test/batch/p0_est.py": "6a6ee72cb25af76e12031fbaf8a3fbe9e21c564c",
+      "test/batch/p0_finalize.py": "6866d065f302de1c4b6ae29ad6e4ae64128b6150",
+      "test/batch/p0_finalize_v1.py": "f965c7098900431b88a28b7aef0e114d86f7f381",
+      "test/batch/p0_independent_roll.py": "defc97151b038aba41c04ac896fd470d82b8f87f",
+      "test/batch/p0_lib.py": "a38aa92dd97ed144940bd72b1098fe98b5dc72a9",
+      "test/batch/p0_measure.py": "7fd05017d02d34c4f9df661a149368115d57bc31",
+      "test/batch/p0_output_residual.py": "aed5906ffffbae5e25d32291ad2fd12d7d11c884",
+      "test/batch/p0_provenance_check.py": "b3fea95616bdbc3758221c68bfe07c3f77424a4e",
+      "test/batch/p0_residual.py": "641335209ba38cd6061eb5c7c701b33432233197",
+      "test/batch/p0_resolve_check.dart": "b33be24e802f11cc928a8b28d28af70751a9ca0f",
+      "test/batch/p0_rotate.py": "395a5f3437547276d87b4f7e311f17beddf62136",
+      "test/batch/p0_selfcheck_run.dart": "904210ffc20b0a538f36734bc8b67dcf2d8425b2",
+      "test/batch/p0_sheet.py": "5ec5b2db6d13cbe0a6419cc0d553fb2e63fe3e8a",
+      "test/batch/p0_verify_geo.py": "761c6cbad54e637bcc2ff8b29d98a929ecf7304c",
+      "test/batch/prepare_inputs.py": "63ba5f5b18bacb30151fe08281dc5bf2f56e12e2",
+      "test/batch/run_device.py": "b6a97befaf1c3246028d538a08c3fdb66fa2cc19",
+      "test/batch/run_realdevice.py": "9036d8d418324de8168d964a1bed38be7cfa24b6",
+      "test/batch/sha256_selftest.dart": "a8f314bdcd1adbb99944d242a757d85f14603377",
+      "test/batch/sha256_util.dart": "ef91dedf3af855661102f3c5993b9536f15759fa"
+     },
+     "headCommit": "72e1a67b67b41fb0c0b890f5b78cc4772a60bf65",
+     "allCommitted": true,
+     "uncommittedMeasuredFiles": [],
+     "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 72e1a67b67b41fb0c0b890f5b78cc4772a60bf65 的代码。"
+    },
+    "roundValid": true,
+    "note": "本文件是对成片的纯 Python 测量，成片由 lib 代码产出，故**继承**成片台的指纹；刻意不在本脚本运行时刻重取 —— 那记的是本脚本的运行时刻，不是产出成片的代码状态。"
+   },
    "primarySpec": "cn_big_1inch",
    "composedCount": 110,
    "primaryCount": 100,
-   "scored": 94,
-   "primaryAbsMax": 13.953,
-   "primaryAbsMedian": 0.205,
-   "primaryAbsMean": 1.016,
+   "scored": 93,
+   "primaryAbsMax": 4.825,
+   "primaryAbsMedian": 0.158,
+   "primaryAbsMean": 0.293,
    "primaryOver1p5": [
-    "c01_d+10",
-    "c04_d-10",
-    "c04_d-5",
-    "c06_d-3",
-    "c11_d+10",
-    "c11_d+5",
-    "c11_d-10",
-    "c11_d-3",
-    "c11_d-5"
+    "c06_d-3"
    ],
    "unreliableMeasurement": [
     "c08_d+10",
+    "c08_d+3",
     "c08_d+5",
     "c08_d-10",
-    "c08_d-5"
+    "c08_d-5",
+    "p2_d-10"
    ],
    "lowConfidence": [
-    "c01_d+10",
     "c01_d+3",
     "c01_d+5",
     "c01_d-10",
     "c01_d-3",
+    "c01_d-5",
     "c01_upright",
-    "c02_d-5",
-    "c04_d-10",
+    "c02_d+10",
+    "c02_d+3",
+    "c02_d-10",
+    "c02_d-3",
     "c06",
     "c06_d-3",
     "c06_d-5",
     "c06_upright",
-    "c12_d+10",
+    "c07_d-10",
+    "c11_d-10",
+    "c12",
     "c12_d+3",
-    "c12_d+5"
+    "c12_d+5",
+    "c12_d-10",
+    "c12_d-5",
+    "p2_d+5",
+    "p2_d-3"
    ],
    "unmeasured": [
-    "c08_d+3",
     "c08_upright"
    ],
    "alphaHoleVisualEvidence": {
     "c04_d-10": {
-     "magentaInHeadFrac": 0.3264,
-     "largestBlobPx": 36255,
+     "magentaInHeadFrac": 0.3662,
+     "largestBlobPx": 40672,
      "alphaHole": true,
-     "magentaOverallFrac": 0.5221,
+     "magentaOverallFrac": 0.5556,
      "evidence": "out/P0_anchors/alpha/c04_d-10_magenta.jpg"
     },
     "c08_d-10": {
-     "magentaInHeadFrac": 0.5352,
-     "largestBlobPx": 31669,
+     "magentaInHeadFrac": 0.6037,
+     "largestBlobPx": 66738,
      "alphaHole": true,
-     "magentaOverallFrac": 0.7409,
+     "magentaOverallFrac": 0.767,
      "evidence": "out/P0_anchors/alpha/c08_d-10_magenta.jpg"
     },
     "c08": {
-     "magentaInHeadFrac": 0.7878,
-     "largestBlobPx": 87453,
+     "magentaInHeadFrac": 0.3446,
+     "largestBlobPx": 36579,
      "alphaHole": true,
-     "magentaOverallFrac": 0.8504,
+     "magentaOverallFrac": 0.6496,
      "evidence": "out/P0_anchors/alpha/c08_magenta.jpg"
     },
     "c08_upright": {
@@ -4349,10 +4468,10 @@
      "evidence": "out/P0_anchors/alpha/c08_upright_magenta.jpg"
     },
     "c11_d-10": {
-     "magentaInHeadFrac": 0.3438,
-     "largestBlobPx": 38188,
+     "magentaInHeadFrac": 0.3628,
+     "largestBlobPx": 40295,
      "alphaHole": true,
-     "magentaOverallFrac": 0.4046,
+     "magentaOverallFrac": 0.4245,
      "evidence": "out/P0_anchors/alpha/c11_d-10_magenta.jpg"
     }
    },
@@ -4360,7 +4479,7 @@
     "anchor": {
      "n": 12,
      "scored": 12,
-     "absMax": 0.259,
+     "absMax": 0.575,
      "ids": [
       "c01",
       "c02",
@@ -4381,8 +4500,8 @@
     },
     "rotated": {
      "n": 78,
-     "scored": 73,
-     "absMax": 13.953,
+     "scored": 72,
+     "absMax": 4.825,
      "ids": [
       "c01_d+10",
       "c01_d+3",
@@ -4454,30 +4573,21 @@
       "p2_d+10",
       "p2_d+3",
       "p2_d+5",
-      "p2_d-10",
       "p2_d-3",
       "p2_d-5"
      ],
      "over1p5": [
-      "c01_d+10",
-      "c04_d-10",
-      "c04_d-5",
-      "c06_d-3",
-      "c11_d+10",
-      "c11_d+5",
-      "c11_d-10",
-      "c11_d-3",
-      "c11_d-5"
+      "c06_d-3"
      ],
      "unreliable": [
       "c08_d+10",
+      "c08_d+3",
       "c08_d+5",
       "c08_d-10",
-      "c08_d-5"
+      "c08_d-5",
+      "p2_d-10"
      ],
-     "unmeasured": [
-      "c08_d+3"
-     ]
+     "unmeasured": []
     },
     "uprightSynthetic": {
      "n": 9,
@@ -4531,29 +4641,29 @@
       "headHeightPx": 256.1,
       "rotations": {
        "+0": {
-        "deg": -0.036563989620409736,
-        "eyedist": 44.3,
-        "pairCost": 0.186
+        "deg": 0.06762759291740933,
+        "eyedist": 44.6,
+        "pairCost": 0.157
        },
        "+2": {
-        "deg": 1.4864430080550588,
-        "eyedist": 44.3,
-        "pairCost": 0.141
+        "deg": 1.5600441174303856,
+        "eyedist": 45.0,
+        "pairCost": 0.149
        },
        "-2": {
-        "deg": -2.354992860528467,
+        "deg": -2.3190404897722523,
         "eyedist": 44.3,
-        "pairCost": 0.086
+        "pairCost": 0.095
        },
        "+5": {
-        "deg": 4.971151276726149,
+        "deg": 5.0146192923409885,
         "eyedist": 44.6,
-        "pairCost": 0.161
+        "pairCost": 0.179
        },
        "-5": {
-        "deg": -4.955013839512226,
-        "eyedist": 45.0,
-        "pairCost": 0.098
+        "deg": -4.8631734294597,
+        "eyedist": 44.6,
+        "pairCost": 0.104
        }
       }
      },
@@ -4562,29 +4672,29 @@
       "headHeightPx": 351.5,
       "rotations": {
        "+0": {
-        "deg": -0.003939488815294881,
-        "eyedist": 83.2,
-        "pairCost": 0.15
+        "deg": -0.06775371353850584,
+        "eyedist": 84.2,
+        "pairCost": 0.099
        },
        "+2": {
-        "deg": 1.88062671365281,
-        "eyedist": 85.7,
-        "pairCost": 0.119
+        "deg": 1.8450629539761998,
+        "eyedist": 85.0,
+        "pairCost": 0.115
        },
        "-2": {
-        "deg": -1.922883231058555,
-        "eyedist": 83.2,
-        "pairCost": 0.122
+        "deg": -1.8619192803999305,
+        "eyedist": 82.1,
+        "pairCost": 0.126
        },
        "+5": {
-        "deg": 5.051897379175202,
-        "eyedist": 84.2,
-        "pairCost": 0.156
+        "deg": 5.0510253124660185,
+        "eyedist": 83.9,
+        "pairCost": 0.165
        },
        "-5": {
-        "deg": -5.044557005102017,
-        "eyedist": 85.7,
-        "pairCost": 0.132
+        "deg": -4.888534426675499,
+        "eyedist": 84.6,
+        "pairCost": 0.149
        }
       }
      },
@@ -4593,29 +4703,29 @@
       "headHeightPx": 372.0,
       "rotations": {
        "+0": {
-        "deg": -0.2255818833586017,
-        "eyedist": 96.8,
-        "pairCost": 0.15
+        "deg": -0.03444238790561464,
+        "eyedist": 95.0,
+        "pairCost": 0.145
        },
        "+2": {
-        "deg": 1.9774577710594299,
+        "deg": 2.07321922193636,
         "eyedist": 92.5,
-        "pairCost": 0.107
+        "pairCost": 0.114
        },
        "-2": {
-        "deg": -2.103834066858117,
-        "eyedist": 94.7,
-        "pairCost": 0.146
+        "deg": -1.9611913176697715,
+        "eyedist": 96.5,
+        "pairCost": 0.151
        },
        "+5": {
-        "deg": 5.000268979562368,
-        "eyedist": 94.7,
-        "pairCost": 0.129
+        "deg": 5.008976029073514,
+        "eyedist": 95.4,
+        "pairCost": 0.155
        },
        "-5": {
-        "deg": -4.989167543251842,
-        "eyedist": 97.9,
-        "pairCost": 0.133
+        "deg": -4.934132212025526,
+        "eyedist": 98.6,
+        "pairCost": 0.166
        }
       }
      }
@@ -4734,24 +4844,24 @@
         "pairCost": 0.237
        },
        "+2": {
-        "deg": 2.2202679970369217,
-        "eyedist": 52.2,
-        "pairCost": 0.266
+        "deg": 17.975924722008546,
+        "eyedist": 51.5,
+        "pairCost": 0.362
        },
        "-2": {
-        "deg": -1.8739194890170046,
-        "eyedist": 52.2,
-        "pairCost": 0.249
+        "deg": -1.836083634012547,
+        "eyedist": 51.8,
+        "pairCost": 0.262
        },
        "+5": {
-        "deg": 5.200361683226219,
-        "eyedist": 52.2,
-        "pairCost": 0.27
+        "deg": 5.306717789903962,
+        "eyedist": 51.8,
+        "pairCost": 0.285
        },
        "-5": {
-        "deg": -4.9912270252852755,
-        "eyedist": 54.0,
-        "pairCost": 0.217
+        "deg": -4.9084365616660275,
+        "eyedist": 54.4,
+        "pairCost": 0.221
        }
       }
      },
@@ -4760,29 +4870,29 @@
       "headHeightPx": 351.5,
       "rotations": {
        "+0": {
-        "deg": -0.0044856054950208595,
-        "eyedist": 100.8,
-        "pairCost": 0.276
+        "deg": -0.0025181150400275243,
+        "eyedist": 100.4,
+        "pairCost": 0.278
        },
        "+2": {
-        "deg": 1.9305231283252717,
-        "eyedist": 100.4,
-        "pairCost": 0.317
+        "deg": 1.9494428241273893,
+        "eyedist": 100.8,
+        "pairCost": 0.311
        },
        "-2": {
-        "deg": -2.1404129110270804,
-        "eyedist": 100.4,
-        "pairCost": 0.327
+        "deg": -2.0000791326740677,
+        "eyedist": 101.9,
+        "pairCost": 0.219
        },
        "+5": {
-        "deg": 5.08747726707366,
-        "eyedist": 98.6,
-        "pairCost": 0.302
+        "deg": 5.100141829606337,
+        "eyedist": 98.3,
+        "pairCost": 0.314
        },
        "-5": {
-        "deg": -4.9851394929935156,
-        "eyedist": 100.8,
-        "pairCost": 0.271
+        "deg": -5.0144619786525775,
+        "eyedist": 100.1,
+        "pairCost": 0.289
        }
       }
      },
@@ -4791,29 +4901,29 @@
       "headHeightPx": 372.0,
       "rotations": {
        "+0": {
-        "deg": 0.08050828000226945,
-        "eyedist": 113.0,
-        "pairCost": 0.269
+        "deg": 0.07755400245510624,
+        "eyedist": 113.8,
+        "pairCost": 0.25
        },
        "+2": {
-        "deg": 1.9370694196711136,
-        "eyedist": 109.8,
-        "pairCost": 0.319
+        "deg": 1.9559104266272134,
+        "eyedist": 112.0,
+        "pairCost": 0.33
        },
        "-2": {
-        "deg": -2.0392474931833062,
-        "eyedist": 111.6,
-        "pairCost": 0.224
+        "deg": -1.9570838098201944,
+        "eyedist": 112.0,
+        "pairCost": 0.256
        },
        "+5": {
-        "deg": 5.018175463450543,
-        "eyedist": 110.9,
-        "pairCost": 0.345
+        "deg": 5.084906987373078,
+        "eyedist": 110.5,
+        "pairCost": 0.324
        },
        "-5": {
-        "deg": -0.7058317681432937,
-        "eyedist": 113.4,
-        "pairCost": 0.221
+        "deg": -5.018169293302056,
+        "eyedist": 113.0,
+        "pairCost": 0.274
        }
       }
      }
@@ -4829,20 +4939,27 @@
  ],
  "evaluatedState": {
   "note": "**这不是 HEAD。** 成片/覆盖率/残余三份数字产出于下表记录的工作区状态；此后主会话提交了若干 docs-only commit，按 HEAD 记账会把数字错标到与测量无关的 commit 上。",
-  "gitHeadAtCoverageRun": "b3518ba",
-  "workingTreeDirtyAtCoverageRun": "M lib/core/matting/matting_engine.dart |  M lib/core/matting/matting_worker.dart |  M lib/core/matting/yunet_decoder.dart | ?? lib/core/matting/iris_roll.dart",
-  "roundSelfValid": null,
+  "gitHeadAtCoverageRun": "dcc5903",
+  "workingTreeDirtyAtCoverageRun": "",
+  "roundSelfValid": true,
   "roundChangedFiles": [],
   "codeFingerprintAtFinalize": {
-   "fnv1a64": "1d9b461b91c7612b",
-   "files": 102,
-   "headCommit": "87cb625988ffb824ec87aab2721e7a3a02b494e8",
-   "allCommitted": false
+   "fnv1a64": "0f66aabb3c08105f",
+   "files": 103,
+   "headCommit": "dcc59032f386ed90957d0bb21851fcf74568031d",
+   "allCommitted": true
   },
-  "codeFingerprintAtMeasure": null,
-  "fingerprintVerdictCode": "unprovable",
-  "fingerprintVerdict": "**无法自证**：产出成片的 `p0_compose_summary.json` 里没有 `provenance.codeFingerprint`（本轮跑的时候还没加这个字段），因此不能证明这些数字对应的代码内容 = 现在的代码内容。ml-porting 提交后重跑一遍即可补上，届时此字段会给出比对结论。",
-  "headAtFinalize": "87cb625"
+  "codeFingerprintAtMeasure": {
+   "fnv1a64": "0f66aabb3c08105f",
+   "files": 103,
+   "headCommit": "72e1a67b67b41fb0c0b890f5b78cc4772a60bf65",
+   "allCommitted": true,
+   "uncommittedMeasuredFiles": [],
+   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 72e1a67b67b41fb0c0b890f5b78cc4772a60bf65 的代码。"
+  },
+  "fingerprintVerdictCode": "attributable",
+  "fingerprintVerdict": "**可归属**：测量当时的被测代码内容与现在逐文件相同，数字未被后续改动污染，可归到 72e1a67b67b41fb0c0b890f5b78cc4772a60bf65。",
+  "headAtFinalize": "dcc5903"
  },
  "gateInputs": {
   "note": "qa-batch 提供的实测数字，供 gatekeeper 判定；本块不含 PASS/FAIL。硬判据按 ACCEPTANCE 计分口径第 5 条用 output_tilt（成片端到端残余）。",
@@ -4851,106 +4968,106 @@
    "algorithm": "sha256",
    "note": "喂给引擎的**输入字节**摘要，按 id 索引。**对齐夹具时以此为准，不以文件名或尺寸为准**——本轮 c04/c05 的尺寸恰好与 gatekeeper 的源图相同，只看尺寸会误判同源。sidecar: out/P0_input_hashes.json",
    "provenanceById": {
-    "p1": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c01": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c02": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c03": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c04": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c05": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c06": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c07": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c08": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c11": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c12": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p2": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p1_upright": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c01_upright": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c03_upright": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c04_upright": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c05_upright": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c06_upright": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c08_upright": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c10_upright": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c12_upright": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p1_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p1_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p1_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p1_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p1_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p1_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c01_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c01_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c01_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c01_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c01_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c01_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c02_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c02_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c02_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c02_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c02_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c02_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c03_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c03_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c03_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c03_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c03_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c03_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c04_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c04_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c04_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c04_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c04_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c04_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c05_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c05_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c05_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c05_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c05_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c05_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c06_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c06_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c06_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c06_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c06_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c06_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c07_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c07_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c07_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c07_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c07_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c07_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c08_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c08_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c08_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c08_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c08_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c08_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c10_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c10_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c10_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c10_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c10_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c10_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c11_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c11_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c11_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c11_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c11_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c11_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c12_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c12_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c12_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c12_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c12_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "c12_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p2_d-10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p2_d-5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p2_d-3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p2_d+3": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p2_d+5": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)",
-    "p2_d+10": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)"
+    "p1": "jsonl(测量时)",
+    "c01": "jsonl(测量时)",
+    "c02": "jsonl(测量时)",
+    "c03": "jsonl(测量时)",
+    "c04": "jsonl(测量时)",
+    "c05": "jsonl(测量时)",
+    "c06": "jsonl(测量时)",
+    "c07": "jsonl(测量时)",
+    "c08": "jsonl(测量时)",
+    "c10": "jsonl(测量时)",
+    "c11": "jsonl(测量时)",
+    "c12": "jsonl(测量时)",
+    "p2": "jsonl(测量时)",
+    "p1_upright": "jsonl(测量时)",
+    "c01_upright": "jsonl(测量时)",
+    "c03_upright": "jsonl(测量时)",
+    "c04_upright": "jsonl(测量时)",
+    "c05_upright": "jsonl(测量时)",
+    "c06_upright": "jsonl(测量时)",
+    "c08_upright": "jsonl(测量时)",
+    "c10_upright": "jsonl(测量时)",
+    "c12_upright": "jsonl(测量时)",
+    "p1_d-10": "jsonl(测量时)",
+    "p1_d-5": "jsonl(测量时)",
+    "p1_d-3": "jsonl(测量时)",
+    "p1_d+3": "jsonl(测量时)",
+    "p1_d+5": "jsonl(测量时)",
+    "p1_d+10": "jsonl(测量时)",
+    "c01_d-10": "jsonl(测量时)",
+    "c01_d-5": "jsonl(测量时)",
+    "c01_d-3": "jsonl(测量时)",
+    "c01_d+3": "jsonl(测量时)",
+    "c01_d+5": "jsonl(测量时)",
+    "c01_d+10": "jsonl(测量时)",
+    "c02_d-10": "jsonl(测量时)",
+    "c02_d-5": "jsonl(测量时)",
+    "c02_d-3": "jsonl(测量时)",
+    "c02_d+3": "jsonl(测量时)",
+    "c02_d+5": "jsonl(测量时)",
+    "c02_d+10": "jsonl(测量时)",
+    "c03_d-10": "jsonl(测量时)",
+    "c03_d-5": "jsonl(测量时)",
+    "c03_d-3": "jsonl(测量时)",
+    "c03_d+3": "jsonl(测量时)",
+    "c03_d+5": "jsonl(测量时)",
+    "c03_d+10": "jsonl(测量时)",
+    "c04_d-10": "jsonl(测量时)",
+    "c04_d-5": "jsonl(测量时)",
+    "c04_d-3": "jsonl(测量时)",
+    "c04_d+3": "jsonl(测量时)",
+    "c04_d+5": "jsonl(测量时)",
+    "c04_d+10": "jsonl(测量时)",
+    "c05_d-10": "jsonl(测量时)",
+    "c05_d-5": "jsonl(测量时)",
+    "c05_d-3": "jsonl(测量时)",
+    "c05_d+3": "jsonl(测量时)",
+    "c05_d+5": "jsonl(测量时)",
+    "c05_d+10": "jsonl(测量时)",
+    "c06_d-10": "jsonl(测量时)",
+    "c06_d-5": "jsonl(测量时)",
+    "c06_d-3": "jsonl(测量时)",
+    "c06_d+3": "jsonl(测量时)",
+    "c06_d+5": "jsonl(测量时)",
+    "c06_d+10": "jsonl(测量时)",
+    "c07_d-10": "jsonl(测量时)",
+    "c07_d-5": "jsonl(测量时)",
+    "c07_d-3": "jsonl(测量时)",
+    "c07_d+3": "jsonl(测量时)",
+    "c07_d+5": "jsonl(测量时)",
+    "c07_d+10": "jsonl(测量时)",
+    "c08_d-10": "jsonl(测量时)",
+    "c08_d-5": "jsonl(测量时)",
+    "c08_d-3": "jsonl(测量时)",
+    "c08_d+3": "jsonl(测量时)",
+    "c08_d+5": "jsonl(测量时)",
+    "c08_d+10": "jsonl(测量时)",
+    "c10_d-10": "jsonl(测量时)",
+    "c10_d-5": "jsonl(测量时)",
+    "c10_d-3": "jsonl(测量时)",
+    "c10_d+3": "jsonl(测量时)",
+    "c10_d+5": "jsonl(测量时)",
+    "c10_d+10": "jsonl(测量时)",
+    "c11_d-10": "jsonl(测量时)",
+    "c11_d-5": "jsonl(测量时)",
+    "c11_d-3": "jsonl(测量时)",
+    "c11_d+3": "jsonl(测量时)",
+    "c11_d+5": "jsonl(测量时)",
+    "c11_d+10": "jsonl(测量时)",
+    "c12_d-10": "jsonl(测量时)",
+    "c12_d-5": "jsonl(测量时)",
+    "c12_d-3": "jsonl(测量时)",
+    "c12_d+3": "jsonl(测量时)",
+    "c12_d+5": "jsonl(测量时)",
+    "c12_d+10": "jsonl(测量时)",
+    "p2_d-10": "jsonl(测量时)",
+    "p2_d-5": "jsonl(测量时)",
+    "p2_d-3": "jsonl(测量时)",
+    "p2_d+3": "jsonl(测量时)",
+    "p2_d+5": "jsonl(测量时)",
+    "p2_d+10": "jsonl(测量时)"
    },
    "byId": {
     "p1": "6c89a01cb9b07476c9dc3c58126c71cb2d9c77a25c47030d3e6d4bd533e5cc8c",
@@ -5058,11 +5175,11 @@
   "c05SlopeRecheck": {
    "criterionB_outputResidual_vs_truth": {
     "n": 8,
-    "slope": -0.0098
+    "slope": -0.0108
    },
    "criterionA_estimate_vs_truth": {
     "n": 8,
-    "slope": 1.0028
+    "slope": 1.0076
    },
    "note": "**斜率脆弱性是本项要暴露的东西**：c05_d-10 在本路径上是 pupil，在 gatekeeper 的字节上是 unavailable，两种判决都离门限很近。它一旦翻，c05 的斜率就随之翻——所以 c05 的 slope 不能作为独立证据使用。",
    "rows": [
@@ -5071,24 +5188,24 @@
      "fixtureDeltaDeg": 0.0,
      "truthTiltDeg": -3.91,
      "rollSource": "pupil",
-     "appliedStraightenDeg": -3.936,
-     "outputTiltDeg": 0.068,
-     "methodSpreadDeg": 0.333,
+     "appliedStraightenDeg": -3.919,
+     "outputTiltDeg": 0.089,
+     "methodSpreadDeg": 0.111,
      "status": "ok",
      "inputSha256": "2256c8b892f068c0e192e6aa884afb5f6e0da8198673811675a7677f01411483",
-     "hashSource": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)"
+     "hashSource": "jsonl(测量时)"
     },
     {
      "id": "c05_d+10",
      "fixtureDeltaDeg": 10.0,
      "truthTiltDeg": 6.09,
      "rollSource": "pupil",
-     "appliedStraightenDeg": 6.013,
-     "outputTiltDeg": 0.175,
-     "methodSpreadDeg": 0.321,
+     "appliedStraightenDeg": 6.113,
+     "outputTiltDeg": -0.116,
+     "methodSpreadDeg": 0.435,
      "status": "ok",
      "inputSha256": "177206f94e51d2e66e48c2cc653da18e1dae6e434e22bc1075697ad61bccad3b",
-     "hashSource": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)"
+     "hashSource": "jsonl(测量时)"
     },
     {
      "id": "c05_d+3",
@@ -5100,55 +5217,55 @@
      "methodSpreadDeg": 0.325,
      "status": "ok",
      "inputSha256": "a0e6a8c63caac8be4f566ed98e69517e8751f6a091769f397e12f98f34044bba",
-     "hashSource": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)"
+     "hashSource": "jsonl(测量时)"
     },
     {
      "id": "c05_d+5",
      "fixtureDeltaDeg": 5.0,
      "truthTiltDeg": 1.09,
      "rollSource": "pupil",
-     "appliedStraightenDeg": 1.106,
-     "outputTiltDeg": 0.014,
-     "methodSpreadDeg": 0.338,
+     "appliedStraightenDeg": 1.062,
+     "outputTiltDeg": 0.106,
+     "methodSpreadDeg": 0.339,
      "status": "ok",
      "inputSha256": "cdc88b306d68de85bc3b7b278b7cf6f7fe3202191f776595dbd9e31e0a546bc3",
-     "hashSource": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)"
+     "hashSource": "jsonl(测量时)"
     },
     {
      "id": "c05_d-10",
      "fixtureDeltaDeg": -10.0,
      "truthTiltDeg": -13.91,
      "rollSource": "pupil",
-     "appliedStraightenDeg": -13.884,
-     "outputTiltDeg": 0.155,
-     "methodSpreadDeg": 0.471,
+     "appliedStraightenDeg": -13.904,
+     "outputTiltDeg": 0.071,
+     "methodSpreadDeg": 0.318,
      "status": "ok",
      "inputSha256": "5feeafbf6bfdb6def97babd295f2e2d3ab7328eefdecf3d72f1558549a3223b3",
-     "hashSource": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)"
+     "hashSource": "jsonl(测量时)"
     },
     {
      "id": "c05_d-3",
      "fixtureDeltaDeg": -3.0,
      "truthTiltDeg": -6.91,
      "rollSource": "pupil",
-     "appliedStraightenDeg": -6.892,
-     "outputTiltDeg": -0.094,
-     "methodSpreadDeg": 0.094,
+     "appliedStraightenDeg": -6.928,
+     "outputTiltDeg": -0.062,
+     "methodSpreadDeg": 0.699,
      "status": "ok",
      "inputSha256": "174c43231966592fce2d5e77b266ea6102d5b2ac8bc955f1c80245f9a77a4188",
-     "hashSource": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)"
+     "hashSource": "jsonl(测量时)"
     },
     {
      "id": "c05_d-5",
      "fixtureDeltaDeg": -5.0,
      "truthTiltDeg": -8.91,
      "rollSource": "pupil",
-     "appliedStraightenDeg": -8.818,
-     "outputTiltDeg": 0.118,
-     "methodSpreadDeg": 0.14,
+     "appliedStraightenDeg": -8.868,
+     "outputTiltDeg": -0.119,
+     "methodSpreadDeg": 0.437,
      "status": "ok",
      "inputSha256": "f1920f43ceedb1e3c4fd517e2ee130a6a7ebedc56363d16a0ca6c82b948e066d",
-     "hashSource": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)"
+     "hashSource": "jsonl(测量时)"
     },
     {
      "id": "c05_upright",
@@ -5160,7 +5277,7 @@
      "methodSpreadDeg": 0.654,
      "status": "ok",
      "inputSha256": "ca562b8f32d784390391e24b4ad5950f77feee0ae635fcda8f0ba68d49bf333f",
-     "hashSource": "file(后补：本轮 jsonl 无该字段，按 path 文件取摘要)"
+     "hashSource": "jsonl(测量时)"
     }
    ]
   },
@@ -5193,8 +5310,7 @@
     "caveat": "**这是本轮的观察，不是死区的推论。** 死区判的是**估计值**，所以「真值小 ⇒ 施加角 0」并不成立——真值 0.9° 而估角器给 5° 的样本会被**真的旋转 5°**。本轮恰好全部为 0，是因为这些样本的估计也小。读这个分布时不要把「真值小」当成「估计小」的代理。",
     "n": 19,
     "byRollSource": {
-     "pupil": 18,
-     "unavailable": 1
+     "pupil": 19
     },
     "clampedButNotUnavailable": [
      "c01_upright",
@@ -5210,6 +5326,7 @@
      "c08_upright",
      "c10_d+3",
      "c10_upright",
+     "c11",
      "c12_d+3",
      "c12_upright",
      "p1_d+5",
@@ -5220,21 +5337,14 @@
    },
    "reverseCheck": {
     "what": "反向：|truth| > 1.0 却 `straightenDeg == 0.0` 的样本，其 `rollSource` 是什么？",
-    "n": 10,
+    "n": 3,
     "byRollSource": {
-     "unavailable": 10
+     "unavailable": 3
     },
     "ids": [
-     "c01_d+10",
-     "c04_d-10",
-     "c04_d-5",
      "c06_d+3",
-     "c08_d-5",
-     "c11_d+10",
-     "c11_d+5",
-     "c11_d-10",
-     "c11_d-3",
-     "c11_d-5"
+     "c06_d-3",
+     "c08_d-10"
     ],
     "pupilClampedOutsideDeadZone": [],
     "conclusion": "**空集**：100 条里没有一条 `pupil` 在 |truth| > 1.0 时`straightenDeg == 0.0`（该集合 10 条**全部是 `unavailable`**）。**订正措辞（2026-09-17）**：原文写成「在死区之外被静默钳零」，把真值当成了估计值的代理——死区判的是**估计值**。严格的含义是：对 `pupil` 样本，`applied == 0` ⟺ `|估计| ≤ 1.0`，所以本集合为空 ⟺ **本轮不存在「真值大、而估计小」的样本**。这正是本次事故的形态（真值 −4.4° 被读成 +0.84°），它在本轮缺席——**这是关于估角器的经验结论，不是关于死区安全的结论**。"
@@ -5250,11 +5360,9 @@
    "distinctAnchorNote": "第 6 条：锚点栏 12 条 − `c03`/`c04` 这一对真重复 = **11 张不同照片**。**订正（2026-09-17）**：原文另称 `c10`/`c11`/`c12` 是「同合影三裁切」——**该理由不成立，已删除**。三者是同一场景的**三张不同照片**，不去重、各自计数（ECC 欧氏对齐后只统计结构像素：`c10`/`c11` 一致度 11.3%、`c10`/`c12` 10.6%，而已知同图对 `c03`/`c04` 为 95.2%，差一个数量级）。数字 11 不变，只订正理由。报告与判据一律按 11 张表述。",
    "P0.1a": {
     "rawTotal": 12,
-    "excluded_unavailable": [
-     "c11"
-    ],
+    "excluded_unavailable": [],
     "notScorableDeducted": 0,
-    "visibleDenominator": 11
+    "visibleDenominator": 12
    },
    "P0.2_uprightSynthetic": {
     "rawTotal": 9,
@@ -5263,13 +5371,13 @@
    },
    "P0.3a_rotated": {
     "rawFixtures": 78,
-    "notScorableDeducted": 5,
-    "visibleDenominator": 64,
+    "notScorableDeducted": 6,
+    "visibleDenominator": 70,
     "note": "`c08_upright` 的语料标签是 uprightSynthetic 而非 rotated，其不可计分计入 P0.2 一项；两条合计 6 条。"
    }
   },
   "notScorableClassification": {
-   "note": "第 7 条：逐条列出并归类，**总数 6**（rotated 5 + uprightSynthetic 1）。**归类为'量测失效'的每一条必须由 gatekeeper 用与 qa-batch 不同的独立路径复核并写明结论**——把真实缺陷归成'量不出来'是这套判据里最容易藏东西的地方。",
+   "note": "第 7 条：逐条列出并归类，**总数 7**（rotated 6 + uprightSynthetic 1；其中量测失效 3）。**归类为'量测失效'的每一条必须由 gatekeeper 用与 qa-batch 不同的独立路径复核并写明结论**——把真实缺陷归成'量不出来'是这套判据里最容易藏东西的地方。",
    "thresholds": {
     "eyeBandZeroFrac": 0.35
    },
@@ -5305,13 +5413,19 @@
      "reason": "双眼区 alpha=0 占比 0.755 > 0.35，瞳孔被挖掉，成片眼线不可测"
     },
     {
+     "id": "p2_d-10",
+     "class": "量测失效",
+     "eyeBandZeroFrac": null,
+     "reason": "无 alpha 记录，须由 gatekeeper 用独立路径复核"
+    },
+    {
      "id": "c08_upright",
      "class": "抠图失效",
      "eyeBandZeroFrac": 0.6193,
      "reason": "双眼区 alpha=0 占比 0.619 > 0.35，瞳孔被挖掉，成片眼线不可测"
     }
    ],
-   "affectsWhichCriterion": "只影响残差类（P0.1a/P0.2/P0.3a②）的分母；覆盖率类（P0.1b/P0.3b）读的是 rollSource，这几条仍全部计分、不扣除（c08_d-5 同时是 P0.3b 违规之一）。"
+   "affectsWhichCriterion": "只影响残差类（P0.1a/P0.2/P0.3a②）的分母；覆盖率类（P0.1b/P0.3b）读的是 rollSource，这几条仍全部计分、不扣除。"
   },
   "P0.1a_anchorOutputResidual": {
    "spec": "cn_big_1inch (390x567)",
@@ -5319,21 +5433,17 @@
    "measured": 12,
    "notScorableDeducted": 0,
    "notScorable": [],
-   "visibleDenominator": 11,
-   "excluded_unavailable": [
-    "c11"
-   ],
-   "n": 11,
-   "absMax": 0.259,
-   "absMedian": 0.096
+   "visibleDenominator": 12,
+   "excluded_unavailable": [],
+   "n": 12,
+   "absMax": 0.575,
+   "absMedian": 0.145
   },
   "P0.1b_anchorConditionalCoverage": {
    "n": 8,
    "unavailable": 0,
    "culprits": [],
-   "nearZeroExempt": [
-    "c11"
-   ]
+   "nearZeroExempt": []
   },
   "P0.2_straightOutputResidual": {
    "spec": "cn_big_1inch (390x567)",
@@ -5379,62 +5489,91 @@
    }
   },
   "P0.3a_pupilFixtureRegression": {
-   "n": 64,
+   "n": 70,
    "criterionA_estimate_vs_truth": {
     "note": "ACCEPTANCE P0.3a ①：估计值 rollDeg vs 真值，斜率 ∈[0.85,1.15]。**只作诊断**。",
-    "slope": 1.009,
-    "intercept": -0.082
+    "slope": 1.001,
+    "intercept": 0.078
    },
    "criterionB_outputResidual": {
     "note": "ACCEPTANCE P0.3a ②（口径无关硬判据）：成片残余 vs 真值，|斜率| ≤ 0.15 且 |截距| ≤ 0.5° 且 max|残余| ≤ 1.5°。",
-    "slope": -0.015,
-    "intercept": 0.055,
-    "max_abs_residual_deg": 10.638,
-    "absMaxExcludingGrossOutlier": 0.997
+    "slope": -0.003,
+    "intercept": -0.102,
+    "max_abs_residual_deg": 0.997,
+    "absMaxExcludingGrossOutlier": 0.997,
+    "absMaxExcludingGrossOutlierNote": "剔除的是**全部** |残余| > 1.5° 的样本（见 grossOutliers），不是写死某个 id —— 写死 id 会在该样本不再是离群点时静默剔除错行。"
    },
-   "grossOutliers": [
-    {
-     "id": "c06_d-3",
-     "truth": -4.73,
-     "applied": -15.424,
-     "output_tilt": 10.638,
-     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d-3__cn_big_1inch.jpg"
-    }
-   ]
+   "grossOutliers": []
   },
   "P0.3b_fixtureConditionalCoverage": {
    "n": 67,
-   "unavailable": 9,
+   "unavailable": 2,
    "culprits": [
-    "c01_d+10",
-    "c04_d-10",
-    "c04_d-5",
-    "c08_d-5",
-    "c11_d+10",
-    "c11_d+5",
-    "c11_d-10",
-    "c11_d-3",
-    "c11_d-5"
+    "c06_d-3",
+    "c08_d-10"
    ],
    "nearZeroExempt": [
     "c06_d+3"
    ]
   },
   "P0.3b_culpritBreakdown": {
-   "note": "9 条违规按源图归并。**不得用'真难样本'标签把 c11 的 5 条兜过去**——只有 `c11`(Δ=0, 真值 −0.11) 那一条是死区豁免。",
+   "note": "2 条违规按源图归并（逐族条数见 bySource，**本句不写死**）。**不得用'真难样本'标签把某一族的违规兜过去**——只有 `c11`(Δ=0, 真值 −0.11) 那一条是死区豁免。",
    "bySource": {
-    "c11": 5,
-    "c04": 2,
-    "c01": 1,
+    "c06": 1,
     "c08": 1
    },
    "c11AllSix": {
+    "keyNameIsHistorical": "键名里的 Six 是历史名；条数以 total 为准。",
     "total": 6,
-    "violations": 5,
+    "violations": 0,
     "harmless": [
      "c11_d0(Δ=0,truth=-0.11) 死区豁免"
     ],
-    "nonMonotonic": "c11_d+3(真值 2.89) 反而是 pupil，与 d-3/-5 不同向"
+    "nonMonotonicNote": "逐条 rollSource 见 c11FamilyRows（现算）。**原此处写死「c11_d+3(真值 2.89) 反而是 pupil，与 d-3/-5 不同向」，是某一轮估角器状态下的观察；估角器改动后该结论会整体失效，故不再写死，改为由产物现算。**",
+    "c11FamilyRows": [
+     {
+      "id": "c11",
+      "corpus": "anchor",
+      "truthTiltDeg": -0.11,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d+10",
+      "corpus": "rotated",
+      "truthTiltDeg": 9.89,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d+3",
+      "corpus": "rotated",
+      "truthTiltDeg": 2.89,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d+5",
+      "corpus": "rotated",
+      "truthTiltDeg": 4.89,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d-10",
+      "corpus": "rotated",
+      "truthTiltDeg": -10.11,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d-3",
+      "corpus": "rotated",
+      "truthTiltDeg": -3.11,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d-5",
+      "corpus": "rotated",
+      "truthTiltDeg": -5.11,
+      "rollSource": "pupil"
+     }
+    ]
    },
    "c09Note": "暗光图 Camera Roll/WIN_20230522_00_19_21_Pro.jpg（我 rejected 的 c09，两法矛盾 17.07° 未定真值）**不在 P0 语料内、无夹具**，在 P0.1b/P0.3b 上既不算通过也不算违规，不占分母。"
   },
@@ -5442,22 +5581,21 @@
    "byCorpus": {
     "pictures": {
      "none": 66,
-     "pupil": 12,
-     "unavailable": 2
+     "pupil": 13,
+     "unavailable": 1
     },
     "golden": {
      "pupil": 8
     },
     "anchor": {
-     "pupil": 21,
-     "unavailable": 1
+     "pupil": 22
     },
     "rotated": {
-     "pupil": 68,
-     "unavailable": 10
+     "pupil": 75,
+     "unavailable": 3
     }
    },
-   "unavailableCount": 13,
+   "unavailableCount": 4,
    "unavailableWithNonZeroRollDeg": [],
    "coverageRun": "out/P0_coverage_post.json (test/batch/p0_coverage_test.dart, 修后)"
   },
@@ -5467,7 +5605,8 @@
    "c08_d+5",
    "c08_d-10",
    "c08_d-5",
-   "c08_upright"
+   "c08_upright",
+   "p2_d-10"
   ],
   "alphaHoleIndependentOfRotation": {
    "file": "out/P0_alpha_holes.json",
@@ -5486,7 +5625,19 @@
    ]
   },
   "rotationFailureBoundary": {
-   "what": "**不得把「旋转夹具上的失败」一概推广成「夹具伪影」。** c08 的空洞是伪影（生产碰不到面内旋转输入），但 P0.3 那 1 条硬违规 + 9 条覆盖率违规是**估角器真不稳**，必须修。",
+   "what": "**不得把「旋转夹具上的失败」一概推广成「夹具伪影」。** c08 的空洞是伪影（生产碰不到面内旋转输入），但 P0.3 的 0 条硬违规 + 2 条覆盖率违规是**估角器真不稳**，必须修。（两条数都由下方产物现算，不写死；估角器一改就整块重测。）",
+   "evidenceProvenance": {
+    "hardAndCoverageSource": "out/P0_output_residual.json（硬违规）+ out/P0_compose_items.jsonl（覆盖率）",
+    "evidenceRowSource": "out/P0_output_residual.json",
+    "alphaFractionSource": "out/P0_alpha_holes.json",
+    "sourceSha256": {
+     "out/P0_output_residual.json": "249a56ec358f9f5a53db1999fa2ab389b614bd8f2b7aaf2c7986005a6268c08d",
+     "out/P0_compose_items.jsonl": "aea8b3cc9ab95f758e682a8661867e23e00dfc03f85e62e18433193b7cea0310",
+     "out/P0_alpha_holes.json": "67497012047ee0879d7fc41d8ecfeaceb518118e27ccd193b77dab2dd9a1a45f"
+    },
+    "codeFingerprintOfSources": null,
+    "note": "⚠ 上面每一行、以及 what 里的两个条数，都是 finalize 时从这些产物**现算**的；而这些产物**没有记录自己的代码指纹**（无 `provenance` 字段）。所以本块只证明「数字与产物一致」，**不证明产物出自当前被测代码**。估角器（`iris_roll.dart`）在 03:34 的残差产物之后已改过 3 次，本块的行值因此可能描述一个已不存在的代码状态 —— **跨轮比较前必须先重测产物**。"
+   },
    "evidenceNonMonotonic": {
     "note": "c06 家族在**同一张图**上：|Δ| 最小的一档炸，更大的一档反而干净——均匀的伪影不会这样跳。",
     "rows": [
@@ -5494,9 +5645,9 @@
       "id": "c06",
       "deltaDeg": 0.0,
       "truthTiltDeg": -1.73,
-      "appliedStraightenDeg": -1.843,
-      "outputTiltDeg": 0.214,
-      "absResidualDeg": 0.214
+      "appliedStraightenDeg": -1.711,
+      "outputTiltDeg": -0.159,
+      "absResidualDeg": 0.159
      },
      {
       "id": "c06_d+10",
@@ -5518,33 +5669,33 @@
       "id": "c06_d+5",
       "deltaDeg": 5.0,
       "truthTiltDeg": 3.27,
-      "appliedStraightenDeg": 3.105,
-      "outputTiltDeg": 0.257,
-      "absResidualDeg": 0.257
+      "appliedStraightenDeg": 3.095,
+      "outputTiltDeg": 0.265,
+      "absResidualDeg": 0.265
      },
      {
       "id": "c06_d-10",
       "deltaDeg": -10.0,
       "truthTiltDeg": -11.73,
-      "appliedStraightenDeg": -11.708,
-      "outputTiltDeg": 0.075,
-      "absResidualDeg": 0.075
+      "appliedStraightenDeg": -11.685,
+      "outputTiltDeg": 0.051,
+      "absResidualDeg": 0.051
      },
      {
       "id": "c06_d-3",
       "deltaDeg": -3.0,
       "truthTiltDeg": -4.73,
-      "appliedStraightenDeg": -15.424,
-      "outputTiltDeg": 10.638,
-      "absResidualDeg": 10.638
+      "appliedStraightenDeg": 0.0,
+      "outputTiltDeg": -4.825,
+      "absResidualDeg": 4.825
      },
      {
       "id": "c06_d-5",
       "deltaDeg": -5.0,
       "truthTiltDeg": -6.73,
-      "appliedStraightenDeg": -6.574,
-      "outputTiltDeg": -0.02,
-      "absResidualDeg": 0.02
+      "appliedStraightenDeg": -6.723,
+      "outputTiltDeg": 0.071,
+      "absResidualDeg": 0.071
      },
      {
       "id": "c06_upright",
@@ -5562,7 +5713,7 @@
      {
       "id": "c03",
       "truthTiltDeg": -3.72,
-      "outputTiltDeg": -0.157,
+      "outputTiltDeg": -0.109,
       "rollSource": "pupil"
      },
      {
@@ -5574,37 +5725,37 @@
      {
       "id": "c05",
       "truthTiltDeg": -3.91,
-      "outputTiltDeg": 0.068,
+      "outputTiltDeg": 0.089,
       "rollSource": "pupil"
      },
      {
       "id": "c06",
       "truthTiltDeg": -1.73,
-      "outputTiltDeg": 0.214,
+      "outputTiltDeg": -0.159,
       "rollSource": "pupil"
      },
      {
       "id": "c08",
       "truthTiltDeg": -8.01,
-      "outputTiltDeg": 0.096,
+      "outputTiltDeg": 0.465,
       "rollSource": "pupil"
      },
      {
       "id": "c10",
       "truthTiltDeg": -3.44,
-      "outputTiltDeg": -0.072,
+      "outputTiltDeg": 0.575,
       "rollSource": "pupil"
      },
      {
       "id": "c12",
       "truthTiltDeg": -2.09,
-      "outputTiltDeg": 0.259,
+      "outputTiltDeg": 0.131,
       "rollSource": "pupil"
      },
      {
       "id": "p1",
       "truthTiltDeg": -4.4,
-      "outputTiltDeg": 0.059,
+      "outputTiltDeg": 0.054,
       "rollSource": "pupil"
      }
     ]
