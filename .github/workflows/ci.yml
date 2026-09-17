@@ -7,7 +7,9 @@ on:
 
 jobs:
   analyze-test:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+    # ORT 推理基准需要 onnxruntime 原生库——插件只发 Windows/Android 实现，
+    # Linux 无 .so 可载（out/GATE 见 CI failure 日志），故 CI 跑在 Windows
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
