@@ -336,6 +336,25 @@ void main() {
       expect(again.changed, isFalse, reason: '重跑产物应已重钉');
     });
 
+    test('内容没变而代码变了 → 代码摘要要前移，否则连续变动期间的替换会整段漏掉', () {
+      // 这是上面那条规则的一个**反直觉但必要**的分支。
+      // 若钉永远停在最老那版代码上，那么「代码 X 产的内容 A」与「代码 Y 产的内容 B」
+      // 之间的替换，会因为 X≠Y 被判成"重跑产物" —— 于是**恰恰在代码连续变动期间
+      // 发生的那次替换，会被整段漏掉**。前移摘要把这个窗口收窄到"最近一轮"。
+      freshPin();
+      _write(imgRel, 'IMAGE-A');
+      pinSelfcheckImage(root: kSandbox, codeDigest: 'aaa', codeBinds: true);
+
+      // 第二轮：内容没变、代码变了 → 摘要应前移到 bbb。
+      pinSelfcheckImage(root: kSandbox, codeDigest: 'bbb', codeBinds: true);
+
+      // 第三轮：内容被换、代码保持 bbb（自第二轮起没变）→ 必须判被换过。
+      _write(imgRel, 'IMAGE-B');
+      final SelfcheckPin p = pinSelfcheckImage(root: kSandbox, codeDigest: 'bbb', codeBinds: true);
+      expect(p.tampered, isTrue,
+          reason: '摘要不前移的话，这一轮会看到 aaa→bbb 而误判成"重跑产物"');
+    });
+
     test('内容变了 + 代码也变了 + **产出绑不上** → 不重钉（盘上那份属于上一版代码）', () {
       freshPin();
       _write(imgRel, 'IMAGE-A');

@@ -381,12 +381,15 @@ class SelfcheckPin {
       currentHash != null &&
       pinnedHash != currentHash;
 
-  /// **同一份代码产不出两份不同内容的标定靶。**
+  /// 钉里记的那份代码 vs 现在。
+  bool get codeChanged =>
+      pinnedCode != null && currentCode != null && pinnedCode != currentCode;
+
+  /// **同一份代码 + 同一份输入产不出两份不同内容的文件。**
   ///
   /// 成立条件：内容变了、而代码指纹没变（且两侧都有记录）。
   /// 代码也变了的情况下内容跟着变是预期的（重跑产物），此时只登记不判违规。
-  bool get tampered =>
-      changed && pinnedCode != null && currentCode != null && pinnedCode == currentCode;
+  bool get tampered => changed && pinnedCode != null && currentCode != null && !codeChanged;
 
   String describe() {
     if (!fileExists) {
@@ -404,7 +407,7 @@ class SelfcheckPin {
     }
     if (!changed) {
       return '$path 与内容钉一致（sha256=${_short(currentHash)}）'
-          '${pinnedCode != null && currentCode != null && pinnedCode != currentCode ? "；期间代码已变（${pinnedCode}→${currentCode}）但标定靶未变，属预期" : ""}';
+          '${codeChanged ? "；期间代码已变（$pinnedCode→$currentCode）但标定靶未变，属预期" : ""}';
     }
     if (tampered) {
       return '$path **内容已变而代码未变**（钉 ${_short(pinnedHash)} → 现 '
@@ -498,12 +501,18 @@ SelfcheckPin pinSelfcheckImage({
     pinnedCode: pinnedCode,
     currentCode: codeDigest,
   );
-  // 内容随代码一起变 = 正常的重跑产物：把钉前移，免得下一轮拿旧钉误判。
-  // **只在 `codeBinds` 时才前移**：只有测量产出确实来自当前代码，才能断定
-  // 标定靶也是当前代码产出的。产出绑不上（代码在产出之后被改过）时，
-  // 盘上的标定靶是**上一版代码**留下的，把它钉到当前代码摘要上就是**就地洗白**，
-  // 下一轮再也看不见。也**绝不**在 [SelfcheckPin.tampered] 时前移 —— 同理。
-  if (out.changed && !out.tampered && codeBinds && cur != null) {
+  // 什么时候前移这根钉：
+  //   · **只在 `codeBinds` 时**。只有测量产出确实来自当前代码，才能断定标定靶
+  //     也是当前代码产出的。产出绑不上时，盘上的标定靶是**上一版代码**留下的，
+  //     把它钉到当前代码摘要上就是**就地洗白**，下一轮再也看不见。
+  //   · **`tampered` 时绝不前移**：那会把一次替换就地洗白，同理。
+  //   · 内容没变、只是代码变了 → **只把代码摘要前移**（内容还是那份内容，
+  //     只是产出它的代码换了一版）。这一步不是可有可无的洁癖：
+  //     不前移的话，钉永远停在最老的那版代码上，于是"代码 X 产的内容 A"与
+  //     "代码 Y 产的内容 B"之间那次替换，会因为 X≠Y 而被判成"重跑产物"——
+  //     **正是在代码连续变动期间发生的那次替换会被整段漏掉。**
+  if (codeBinds && cur != null && !out.tampered &&
+      (out.pinnedHash != cur || out.pinnedCode != codeDigest)) {
     write(cur, codeDigest);
   }
   return out;
