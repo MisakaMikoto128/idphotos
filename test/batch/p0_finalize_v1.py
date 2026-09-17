@@ -19,6 +19,7 @@
 """
 import json
 import os
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -661,13 +662,58 @@ def _fixture_delta(idv):
 
 
 def _git(args):
-    import subprocess
     try:
         r = subprocess.run(["git"] + args.split(), cwd=REPO, capture_output=True,
                            text=True)
         return r.stdout.strip().replace("\n", " | ")
     except Exception:  # noqa: BLE001
         return "unknown"
+
+
+def _git_ok(argv):
+    """取 git 输出；git 正常跑完但非 0 退出时返回 None。
+
+    与 `_git()` 的区别：后者把"命令非 0"和"起不了进程"都压成 `'unknown'`，
+    而 `rev-parse HEAD:<path>` 在"该文件不在这个提交里"时**预期内**地非 0 ——
+    这正是 commit 绑定要识别的情形，压成 `'unknown'` 就分不出来了。
+    argv 走**列表**不做 split：路径可能含空格。
+
+    **刻意不包 try/except。** 这里曾经有 `except Exception: return None`，而本文件
+    当时只在函数内部 `import subprocess`，于是 `_git_ok` 抛 NameError 被自己吃掉，
+    返回 None —— 上层据此报"取不到 HEAD（非 git 仓库？）"，**把所有指纹的提交绑定
+    静默置空，还附了一句错误的解释**。真正的异常（比如本地没有 git）必须炸出来，
+    不能降级成"这个对象不存在"。这正是本项目反复记的那个形态。
+    """
+    r = subprocess.run(["git"] + argv, cwd=REPO, capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def _commit_binding(hashes):
+    """把被测集绑定到一个 commit（与 `code_fingerprint.dart:commitBinding` 同一口径）。
+
+    按内容记的指纹能回答"变了没有"，回答不了"这是哪个版本的代码"。工作区有未提交
+    改动时指纹描述的是一个**历史里不存在的状态** —— 实测 ml-porting 未提交的估角改动
+    把 fnv 从 `5ba549780700fba9` 变成 `00a9fa55f822f55e`，后者在任何 commit 里都找不到。
+    """
+    head = _git_ok(["rev-parse", "HEAD"])
+    if not head:
+        # 只有在 git 正常跑完（exit 0）却给不出 HEAD 时才走到这里（空仓库等）。
+        # 起不了 git 走 `_git_ok` 抛异常，不会降级成本分支。
+        return {"headCommit": None, "allCommitted": None,
+                "uncommittedMeasuredFiles": [],
+                "commitBindingNote": "git 正常退出但给不出 HEAD，无法绑定提交。"}
+    uncommitted = sorted(rel for rel, blob in hashes.items()
+                         if _git_ok(["rev-parse", f"HEAD:{rel}"]) != blob)
+    return {
+        "headCommit": head,
+        "allCommitted": not uncommitted,
+        "uncommittedMeasuredFiles": uncommitted,
+        "commitBindingNote": (
+            f"被测集全部文件与该提交一致：本指纹即 {head} 的代码。"
+            if not uncommitted else
+            f"被测集有 {len(uncommitted)} 个文件与 {head} 不一致："
+            "本指纹描述的**不是任何提交**，只可用于内容比对。"),
+    }
 
 
 def _code_fingerprint():
@@ -677,8 +723,11 @@ def _code_fingerprint():
     未提交的估角改动；此后主会话又提交了若干 docs-only commit。若按 HEAD 记账，
     会把数字错标到一个与测量无关的 commit 上（实测已发生：evaluatedState 从
     b3518ba 漂到 5d4e89e）。按内容记账则与提交时序无关。
+
+    除内容指纹外另带 **commit 绑定**（`headCommit`/`allCommitted`/未提交文件表）：
+    只有内容指纹时，下游能判"不一致"却说不出"测量时跑的是哪份代码"，也就无法判
+    `undecidable`。绑定字段是**兄弟字段**，不参与 FNV，故不影响既有 `fnv1a64` 的可比性。
     """
-    import subprocess
     files = []
     for d in ("lib/core/matting", "lib/core/imaging"):
         p = os.path.join(REPO, *d.split("/"))
@@ -704,7 +753,8 @@ def _code_fingerprint():
         h ^= ch
         h = (h * 0x100000001B3) & 0xFFFFFFFFFFFFFFFF
     return {"files": len(hashes), "fnv1a64": format(h, "016x"),
-            "blobHashes": hashes}
+            "blobHashes": hashes, **_commit_binding(hashes)}
+
 
 
 def _measured_state(truth):
@@ -730,20 +780,33 @@ def _measured_state(truth):
             round_valid = pv.get("codeStableDuringRun")
         changed_files = pv.get("changedFiles") or []
     fp_now = _code_fingerprint()
+    fp_meas_fnv = None if fp_measured is None else fp_measured.get("fnv1a64")
     if round_valid is False:
+        verdict_code = "round_self_invalid"
         verdict = ("**本轮自身即失效**：成片台开跑/收尾两次指纹不一致，"
                    f"跑的过程中被测代码被改过（变更文件：{changed_files}）。"
                    "这份数字绑不到任何代码版本，**不得用作门禁判据**，必须重跑。")
     elif fp_measured is None:
+        verdict_code = "unprovable"
         verdict = ("**无法自证**：产出成片的 `p0_compose_summary.json` 里没有"
                    " `provenance.codeFingerprint`（本轮跑的时候还没加这个字段），"
                    "因此不能证明这些数字对应的代码内容 = 现在的代码内容。"
                    "ml-porting 提交后重跑一遍即可补上，届时此字段会给出比对结论。")
-    elif fp_measured.get("fnv1a64") == fp_now.get("fnv1a64"):
-        verdict = "一致：测量当时的代码内容与现在逐文件相同，数字未被后续改动污染。"
+    elif fp_meas_fnv != fp_now.get("fnv1a64"):
+        # 门禁口径：不一致即 `undecidable` —— **不许拿旧代码的数当本轮的数**。
+        verdict_code = "undecidable"
+        verdict = ("**不可判定（undecidable）**：测量当时的被测代码内容与现在**不一致**，"
+                   f"因此无法判定本文件的数字是否属于这份代码。测量时 "
+                   f"{fp_measured.get('fnv1a64')}（{fp_measured.get('commitBindingNote')}）、"
+                   f"现在 {fp_now.get('fnv1a64')}。必须重跑全链。")
     else:
-        verdict = ("**不一致**：代码内容在测量之后变过，本文件的数字已过期，"
-                   "必须重跑全链。")
+        verdict_code = "attributable"
+        bind = fp_measured.get("headCommit") or "(未知提交)"
+        verdict = ("**可归属**：测量当时的被测代码内容与现在逐文件相同，数字未被后续改动"
+                   f"污染，可归到 {bind}。"
+                   + ("" if fp_measured.get("allCommitted") else
+                      " 注意测量时工作区**有未提交改动**，故该指纹不对应任何提交，"
+                      "只能按内容比对。"))
     return {
         "note": "**这不是 HEAD。** 成片/覆盖率/残余三份数字产出于下表记录的"
                 "工作区状态；此后主会话提交了若干 docs-only commit，按 HEAD 记账"
@@ -753,10 +816,19 @@ def _measured_state(truth):
         "roundSelfValid": round_valid,
         "roundChangedFiles": changed_files,
         "codeFingerprintAtFinalize": {"fnv1a64": fp_now["fnv1a64"],
-                                      "files": fp_now["files"]},
+                                      "files": fp_now["files"],
+                                      "headCommit": fp_now.get("headCommit"),
+                                      "allCommitted": fp_now.get("allCommitted")},
         "codeFingerprintAtMeasure": (None if fp_measured is None
                                      else {"fnv1a64": fp_measured.get("fnv1a64"),
-                                           "files": fp_measured.get("files")}),
+                                           "files": fp_measured.get("files"),
+                                           "headCommit": fp_measured.get("headCommit"),
+                                           "allCommitted": fp_measured.get("allCommitted"),
+                                           "uncommittedMeasuredFiles":
+                                               fp_measured.get("uncommittedMeasuredFiles"),
+                                           "commitBindingNote":
+                                               fp_measured.get("commitBindingNote")}),
+        "fingerprintVerdictCode": verdict_code,
         "fingerprintVerdict": verdict,
         "headAtFinalize": _git("rev-parse --short HEAD"),
     }

@@ -37,6 +37,45 @@ OUT = REPO + r"\out"
 COMPOSED = OUT + r"\P0_anchors\composed"
 
 
+def _compose_provenance():
+    """本文件数字的**代码来源**：继承成片台的指纹，**不自己重取**。
+
+    为什么继承：这里的每个数都是对 `out/P0_anchors/composed/*.jpg` 的纯 Python 测量，
+    而那些成片由 lib 代码产出。若在本脚本运行时刻重取一次当前树指纹，记的是
+    "跑本脚本时"的代码内容，**不是产出那些成片时的代码内容** —— 两者之间代码完全
+    可以已经被改过，本项目实测发生过（`evaluatedState` 从 b3518ba 漂到 5d4e89e）。
+    那会把一份过期的数字标成当轮的，正是这条溯源机制要防的事。
+
+    代价说清楚：本文件的**测量侧**（Python 代码）不在指纹里，因为它属于 `test/`，
+    由冻结机制（`kFreezeScopes`）管；指纹只负责回答"**被测的那份 lib 代码**是哪一版"。
+    """
+    p = os.path.join(OUT, "P0_compose_summary.json")
+    if not os.path.exists(p):
+        return {"inheritedFrom": None,
+                "note": "out/P0_compose_summary.json 不存在，无法继承成片台的代码指纹。"}
+    d = json.load(open(p, encoding="utf-8"))
+    pv = d.get("provenance") or {}
+    round_valid = pv.get("roundValid")
+    if round_valid is None:
+        round_valid = pv.get("codeStableDuringRun")
+    fp = pv.get("codeFingerprint")
+    note = ("本文件是对成片的纯 Python 测量，成片由 lib 代码产出，故**继承**成片台的"
+            "指纹；刻意不在本脚本运行时刻重取 —— 那记的是本脚本的运行时刻，"
+            "不是产出成片的代码状态。")
+    if fp is None:
+        note += " ⚠ 成片台当时还没写这个字段，故本文件**无法自证**属于哪份代码。"
+    elif not fp.get("allCommitted"):
+        note += (f" ⚠ 成片台当时工作区有未提交改动"
+                 f"（{len(fp.get('uncommittedMeasuredFiles') or [])} 个文件），"
+                 f"该指纹不对应任何提交，只能按内容比对。")
+    return {
+        "inheritedFrom": "out/P0_compose_summary.json#provenance.codeFingerprint",
+        "codeFingerprint": fp,
+        "roundValid": round_valid,
+        "note": note,
+    }
+
+
 def _j(v):
     if isinstance(v, dict):
         return {k: _j(x) for k, x in v.items()}
@@ -291,6 +330,7 @@ def main():
     summary = {
         "generatedBy": "qa-batch test/batch/p0_output_residual.py",
         "note": "成片眼线残余（口径无关）：理想 0。测量只用 Python/PIL/OpenCV。",
+        "provenance": _compose_provenance(),
         "primarySpec": "cn_big_1inch",
         "composedCount": len(results),
         "primaryCount": len(primary),

@@ -28,6 +28,64 @@ String gitText(List<String> args) {
   }
 }
 
+/// 取 git 输出；git 正常跑完但非 0 退出时返回 null。
+///
+/// 与 [gitText] 的区别：后者把"命令非 0"和"起不了进程"都压成 `'unknown'`。
+/// 而 `git rev-parse HEAD:<path>` 在"该文件不在这个提交里"时**预期内**地非 0 ——
+/// 这正是 [commitBinding] 要识别的情形，压成 `'unknown'` 就分不出来了。
+///
+/// **刻意不包 try/catch。** 起不了 git 是环境故障，必须炸出来；若降级成 null，
+/// 上层会报"取不到 HEAD"，**把所有指纹的提交绑定静默置空还附一句错误解释** ——
+/// 这正是本项目反复记的那个形态（仪表看不见对象时说了"没有"）。
+/// 走到这里时 `gitText(['hash-object', ...])` 也早已失败，静默降级救不了任何东西。
+String? _gitOrNull(List<String> args) {
+  final r = Process.runSync('git', args);
+  if (r.exitCode != 0) return null;
+  return (r.stdout as String).trim();
+}
+
+/// 把被测集**绑定到一个 commit**。
+///
+/// 为什么指纹本身不够：按内容记的指纹能回答"变了没有"，回答不了"**这是哪个版本的代码**"。
+/// 工作区有未提交改动时，指纹描述的是一个**在历史里根本不存在的状态** ——
+/// 实测：ml-porting 未提交的估角改动把 fnv 从 `5ba549780700fba9` 变成
+/// `00a9fa55f822f55e`，后者在任何 commit 里都找不到。此时若下游只比 fnv，
+/// 它会发现"不一致"，但说不出"测量时跑的是哪份代码"，也就无法判 `undecidable`。
+///
+/// 做法：逐个文件比对工作区 blob 与 `HEAD:<path>` 的 blob。全等 → 这份指纹
+/// **就是** `headCommit` 的代码；有差异 → 列出具体哪些文件没有对应提交。
+///
+/// 刻意**不改**参与 FNV 的字符串：改了会让本次改动前后记录的 `fnv1a64` 不可比，
+/// 把一次纯溯源增强变成一次假漂移。绑定信息一律作为**兄弟字段**携带。
+Map<String, Object?> commitBinding(Map<String, String> hashes) {
+  final head = _gitOrNull(<String>['rev-parse', 'HEAD']);
+  if (head == null || head.isEmpty) {
+    // git 正常跑完（exit 0）却给不出 HEAD 才会走到这里（空仓库等）。
+    // 起不了 git 由 `_gitOrNull` 直接抛，不降级成本分支。
+    return <String, Object?>{
+      'headCommit': null,
+      'allCommitted': null,
+      'uncommittedMeasuredFiles': <String>[],
+      'commitBindingNote': 'git 正常退出但给不出 HEAD，无法绑定提交。',
+    };
+  }
+  final uncommitted = <String>[];
+  for (final e in hashes.entries) {
+    final atHead = _gitOrNull(<String>['rev-parse', 'HEAD:${e.key}']);
+    if (atHead != e.value) uncommitted.add(e.key);
+  }
+  uncommitted.sort();
+  return <String, Object?>{
+    'headCommit': head,
+    'allCommitted': uncommitted.isEmpty,
+    'uncommittedMeasuredFiles': uncommitted,
+    'commitBindingNote': uncommitted.isEmpty
+        ? '被测集全部文件与该提交一致：本指纹即 $head 的代码。'
+        : '被测集有 ${uncommitted.length} 个文件与 $head 不一致：'
+              '本指纹描述的**不是任何提交**，只可用于内容比对。',
+  };
+}
+
 String _join(String root, String rel) {
   final sep = Platform.pathSeparator;
   final base = root.endsWith(sep) || root.endsWith('/') ? root.substring(0, root.length - 1) : root;
@@ -73,6 +131,7 @@ Map<String, Object?> codeFingerprint({String root = '.', List<String>? extraDirs
     'files': hashes.length,
     'fnv1a64': h.toRadixString(16).padLeft(16, '0'),
     'blobHashes': hashes,
+    ...commitBinding(hashes),
   };
 }
 
