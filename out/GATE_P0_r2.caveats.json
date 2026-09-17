@@ -53,6 +53,22 @@
       "coverageGap": "该产物 items 只覆盖 Pictures/** 80 条 + out/P0_anchors/** 7 条（全 c08 家族）。c06_d-3 从未被它扫过——而 out/P0_anchors/ 下有 114 张 PNG 且含 c06_d-3.png。",
       "consequence": "P0.3b 的 c06_d-3 一条靠两件（真值自洽 + 两支独立量具），不是三件；『眼区干净』已撤回。",
       "doNotReadAs": "『有洞/无洞』只能当作一次未绑定版本的观测，不能当作可复现的判定依据。"
+    },
+    {
+      "id": "C5-alpha-holes-87-is-not-87-measurements",
+      "appliesTo": ["C4", "out/P0_alpha_holes.json", "报告中一切『14 张未旋转人像空洞率为 0』的引用"],
+      "statement": "C4 写的『items 87 条』是**扫描行数**，不是**测量数**。其中 66 条 outcome=fail / assessable=false，真正可评估的只有 **21** 条。",
+      "breakdown": {
+        "totalScanned": 87,
+        "assessable": 21,
+        "notAssessable": 66,
+        "assessableComposition": "Pictures 下未旋转人像 14 张 + out/P0_anchors/ 下 c08 家族 7 张"
+      },
+      "whyItMatters": "『87 条扫过、只有少数有洞』与『21 条可评估、其中 4 条有洞』是两个不同的证据强度。前者听起来像一个大样本，实际可用的只有后者的量级。",
+      "consequenceForTheClaim": "该产物 answer 断言『未旋转的真实照片一张都没有洞』，其证据是 **14 张**（不是 87 张）。该结论**不受影响**（14 张全部 eyeBandZeroFrac = 0.0 是原话），但**样本量必须按 14 报，不能按 87 报**。",
+      "producerField": "out/P0_alpha_holes.json 的 total / assessable / notAssessable 三个字段本就分开记了，是**引用时**被我压成了一个数。",
+      "theScanIsNotAPhotoCount": "那 66 条 fail 里混着**根本不是图片**的文件 —— `desktop.ini`、`Lightroom Catalog.lrcat`、`previews.db`、`新文件 27.txt`、`scenario.json`、`map.dat` 等。扫描扫的是整棵 Pictures 目录树，不是相册。**它们优雅失败是正确行为**（CLAUDE.md §5.5：非人像输入必须优雅失败而不是崩溃），**但 87 因此不是一个『照片数』**，连 21 也不是纯人像数（其中 7 条是 out/P0_anchors 的 c08 家族夹具）。",
+      "doNotReadAs": "不要把 total(87) 当分母。任何『空洞率』的分母是 assessable(21)，『未旋转人像无洞』的分母是 14。"
     }
   ]
 }
