@@ -2674,3 +2674,31 @@ ml-porting **手上有答案却拒绝在场外说**，理由是：在落盘之�
 两边即使指向同一侧眼睛，那是**跨方法佐证**（真值件里 `corroborationM1vsM3Deg` /
 `corroborationOk` 记的就是这类），**不是同一份证据被数两遍**。
 引用时必须分开署，否则两条独立证据会塌成一条。
+
+## 2026-09-17 P0.5c 的两个输入完全没有绑定：可以拿 9 天前的读数判今天的代码（gatekeeper 自查）
+
+**发现**：`out/gate_G2B.json` 与 `out/gate_G4.json` —— P0.5c（"不回归"）的**全部输入** ——
+顶层键只有 `gate / generatedAt / items / summary / pass`，**没有 provenance 块**；
+而门禁在 `gate_P0.dart:319-320` 用 `_readJson()` 直读，**不做任何绑定校验**。
+`generatedAt` 没有任何代码消费它。
+
+**实测**：
+- `out/gate_G2B.json`：`generatedAt = 2026-09-08T21:51:39`，9/9 PASS；
+- `out/gate_G4.json`：`generatedAt = 2026-09-16T03:33:42`，14/15，未过项 `4.7`。
+
+两者都**早于本轮被判决的代码状态**（r2 基线 tag 之后 ml-porting 仍在改）。
+即：P0.5c 可以读着 9 天前的 G2B 读数，报出"未退化"。
+
+**为什么轮次有效性机检没拦住**：七件机检的第 ⑤ 件只覆盖 `verifyMeasurementOutputs()`
+里那**三份 P0 测量产出**（`P0_compose_summary` / `P0_output_residual` / `P0_alpha_holes`），
+`gate_G2B.json` / `gate_G4.json` 不在其中。所以"工作树干净 + 三份产出绑上了"
+推不出"P0.5c 的输入也是当前代码跑的"。
+
+**本轮为什么没造成假绿**：r2 里 P0.5c 判的是 **MANUAL**（上游未修好、未重跑设备端），
+本来就没给 PASS。**但机制允许一个假绿**——这与 `assets/models/` 那条是同一个形状：
+**判据的输入不在受钉范围内，且没有任何东西在验证它。**
+
+**r3 的操作要求**：`补跑 P0.5c` 必须理解为**在被判决的那份代码上重新生成这两个文件**
+（设备端两趟 ~40 分钟），不是重新读一遍盘上的旧件；r3 报告要写明两者的 `generatedAt`。
+**永久修法**（给这两个文件加代码指纹绑定，或把第 ⑤ 件的域扩展到全部判据输入）
+与 `assets/models/` 同批，放 P0 PASS 之后 —— 不在 r3 中途动量具。
