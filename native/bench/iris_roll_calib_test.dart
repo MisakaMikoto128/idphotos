@@ -528,8 +528,22 @@ void main() {
       final Map<String, dynamic> rot = r as Map<String, dynamic>;
       final File f = File(rot['path'] as String);
       if (!f.existsSync()) continue;
-      fx.add(('${rot['src']}_d${rot['deltaDeg']}', f.path,
-          (rot['expectedTiltDeg'] as num).toDouble()));
+      // 标签**取真值件自己的 `id`**，不按 src/deltaDeg 现拼。拼出来的是
+      // `c06_d-3.0`（deltaDeg 是 double），真值件里叫 `c06_d-3`——同一条样本
+      // 两个名字并排进报告就会被当成两条，本轮已实际发生一次。实测 78/78 行
+      // 两个名字都不同（`p1_d-10.0` vs `p1_d-10`），不是个例。
+      final String label =
+          (rot['id'] as String?) ?? '${rot['src']}_d${rot['deltaDeg']}';
+      fx.add((label, f.path, (rot['expectedTiltDeg'] as num).toDouble()));
+    }
+    // 标签同时是 map 的 key：重名会让一条样本**静默**从覆盖率分母里消失，
+    // 数字随之虚高。当前产物 78 条 id 唯一，所以这条不会响；响即产物有缺陷。
+    final Set<String> seen = <String>{};
+    for (final (String tag, String _, double _) in fx) {
+      if (!seen.add(tag)) {
+        // ignore: avoid_print
+        print('[G] 标签重名「$tag」会从分母中丢样本，本轮覆盖率数字不可用');
+      }
     }
     final Directory pics = Directory(r'C:\Users\liuyu\Pictures');
     if (pics.existsSync()) {
