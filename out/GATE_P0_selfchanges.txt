@@ -86,3 +86,21 @@ integration_test/g4_spotcheck_test.dart
 #  两处都只动"输入完整性检查怎么读盘"，**判据、阈值、分母一律未动**。
 #  修复前后脚本 SHA256 见 out/hashes_gatefix_before.txt 与本轮报告。
 #  修后实测：三份产出 103/103 条 blob 与当前树相符、`invalidReasons=[]`。
+# 2026-09-17 第五批（新增量具能力，**判据路径零改动**）：
+#  · tools/gate/p0_eyeline.py —— 新增只读子命令 `probe`：把 measure() 的眼候选
+#    决策链整个落盘（全部候选的 box/中心/面积/长宽比/尺寸比/圆度/亮度
+#    + 逐步 keep/drop 及命中的规则名），并**先跑已知答案对照**（探针重放 ==
+#    measure()，以及注入 ±3° 后读数 == 基准 + 注入角，容差 0.5°），
+#    对照不过则退出码非 0、结论不可信。
+#    动机：实现方对 c06_d-3 为何测不出/测错是"盲"的，只能看到 ok/reason，
+#    看不到中间候选与丢弃规则。靠口头转述等于让他们依赖我的描述（会失真、
+#    也会被我成见污染）。落盘后任何人都能自己复算。
+#  · 边界声明：`probe` **不参与任何 PASS/FAIL**，gate_P0.dart 不调用它。
+#    `measure()` / `_pick_pair()` / `run` **一行未动**。
+#  · **零漂移证据**（这是本条的关键，不是"我认为没动"）：
+#    用同一个 out/P0_compose_items.jsonl（--spec cn_big_1inch，100 条）
+#    重跑 `run`，与 r2 判据所用的 out/GATE_P0_r2_eyeline.json 逐条比对：
+#    n/n_measured 均 100/88；除 rows 外所有顶层字段相同；id 集合相同；
+#    **逐条不同数 = 0**。即 probe 的加入没有移动 r2 的任何一个读数。
+#  · 改前 SHA256 9bf78e113a34a2c9e90197bc842f2fca1a8999ae3507176f95b1fa1306889be4
+#    改后 SHA256 ecc8d4da98a29f4ba134228dcf66efe665ac149614f358167ed1d95948a02ec8

@@ -1,0 +1,1049 @@
+{
+ "generatedBy": "gatekeeper tools/gate/p0_eyeline.py probe",
+ "role": "只观测、不改判；不参与任何 PASS/FAIL",
+ "control": {
+  "ok": true,
+  "checks": [
+   {
+    "check": "探针重放 == measure()（同一张图，同 code path）",
+    "pass": true,
+    "probe": 0.6250200740174968,
+    "measure": 0.6250200740174968
+   },
+   {
+    "check": "注入 +3.0° -> 期望 +3.625°",
+    "pass": true,
+    "probe": 3.715,
+    "err_deg": 0.09
+   },
+   {
+    "check": "注入 -3.0° -> 期望 -2.375°",
+    "pass": true,
+    "probe": -2.004,
+    "err_deg": 0.371
+   }
+  ]
+ },
+ "cases": [
+  {
+   "n_faces_detected": 1,
+   "face_candidates": [
+    {
+     "box_full": [
+      70.5,
+      134.5,
+      261.5,
+      261.5
+     ],
+     "area_full_px": 68382.2
+    }
+   ],
+   "face_kept": {
+    "rule": "取面积最大的正脸框（detectMultiScale 的原始顺序不参与）",
+    "box_full": [
+     70.5,
+     134.5,
+     261.5,
+     261.5
+    ],
+    "roi_full": [
+     70.5,
+     134.5,
+     261.5,
+     162.13
+    ],
+    "roi_rule": "g[fy : fy + fh*0.62, fx : fx + fw]（只取上 62%）"
+   },
+   "n_eyes_detected_note": "detectMultiScale 原始输出个数",
+   "n_eyes_detected": 6,
+   "eye_candidates": [
+    {
+     "box_roi": [
+      324,
+      127,
+      24,
+      24
+     ],
+     "box_full": [
+      232.5,
+      198.0,
+      12.0,
+      12.0
+     ],
+     "center_full": [
+      238.5,
+      204.0
+     ],
+     "area_roi_px": 576,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0459,
+     "size_floor_roi_px": 62.76,
+     "passes_size_gate": false,
+     "circularity_desc": 0.6093,
+     "mean_luma_desc": 110.78,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      156,
+      65,
+      23,
+      23
+     ],
+     "box_full": [
+      148.5,
+      167.0,
+      11.5,
+      11.5
+     ],
+     "center_full": [
+      154.25,
+      172.75
+     ],
+     "area_roi_px": 529,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.044,
+     "size_floor_roi_px": 62.76,
+     "passes_size_gate": false,
+     "circularity_desc": 0.2304,
+     "mean_luma_desc": 54.0,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      193,
+      206,
+      44,
+      44
+     ],
+     "box_full": [
+      167.0,
+      237.5,
+      22.0,
+      22.0
+     ],
+     "center_full": [
+      178.0,
+      248.5
+     ],
+     "area_roi_px": 1936,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0841,
+     "size_floor_roi_px": 62.76,
+     "passes_size_gate": false,
+     "circularity_desc": 0.3131,
+     "mean_luma_desc": 156.7,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      102,
+      154,
+      96,
+      96
+     ],
+     "box_full": [
+      121.5,
+      211.5,
+      48.0,
+      48.0
+     ],
+     "center_full": [
+      145.5,
+      235.5
+     ],
+     "area_roi_px": 9216,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1836,
+     "size_floor_roi_px": 62.76,
+     "passes_size_gate": true,
+     "circularity_desc": 0.2456,
+     "mean_luma_desc": 160.56,
+     "rank_by_area": 0,
+     "decision": "kept:top2"
+    },
+    {
+     "box_roi": [
+      307,
+      160,
+      85,
+      85
+     ],
+     "box_full": [
+      224.0,
+      214.5,
+      42.5,
+      42.5
+     ],
+     "center_full": [
+      245.25,
+      235.75
+     ],
+     "area_roi_px": 7225,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1625,
+     "size_floor_roi_px": 62.76,
+     "passes_size_gate": true,
+     "circularity_desc": 0.2756,
+     "mean_luma_desc": 159.84,
+     "rank_by_area": 1,
+     "decision": "kept:top2"
+    },
+    {
+     "box_roi": [
+      29,
+      161,
+      75,
+      75
+     ],
+     "box_full": [
+      85.0,
+      215.0,
+      37.5,
+      37.5
+     ],
+     "center_full": [
+      103.75,
+      233.75
+     ],
+     "area_roi_px": 5625,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1434,
+     "size_floor_roi_px": 62.76,
+     "passes_size_gate": true,
+     "circularity_desc": 0.2153,
+     "mean_luma_desc": 137.02,
+     "rank_by_area": 2,
+     "decision": "dropped:not_in_top2_by_area"
+    }
+   ],
+   "size_gate": {
+    "rule": "ew >= 0.12*face_w AND eh >= 0.12*face_w",
+    "floor_roi_px": 62.76,
+    "n_passing": 3
+   },
+   "pair_kept": {
+    "left_center_full": [
+     145.5,
+     235.5
+    ],
+    "right_center_full": [
+     245.25,
+     235.75
+    ],
+    "eyedist_full_px": 99.75,
+    "eyedist_raw_roi_px": 199.5,
+    "eyedist_ratio": 0.3815,
+    "eyedist_gate": "0.22 <= eyedist_raw/face_w <= 0.55",
+    "passes_eyedist_gate": true,
+    "dx_roi_px": 199.5,
+    "dy_roi_px": 0.5,
+    "recompute_hint": "tilt = degrees(atan2(dy_roi, dx_roi))，dy_roi = right.y - left.y（y 向下），left = x 较小者"
+   },
+   "ok": true,
+   "tilt_deg": 0.14359814423120423,
+   "method": "haar_eyeline_2x",
+   "decision": "kept",
+   "measure_agrees": true,
+   "measure_tilt_deg": 0.14359814423120423,
+   "id": "c02_d-3",
+   "path": "out/P0_anchors/composed/c02_d-3__cn_big_1inch.jpg",
+   "specId": "cn_big_1inch",
+   "corpus": "rotated",
+   "truthTiltDeg": -3.25,
+   "applied_straighten_deg": -3.2320119635637505
+  },
+  {
+   "n_faces_detected": 1,
+   "face_candidates": [
+    {
+     "box_full": [
+      75.5,
+      139.5,
+      256.0,
+      256.0
+     ],
+     "area_full_px": 65536.0
+    }
+   ],
+   "face_kept": {
+    "rule": "取面积最大的正脸框（detectMultiScale 的原始顺序不参与）",
+    "box_full": [
+     75.5,
+     139.5,
+     256.0,
+     256.0
+    ],
+    "roi_full": [
+     75.5,
+     139.5,
+     256.0,
+     158.72
+    ],
+    "roi_rule": "g[fy : fy + fh*0.62, fx : fx + fw]（只取上 62%）"
+   },
+   "n_eyes_detected_note": "detectMultiScale 原始输出个数",
+   "n_eyes_detected": 3,
+   "eye_candidates": [
+    {
+     "box_roi": [
+      289,
+      127,
+      100,
+      100
+     ],
+     "box_full": [
+      220.0,
+      203.0,
+      50.0,
+      50.0
+     ],
+     "center_full": [
+      245.0,
+      228.0
+     ],
+     "area_roi_px": 10000,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1953,
+     "size_floor_roi_px": 61.44,
+     "passes_size_gate": true,
+     "circularity_desc": 0.2261,
+     "mean_luma_desc": 176.74,
+     "rank_by_area": 0,
+     "decision": "kept:top2"
+    },
+    {
+     "box_roi": [
+      127,
+      107,
+      46,
+      46
+     ],
+     "box_full": [
+      139.0,
+      193.0,
+      23.0,
+      23.0
+     ],
+     "center_full": [
+      150.5,
+      204.5
+     ],
+     "area_roi_px": 2116,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0898,
+     "size_floor_roi_px": 61.44,
+     "passes_size_gate": false,
+     "circularity_desc": 0.3154,
+     "mean_luma_desc": 169.91,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      95,
+      145,
+      94,
+      94
+     ],
+     "box_full": [
+      123.0,
+      212.0,
+      47.0,
+      47.0
+     ],
+     "center_full": [
+      146.5,
+      235.5
+     ],
+     "area_roi_px": 8836,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1836,
+     "size_floor_roi_px": 61.44,
+     "passes_size_gate": true,
+     "circularity_desc": 0.2018,
+     "mean_luma_desc": 188.61,
+     "rank_by_area": 1,
+     "decision": "kept:top2"
+    }
+   ],
+   "size_gate": {
+    "rule": "ew >= 0.12*face_w AND eh >= 0.12*face_w",
+    "floor_roi_px": 61.44,
+    "n_passing": 2
+   },
+   "pair_kept": {
+    "left_center_full": [
+     146.5,
+     235.5
+    ],
+    "right_center_full": [
+     245.0,
+     228.0
+    ],
+    "eyedist_full_px": 98.79,
+    "eyedist_raw_roi_px": 197.57,
+    "eyedist_ratio": 0.3859,
+    "eyedist_gate": "0.22 <= eyedist_raw/face_w <= 0.55",
+    "passes_eyedist_gate": true,
+    "dx_roi_px": 197.0,
+    "dy_roi_px": -15.0,
+    "recompute_hint": "tilt = degrees(atan2(dy_roi, dx_roi))，dy_roi = right.y - left.y（y 向下），left = x 较小者"
+   },
+   "ok": true,
+   "tilt_deg": -4.354221063069611,
+   "method": "haar_eyeline_2x",
+   "decision": "kept",
+   "measure_agrees": true,
+   "measure_tilt_deg": -4.354221063069611,
+   "id": "c06_d-3",
+   "path": "out/P0_anchors/composed/c06_d-3__cn_big_1inch.jpg",
+   "specId": "cn_big_1inch",
+   "corpus": "rotated",
+   "truthTiltDeg": -4.73,
+   "applied_straighten_deg": 0.0
+  },
+  {
+   "n_faces_detected": 1,
+   "face_candidates": [
+    {
+     "box_full": [
+      75.0,
+      140.0,
+      257.5,
+      257.5
+     ],
+     "area_full_px": 66306.2
+    }
+   ],
+   "face_kept": {
+    "rule": "取面积最大的正脸框（detectMultiScale 的原始顺序不参与）",
+    "box_full": [
+     75.0,
+     140.0,
+     257.5,
+     257.5
+    ],
+    "roi_full": [
+     75.0,
+     140.0,
+     257.5,
+     159.65
+    ],
+    "roi_rule": "g[fy : fy + fh*0.62, fx : fx + fw]（只取上 62%）"
+   },
+   "n_eyes_detected_note": "detectMultiScale 原始输出个数",
+   "n_eyes_detected": 11,
+   "eye_candidates": [
+    {
+     "box_roi": [
+      295,
+      122,
+      35,
+      35
+     ],
+     "box_full": [
+      222.5,
+      201.0,
+      17.5,
+      17.5
+     ],
+     "center_full": [
+      231.25,
+      209.75
+     ],
+     "area_roi_px": 1225,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.068,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": false,
+     "circularity_desc": 0.336,
+     "mean_luma_desc": 134.66,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      91,
+      127,
+      32,
+      32
+     ],
+     "box_full": [
+      120.5,
+      203.5,
+      16.0,
+      16.0
+     ],
+     "center_full": [
+      128.5,
+      211.5
+     ],
+     "area_roi_px": 1024,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0621,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": false,
+     "circularity_desc": 0.5565,
+     "mean_luma_desc": 118.62,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      381,
+      51,
+      32,
+      32
+     ],
+     "box_full": [
+      265.5,
+      165.5,
+      16.0,
+      16.0
+     ],
+     "center_full": [
+      273.5,
+      173.5
+     ],
+     "area_roi_px": 1024,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0621,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": false,
+     "circularity_desc": 0.4944,
+     "mean_luma_desc": 86.04,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      348,
+      40,
+      23,
+      23
+     ],
+     "box_full": [
+      249.0,
+      160.0,
+      11.5,
+      11.5
+     ],
+     "center_full": [
+      254.75,
+      165.75
+     ],
+     "area_roi_px": 529,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0447,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": false,
+     "circularity_desc": 0.2067,
+     "mean_luma_desc": 85.44,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      442,
+      264,
+      24,
+      24
+     ],
+     "box_full": [
+      296.0,
+      272.0,
+      12.0,
+      12.0
+     ],
+     "center_full": [
+      302.0,
+      278.0
+     ],
+     "area_roi_px": 576,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0466,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": false,
+     "circularity_desc": 0.5997,
+     "mean_luma_desc": 113.04,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      201,
+      60,
+      24,
+      24
+     ],
+     "box_full": [
+      175.5,
+      170.0,
+      12.0,
+      12.0
+     ],
+     "center_full": [
+      181.5,
+      176.0
+     ],
+     "area_roi_px": 576,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0466,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": false,
+     "circularity_desc": 0.3032,
+     "mean_luma_desc": 114.65,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      109,
+      158,
+      78,
+      78
+     ],
+     "box_full": [
+      129.5,
+      219.0,
+      39.0,
+      39.0
+     ],
+     "center_full": [
+      149.0,
+      238.5
+     ],
+     "area_roi_px": 6084,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1515,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": true,
+     "circularity_desc": 0.2665,
+     "mean_luma_desc": 157.06,
+     "rank_by_area": 0,
+     "decision": "kept:top2"
+    },
+    {
+     "box_roi": [
+      303,
+      163,
+      70,
+      70
+     ],
+     "box_full": [
+      226.5,
+      221.5,
+      35.0,
+      35.0
+     ],
+     "center_full": [
+      244.0,
+      239.0
+     ],
+     "area_roi_px": 4900,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1359,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": true,
+     "circularity_desc": 0.3573,
+     "mean_luma_desc": 152.05,
+     "rank_by_area": 1,
+     "decision": "kept:top2"
+    },
+    {
+     "box_roi": [
+      326,
+      59,
+      32,
+      32
+     ],
+     "box_full": [
+      238.0,
+      169.5,
+      16.0,
+      16.0
+     ],
+     "center_full": [
+      246.0,
+      177.5
+     ],
+     "area_roi_px": 1024,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0621,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": false,
+     "circularity_desc": 0.4918,
+     "mean_luma_desc": 123.91,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      35,
+      158,
+      69,
+      69
+     ],
+     "box_full": [
+      92.5,
+      219.0,
+      34.5,
+      34.5
+     ],
+     "center_full": [
+      109.75,
+      236.25
+     ],
+     "area_roi_px": 4761,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.134,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": true,
+     "circularity_desc": 0.2283,
+     "mean_luma_desc": 137.1,
+     "rank_by_area": 2,
+     "decision": "dropped:not_in_top2_by_area"
+    },
+    {
+     "box_roi": [
+      189,
+      197,
+      54,
+      54
+     ],
+     "box_full": [
+      169.5,
+      238.5,
+      27.0,
+      27.0
+     ],
+     "center_full": [
+      183.0,
+      252.0
+     ],
+     "area_roi_px": 2916,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1049,
+     "size_floor_roi_px": 61.8,
+     "passes_size_gate": false,
+     "circularity_desc": 0.2147,
+     "mean_luma_desc": 160.41,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    }
+   ],
+   "size_gate": {
+    "rule": "ew >= 0.12*face_w AND eh >= 0.12*face_w",
+    "floor_roi_px": 61.8,
+    "n_passing": 3
+   },
+   "pair_kept": {
+    "left_center_full": [
+     149.0,
+     238.5
+    ],
+    "right_center_full": [
+     244.0,
+     239.0
+    ],
+    "eyedist_full_px": 95.0,
+    "eyedist_raw_roi_px": 190.0,
+    "eyedist_ratio": 0.3689,
+    "eyedist_gate": "0.22 <= eyedist_raw/face_w <= 0.55",
+    "passes_eyedist_gate": true,
+    "dx_roi_px": 190.0,
+    "dy_roi_px": 1.0,
+    "recompute_hint": "tilt = degrees(atan2(dy_roi, dx_roi))，dy_roi = right.y - left.y（y 向下），left = x 较小者"
+   },
+   "ok": true,
+   "tilt_deg": 0.30155394986827855,
+   "method": "haar_eyeline_2x",
+   "decision": "kept",
+   "measure_agrees": true,
+   "measure_tilt_deg": 0.30155394986827855,
+   "id": "c07_d-10",
+   "path": "out/P0_anchors/composed/c07_d-10__cn_big_1inch.jpg",
+   "specId": "cn_big_1inch",
+   "corpus": "rotated",
+   "truthTiltDeg": -10.35,
+   "applied_straighten_deg": -10.30212883942154
+  },
+  {
+   "n_faces_detected": 0,
+   "face_candidates": [],
+   "ok": false,
+   "reason": "no_face",
+   "tilt_deg": null,
+   "decision": "no_face",
+   "id": "c08_d-10",
+   "path": "out/P0_anchors/composed/c08_d-10__cn_big_1inch.jpg",
+   "specId": "cn_big_1inch",
+   "corpus": "rotated",
+   "truthTiltDeg": -18.01,
+   "applied_straighten_deg": 0.0
+  },
+  {
+   "n_faces_detected": 0,
+   "face_candidates": [],
+   "ok": false,
+   "reason": "no_face",
+   "tilt_deg": null,
+   "decision": "no_face",
+   "id": "c08_d-10",
+   "path": "out/P0_anchors/composed/c08_d-10__cn_1inch.jpg",
+   "specId": "cn_1inch",
+   "corpus": "rotated",
+   "truthTiltDeg": -18.01,
+   "applied_straighten_deg": 0.0
+  },
+  {
+   "n_faces_detected": 0,
+   "face_candidates": [],
+   "ok": false,
+   "reason": "no_face",
+   "tilt_deg": null,
+   "decision": "no_face",
+   "id": "c08_d-10",
+   "path": "out/P0_anchors/composed/c08_d-10__visa_us.jpg",
+   "specId": "visa_us",
+   "corpus": "rotated",
+   "truthTiltDeg": -18.01,
+   "applied_straighten_deg": 0.0
+  },
+  {
+   "n_faces_detected": 1,
+   "face_candidates": [
+    {
+     "box_full": [
+      66.0,
+      131.5,
+      266.5,
+      266.5
+     ],
+     "area_full_px": 71022.2
+    }
+   ],
+   "face_kept": {
+    "rule": "取面积最大的正脸框（detectMultiScale 的原始顺序不参与）",
+    "box_full": [
+     66.0,
+     131.5,
+     266.5,
+     266.5
+    ],
+    "roi_full": [
+     66.0,
+     131.5,
+     266.5,
+     165.23
+    ],
+    "roi_rule": "g[fy : fy + fh*0.62, fx : fx + fw]（只取上 62%）"
+   },
+   "n_eyes_detected_note": "detectMultiScale 原始输出个数",
+   "n_eyes_detected": 6,
+   "eye_candidates": [
+    {
+     "box_roi": [
+      286,
+      225,
+      24,
+      24
+     ],
+     "box_full": [
+      209.0,
+      244.0,
+      12.0,
+      12.0
+     ],
+     "center_full": [
+      215.0,
+      250.0
+     ],
+     "area_roi_px": 576,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.045,
+     "size_floor_roi_px": 63.96,
+     "passes_size_gate": false,
+     "circularity_desc": 0.4219,
+     "mean_luma_desc": 136.06,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      308,
+      130,
+      42,
+      42
+     ],
+     "box_full": [
+      220.0,
+      196.5,
+      21.0,
+      21.0
+     ],
+     "center_full": [
+      230.5,
+      207.0
+     ],
+     "area_roi_px": 1764,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0788,
+     "size_floor_roi_px": 63.96,
+     "passes_size_gate": false,
+     "circularity_desc": 0.4692,
+     "mean_luma_desc": 141.62,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      213,
+      210,
+      47,
+      47
+     ],
+     "box_full": [
+      172.5,
+      236.5,
+      23.5,
+      23.5
+     ],
+     "center_full": [
+      184.25,
+      248.25
+     ],
+     "area_roi_px": 2209,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.0882,
+     "size_floor_roi_px": 63.96,
+     "passes_size_gate": false,
+     "circularity_desc": 0.262,
+     "mean_luma_desc": 156.39,
+     "decision": "dropped:below_size_gate(0.12*face_w)",
+     "rank_by_area": null
+    },
+    {
+     "box_roi": [
+      125,
+      166,
+      85,
+      85
+     ],
+     "box_full": [
+      128.5,
+      214.5,
+      42.5,
+      42.5
+     ],
+     "center_full": [
+      149.75,
+      235.75
+     ],
+     "area_roi_px": 7225,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1595,
+     "size_floor_roi_px": 63.96,
+     "passes_size_gate": true,
+     "circularity_desc": 0.233,
+     "mean_luma_desc": 158.97,
+     "rank_by_area": 0,
+     "decision": "kept:top2"
+    },
+    {
+     "box_roi": [
+      57,
+      169,
+      68,
+      68
+     ],
+     "box_full": [
+      94.5,
+      216.0,
+      34.0,
+      34.0
+     ],
+     "center_full": [
+      111.5,
+      233.0
+     ],
+     "area_roi_px": 4624,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1276,
+     "size_floor_roi_px": 63.96,
+     "passes_size_gate": true,
+     "circularity_desc": 0.2081,
+     "mean_luma_desc": 136.44,
+     "rank_by_area": 2,
+     "decision": "dropped:not_in_top2_by_area"
+    },
+    {
+     "box_roi": [
+      313,
+      170,
+      77,
+      77
+     ],
+     "box_full": [
+      222.5,
+      216.5,
+      38.5,
+      38.5
+     ],
+     "center_full": [
+      241.75,
+      235.75
+     ],
+     "area_roi_px": 5929,
+     "aspect_desc": 1.0,
+     "size_ratio_desc": 0.1445,
+     "size_floor_roi_px": 63.96,
+     "passes_size_gate": true,
+     "circularity_desc": 0.2674,
+     "mean_luma_desc": 158.47,
+     "rank_by_area": 1,
+     "decision": "kept:top2"
+    }
+   ],
+   "size_gate": {
+    "rule": "ew >= 0.12*face_w AND eh >= 0.12*face_w",
+    "floor_roi_px": 63.96,
+    "n_passing": 3
+   },
+   "pair_kept": {
+    "left_center_full": [
+     149.75,
+     235.75
+    ],
+    "right_center_full": [
+     241.75,
+     235.75
+    ],
+    "eyedist_full_px": 92.0,
+    "eyedist_raw_roi_px": 184.0,
+    "eyedist_ratio": 0.3452,
+    "eyedist_gate": "0.22 <= eyedist_raw/face_w <= 0.55",
+    "passes_eyedist_gate": true,
+    "dx_roi_px": 184.0,
+    "dy_roi_px": 0.0,
+    "recompute_hint": "tilt = degrees(atan2(dy_roi, dx_roi))，dy_roi = right.y - left.y（y 向下），left = x 较小者"
+   },
+   "ok": true,
+   "tilt_deg": 0.0,
+   "method": "haar_eyeline_2x",
+   "decision": "kept",
+   "measure_agrees": true,
+   "measure_tilt_deg": 0.0,
+   "id": "p2_d-3",
+   "path": "out/P0_anchors/composed/p2_d-3__cn_big_1inch.jpg",
+   "specId": "cn_big_1inch",
+   "corpus": "rotated",
+   "truthTiltDeg": -3.2,
+   "applied_straighten_deg": -3.017605837360954
+  }
+ ]
+}
