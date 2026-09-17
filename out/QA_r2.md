@@ -166,7 +166,7 @@ team-lead 用免眼 SIFT（`out/gate_P0_sift_align.json` 的 `residual_deg`，�
 
 **结论三（耦合）**：`gate_P0.dart:3392` 按 `specId` 过滤后，`:3394-3396` 用**我自报的 `end_to_end_status`** 决定样本是否进入交叉复核（`reliability_mismatch` / `unmeasured` 直接 `continue`）。本次它是对的（6 条 mismatch 全被挡在外面），但这意味着**我那个分类器是承重的**：放宽它，错读数会静默进入门禁复核；收紧它，好读数会被静默丢掉。
 
-**r3 动作**：① 这 7 条在 r3 重测后**前后值单列一列**（成片会变，m1 选点可能跟着变好或变坏）；② **补一个输出侧自检** —— 记录 `hypot(right − left)`（m1 自己两点距离）并与种子 `eyedist` 比对，超差即标；③ `c08_d+3` / `c08_d-10` 维持"未知"。**本轮不动 m1 算法。**
+**r3 动作（只有 ① ③；量具冻结）**：① 这 7 条在 r3 重测后**前后值单列一列**（成片会变，m1 选点可能跟着变好或变坏）；③ `c08_d+3` / `c08_d-10` 维持"未知"。② **输出侧自检后置到 r3 判完之后** —— 它要改 `p0_output_residual.py`，该文件在指纹域内，改了必须**同批重生成三份产出**（见 §4 开头），为**零判决收益**的改动冒 `roundInvalid` 不值。**r3 期间不动 m1 算法、不动 `test/batch/` 任何一行。**
 
 端到端覆盖率（`P0_coverage_post.json`，spec `cn_big_1inch` 390×567）：总 188，产出 **188/188**，faceDetected 122，noFace 53，rejected 13，**crash 0**。滚转来源：pupil 118 / none 66 / unavailable 4。
 
@@ -179,7 +179,9 @@ team-lead 用免眼 SIFT（`out/gate_P0_sift_align.json` 的 `residual_deg`，�
 3. **另一条独立理由（gatekeeper 提供）**：`outOfBoundsFraction > 0` 在 110 行里占 77 行（70%，最大 43.5%），而越界区域**按设计填 alpha=0** ⇒ 成片端 alpha=0 无法区分「设计留白」与「抠图失败」。结论：**只有 `P0_alpha_holes.json`（干净原图侧）是可用的洞信号**。
 4. 两条理由都属**咨询性质**：目前没有任何判据读 `alphaHoleHint`。
 
-## 4. 待修（r3，均不在本轮改动）
+## 4. 队列项（**r3 = 只重测、量具冻结；以下均不在 r3 做**）
+
+**scope 由 team-lead 定死：r3 期间 `test/batch/` 整体不碰，`p0_output_residual.py` 一行不动，只重跑测量。** 理由是硬机制：`test/batch/**.py` **在指纹域内**（域 = `lib/` + `test/batch/` 全部 `.dart`/`.py`，共 103 文件，摘要 `0f66aabb3c08105f`）；而 `tools/gate/provenance.dart:365-370` 把 **三份产出**（`P0_compose_summary.json`、`P0_output_residual.json`、`P0_alpha_holes.json`）同时钉住。**只重跑其中一份就是指纹不等**，按 `out/GATE_P0_r2.md:41` 机检 ①–⑤ 任一不过即 **`roundInvalid`、整轮作废**（不消耗实现方修复轮次，但整轮白掉）。下表各项**均为零判决收益**，故全部后置。
 
 | # | 位置 | 问题 | 责任 |
 |---|---|---|---|
@@ -192,7 +194,7 @@ team-lead 用免眼 SIFT（`out/gate_P0_sift_align.json` 的 `residual_deg`，�
 | 7 | `out/P0_anchors/` | 人看的产物与程序消费的输入混在同一目录（`c08.png` 是线描 overlay，曾被本测试误当测量输入，见 §6） | qa-batch |
 | 8 | `p0_coverage_test.dart` | **流程失误（订正）**：我先前把此步定成「唯一零余量步骤」，依据是**我自己估的 ~85 min**，而超时上限恰好被设成同一个估时值（上限 = 估时 ⇒ 表面零余量）。实测 **2:44**，余量 **~31×**，与 `alpha_scan` 一样**根本不是风险**。该错误估时导致全队为它串行避让了很长时间（team-lead 为此停掉一切重活）。**教训**：不拿未实测的估算值定优先级；先跑一条最小子集实测再定。「上限 = 估时」本身即说明该估时没有实测支撑。 | qa-batch |
 | 9 | `test/batch/p0_output_residual.py:309-319` | 可信度排除闸**无法区分「量具错」与「被测量真的错」**（它只有一路信息：量具与真值之差）。实例 `c08_d-10` @ **`cn_big_1inch`**（门禁规格）：真值 −18.01、引擎 `straightenDeg=0`、`rollSource=unavailable` ⇒ **真实的引擎失败**，却被按"测量不可信"排除。**该论据只用引擎自报字段 + 真值，不依赖任何 m1 读数。** 本轮靠 P0.3b 独立捕获，未漏判。修法：排除行与 `rollSource` 交叉判定，`unavailable` 行单列。见 §2.4C。 | qa-batch |
-| 10 | `test/batch/p0_output_residual.py:91` + `:110` | m1 记录的 `eyedist` 是**种子眼距回显**（`hypot(ir−il)`，`il/ir` 为 YuNet 种子），**不是 m1 自选两点的距离** ⇒ 自报质量量对错配对**结构上无感**（与 `yunet_eyedist` 108/108 逐位相同；与实际两点距差 >2px 的 74/108，最坏 48px）。修法：补输出侧自检 `hypot(right−left)` 并与种子比对；§2.5 的 7 条在 r3 重测后前后值单列。 | qa-batch |
+| 10 | `test/batch/p0_output_residual.py:91` + `:110` | m1 记录的 `eyedist` 是**种子眼距回显**（`hypot(ir−il)`，`il/ir` 为 YuNet 种子），**不是 m1 自选两点的距离** ⇒ 自报质量量对错配对**结构上无感**（与 `yunet_eyedist` 108/108 逐位相同；与实际两点距差 >2px 的 74/108，最坏 48px）。修法：补输出侧自检 `hypot(right−left)` 并与种子比对（**后置到 r3 判完之后**）；§2.5 的 7 条在 r3 重测后前后值单列。 | qa-batch |
 
 ## 4b. `ds_portrait_37`：真实人像上估角器静默失效（**不构成违规，但单列**）
 
