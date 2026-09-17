@@ -47,7 +47,7 @@
 |---|---|---|---|---|
 | P0.1a 锚点端到端残余 | 12 | 0 | absMax 0.575 / absMed 0.145 | 0 |
 | P0.1b 锚点条件覆盖率 | 8 | 0 | — | 0 |
-| P0.2 竖直残余（`p2` + 9 `uprightSynthetic`） | **10** | 0（1 条 notScorable，已单列于 §2.1） | 引擎 `output_tilt` 残余 absMax **0.290**（`c10_upright`；`p2` 0.210） | 0 |
+| P0.2 竖直残余（`p2` + 9 `uprightSynthetic`） | **10** | 0（1 条 notScorable，已单列于 §2.1） | `output_tilt_deg`（qa 量具实测）残余 absMax **0.290**（`c10_upright`；`p2` 0.210） | 0 |
 | P0.3a 瞳孔夹具回归 | 70 | — | — | 0 |
 | **P0.3b 夹具条件覆盖率** | **67** | **2** | — | **2：`c06_d-3`、`c08_d-10`**（`c06_d+3` 走 nearZeroExempt） |
 | P0.4 滚转来源分布 | — | 4 | — | — |
@@ -56,20 +56,22 @@
 
 ### 2.1 P0.2 逐条清单（分母 10，按 ACCEPTANCE:105 不得有样本静默消失）
 
-构成为 `ACCEPTANCE.md:73` 写死的 **10 条** = 用户 `2.jpg`（即 `p2`）1 条 + 合成竖直 9 条。逐条列出，残余 = 引擎 `output_tilt_deg` 与「摆正后应为 0」之差：
+构成为 `ACCEPTANCE.md:73` 写死的 **10 条** = 用户 `2.jpg`（即 `p2`）1 条 + 合成竖直 9 条。逐条列出，残余 = `output_tilt_deg`（**qa 量具在成片上的实测倾角**，见 §2.3）与「摆正后应为 0」之差。右两列是**引擎自报**（`out/P0_compose_items.jsonl`，spec `cn_big_1inch`），与本表的实测列**不同源**，并列仅供对账：
 
-| id | 引擎 `output_tilt_deg` | 残余 |
-|---|---|---|
-| `p2`（用户 `2.jpg`，真值 −0.200） | −0.2099 | **0.210** |
-| `p1_upright` | 0.0467 | 0.047 |
-| `c01_upright` | −0.0817 | 0.082 |
-| `c03_upright` | −0.2527 | 0.253 |
-| `c04_upright` | −0.2438 | 0.244 |
-| `c05_upright` | −0.0421 | 0.042 |
-| `c06_upright` | −0.0557 | 0.056 |
-| `c08_upright` | **null** | **notScorable**（见下） |
-| `c10_upright` | 0.2899 | **0.290 ← 最大** |
-| `c12_upright` | −0.1285 | 0.128 |
+| id | `output_tilt_deg`（qa 量具实测） | 残余 | 引擎自报 `rollSource`/`straightenDeg` | `outOfBoundsFraction` |
+|---|---|---|---|---|
+| `p2`（用户 `2.jpg`，真值 −0.200） | −0.2099 | **0.210** | pupil / 0.0 | 0.021 |
+| `p1_upright` | 0.0467 | 0.047 | pupil / 0.0 | 0.259 |
+| `c01_upright` | −0.0817 | 0.082 | pupil / 0.0 | 0.159 |
+| `c03_upright` | −0.2527 | 0.253 | pupil / 0.0 | 0.274 |
+| `c04_upright` | −0.2438 | 0.244 | pupil / 0.0 | 0.270 |
+| `c05_upright` | −0.0421 | 0.042 | pupil / 0.0 | **0.435** |
+| `c06_upright` | −0.0557 | 0.056 | pupil / 0.0 | 0.000 |
+| `c08_upright` | **null** | **notScorable**（见下） | pupil / 0.0 | 0.290 |
+| `c10_upright` | 0.2899 | **0.290 ← 最大** | pupil / 0.0 | 0.078 |
+| `c12_upright` | −0.1285 | 0.128 | pupil / 0.0 | 0.000 |
+
+**引擎自报一列值得单说**：10 条**全部** `rollSource=pupil` + `straightenDeg=0.0`。即引擎在这 10 条上**一次也没旋转**（正确：真值全部落在死区 `|roll|≤1.5°`），也**从未自报失败**。注意 `c08_upright`：引擎报 `pupil`，而 qa 量具在同一张成片上 `no_pair`（无法测量）——**「引擎自报成功」与「测量侧可测」是两件事**，`rollSource` 单独看不构成可用性证明。`P0.2_allSamplesReturnedPupil`（`straight 1/1` + `uprightSynthetic 9/9`）与此一致。
 
 `c08_upright` 单列，不静默消失：`end_to_end.output_tilt_deg = null`，原因是 `m1_pupil: {error: "no_pair"}`（`m2_radon_yunet` 给出 16.0 的越界值）。故可计分 9 条，最大残余 **0.290**。10 条全部 ≤1.5°，P0.2 无违规。
 
@@ -77,7 +79,7 @@
 
 - 出处已由 team-lead 钉死：`out/GATE_P0_r2_eyeline.json` → `rows[17]` = `{"id":"c05_upright","path":".../c05_upright__cn_big_1inch.jpg","tilt_deg":0.6365935759634865,"truthTiltDeg":0.0}`。它**不是** `out/P0_truth.json` 的 `anchors[4]`（那是 `c04`，一个巧合，见 §2.2）。
 - **根因不是串样本、也不是符号约定，是「整数像素量化」**（§2.2 有全量验证）：`0.6365935759634865` **恰好等于** `atan(1/90)`，是 Haar 眼线量具在眼距 90 px 时的**一个量化步长**，不是一次测量值。同一条上 `c05_upright` 的引擎残余是 **0.042**（9 条里最小之一）。
-- 因此本表用引擎 `output_tilt` 口径（与 P0.1a/P0.3b 同量具），上界 **0.290**；**0.637 作为 gatekeeper `gate_eyeline` 量具的读数引用，不采纳**，更不与 0.290 取 max。两数均 ≤1.5°，**P0.2 维持 PASS**。
+- 因此本表用 qa 量具 `output_tilt_deg` 口径（与 P0.1a/P0.3b **同一量具**，见 §2.3），上界 **0.290**；**0.637 作为 gatekeeper `gate_eyeline` 量具的读数引用，不采纳**，更不与 0.290 取 max。两数均 ≤1.5°，**P0.2 维持 PASS**。
 - 仍待指认：gatekeeper 称「`c08_upright` 由 SIFT 兜底」，但盘上该条 `m1_pupil` 为 `no_pair`、`m1h_pupil_haarseed` 与 `m3_haar_eyeline` 均为 `null` —— **未见兜底生效**。是没触发，还是写在别的字段？请指字段。**另注意量不同**：其 SIFT 量的是**施加角**，本表 `output_tilt` 量的是**成片绝对倾角**，两者仅在 `truth_apply_deg == 0` 时重合。
 
 ### 2.2 量具分辨率：`m3_haar_eyeline` 被整数像素**量化**，其最小步长 ≈0.64°（影响面已界定）
@@ -94,10 +96,19 @@
 2. **「同图两量具符号相反」不是符号约定问题**：我 `c05_upright` 的 `measured m3 = +0.616` = `atan(+1/93)`、`end_to_end m3 = −0.659` = `atan(−1/87)` —— 两者差**恰好一像素**，位于噪声底。team-lead 估的「差 1.29°」即**两个量化步长**（2 × 0.637 = 1.273），不是 1.29° 的真实分歧。
 
 **影响面（已界定，不动已报的分数）**：
-- 本报告 §2/§2.1 的残余全部取自**引擎 `output_tilt_deg`（m1_pupil）**，**不经 m3**，故 P0.2 的 **0.290**、P0.1a 的 **0.575/0.145**、P0.3b 的计数**均不受影响**。
+- 本报告 §2/§2.1 的残余全部取自 **qa 量具 `output_tilt_deg`（主值 m1_pupil，见 §2.3）**，**不经 m3**，故 P0.2 的 **0.290**、P0.1a 的 **0.575/0.145**、P0.3b 的计数**均不受影响**。
 - 但**含 m3 的统计会失真**：`tilt_abs_max_deg` / `method_spread_deg` 是**跨方法取 max/极差**，近竖直样本上这两个统计量测的是 **Haar 的量化步长**而非样本本身 —— 例：`c04`(`anchors[4]`) 的 `tilt_abs_max_deg = 0.637`，而其 m1/m2/m4 均在 0.01–0.02 量级，即该 0.637 **100% 来自量化**；`c05_upright` 的 0.659 同理。
 - 由此一条对 r3 有用的推论：**该量具不能用于近零残余（|tilt| ≲ 1.3°）的佐证或反驳** —— 在那一段它只能输出 0、±0.637、±1.273…。对**大角度仍然有效**（`c06_d-3` 的 −4.051° ≈ 6.4 个步长、`c08_d-10` 的 −17.985° ≈ 28 个步长），§4c 的引用不受影响。
 - 另一面：gatekeeper 在 P0.2 上报的「max|残余| = 0.637」**恰好等于一个量化步长** —— 即该数字量的是**量具自身的分辨率**，不是 10 条样本的上界。这正说明「两支量具互为佐证」在阈值(1.5°)附近**不成立**：步长 0.637° 已达阈值的 **42%**。
+
+### 2.3 `*_tilt_deg` 与 `measuredTiltDeg.*` 的量具署名（**自查发现的一处误标**）
+
+**结论**：`P0_truth.json` 里的 `output_tilt_deg` 与 `measuredTiltDeg.*` **不是引擎自报值**，而是 **qa-batch 自己的 Python 量具**（`test/batch/p0_lib.py`）对图像的实测值 —— 该库 docstring 明写「qa-batch：真值锚点测量库（**纯 Python，绝不调用被测 Dart 代码**）」。引擎的自报值只有 `rollSource` / `straightenDeg` / `outcome`，落在 `out/P0_compose_items.jsonl`（已作 §2.1 右两列并列）。
+
+- `output_tilt_deg` 的定义见 `p0_output_residual.py:9`：「成片眼线的**实测倾角**，理想值 0」。主值按固定优先级取 `m1_pupil → m1h_pupil_haarseed → m3_haar_eyeline`（`:166-172`），再由 `p0_finalize_v1.py:889/925` 落到 `output_tilt_deg`。
+- **回退链本轮未触发**：在有 `output_tilt_by_method` 的全部 **22** 条（13 锚点 + 9 合成竖直，除 `c08_upright`）中，主值**逐条等于 `m1_pupil`**，`m1h`/`m3` 一次都没有被选中 —— 即**没有量化值（m3）漏进任何主值**。
+- **用词更正（我自己的错）**：本报告早先把该列写成「**引擎** `output_tilt`」，并在 §2/§2.1/§2.2 沿用。判据本身没错（在**成片**上量倾角正是端到端残余的正确口径），错的是**署名** —— 量它的是我的量具。全文已改为「qa 量具 `output_tilt_deg`」。**这与本项目反复出现的形状同型（名字宣称的口径 ≠ 实现给的口径），这次出在我的报告里。**
+- 同理 `measuredTiltDeg.m1_pupil` **不是引擎读数**，而是 qa 量具的一个**独立变体**（与引擎同为「瞳孔/暗色圆盘」原理、不同实现）。它的名字容易被读成引擎的数 —— r3 应改名（如 `qa_m1_pupil`），或在产物里加 `methodProvenance` 段统一声明「凡 `measuredTiltDeg.*` 与 `output_tilt_by_method.*` 均为 qa-batch 独立量具」。
 
 端到端覆盖率（`P0_coverage_post.json`，spec `cn_big_1inch` 390×567）：总 188，产出 **188/188**，faceDetected 122，noFace 53，rejected 13，**crash 0**。滚转来源：pupil 118 / none 66 / unavailable 4。
 
