@@ -108,11 +108,19 @@ Future<void> main() async {
   _check('不误报：只 touch 不改内容 → 仍判有效',
       roundVerdict(tBefore, tAfter)['codeStableDuringRun'] == true);
 
-  // --- 6. 没碰真实 lib/ ---
-  final realAfter = codeFingerprint();
-  _check('真实仓库被测集自测前后未变（自测未污染 lib/）',
-      realAfter['fnv1a64'] == realBefore['fnv1a64'],
-      'before=${realBefore['fnv1a64']} after=${realAfter['fnv1a64']}');
+  // 这里原先有一段「6. 没碰真实 lib/」——比较自测前后**真实仓库**的内容指纹。
+  // 已删除：它**声明的**是"这个自测没污染 lib/"，**实际测的**却是"整个自测期间
+  // 真实 lib/ 对任何人都没变"。两者不等价，它分不清"我写的"和"别人写的"，
+  // 于是会因并发的编辑器红、并因编辑器停下而自行转绿 —— 同一命令两次结果不同。
+  //
+  // 更坏的是它**恰在门禁轮次期间必红**（那时只要有人碰 lib/ 就触发），而那种情况
+  // 本轮数字**早已被运行自身的开跑/收尾指纹判为无效**（roundValid=false），
+  // 所以这个红是冗余的，只会教人学会"这条红不用管" ——
+  // **假红是假绿的镜像，净效果相同：信号不再携带信息。**
+  //
+  // 而它对自己声称的那件事**一点覆盖率都没增加**：自测的隔离性由构造保证
+  // （所有写操作都走 kSandbox 下的路径），且第 1 段已证明沙箱是真实仓库的
+  // 逐字节忠实副本。**运行时的作废判定归 roundVerdict，不归对实现的自测。**
 
   sandbox.deleteSync(recursive: true);
   stdout.writeln('\n${_fail == 0 ? 'FINGERPRINT SELFTEST PASS' : 'FINGERPRINT SELFTEST FAIL ($_fail)'}');
