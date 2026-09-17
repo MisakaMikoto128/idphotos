@@ -247,6 +247,44 @@ def count_distinct_photos(ids):
     return n
 
 
+OVERLAP_PATH = os.path.join(L.REPO, "out", "gate_P0_overlap.json")
+
+
+def check_same_photo_facts():
+    """交叉核对"哪些 id 是同一张照片"这个**事实**，返回一句状态说明。
+
+    `KNOWN_SAME_PHOTO` 是本文件**硬编码**的；门禁是**运行时**从去重器具
+    （`out/gate_P0_overlap.json` 的 `intra_duplicates`）解出来的。今天两者一致，
+    但硬编码那份**不会随事实变化**——这正是"钉了会过期的解"，只是这次钉的是事实不是清单。
+
+    处置分三种，**不许混同**：
+      * 两边一致 → ok（并附器具的 mae 与两条源文件名，作为旁证）；
+      * 器具给出**非空且不同**的配对 → 抛错。两份账目真矛盾，不许挑一个信。
+      * 器具没产出/为空 → **不抛错**（那是器具的问题，不改我的计数），
+        但明确报"核对未进行"——**不许当成核对通过**。
+    """
+    try:
+        d = json.load(open(OVERLAP_PATH, encoding="utf-8"))
+    except (OSError, ValueError):
+        return "⚠ 交叉核对未进行：读不到 %s（不当作通过）" % os.path.basename(OVERLAP_PATH)
+    inst = {frozenset((r["a"], r["b"])) for r in d.get("intra_duplicates") or []}
+    if not inst:
+        return "⚠ 交叉核对未进行：器具 intra_duplicates 为空（不当作通过）"
+    mine = set(KNOWN_SAME_PHOTO)
+    if inst != mine:
+        raise RuntimeError(
+            "同图事实两份账目矛盾：本文件硬编码 %s，器具给出 %s。"
+            "不许挑一个信——先查清哪份错。"
+            % (sorted(map(sorted, mine)), sorted(map(sorted, inst))))
+    detail = []
+    for r in d["intra_duplicates"]:
+        if {r["a"], r["b"]} == {"c03", "c04"}:
+            pa = os.path.basename(r.get("a_path", ""))
+            pb = os.path.basename(r.get("b_path", ""))
+            detail.append("mae=%.3f，源文件名 %s / %s" % (r.get("mae", float("nan")), pa, pb))
+    return "ok 与器具一致 %s（%s）" % (sorted(map(sorted, mine)), "；".join(detail))
+
+
 def selftest_distinct():
     """已知答案检验——**只依赖本文件的代码**，不抄门禁，故不落第 4 条的陷阱。
 
@@ -547,6 +585,7 @@ def main():
           % ("PASS" if not dbad else "FAIL %s" % dbad, strong, dtotal))
     if strong < 2:
         print("  ⚠ 鉴别力不足：太多个案连朴素 len() 都能蒙对，这套检验没有牙。")
+    print("同图事实交叉核对：%s" % check_same_photo_facts())
     bad = selfcheck(base)
     print("空变换自检（H1 应逐条还原）：%s\n"
           % ("PASS" if not bad else "FAIL %s" % bad[:6]))
