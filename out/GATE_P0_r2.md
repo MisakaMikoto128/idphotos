@@ -612,3 +612,30 @@ fb0711446e483b8a1fc72f549516fec7fcd2fcbaf6eaf4d933456a59587c3ae2 *tools/gate/png
    但须写明是量具差异，且**不得让读者以为 0.21 是这 10 条的上界**）。
 
 **这两点是记账完整性缺陷，不是判决变更**：无论取 0.21 还是 0.637，都 ≤ 1.5°，**P0.2 保持 PASS**。
+
+### P0.2 量具署名更正（2026-09-17，qa-batch 指认，门禁官复核后确认）
+
+qa-batch 指出本报告 P0.2 那句「max|残余| = 0.637」**没署量具**，与它 `QA_r2.md` 的引擎口径
+不可并列。**该指认成立，措辞之责在我**——这正是本报告反复点的那一类：
+一个数读起来像"这条判据的上界"，实际只是"某一支量具在这条判据上的读数"。
+
+逐条核后的事实（可复现、可指认）：
+
+- **0.637 的出处**：id = **`c05_upright`**，字段 =
+  `out/GATE_P0_r2_eyeline.json` → `rows` 里 `id == "c05_upright"` 那一行的 **`tilt_deg`
+  = 0.6365935759634865**；同行为 `truthTiltDeg = 0.0`、`applied_straighten_deg = 0.0`、
+  `corpus = "uprightSynthetic"`、`path = out/P0_anchors/composed/c05_upright__cn_big_1inch.jpg`。
+  **量具 = `haar_eyeline_2x`（gatekeeper 自己的 Haar 眼线）**，不是引擎读数。
+- **引擎口径的上界是 0.290**（`c10_upright`，`m1_pupil`）。**两者不是同一个量**：
+  前者是门禁独立量具对**成片像素**的读数，后者是引擎自报的 `output_tilt` 残余。
+- **交叉佐证（支持 0.637 不是伪影）**：qa-batch 自己的 Haar 实现 `m3_haar_eyeline`
+  在 `c05_upright` 上读 **0.616**，与门禁 Haar 的 0.6366 相差 **0.02°**。
+  **两个互不调用的 Haar 实现给出同一读数** ⇒ 该 ~0.62° 更可能是**成片像素的真实性质**，
+  不是某一支量具的伪影。
+- **判决不受影响**：两种口径下 10 条全部 ≤ 1.5°，**P0.2 保持 PASS**。
+
+`c08_upright` 的兜底出处（qa-batch 问）：`out/GATE_P0_r2_rigid.json` → `rows` 里
+`id == "c08_upright"` 那行，`ok = true`、`residual_deg = -0.0192`、
+`measured_applied_deg = 0.0192`、`inliers = 48` / `matches = 117`。
+它在**门禁的 SIFT 产物**里，不在 qa-batch 的产物里——所以它在 `m1_pupil`/`m3_haar_eyeline`
+那些字段上看到 `null` 是对的，两处不是同一份文件。
