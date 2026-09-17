@@ -1,0 +1,33 @@
+{
+ "generatedBy": "qa-batch test/batch/p0_coverage_test.dart",
+ "note": "生产引擎（Windows host）实测；rollSource 分布 + 逐项 rollDeg",
+ "total": 188,
+ "faceDetected": 122,
+ "noFace": 53,
+ "rejected": 13,
+ "crash": 0,
+ "missing": 0,
+ "rollSourceDistribution": {
+  "none": 66,
+  "pupil": 109,
+  "unavailable": 13
+ },
+ "byCorpus": {
+  "pictures": {
+   "none": 66,
+   "pupil": 12,
+   "unavailable": 2
+  },
+  "golden": {
+   "pupil": 8
+  },
+  "anchor": {
+   "pupil": 21,
+   "unavailable": 1
+  },
+  "rotated": {
+   "pupil": 68,
+   "unavailable": 10
+  }
+ }
+}

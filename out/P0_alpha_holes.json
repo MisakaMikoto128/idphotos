@@ -1,0 +1,1424 @@
+{
+ "generatedBy": "qa-batch test/batch/p0_alpha_holes.py",
+ "question": "抠图在双眼区域产生大面积 alpha=0（脸上一个洞）是否独立于旋转、在未旋转真实照片上就存在？",
+ "answer": "**否。未旋转的真实照片一张都没有洞**（Pictures 可评估人像 14 张，eyeBandZeroFrac 全部 = 0.0，含两张 Camera Roll 原图）。洞只出现在**被旋转过的输入**上：c08 夹具家族 4/7 命中。故这是**旋转诱导的抠图失效**，不是独立于摆正的既有缺陷。",
+ "threshold": {
+  "eyeBandZeroFrac": 0.35,
+  "band": "宽 1.6x眼距、高 0.45x眼距，中心为双眼连线中点"
+ },
+ "scanSource": "out/P0_alpha_scan/（生产 removeBackground 的 alpha，输入为干净原图/干净夹具，**不是画了线的 overlay**）",
+ "total": 87,
+ "assessable": 21,
+ "notAssessable": [
+  {
+   "path": "C:/Users/liuyu/Pictures/)T@WU8]6Q}21RVC5RUROQ]G.jpeg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/)T@WU8]6Q}21RVC5RUROQ]G.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/18.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/dan5njb-28279924-59e5-4094-8d16-d410efcf2acc.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/desktop.ini",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/fwebp.webp",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Globe_High.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/IMG_20230115_130634.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/IMG_20230115_130941.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/IMG_20230115_132101.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/IMG_20230115_133511.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Online Verification Report of Student Record_LIU YUANLIN_00.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/QQ截图20230115131411.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/QQ截图20230115132012.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/QQ截图20230528124945.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/W}4M@N_DCBQUON5NZ{{QZ%W.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Y{0T[9S[]P$MV9_W)W5U{}P.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/微信图片_2025-11-11_211809_101.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/微信图片_20250423221504.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/微信图片_202504232215041.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/微信图片_20250423221513.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/拼多多128固态硬盘测试结果.jpg",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/新文件 27.txt",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Camera Roll/desktop.ini",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog.lrcat",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Helper.lrdata/helper.db",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Previews.lrdata/previews.db",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Previews.lrdata/root-pixels.db",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Luminar Neo Catalog/Luminar Neo Catalog.luminarneo",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Luminar Neo Catalog/map.dat",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Luminar Neo Catalog/vectors.dat",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Luminar Neo Catalog/Sample Images/scenario.json",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Saved Pictures/desktop.ini",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/desktop.ini",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-07-26 172208.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-09-07 151043.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-09-09 105351.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-10-21 203504.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-10-21 210032.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-11-14 113737.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-01-26 112901.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-01-26 112931.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-05-06 213407.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-05-06 213412.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-09-16 193456.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-09-16 193518.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-10-16 121748.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-11-06 142831.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-11-06 142855.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-03-01 112555.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-06 170927.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-10 234413.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-11 175944.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-12 222310.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-13 112721.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-15 125826.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163718.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163727.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163733.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 185612.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-21 113927.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-21 134949.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-24 080543.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-05-24 123944.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-07-08 104838.png",
+   "reason": "fail"
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-08-12 154339.png",
+   "reason": "fail"
+  }
+ ],
+ "eyeBandHoleCount": 4,
+ "eyeBandHoleFractionOfAssessable": 0.19,
+ "controlComparison": {
+  "unrotatedRealPhotos": {
+   "n": 14,
+   "withHole": 0,
+   "maxEyeBandZeroFrac": 0.0
+  },
+  "rotatedFixtures": {
+   "n": 7,
+   "withHole": 4,
+   "perFixture": {
+    "c08_d+3.png": 0.5277,
+    "c08_d+5.png": 0.1966,
+    "c08_d+10.png": 0.0018,
+    "c08_d-3.png": 0.0,
+    "c08_d-5.png": 0.7549,
+    "c08_d-10.png": 0.9677,
+    "c08_upright.png": 0.6193
+   }
+  }
+ },
+ "eyeBandHoles": [
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-10.png",
+   "eyeBandZeroFrac": 0.9677,
+   "faceBoxZeroFrac": 0.4915,
+   "eyedistPx": 150.1
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-5.png",
+   "eyeBandZeroFrac": 0.7549,
+   "faceBoxZeroFrac": 0.1916,
+   "eyedistPx": 138.4
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_upright.png",
+   "eyeBandZeroFrac": 0.6193,
+   "faceBoxZeroFrac": 0.2318,
+   "eyedistPx": 138.2
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d+3.png",
+   "eyeBandZeroFrac": 0.5277,
+   "faceBoxZeroFrac": 0.1351,
+   "eyedistPx": 134.7
+  }
+ ],
+ "worst10": [
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-10.png",
+   "eyeBandZeroFrac": 0.9677,
+   "faceBoxZeroFrac": 0.4915
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-5.png",
+   "eyeBandZeroFrac": 0.7549,
+   "faceBoxZeroFrac": 0.1916
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_upright.png",
+   "eyeBandZeroFrac": 0.6193,
+   "faceBoxZeroFrac": 0.2318
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d+3.png",
+   "eyeBandZeroFrac": 0.5277,
+   "faceBoxZeroFrac": 0.1351
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d+5.png",
+   "eyeBandZeroFrac": 0.1966,
+   "faceBoxZeroFrac": 0.0789
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d+10.png",
+   "eyeBandZeroFrac": 0.0018,
+   "faceBoxZeroFrac": 0.0352
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/1 (2).jpg",
+   "eyeBandZeroFrac": 0.0,
+   "faceBoxZeroFrac": 0.0
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/1979d869c783fcc849d4e05b81eb809e.png",
+   "eyeBandZeroFrac": 0.0,
+   "faceBoxZeroFrac": 0.0463
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/2.jpg",
+   "eyeBandZeroFrac": 0.0,
+   "faceBoxZeroFrac": 0.0146
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/20240710193717_7c99.jpg",
+   "eyeBandZeroFrac": 0.0,
+   "faceBoxZeroFrac": 0.062
+  }
+ ],
+ "items": [
+  {
+   "path": "C:/Users/liuyu/Pictures/)T@WU8]6Q}21RVC5RUROQ]G.jpeg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/)T@WU8]6Q}21RVC5RUROQ]G.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/1 (2).jpg",
+   "slug": "1__2_.jpg",
+   "alphaSize": [
+    888,
+    1536
+   ],
+   "sourceSize": [
+    2368,
+    4096
+   ],
+   "workW": 888,
+   "workH": 1536,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 136.7,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 13359,
+   "faceBoxZeroFrac": 0.0,
+   "alphaZeroFracOverall": 0.397,
+   "faceBoxInAlpha": [
+    263,
+    734,
+    515,
+    983
+   ],
+   "eyeBandInAlpha": [
+    306,
+    745,
+    525,
+    806
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/18.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/1979d869c783fcc849d4e05b81eb809e.png",
+   "slug": "1979d869c783fcc849d4e05b81eb809e.png",
+   "alphaSize": [
+    1536,
+    1152
+   ],
+   "sourceSize": [
+    4032,
+    3024
+   ],
+   "workW": 1536,
+   "workH": 1152,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 96.3,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 6776,
+   "faceBoxZeroFrac": 0.0463,
+   "alphaZeroFracOverall": 0.6356,
+   "faceBoxInAlpha": [
+    460,
+    666,
+    669,
+    911
+   ],
+   "eyeBandInAlpha": [
+    520,
+    701,
+    674,
+    745
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/2.jpg",
+   "slug": "2.jpg",
+   "alphaSize": [
+    1080,
+    1415
+   ],
+   "sourceSize": [
+    1080,
+    1415
+   ],
+   "workW": 1080,
+   "workH": 1415,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 207.2,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 31114,
+   "faceBoxZeroFrac": 0.0146,
+   "alphaZeroFracOverall": 0.4436,
+   "faceBoxInAlpha": [
+    315,
+    427,
+    749,
+    935
+   ],
+   "eyeBandInAlpha": [
+    377,
+    555,
+    708,
+    649
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/20240710193717_7c99.jpg",
+   "slug": "20240710193717_7c99.jpg",
+   "alphaSize": [
+    480,
+    640
+   ],
+   "sourceSize": [
+    480,
+    640
+   ],
+   "workW": 480,
+   "workH": 640,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 118.8,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 10260,
+   "faceBoxZeroFrac": 0.062,
+   "alphaZeroFracOverall": 0.3086,
+   "faceBoxInAlpha": [
+    102,
+    112,
+    364,
+    452
+   ],
+   "eyeBandInAlpha": [
+    138,
+    219,
+    328,
+    273
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/29EDA59B982FA8339335D50B00CCD096.jpg",
+   "slug": "29EDA59B982FA8339335D50B00CCD096.jpg",
+   "alphaSize": [
+    1282,
+    1920
+   ],
+   "sourceSize": [
+    1282,
+    1920
+   ],
+   "workW": 1282,
+   "workH": 1920,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 201.9,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 29393,
+   "faceBoxZeroFrac": 0.0435,
+   "alphaZeroFracOverall": 0.3983,
+   "faceBoxInAlpha": [
+    434,
+    453,
+    876,
+    951
+   ],
+   "eyeBandInAlpha": [
+    499,
+    555,
+    822,
+    646
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/4e84ef7b8a910c776acd0eebb8293ee9.png",
+   "slug": "4e84ef7b8a910c776acd0eebb8293ee9.png",
+   "alphaSize": [
+    1536,
+    1152
+   ],
+   "sourceSize": [
+    4032,
+    3024
+   ],
+   "workW": 1536,
+   "workH": 1152,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 112.6,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 9231,
+   "faceBoxZeroFrac": 0.0473,
+   "alphaZeroFracOverall": 0.6299,
+   "faceBoxInAlpha": [
+    560,
+    568,
+    782,
+    821
+   ],
+   "eyeBandInAlpha": [
+    547,
+    572,
+    728,
+    623
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/8D861A29F86CE7464865EFEB3C9B4124 (自定义).jpg",
+   "slug": "8D861A29F86CE7464865EFEB3C9B4124______.jpg",
+   "alphaSize": [
+    483,
+    800
+   ],
+   "sourceSize": [
+    483,
+    800
+   ],
+   "workW": 483,
+   "workH": 800,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 135.7,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 13237,
+   "faceBoxZeroFrac": 0.074,
+   "alphaZeroFracOverall": 0.3576,
+   "faceBoxInAlpha": [
+    115,
+    202,
+    414,
+    622
+   ],
+   "eyeBandInAlpha": [
+    140,
+    331,
+    357,
+    392
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/8D861A29F86CE7464865EFEB3C9B4124.jpg",
+   "slug": "8D861A29F86CE7464865EFEB3C9B4124.jpg",
+   "alphaSize": [
+    1159,
+    1920
+   ],
+   "sourceSize": [
+    1159,
+    1920
+   ],
+   "workW": 1159,
+   "workH": 1920,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 275.2,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 54684,
+   "faceBoxZeroFrac": 0.0234,
+   "alphaZeroFracOverall": 0.3581,
+   "faceBoxInAlpha": [
+    240,
+    522,
+    786,
+    1123
+   ],
+   "eyeBandInAlpha": [
+    357,
+    801,
+    798,
+    925
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/a.jpg",
+   "slug": "a.jpg",
+   "alphaSize": [
+    483,
+    604
+   ],
+   "sourceSize": [
+    483,
+    604
+   ],
+   "workW": 483,
+   "workH": 604,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 129.0,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 12006,
+   "faceBoxZeroFrac": 0.0816,
+   "alphaZeroFracOverall": 0.3679,
+   "faceBoxInAlpha": [
+    115,
+    155,
+    417,
+    547
+   ],
+   "eyeBandInAlpha": [
+    153,
+    268,
+    360,
+    326
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/dan5njb-28279924-59e5-4094-8d16-d410efcf2acc.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/desktop.ini",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/e9168d2cfe9045d07fac74e68419d211.png",
+   "slug": "e9168d2cfe9045d07fac74e68419d211.png",
+   "alphaSize": [
+    1536,
+    1152
+   ],
+   "sourceSize": [
+    4032,
+    3024
+   ],
+   "workW": 1536,
+   "workH": 1152,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 105.3,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 7896,
+   "faceBoxZeroFrac": 0.0544,
+   "alphaZeroFracOverall": 0.6424,
+   "faceBoxInAlpha": [
+    445,
+    533,
+    667,
+    757
+   ],
+   "eyeBandInAlpha": [
+    506,
+    548,
+    674,
+    595
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/fwebp.webp",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Globe_High.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/IMG_20230115_130634.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/IMG_20230115_130941.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/IMG_20230115_132101.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/IMG_20230115_133511.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Online Verification Report of Student Record_LIU YUANLIN_00.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/QQ截图20230115131411.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/QQ截图20230115132012.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/QQ截图20230528124945.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/W}4M@N_DCBQUON5NZ{{QZ%W.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Y{0T[9S[]P$MV9_W)W5U{}P.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/吴港+通信工程+532128200107160711.jpg",
+   "slug": "________532128200107160711.jpg",
+   "alphaSize": [
+    480,
+    640
+   ],
+   "sourceSize": [
+    480,
+    640
+   ],
+   "workW": 480,
+   "workH": 640,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 84.0,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 4995,
+   "faceBoxZeroFrac": 0.0046,
+   "alphaZeroFracOverall": 0.4429,
+   "faceBoxInAlpha": [
+    147,
+    171,
+    325,
+    411
+   ],
+   "eyeBandInAlpha": [
+    169,
+    250,
+    304,
+    287
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/微信图片_2025-11-11_211809_101.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/微信图片_20250423221504.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/微信图片_202504232215041.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/微信图片_20250423221513.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/报名照片.jpg",
+   "slug": "____.jpg",
+   "alphaSize": [
+    295,
+    413
+   ],
+   "sourceSize": [
+    295,
+    413
+   ],
+   "workW": 295,
+   "workH": 413,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 68.0,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 3348,
+   "faceBoxZeroFrac": 0.0538,
+   "alphaZeroFracOverall": 0.4176,
+   "faceBoxInAlpha": [
+    71,
+    105,
+    223,
+    285
+   ],
+   "eyeBandInAlpha": [
+    93,
+    153,
+    201,
+    184
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/拼多多128固态硬盘测试结果.jpg",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/新文件 27.txt",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Camera Roll/desktop.ini",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Camera Roll/WIN_20230522_00_19_11_Pro.jpg",
+   "slug": "WIN_20230522_00_19_11_Pro.jpg",
+   "alphaSize": [
+    1280,
+    720
+   ],
+   "sourceSize": [
+    1280,
+    720
+   ],
+   "workW": 1280,
+   "workH": 720,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 141.2,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 14464,
+   "faceBoxZeroFrac": 0.0308,
+   "alphaZeroFracOverall": 0.7926,
+   "faceBoxInAlpha": [
+    612,
+    316,
+    897,
+    712
+   ],
+   "eyeBandInAlpha": [
+    653,
+    434,
+    879,
+    498
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Camera Roll/WIN_20230522_00_19_21_Pro.jpg",
+   "slug": "WIN_20230522_00_19_21_Pro.jpg",
+   "alphaSize": [
+    1272,
+    716
+   ],
+   "sourceSize": [
+    1272,
+    716
+   ],
+   "workW": 1272,
+   "workH": 716,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 137.1,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 13420,
+   "faceBoxZeroFrac": 0.0509,
+   "alphaZeroFracOverall": 0.7473,
+   "faceBoxInAlpha": [
+    578,
+    316,
+    863,
+    692
+   ],
+   "eyeBandInAlpha": [
+    617,
+    432,
+    837,
+    493
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog.lrcat",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Helper.lrdata/helper.db",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Previews.lrdata/previews.db",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Previews.lrdata/root-pixels.db",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Luminar Neo Catalog/Luminar Neo Catalog.luminarneo",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Luminar Neo Catalog/map.dat",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Luminar Neo Catalog/vectors.dat",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Luminar Neo Catalog/Sample Images/scenario.json",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Saved Pictures/desktop.ini",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/desktop.ini",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-07-26 172208.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-09-07 151043.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-09-09 105351.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-10-21 203504.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-10-21 210032.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-11-14 113737.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-01-26 112901.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-01-26 112931.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-05-06 213407.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-05-06 213412.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-09-16 193456.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-09-16 193518.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-10-16 121748.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-11-06 142831.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-11-06 142855.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-03-01 112555.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-06 170927.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-10 234413.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-11 175944.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-12 222310.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-13 112721.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-15 125826.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163718.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163727.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163733.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 185612.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-21 113927.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-21 134949.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-24 080543.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-05-24 123944.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-07-08 104838.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-08-12 154339.png",
+   "outcome": "fail",
+   "assessable": false
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d+3.png",
+   "slug": "c08_d_3.png",
+   "alphaSize": [
+    1280,
+    720
+   ],
+   "sourceSize": [
+    1280,
+    720
+   ],
+   "workW": 1280,
+   "workH": 720,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 134.7,
+   "eyeBandZeroFrac": 0.5277,
+   "eyeBandPx": 13115,
+   "faceBoxZeroFrac": 0.1351,
+   "alphaZeroFracOverall": 0.8146,
+   "faceBoxInAlpha": [
+    601,
+    328,
+    898,
+    720
+   ],
+   "eyeBandInAlpha": [
+    650,
+    441,
+    865,
+    502
+   ],
+   "eyeBandHole": true
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d+5.png",
+   "slug": "c08_d_5.png",
+   "alphaSize": [
+    1280,
+    720
+   ],
+   "sourceSize": [
+    1280,
+    720
+   ],
+   "workW": 1280,
+   "workH": 720,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 140.2,
+   "eyeBandZeroFrac": 0.1966,
+   "eyeBandPx": 14112,
+   "faceBoxZeroFrac": 0.0789,
+   "alphaZeroFracOverall": 0.8053,
+   "faceBoxInAlpha": [
+    598,
+    329,
+    895,
+    720
+   ],
+   "eyeBandInAlpha": [
+    645,
+    444,
+    869,
+    507
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d+10.png",
+   "slug": "c08_d_10.png",
+   "alphaSize": [
+    1280,
+    720
+   ],
+   "sourceSize": [
+    1280,
+    720
+   ],
+   "workW": 1280,
+   "workH": 720,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 140.2,
+   "eyeBandZeroFrac": 0.0018,
+   "eyeBandPx": 14112,
+   "faceBoxZeroFrac": 0.0352,
+   "alphaZeroFracOverall": 0.7409,
+   "faceBoxInAlpha": [
+    590,
+    338,
+    880,
+    720
+   ],
+   "eyeBandInAlpha": [
+    638,
+    454,
+    862,
+    517
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-3.png",
+   "slug": "c08_d-3.png",
+   "alphaSize": [
+    1280,
+    720
+   ],
+   "sourceSize": [
+    1280,
+    720
+   ],
+   "workW": 1280,
+   "workH": 720,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 138.9,
+   "eyeBandZeroFrac": 0.0,
+   "eyeBandPx": 13764,
+   "faceBoxZeroFrac": 0.039,
+   "alphaZeroFracOverall": 0.8018,
+   "faceBoxInAlpha": [
+    615,
+    313,
+    899,
+    710
+   ],
+   "eyeBandInAlpha": [
+    660,
+    426,
+    882,
+    488
+   ],
+   "eyeBandHole": false
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-5.png",
+   "slug": "c08_d-5.png",
+   "alphaSize": [
+    1280,
+    720
+   ],
+   "sourceSize": [
+    1280,
+    720
+   ],
+   "workW": 1280,
+   "workH": 720,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 138.4,
+   "eyeBandZeroFrac": 0.7549,
+   "eyeBandPx": 13764,
+   "faceBoxZeroFrac": 0.1916,
+   "alphaZeroFracOverall": 0.8256,
+   "faceBoxInAlpha": [
+    619,
+    306,
+    910,
+    696
+   ],
+   "eyeBandInAlpha": [
+    666,
+    420,
+    888,
+    482
+   ],
+   "eyeBandHole": true
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-10.png",
+   "slug": "c08_d-10.png",
+   "alphaSize": [
+    1280,
+    720
+   ],
+   "sourceSize": [
+    1280,
+    720
+   ],
+   "workW": 1280,
+   "workH": 720,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 150.1,
+   "eyeBandZeroFrac": 0.9677,
+   "eyeBandPx": 16147,
+   "faceBoxZeroFrac": 0.4915,
+   "alphaZeroFracOverall": 0.8494,
+   "faceBoxInAlpha": [
+    628,
+    289,
+    935,
+    699
+   ],
+   "eyeBandInAlpha": [
+    666,
+    404,
+    907,
+    471
+   ],
+   "eyeBandHole": true
+  },
+  {
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_upright.png",
+   "slug": "c08_upright.png",
+   "alphaSize": [
+    1280,
+    720
+   ],
+   "sourceSize": [
+    1280,
+    720
+   ],
+   "workW": 1280,
+   "workH": 720,
+   "exifOrientation": 1,
+   "assessable": true,
+   "eyedistPx": 138.2,
+   "eyeBandZeroFrac": 0.6193,
+   "eyeBandPx": 13702,
+   "faceBoxZeroFrac": 0.2318,
+   "alphaZeroFracOverall": 0.8071,
+   "faceBoxInAlpha": [
+    591,
+    335,
+    887,
+    720
+   ],
+   "eyeBandInAlpha": [
+    640,
+    451,
+    861,
+    513
+   ],
+   "eyeBandHole": true
+  }
+ ]
+}

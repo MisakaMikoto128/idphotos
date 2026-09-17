@@ -1,0 +1,108 @@
+{
+ "generatedBy": "qa-batch test/batch/p0_coverage_split.py",
+ "source": "out/P0_coverage_items.jsonl（生产引擎 detectFace）",
+ "note": "P0.1a/P0.3a 只用 pupil 样本；unavailable 从判据剔除，不是当 0 观测。本表只做计数，不含 PASS/FAIL。",
+ "splits": {
+  "threshold_1.5": {
+   "anchor": {
+    "above": {
+     "n": 8,
+     "pupil": 8,
+     "unavailable": 0,
+     "other": 0,
+     "unavailableIds": []
+    },
+    "below": {
+     "n": 14,
+     "pupil": 13,
+     "unavailable": 1,
+     "other": 0,
+     "unavailableIds": [
+      "anchor_c11"
+     ]
+    },
+    "aboveThreshold_deg": 1.5
+   },
+   "rotated": {
+    "above": {
+     "n": 67,
+     "pupil": 58,
+     "unavailable": 9,
+     "other": 0,
+     "unavailableIds": [
+      "rot_c01_d+10",
+      "rot_c04_d-10",
+      "rot_c04_d-5",
+      "rot_c08_d-5",
+      "rot_c11_d+10",
+      "rot_c11_d+5",
+      "rot_c11_d-10",
+      "rot_c11_d-3",
+      "rot_c11_d-5"
+     ]
+    },
+    "below": {
+     "n": 11,
+     "pupil": 10,
+     "unavailable": 1,
+     "other": 0,
+     "unavailableIds": [
+      "rot_c06_d+3"
+     ]
+    },
+    "aboveThreshold_deg": 1.5
+   }
+  },
+  "threshold_2.0": {
+   "anchor": {
+    "above": {
+     "n": 7,
+     "pupil": 7,
+     "unavailable": 0,
+     "other": 0,
+     "unavailableIds": []
+    },
+    "below": {
+     "n": 15,
+     "pupil": 14,
+     "unavailable": 1,
+     "other": 0,
+     "unavailableIds": [
+      "anchor_c11"
+     ]
+    },
+    "aboveThreshold_deg": 2.0
+   },
+   "rotated": {
+    "above": {
+     "n": 64,
+     "pupil": 55,
+     "unavailable": 9,
+     "other": 0,
+     "unavailableIds": [
+      "rot_c01_d+10",
+      "rot_c04_d-10",
+      "rot_c04_d-5",
+      "rot_c08_d-5",
+      "rot_c11_d+10",
+      "rot_c11_d+5",
+      "rot_c11_d-10",
+      "rot_c11_d-3",
+      "rot_c11_d-5"
+     ]
+    },
+    "below": {
+     "n": 14,
+     "pupil": 13,
+     "unavailable": 1,
+     "other": 0,
+     "unavailableIds": [
+      "rot_c06_d+3"
+     ]
+    },
+    "aboveThreshold_deg": 2.0
+   }
+  }
+ },
+ "crossPathRollSourceMismatch": []
+}

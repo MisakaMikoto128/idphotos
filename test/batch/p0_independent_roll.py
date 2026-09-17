@@ -14,10 +14,23 @@
 自检（不依赖任何真值）：对已知旋转量的夹具 `<id>_d±N` 测量，
 `meas(Δ) − meas(0)` 必须等于施加的 Δ。**这一条不通过，本文件的任何绝对读数都不得采信。**
 
+⚠️ **本文件当前状态：复核未交付。不要引用它给出的任何绝对角度。**
+两个候选仪器的实测判定（详见 `docs/PITFALLS.md`）：
+  * `symmetry_angle()`（整脸双侧对称轴，高通+镜像 NCC）——**已被证伪**。
+    标定最大误差 **20.7°**：人脸不够对称（眼镜/刘海/侧光），NCC 极值被噪声主导。
+    保留代码只为留证，**不要再基于它做任何事**。
+  * `eye_band_angle()` 家族（眼带内 Hough 近水平线段，长度加权中位角）——
+    **方向正确但精度不够**：标定 `meas(Δ)−meas(0)` vs Δ 中位误差 **1.36°**、最大 **2.17°**；
+    8 个锚点上系统偏置中位 **+1.96°**、散布 −0.74…+3.91。
+    在 p1 上原始读数 −2.56°，而待判差异只有 2.2° ⇒ **仪器不确定度与待判差异同量级，
+    测不出来**。它既不支持也不推翻 −4.4°。
+  ⇒ 缺的是一台**不确定度 ≤0.5°** 的非瞳孔仪器（团队建议方向：眼镜框几何）。
+
 用法：
     python test/batch/p0_independent_roll.py check  <id>     # 只跑标定自检
-    python test/batch/p0_independent_roll.py report <id>...  # 标定 + 输出绝对读数
+    python test/batch/p0_independent_roll.py report <id>...  # 标定 + 输出绝对读数（当前不可采信）
 """
+import math
 import os
 import sys
 
@@ -116,8 +129,77 @@ def symmetry_angle(roi, lo=-12.0, hi=12.0, step=0.1, max_off_frac=0.05):
     return (best[0], best[1]) if best else (float("nan"), -9.0)
 
 
-def calibrate(cid, verbose=True):
+def eye_band_angle(path):
+    """双眼带内取近水平线段，长度加权中位角。返回 (角度, 段数)。
+
+    只定位用 YuNet 的眼位关键点（它们本身不准，但带子开得够高，粗定位足够）；
+    角度完全由**线段几何**给出，与瞳孔 blob 无关——这是它相对 m1 的独立性来源。
+    """
+    im = ImageOps.exif_transpose(Image.open(path)).convert("RGB")
+    bgr = cv2.cvtColor(np.asarray(im), cv2.COLOR_RGB2BGR)
+    H, W = bgr.shape[:2]
+    d = cv2.FaceDetectorYN.create(L.YUNET, "", (W, H), score_threshold=0.5,
+                                  nms_threshold=0.3, top_k=50)
+    d.setInputSize((W, H))
+    _, faces = d.detect(bgr)
+    if faces is None or len(faces) == 0:
+        return None, None
+    f = max(faces, key=lambda r: r[2] * r[3])
+    kps = f[4:14].reshape(5, 2).astype(float)
+    (lex, ley), (rex, rey) = kps[0], kps[1]
+    ed = math.hypot(rex - lex, rey - ley)
+    cx, cy = (lex + rex) / 2.0, (ley + rey) / 2.0
+    x0, x1 = int(max(0, cx - ed * 0.75)), int(min(W, cx + ed * 0.75))
+    y0, y1 = int(max(0, cy - ed * 0.30)), int(min(H, cy + ed * 0.30))
+    if x1 - x0 < 30 or y1 - y0 < 20:
+        return None, None
+    g = cv2.GaussianBlur(cv2.cvtColor(bgr[y0:y1, x0:x1], cv2.COLOR_BGR2GRAY),
+                         (3, 3), 0)
+    edges = cv2.Canny(g, 40, 120)
+    minlen = max(12, int(ed * 0.16))
+    segs = cv2.HoughLinesP(edges, 1, np.pi / 720, threshold=max(12, int(ed * 0.14)),
+                           minLineLength=minlen, maxLineGap=max(3, int(ed * 0.05)))
+    if segs is None:
+        return None, None
+    rows = []
+    for s in segs[:, 0, :]:
+        ax, ay, bx, by = [float(v) for v in s]
+        if bx < ax:
+            ax, ay, bx, by = bx, by, ax, ay
+        ln = math.hypot(bx - ax, by - ay)
+        if ln < minlen:
+            continue
+        ang = math.degrees(math.atan2(by - ay, bx - ax))
+        if abs(ang) > 25:                      # 只要近水平的
+            continue
+        rows.append((ang, ln))
+    if len(rows) < 3:
+        return None, len(rows)
+    rows.sort()
+    tot = sum(l for _, l in rows)
+    acc = 0.0
+    for ang, ln in rows:
+        acc += ln
+        if acc >= tot / 2:
+            return ang, len(rows)
+    return rows[-1][0], len(rows)
+
+
+def _by_symmetry(path):
+    roi = face_roi(path)
+    return (None, None) if roi is None else symmetry_angle(roi)
+
+
+METHODS = {
+    # 名称 -> 已实测标定结论（不要只看名字挑方法，先看这里的判定）
+    "symmetry": (_by_symmetry, "已证伪：标定最大误差 20.7°"),
+    "hough": (eye_band_angle, "方向对但太粗：标定中位误差 1.36°、最大 2.17°"),
+}
+
+
+def calibrate(cid, method="hough", verbose=True):
     """真值无关自检：meas(Δ) − meas(0) 是否等于施加的 Δ。"""
+    fn = METHODS[method][0]
     got = {}
     for delta in DELTAS:
         p = os.path.join(BASE, _fixture_name(cid, delta))
@@ -125,16 +207,14 @@ def calibrate(cid, verbose=True):
             if verbose:
                 print("    %-18s 缺失" % _fixture_name(cid, delta))
             continue
-        roi = face_roi(p)
-        if roi is None:
+        t, val = fn(p)
+        if t is None:
             if verbose:
-                print("    %-18s 无脸" % _fixture_name(cid, delta))
+                print("    %-18s 测不出" % _fixture_name(cid, delta))
             continue
-        t, val = symmetry_angle(roi)
         got[delta] = t
         if verbose:
-            print("    %-18s Δ=%+6.1f  对称轴=%+7.2f  NCC=%.4f"
-                  % (_fixture_name(cid, delta), delta, t, val))
+            print("    %-18s Δ=%+6.1f  读数=%+7.2f" % (_fixture_name(cid, delta), delta, t))
     if 0.0 not in got:
         return got, None
     errs = [abs(got[d] - got[0.0] - d) for d in got if d != 0.0]
@@ -143,20 +223,24 @@ def calibrate(cid, verbose=True):
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "check"
-    ids = sys.argv[2:] or ["p1"]
+    args = sys.argv[2:]
+    method = "hough"
+    if args and args[0] in METHODS:
+        method = args.pop(0)
+    ids = args or ["p1"]
+    print("# 方法 %s —— %s" % (method, METHODS[method][1]))
     for cid in ids:
         print("=== %s ===" % cid)
-        got, maxerr = calibrate(cid, verbose=(mode == "report"))
+        got, maxerr = calibrate(cid, method=method, verbose=(mode == "report"))
         if maxerr is None:
             print("  标定不可用（缺 d0 或夹具）")
             continue
         print("  >> 标定最大误差 = %.2f° （判据：≤0.5° 才可采信绝对读数）" % maxerr)
         if mode == "report":
-            base = os.path.join(BASE, "%s.png" % cid)
-            roi = face_roi(base)
-            if roi is not None:
-                t, val = symmetry_angle(roi)
-                print("  >> %s 原图独立读数 = %+.2f°（NCC=%.4f）" % (cid, t, val))
+            t, _ = METHODS[method][0](os.path.join(BASE, "%s.png" % cid))
+            if t is not None:
+                print("  >> %s 原图读数 = %+.2f°  ⚠ 当前仪器未达 0.5°，此数不可作证据"
+                      % (cid, t))
 
 
 if __name__ == "__main__":

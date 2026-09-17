@@ -1,0 +1,2060 @@
+{
+ "generatedBy": "qa-batch / test/batch/{p0_measure,p0_finalize,p0_rotate,p0_est,p0_verify_geo}.py",
+ "baselineTag": "baseline-p6p0",
+ "convention": {
+  "trueRollDeg": "实测倾角 tilt。图像坐标 y 向下；tilt = atan2(y_imgRightEye - y_imgLeftEye, x_imgRightEye - x_imgLeftEye)；正值 = 图像右侧的眼更低。",
+  "expectedEngineRollDeg": "FaceInfo.rollDeg 应输出的值。**实测：引擎 rollDeg 在数值上等于 tilt（不是它的相反数）**。核对方式有二：(1) p1 几何求解——把 crop_geometry 的 p_src = C + R(θ)(p_rot − C) 反解出 θ 恰为 -4.41，引擎输出 -4.42；(2) 合成点位的数值实验——θ=+10° 会让'右侧偏高的点'更高，即正 θ 使内容逆时针转。",
+  "signTrap": "**api.dart 的注释与 crop_geometry.dart 的注释符号相反**：api.dart 写'正值表示把图像顺时针转'，而 crop_geometry 的 R(θ) 实现出来是'正 θ = 内容逆时针转'。数值以代码为准（已验证）。这是极易引入反向 bug 的文档陷阱，已回派主会话。",
+  "fixtureDelta": "夹具应有 tilt = 锚点真值 + deltaDeg；生成用 PIL.rotate(-deltaDeg, BICUBIC)"
+ },
+ "anchorCount": 13,
+ "anchors": [
+  {
+   "id": "p1",
+   "path": "C:/Users/liuyu/Pictures/1 (2).jpg",
+   "trueRollDeg": -4.4,
+   "expectedEngineRollDeg": -4.4,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/p1.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -4.414,
+    "m2_radon_yunet": -3.545,
+    "m3_haar_eyeline": -3.949,
+    "m4_radon_haar": -3.54
+   },
+   "yunetEyeLineDeg": 0.432,
+   "yunetErrorDeg": 4.832,
+   "nFaces": 1,
+   "eyedistPx": 215.3,
+   "note": "主会话三方确认锚点 -4.4；本脚本 7 次旋转稳健估计 M1=-4.38 / M3=-4.08，一致",
+   "robustPerMethodDeg": {
+    "m1_pupil": -4.382,
+    "m2_radon_yunet": -3.514,
+    "m3_haar_eyeline": -4.082,
+    "m4_radon_haar": -3.54
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.3,
+   "corroborationOk": true
+  },
+  {
+   "id": "c01",
+   "path": "C:/Users/liuyu/Pictures/20240710193717_7c99.jpg",
+   "trueRollDeg": -1.3,
+   "expectedEngineRollDeg": -1.3,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/c01.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -1.137,
+    "m2_radon_yunet": -0.013,
+    "m3_haar_eyeline": -0.932,
+    "m4_radon_haar": -0.02
+   },
+   "yunetEyeLineDeg": -3.681,
+   "yunetErrorDeg": -2.381,
+   "nFaces": 1,
+   "eyedistPx": 118.8,
+   "note": "radon 族读 ~0，与眼线族差 1.29（radon 向零偏置）；目视确认右瞳孔更高",
+   "robustPerMethodDeg": {
+    "m1_pupil": -1.296,
+    "m2_radon_yunet": -0.013,
+    "m3_haar_eyeline": -1.002,
+    "m4_radon_haar": -0.02
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.294,
+   "corroborationOk": true
+  },
+  {
+   "id": "c02",
+   "path": "C:/Users/liuyu/Pictures/29EDA59B982FA8339335D50B00CCD096.jpg",
+   "trueRollDeg": -0.25,
+   "expectedEngineRollDeg": -0.25,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/c02.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -0.253,
+    "m2_radon_yunet": -0.427,
+    "m3_haar_eyeline": -0.17,
+    "m4_radon_haar": -0.045
+   },
+   "yunetEyeLineDeg": -6.088,
+   "yunetErrorDeg": -5.838,
+   "nFaces": 1,
+   "eyedistPx": 150.8,
+   "note": "YuNet 读 -6.09，偏差 5.8 (P0 根因样本)",
+   "robustPerMethodDeg": {
+    "m1_pupil": -0.253,
+    "m2_radon_yunet": -0.366,
+    "m3_haar_eyeline": -0.274,
+    "m4_radon_haar": -0.264
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.021,
+   "corroborationOk": true
+  },
+  {
+   "id": "c03",
+   "path": "C:/Users/liuyu/Pictures/8D861A29F86CE7464865EFEB3C9B4124.jpg",
+   "trueRollDeg": -3.72,
+   "expectedEngineRollDeg": -3.72,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/c03.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -3.837,
+    "m2_radon_yunet": -2.825,
+    "m3_haar_eyeline": -3.712,
+    "m4_radon_haar": -2.982
+   },
+   "yunetEyeLineDeg": 1.106,
+   "yunetErrorDeg": 4.826,
+   "nFaces": 1,
+   "eyedistPx": 218.4,
+   "note": "YuNet 读 +1.11，偏差 4.9 (P0 根因样本)",
+   "robustPerMethodDeg": {
+    "m1_pupil": -3.799,
+    "m2_radon_yunet": -2.841,
+    "m3_haar_eyeline": -3.215,
+    "m4_radon_haar": -2.982
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.584,
+   "corroborationOk": true
+  },
+  {
+   "id": "c04",
+   "path": "C:/Users/liuyu/Pictures/8D861A29F86CE7464865EFEB3C9B4124 (自定义).jpg",
+   "trueRollDeg": -3.82,
+   "expectedEngineRollDeg": -3.82,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/c04.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -3.924,
+    "m2_radon_yunet": -4.483,
+    "m3_haar_eyeline": -3.077,
+    "m4_radon_haar": -3.487
+   },
+   "yunetEyeLineDeg": -4.096,
+   "yunetErrorDeg": -0.276,
+   "nFaces": 1,
+   "eyedistPx": 135.7,
+   "note": "多人合影裁切版",
+   "robustPerMethodDeg": {
+    "m1_pupil": -3.836,
+    "m2_radon_yunet": -4.136,
+    "m3_haar_eyeline": -3.208,
+    "m4_radon_haar": -3.487
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.628,
+   "corroborationOk": true
+  },
+  {
+   "id": "c05",
+   "path": "C:/Users/liuyu/Pictures/a.jpg",
+   "trueRollDeg": -3.91,
+   "expectedEngineRollDeg": -3.91,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/c05.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -3.939,
+    "m2_radon_yunet": -3.754,
+    "m3_haar_eyeline": -3.731,
+    "m4_radon_haar": -3.698
+   },
+   "yunetEyeLineDeg": -1.075,
+   "yunetErrorDeg": 2.835,
+   "nFaces": 1,
+   "eyedistPx": 129.0,
+   "note": "四法稳健估计极紧 (M1 -3.91 / M2 -3.75 / M3 -3.73 / M4 -3.70)",
+   "robustPerMethodDeg": {
+    "m1_pupil": -3.914,
+    "m2_radon_yunet": -3.754,
+    "m3_haar_eyeline": -3.731,
+    "m4_radon_haar": -3.698
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.183,
+   "corroborationOk": true
+  },
+  {
+   "id": "c06",
+   "path": "C:/Users/liuyu/Pictures/吴港+通信工程+532128200107160711.jpg",
+   "trueRollDeg": -1.73,
+   "expectedEngineRollDeg": -1.73,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/c06.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -1.718,
+    "m2_radon_yunet": -1.075,
+    "m3_haar_eyeline": -1.273,
+    "m4_radon_haar": 0.925
+   },
+   "yunetEyeLineDeg": -4.131,
+   "yunetErrorDeg": -2.401,
+   "nFaces": 1,
+   "eyedistPx": 84.0,
+   "note": "YuNet 人脸框整体偏到头发上；M4 因 Haar 眼框落在眉上而系统性偏 +2.7",
+   "robustPerMethodDeg": {
+    "m1_pupil": -1.722,
+    "m2_radon_yunet": -1.075,
+    "m3_haar_eyeline": -1.327,
+    "m4_radon_haar": 0.925
+   },
+   "robustObsCount": {
+    "m1_pupil": 6,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.395,
+   "corroborationOk": true
+  },
+  {
+   "id": "c07",
+   "path": "C:/Users/liuyu/Pictures/报名照片.jpg",
+   "trueRollDeg": -0.35,
+   "expectedEngineRollDeg": -0.35,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/c07.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -0.273,
+    "m2_radon_yunet": -0.005,
+    "m3_haar_eyeline": -0.424,
+    "m4_radon_haar": -0.014
+   },
+   "yunetEyeLineDeg": -6.029,
+   "yunetErrorDeg": -5.679,
+   "nFaces": 1,
+   "eyedistPx": 68.0,
+   "note": "低分辨率(295x413, 眼距 68px)，JPEG 块效应重，标记 lowConfidence",
+   "robustPerMethodDeg": {
+    "m1_pupil": -0.346,
+    "m2_radon_yunet": -0.327,
+    "m3_haar_eyeline": -0.042,
+    "m4_radon_haar": -0.392
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.304,
+   "corroborationOk": true,
+   "lowConfidence": true
+  },
+  {
+   "id": "c08",
+   "path": "C:/Users/liuyu/Pictures/Camera Roll/WIN_20230522_00_19_11_Pro.jpg",
+   "trueRollDeg": -8.01,
+   "expectedEngineRollDeg": -8.01,
+   "methods": [
+    "pupil-centroid"
+   ],
+   "evidence": "out/P0_anchors/c08.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -7.026,
+    "m2_radon_yunet": -6.277
+   },
+   "yunetEyeLineDeg": -9.389,
+   "yunetErrorDeg": -1.379,
+   "nFaces": 1,
+   "eyedistPx": 141.2,
+   "note": "暗光摄像头；Haar 全程失败，仅 2 法可用且互差 1.69，标记 lowConfidence",
+   "robustPerMethodDeg": {
+    "m1_pupil": -6.805,
+    "m2_radon_yunet": -6.322
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7
+   },
+   "corroborationOk": false,
+   "lowConfidence": true
+  },
+  {
+   "id": "c10",
+   "path": "C:/Users/liuyu/Pictures/1979d869c783fcc849d4e05b81eb809e.png",
+   "trueRollDeg": -3.44,
+   "expectedEngineRollDeg": -3.44,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/c10.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -3.584,
+    "m2_radon_yunet": -3.839,
+    "m3_haar_eyeline": -3.158,
+    "m4_radon_haar": -3.904
+   },
+   "yunetEyeLineDeg": -6.381,
+   "yunetErrorDeg": -2.941,
+   "nFaces": 5,
+   "eyedistPx": 153.3,
+   "note": "4032x3024 多人合影原图(5 张脸)，主体为最大脸",
+   "robustPerMethodDeg": {
+    "m1_pupil": -3.438,
+    "m2_radon_yunet": -3.823,
+    "m3_haar_eyeline": -3.095,
+    "m4_radon_haar": -3.763
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.343,
+   "corroborationOk": true
+  },
+  {
+   "id": "c11",
+   "path": "C:/Users/liuyu/Pictures/4e84ef7b8a910c776acd0eebb8293ee9.png",
+   "trueRollDeg": -0.11,
+   "expectedEngineRollDeg": -0.11,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/c11.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -0.108,
+    "m2_radon_yunet": -0.0,
+    "m3_haar_eyeline": 0.198,
+    "m4_radon_haar": 0.002
+   },
+   "yunetEyeLineDeg": 2.068,
+   "yunetErrorDeg": 2.178,
+   "nFaces": 5,
+   "eyedistPx": 143.2,
+   "note": "同上系列；近竖直",
+   "robustPerMethodDeg": {
+    "m1_pupil": -0.123,
+    "m2_radon_yunet": -0.0,
+    "m3_haar_eyeline": -0.135,
+    "m4_radon_haar": -0.067
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.012,
+   "corroborationOk": true
+  },
+  {
+   "id": "c12",
+   "path": "C:/Users/liuyu/Pictures/e9168d2cfe9045d07fac74e68419d211.png",
+   "trueRollDeg": -2.09,
+   "expectedEngineRollDeg": -2.09,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/c12.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -2.054,
+    "m2_radon_yunet": -1.715,
+    "m3_haar_eyeline": -3.202,
+    "m4_radon_haar": -1.723
+   },
+   "yunetEyeLineDeg": 0.631,
+   "yunetErrorDeg": 2.721,
+   "nFaces": 5,
+   "eyedistPx": 137.8,
+   "note": "同上系列",
+   "robustPerMethodDeg": {
+    "m1_pupil": -2.094,
+    "m2_radon_yunet": -1.866,
+    "m3_haar_eyeline": -2.352,
+    "m4_radon_haar": -1.86
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.258,
+   "corroborationOk": true
+  }
+ ],
+ "straight": [
+  {
+   "id": "p2",
+   "path": "C:/Users/liuyu/Pictures/2.jpg",
+   "trueRollDeg": -0.2,
+   "expectedEngineRollDeg": -0.2,
+   "methods": [
+    "pupil-centroid",
+    "haar-eyeline"
+   ],
+   "evidence": "out/P0_anchors/p2.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -0.031,
+    "m2_radon_yunet": -0.401,
+    "m3_haar_eyeline": -0.25,
+    "m4_radon_haar": -0.368
+   },
+   "yunetEyeLineDeg": -4.311,
+   "yunetErrorDeg": -4.111,
+   "nFaces": 1,
+   "eyedistPx": 207.2,
+   "note": "主会话确认的竖直蓝底证件照；本脚本稳健估计 M1=-0.12 / M3=-0.35；当前实现转歪 +3.7 (P0.2 基准)",
+   "robustPerMethodDeg": {
+    "m1_pupil": -0.125,
+    "m2_radon_yunet": -0.353,
+    "m3_haar_eyeline": -0.353,
+    "m4_radon_haar": -0.328
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.228,
+   "corroborationOk": true
+  }
+ ],
+ "uprightSynthetic": [
+  {
+   "id": "p1_upright",
+   "src": "p1",
+   "path": "out/P0_anchors/p1_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    1184,
+    2048
+   ],
+   "note": "由 p1 (真值 -4.40°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.022,
+    "m2_radon_yunet": 0.976,
+    "m3_haar_eyeline": 0.115,
+    "m4_radon_haar": -0.446,
+    "_yunet": -0.27
+   },
+   "measuredConsensus": 0.115
+  },
+  {
+   "id": "c01_upright",
+   "src": "c01",
+   "path": "out/P0_anchors/c01_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    480,
+    640
+   ],
+   "note": "由 c01 (真值 -1.30°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.146,
+    "m2_radon_yunet": 0.932,
+    "m3_haar_eyeline": 0.236,
+    "m4_radon_haar": 0.983,
+    "_yunet": -1.573
+   },
+   "measuredConsensus": 0.932
+  },
+  {
+   "id": "c03_upright",
+   "src": "c03",
+   "path": "out/P0_anchors/c03_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    1159,
+    1920
+   ],
+   "note": "由 c03 (真值 -3.72°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 2.406,
+    "m2_radon_yunet": 0.874,
+    "m3_haar_eyeline": -0.331,
+    "m4_radon_haar": -0.861,
+    "_yunet": 1.53
+   },
+   "measuredConsensus": 0.874
+  },
+  {
+   "id": "c04_upright",
+   "src": "c04",
+   "path": "out/P0_anchors/c04_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    483,
+    800
+   ],
+   "note": "由 c04 (真值 -3.82°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": -0.086,
+    "m2_radon_yunet": -0.011,
+    "m3_haar_eyeline": 0.409,
+    "m4_radon_haar": -0.026,
+    "_yunet": 1.54
+   },
+   "measuredConsensus": -0.011
+  },
+  {
+   "id": "c05_upright",
+   "src": "c05",
+   "path": "out/P0_anchors/c05_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    483,
+    604
+   ],
+   "note": "由 c05 (真值 -3.91°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.108,
+    "m2_radon_yunet": 0.003,
+    "m3_haar_eyeline": 0.616,
+    "m4_radon_haar": -0.025,
+    "_yunet": 1.265
+   },
+   "measuredConsensus": 0.108
+  },
+  {
+   "id": "c06_upright",
+   "src": "c06",
+   "path": "out/P0_anchors/c06_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    480,
+    640
+   ],
+   "note": "由 c06 (真值 -1.73°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.126,
+    "m2_radon_yunet": 1.074,
+    "m3_haar_eyeline": 0.644,
+    "m4_radon_haar": 1.266,
+    "_yunet": -2.412
+   },
+   "measuredConsensus": 1.074
+  },
+  {
+   "id": "c08_upright",
+   "src": "c08",
+   "path": "out/P0_anchors/c08_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    1280,
+    720
+   ],
+   "note": "由 c08 (真值 -8.01°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.696,
+    "m2_radon_yunet": 1.666,
+    "_yunet": -1.711
+   },
+   "measuredConsensus": 1.666
+  },
+  {
+   "id": "c10_upright",
+   "src": "c10",
+   "path": "out/P0_anchors/c10_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    2048,
+    1536
+   ],
+   "note": "由 c10 (真值 -3.44°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.284,
+    "m2_radon_yunet": -0.02,
+    "m3_haar_eyeline": 0.587,
+    "m4_radon_haar": -0.029,
+    "_yunet": 4.502
+   },
+   "measuredConsensus": 0.284
+  },
+  {
+   "id": "c12_upright",
+   "src": "c12",
+   "path": "out/P0_anchors/c12_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    2048,
+    1536
+   ],
+   "note": "由 c12 (真值 -2.09°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": -0.042,
+    "m2_radon_yunet": 0.036,
+    "m3_haar_eyeline": -0.198,
+    "m4_radon_haar": 0.034,
+    "_yunet": 2.617
+   },
+   "measuredConsensus": 0.034
+  }
+ ],
+ "nonPortrait": [
+  "C:/Users/liuyu/Pictures/)T@WU8]6Q}21RVC5RUROQ]G.jpeg",
+  "C:/Users/liuyu/Pictures/)T@WU8]6Q}21RVC5RUROQ]G.png",
+  "C:/Users/liuyu/Pictures/18.jpg",
+  "C:/Users/liuyu/Pictures/dan5njb-28279924-59e5-4094-8d16-d410efcf2acc.jpg",
+  "C:/Users/liuyu/Pictures/desktop.ini",
+  "C:/Users/liuyu/Pictures/fwebp.webp",
+  "C:/Users/liuyu/Pictures/Globe_High.png",
+  "C:/Users/liuyu/Pictures/IMG_20230115_130634.jpg",
+  "C:/Users/liuyu/Pictures/IMG_20230115_130941.jpg",
+  "C:/Users/liuyu/Pictures/IMG_20230115_132101.jpg",
+  "C:/Users/liuyu/Pictures/IMG_20230115_133511.jpg",
+  "C:/Users/liuyu/Pictures/Online Verification Report of Student Record_LIU YUANLIN_00.jpg",
+  "C:/Users/liuyu/Pictures/QQ截图20230115131411.jpg",
+  "C:/Users/liuyu/Pictures/QQ截图20230115132012.jpg",
+  "C:/Users/liuyu/Pictures/QQ截图20230528124945.jpg",
+  "C:/Users/liuyu/Pictures/W}4M@N_DCBQUON5NZ{{QZ%W.png",
+  "C:/Users/liuyu/Pictures/Y{0T[9S[]P$MV9_W)W5U{}P.png",
+  "C:/Users/liuyu/Pictures/微信图片_2025-11-11_211809_101.jpg",
+  "C:/Users/liuyu/Pictures/微信图片_20250423221504.jpg",
+  "C:/Users/liuyu/Pictures/微信图片_202504232215041.jpg",
+  "C:/Users/liuyu/Pictures/微信图片_20250423221513.jpg",
+  "C:/Users/liuyu/Pictures/拼多多128固态硬盘测试结果.jpg",
+  "C:/Users/liuyu/Pictures/新文件 27.txt",
+  "C:/Users/liuyu/Pictures/Camera Roll/desktop.ini",
+  "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog.lrcat",
+  "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Helper.lrdata/helper.db",
+  "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Previews.lrdata/previews.db",
+  "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Previews.lrdata/root-pixels.db",
+  "C:/Users/liuyu/Pictures/Luminar Neo Catalog/Luminar Neo Catalog.luminarneo",
+  "C:/Users/liuyu/Pictures/Luminar Neo Catalog/map.dat",
+  "C:/Users/liuyu/Pictures/Luminar Neo Catalog/vectors.dat",
+  "C:/Users/liuyu/Pictures/Luminar Neo Catalog/Sample Images/scenario.json",
+  "C:/Users/liuyu/Pictures/Saved Pictures/desktop.ini",
+  "C:/Users/liuyu/Pictures/Screenshots/desktop.ini",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-07-26 172208.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-09-07 151043.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-09-09 105351.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-10-21 203504.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-10-21 210032.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-11-14 113737.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-01-26 112901.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-01-26 112931.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-05-06 213407.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-05-06 213412.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-09-16 193456.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-09-16 193518.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-10-16 121748.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-11-06 142831.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-11-06 142855.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-03-01 112555.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-06 170927.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-10 234413.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-11 175944.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-12 222310.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-13 112721.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-15 125826.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163718.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163727.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163733.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 185612.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-21 113927.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-21 134949.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-24 080543.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-05-24 123944.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-07-08 104838.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-08-12 154339.png"
+ ],
+ "rejected": [
+  {
+   "id": "c09",
+   "path": "C:/Users/liuyu/Pictures/Camera Roll/WIN_20230522_00_19_21_Pro.jpg",
+   "reason": "方法互相矛盾：M1=-29.46 vs M2=-12.39 (spread 17.07)。原因：暗光 + 宽镜框 + 刘海遮挡，M1 的圆形暗块落在镜框/眉弓上而非瞳孔；目视也无法可靠定位瞳孔。已排除出真值集。"
+  }
+ ],
+ "rotated": [
+  {
+   "id": "p1_d-10",
+   "src": "p1",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/p1_d-10.png",
+   "expectedTiltDeg": -14.4,
+   "expectedEngineRollDeg": -14.4,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": -10.007,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -13.345,
+   "remeasureOk": true
+  },
+  {
+   "id": "p1_d-5",
+   "src": "p1",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/p1_d-5.png",
+   "expectedTiltDeg": -9.4,
+   "expectedEngineRollDeg": -9.4,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": -5.005,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -7.996,
+   "remeasureOk": true
+  },
+  {
+   "id": "p1_d-3",
+   "src": "p1",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/p1_d-3.png",
+   "expectedTiltDeg": -7.4,
+   "expectedEngineRollDeg": -7.4,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": -3.002,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -7.082,
+   "remeasureOk": true
+  },
+  {
+   "id": "p1_d+3",
+   "src": "p1",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/p1_d+3.png",
+   "expectedTiltDeg": -1.4,
+   "expectedEngineRollDeg": -1.4,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": 3.003,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -1.146,
+   "remeasureOk": true
+  },
+  {
+   "id": "p1_d+5",
+   "src": "p1",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/p1_d+5.png",
+   "expectedTiltDeg": 0.6,
+   "expectedEngineRollDeg": 0.6,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": 5.005,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 0.807,
+   "remeasureOk": true
+  },
+  {
+   "id": "p1_d+10",
+   "src": "p1",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/p1_d+10.png",
+   "expectedTiltDeg": 5.6,
+   "expectedEngineRollDeg": 5.6,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": 10.009,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 5.671,
+   "remeasureOk": true
+  },
+  {
+   "id": "c01_d-10",
+   "src": "c01",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c01_d-10.png",
+   "expectedTiltDeg": -11.3,
+   "expectedEngineRollDeg": -11.3,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -10.005,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 5.01,
+   "remeasureOk": false
+  },
+  {
+   "id": "c01_d-5",
+   "src": "c01",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c01_d-5.png",
+   "expectedTiltDeg": -6.3,
+   "expectedEngineRollDeg": -6.3,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -5.003,
+   "geoNcc": 0.9996,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.855,
+   "remeasureOk": false
+  },
+  {
+   "id": "c01_d-3",
+   "src": "c01",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c01_d-3.png",
+   "expectedTiltDeg": -4.3,
+   "expectedEngineRollDeg": -4.3,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -3.002,
+   "geoNcc": 0.9996,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -2.354,
+   "remeasureOk": false
+  },
+  {
+   "id": "c01_d+3",
+   "src": "c01",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c01_d+3.png",
+   "expectedTiltDeg": 1.7,
+   "expectedEngineRollDeg": 1.7,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 3.002,
+   "geoNcc": 0.9996,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 2.484,
+   "remeasureOk": true
+  },
+  {
+   "id": "c01_d+5",
+   "src": "c01",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c01_d+5.png",
+   "expectedTiltDeg": 3.7,
+   "expectedEngineRollDeg": 3.7,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 5.003,
+   "geoNcc": 0.9996,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 4.147,
+   "remeasureOk": true
+  },
+  {
+   "id": "c01_d+10",
+   "src": "c01",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c01_d+10.png",
+   "expectedTiltDeg": 8.7,
+   "expectedEngineRollDeg": 8.7,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 10.006,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 7.372,
+   "remeasureOk": true
+  },
+  {
+   "id": "c02_d-10",
+   "src": "c02",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c02_d-10.png",
+   "expectedTiltDeg": -10.25,
+   "expectedEngineRollDeg": -10.25,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -9.99,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -10.336,
+   "remeasureOk": true
+  },
+  {
+   "id": "c02_d-5",
+   "src": "c02",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c02_d-5.png",
+   "expectedTiltDeg": -5.25,
+   "expectedEngineRollDeg": -5.25,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -4.997,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -5.247,
+   "remeasureOk": true
+  },
+  {
+   "id": "c02_d-3",
+   "src": "c02",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c02_d-3.png",
+   "expectedTiltDeg": -3.25,
+   "expectedEngineRollDeg": -3.25,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -2.998,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.264,
+   "remeasureOk": true
+  },
+  {
+   "id": "c02_d+3",
+   "src": "c02",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c02_d+3.png",
+   "expectedTiltDeg": 2.75,
+   "expectedEngineRollDeg": 2.75,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 2.998,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 2.726,
+   "remeasureOk": true
+  },
+  {
+   "id": "c02_d+5",
+   "src": "c02",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c02_d+5.png",
+   "expectedTiltDeg": 4.75,
+   "expectedEngineRollDeg": 4.75,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 5.0,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 4.687,
+   "remeasureOk": true
+  },
+  {
+   "id": "c02_d+10",
+   "src": "c02",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c02_d+10.png",
+   "expectedTiltDeg": 9.75,
+   "expectedEngineRollDeg": 9.75,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 10.0,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 9.66,
+   "remeasureOk": true
+  },
+  {
+   "id": "c03_d-10",
+   "src": "c03",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c03_d-10.png",
+   "expectedTiltDeg": -13.72,
+   "expectedEngineRollDeg": -13.72,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -10.005,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -12.761,
+   "remeasureOk": true
+  },
+  {
+   "id": "c03_d-5",
+   "src": "c03",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c03_d-5.png",
+   "expectedTiltDeg": -8.72,
+   "expectedEngineRollDeg": -8.72,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -5.003,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -7.824,
+   "remeasureOk": true
+  },
+  {
+   "id": "c03_d-3",
+   "src": "c03",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c03_d-3.png",
+   "expectedTiltDeg": -6.72,
+   "expectedEngineRollDeg": -6.72,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -3.002,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -5.841,
+   "remeasureOk": true
+  },
+  {
+   "id": "c03_d+3",
+   "src": "c03",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c03_d+3.png",
+   "expectedTiltDeg": -0.72,
+   "expectedEngineRollDeg": -0.72,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 3.002,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -0.215,
+   "remeasureOk": true
+  },
+  {
+   "id": "c03_d+5",
+   "src": "c03",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c03_d+5.png",
+   "expectedTiltDeg": 1.28,
+   "expectedEngineRollDeg": 1.28,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 5.003,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 1.909,
+   "remeasureOk": true
+  },
+  {
+   "id": "c03_d+10",
+   "src": "c03",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c03_d+10.png",
+   "expectedTiltDeg": 6.28,
+   "expectedEngineRollDeg": 6.28,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 10.007,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 6.555,
+   "remeasureOk": true
+  },
+  {
+   "id": "c04_d-10",
+   "src": "c04",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c04_d-10.png",
+   "expectedTiltDeg": -13.82,
+   "expectedEngineRollDeg": -13.82,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": -10.004,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -12.791,
+   "remeasureOk": true
+  },
+  {
+   "id": "c04_d-5",
+   "src": "c04",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c04_d-5.png",
+   "expectedTiltDeg": -8.82,
+   "expectedEngineRollDeg": -8.82,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": -5.003,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -7.847,
+   "remeasureOk": true
+  },
+  {
+   "id": "c04_d-3",
+   "src": "c04",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c04_d-3.png",
+   "expectedTiltDeg": -6.82,
+   "expectedEngineRollDeg": -6.82,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": -3.002,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -6.108,
+   "remeasureOk": true
+  },
+  {
+   "id": "c04_d+3",
+   "src": "c04",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c04_d+3.png",
+   "expectedTiltDeg": -0.82,
+   "expectedEngineRollDeg": -0.82,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": 3.002,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -0.86,
+   "remeasureOk": true
+  },
+  {
+   "id": "c04_d+5",
+   "src": "c04",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c04_d+5.png",
+   "expectedTiltDeg": 1.18,
+   "expectedEngineRollDeg": 1.18,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": 5.003,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 1.182,
+   "remeasureOk": true
+  },
+  {
+   "id": "c04_d+10",
+   "src": "c04",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c04_d+10.png",
+   "expectedTiltDeg": 6.18,
+   "expectedEngineRollDeg": 6.18,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": 10.006,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 6.164,
+   "remeasureOk": true
+  },
+  {
+   "id": "c05_d-10",
+   "src": "c05",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c05_d-10.png",
+   "expectedTiltDeg": -13.91,
+   "expectedEngineRollDeg": -13.91,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": -9.991,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -12.791,
+   "remeasureOk": true
+  },
+  {
+   "id": "c05_d-5",
+   "src": "c05",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c05_d-5.png",
+   "expectedTiltDeg": -8.91,
+   "expectedEngineRollDeg": -8.91,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": -4.995,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -7.766,
+   "remeasureOk": true
+  },
+  {
+   "id": "c05_d-3",
+   "src": "c05",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c05_d-3.png",
+   "expectedTiltDeg": -6.91,
+   "expectedEngineRollDeg": -6.91,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": -2.997,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -6.031,
+   "remeasureOk": true
+  },
+  {
+   "id": "c05_d+3",
+   "src": "c05",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c05_d+3.png",
+   "expectedTiltDeg": -0.91,
+   "expectedEngineRollDeg": -0.91,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": 2.998,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -0.809,
+   "remeasureOk": true
+  },
+  {
+   "id": "c05_d+5",
+   "src": "c05",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c05_d+5.png",
+   "expectedTiltDeg": 1.09,
+   "expectedEngineRollDeg": 1.09,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": 4.996,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 0.992,
+   "remeasureOk": true
+  },
+  {
+   "id": "c05_d+10",
+   "src": "c05",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c05_d+10.png",
+   "expectedTiltDeg": 6.09,
+   "expectedEngineRollDeg": 6.09,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": 9.991,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 6.086,
+   "remeasureOk": true
+  },
+  {
+   "id": "c06_d-10",
+   "src": "c06",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c06_d-10.png",
+   "expectedTiltDeg": -11.73,
+   "expectedEngineRollDeg": -11.73,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -9.995,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 5.01,
+   "remeasureOk": false
+  },
+  {
+   "id": "c06_d-5",
+   "src": "c06",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c06_d-5.png",
+   "expectedTiltDeg": -6.73,
+   "expectedEngineRollDeg": -6.73,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -4.998,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.39,
+   "remeasureOk": false
+  },
+  {
+   "id": "c06_d-3",
+   "src": "c06",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c06_d-3.png",
+   "expectedTiltDeg": -4.73,
+   "expectedEngineRollDeg": -4.73,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -2.998,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -2.373,
+   "remeasureOk": false
+  },
+  {
+   "id": "c06_d+3",
+   "src": "c06",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c06_d+3.png",
+   "expectedTiltDeg": 1.27,
+   "expectedEngineRollDeg": 1.27,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 2.999,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 2.315,
+   "remeasureOk": true
+  },
+  {
+   "id": "c06_d+5",
+   "src": "c06",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c06_d+5.png",
+   "expectedTiltDeg": 3.27,
+   "expectedEngineRollDeg": 3.27,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 4.999,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 3.814,
+   "remeasureOk": true
+  },
+  {
+   "id": "c06_d+10",
+   "src": "c06",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c06_d+10.png",
+   "expectedTiltDeg": 8.27,
+   "expectedEngineRollDeg": 8.27,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 9.999,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 8.462,
+   "remeasureOk": true
+  },
+  {
+   "id": "c07_d-10",
+   "src": "c07",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c07_d-10.png",
+   "expectedTiltDeg": -10.35,
+   "expectedEngineRollDeg": -10.35,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": -9.985,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -10.008,
+   "remeasureOk": true
+  },
+  {
+   "id": "c07_d-5",
+   "src": "c07",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c07_d-5.png",
+   "expectedTiltDeg": -5.35,
+   "expectedEngineRollDeg": -5.35,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": -4.993,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -5.298,
+   "remeasureOk": true
+  },
+  {
+   "id": "c07_d-3",
+   "src": "c07",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c07_d-3.png",
+   "expectedTiltDeg": -3.35,
+   "expectedEngineRollDeg": -3.35,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": -2.996,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.293,
+   "remeasureOk": true
+  },
+  {
+   "id": "c07_d+3",
+   "src": "c07",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c07_d+3.png",
+   "expectedTiltDeg": 2.65,
+   "expectedEngineRollDeg": 2.65,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": 2.997,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 2.775,
+   "remeasureOk": true
+  },
+  {
+   "id": "c07_d+5",
+   "src": "c07",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c07_d+5.png",
+   "expectedTiltDeg": 4.65,
+   "expectedEngineRollDeg": 4.65,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": 4.996,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 4.786,
+   "remeasureOk": true
+  },
+  {
+   "id": "c07_d+10",
+   "src": "c07",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c07_d+10.png",
+   "expectedTiltDeg": 9.65,
+   "expectedEngineRollDeg": 9.65,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": 9.991,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 9.468,
+   "remeasureOk": true
+  },
+  {
+   "id": "c08_d-10",
+   "src": "c08",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c08_d-10.png",
+   "expectedTiltDeg": -18.01,
+   "expectedEngineRollDeg": -18.01,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": -10.015,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -11.717,
+   "remeasureOk": false
+  },
+  {
+   "id": "c08_d-5",
+   "src": "c08",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c08_d-5.png",
+   "expectedTiltDeg": -13.01,
+   "expectedEngineRollDeg": -13.01,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": -5.007,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -6.375,
+   "remeasureOk": false
+  },
+  {
+   "id": "c08_d-3",
+   "src": "c08",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c08_d-3.png",
+   "expectedTiltDeg": -11.01,
+   "expectedEngineRollDeg": -11.01,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": -3.004,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 7.405,
+   "remeasureOk": false
+  },
+  {
+   "id": "c08_d+3",
+   "src": "c08",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c08_d+3.png",
+   "expectedTiltDeg": -5.01,
+   "expectedEngineRollDeg": -5.01,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": 3.004,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -4.029,
+   "remeasureOk": true
+  },
+  {
+   "id": "c08_d+5",
+   "src": "c08",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c08_d+5.png",
+   "expectedTiltDeg": -3.01,
+   "expectedEngineRollDeg": -3.01,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": 5.006,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -1.805,
+   "remeasureOk": true
+  },
+  {
+   "id": "c08_d+10",
+   "src": "c08",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c08_d+10.png",
+   "expectedTiltDeg": 1.99,
+   "expectedEngineRollDeg": 1.99,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": 10.013,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 3.209,
+   "remeasureOk": true
+  },
+  {
+   "id": "c10_d-10",
+   "src": "c10",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c10_d-10.png",
+   "expectedTiltDeg": -13.44,
+   "expectedEngineRollDeg": -13.44,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -9.995,
+   "geoNcc": 0.9985,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -13.409,
+   "remeasureOk": true
+  },
+  {
+   "id": "c10_d-5",
+   "src": "c10",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c10_d-5.png",
+   "expectedTiltDeg": -8.44,
+   "expectedEngineRollDeg": -8.44,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -4.997,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -8.647,
+   "remeasureOk": true
+  },
+  {
+   "id": "c10_d-3",
+   "src": "c10",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c10_d-3.png",
+   "expectedTiltDeg": -6.44,
+   "expectedEngineRollDeg": -6.44,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -2.998,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -6.823,
+   "remeasureOk": true
+  },
+  {
+   "id": "c10_d+3",
+   "src": "c10",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c10_d+3.png",
+   "expectedTiltDeg": -0.44,
+   "expectedEngineRollDeg": -0.44,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 2.998,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -0.299,
+   "remeasureOk": true
+  },
+  {
+   "id": "c10_d+5",
+   "src": "c10",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c10_d+5.png",
+   "expectedTiltDeg": 1.56,
+   "expectedEngineRollDeg": 1.56,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 4.997,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 1.801,
+   "remeasureOk": true
+  },
+  {
+   "id": "c10_d+10",
+   "src": "c10",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c10_d+10.png",
+   "expectedTiltDeg": 6.56,
+   "expectedEngineRollDeg": 6.56,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 9.994,
+   "geoNcc": 0.9986,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 6.68,
+   "remeasureOk": true
+  },
+  {
+   "id": "c11_d-10",
+   "src": "c11",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c11_d-10.png",
+   "expectedTiltDeg": -10.11,
+   "expectedEngineRollDeg": -10.11,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -9.985,
+   "geoNcc": 0.9987,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -9.992,
+   "remeasureOk": true
+  },
+  {
+   "id": "c11_d-5",
+   "src": "c11",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c11_d-5.png",
+   "expectedTiltDeg": -5.11,
+   "expectedEngineRollDeg": -5.11,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -4.993,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -4.976,
+   "remeasureOk": true
+  },
+  {
+   "id": "c11_d-3",
+   "src": "c11",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c11_d-3.png",
+   "expectedTiltDeg": -3.11,
+   "expectedEngineRollDeg": -3.11,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -2.995,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.031,
+   "remeasureOk": true
+  },
+  {
+   "id": "c11_d+3",
+   "src": "c11",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c11_d+3.png",
+   "expectedTiltDeg": 2.89,
+   "expectedEngineRollDeg": 2.89,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 2.995,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 2.912,
+   "remeasureOk": true
+  },
+  {
+   "id": "c11_d+5",
+   "src": "c11",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c11_d+5.png",
+   "expectedTiltDeg": 4.89,
+   "expectedEngineRollDeg": 4.89,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 4.992,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 4.905,
+   "remeasureOk": true
+  },
+  {
+   "id": "c11_d+10",
+   "src": "c11",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c11_d+10.png",
+   "expectedTiltDeg": 9.89,
+   "expectedEngineRollDeg": 9.89,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 9.985,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 9.98,
+   "remeasureOk": true
+  },
+  {
+   "id": "c12_d-10",
+   "src": "c12",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/c12_d-10.png",
+   "expectedTiltDeg": -12.09,
+   "expectedEngineRollDeg": -12.09,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -9.99,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -12.094,
+   "remeasureOk": true
+  },
+  {
+   "id": "c12_d-5",
+   "src": "c12",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/c12_d-5.png",
+   "expectedTiltDeg": -7.09,
+   "expectedEngineRollDeg": -7.09,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -4.995,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -6.846,
+   "remeasureOk": true
+  },
+  {
+   "id": "c12_d-3",
+   "src": "c12",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/c12_d-3.png",
+   "expectedTiltDeg": -5.09,
+   "expectedEngineRollDeg": -5.09,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -2.997,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -4.884,
+   "remeasureOk": true
+  },
+  {
+   "id": "c12_d+3",
+   "src": "c12",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/c12_d+3.png",
+   "expectedTiltDeg": 0.91,
+   "expectedEngineRollDeg": 0.91,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 2.996,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 1.122,
+   "remeasureOk": true
+  },
+  {
+   "id": "c12_d+5",
+   "src": "c12",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/c12_d+5.png",
+   "expectedTiltDeg": 2.91,
+   "expectedEngineRollDeg": 2.91,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 4.993,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 3.14,
+   "remeasureOk": true
+  },
+  {
+   "id": "c12_d+10",
+   "src": "c12",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/c12_d+10.png",
+   "expectedTiltDeg": 7.91,
+   "expectedEngineRollDeg": 7.91,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 9.987,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 8.134,
+   "remeasureOk": true
+  },
+  {
+   "id": "p2_d-10",
+   "src": "p2",
+   "deltaDeg": -10.0,
+   "path": "out/P0_anchors/p2_d-10.png",
+   "expectedTiltDeg": -10.2,
+   "expectedEngineRollDeg": -10.2,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": -9.987,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -10.315,
+   "remeasureOk": true
+  },
+  {
+   "id": "p2_d-5",
+   "src": "p2",
+   "deltaDeg": -5.0,
+   "path": "out/P0_anchors/p2_d-5.png",
+   "expectedTiltDeg": -5.2,
+   "expectedEngineRollDeg": -5.2,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": -4.993,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -5.303,
+   "remeasureOk": true
+  },
+  {
+   "id": "p2_d-3",
+   "src": "p2",
+   "deltaDeg": -3.0,
+   "path": "out/P0_anchors/p2_d-3.png",
+   "expectedTiltDeg": -3.2,
+   "expectedEngineRollDeg": -3.2,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": -2.996,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.341,
+   "remeasureOk": true
+  },
+  {
+   "id": "p2_d+3",
+   "src": "p2",
+   "deltaDeg": 3.0,
+   "path": "out/P0_anchors/p2_d+3.png",
+   "expectedTiltDeg": 2.8,
+   "expectedEngineRollDeg": 2.8,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": 2.998,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 3.119,
+   "remeasureOk": true
+  },
+  {
+   "id": "p2_d+5",
+   "src": "p2",
+   "deltaDeg": 5.0,
+   "path": "out/P0_anchors/p2_d+5.png",
+   "expectedTiltDeg": 4.8,
+   "expectedEngineRollDeg": 4.8,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": 4.997,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 4.857,
+   "remeasureOk": true
+  },
+  {
+   "id": "p2_d+10",
+   "src": "p2",
+   "deltaDeg": 10.0,
+   "path": "out/P0_anchors/p2_d+10.png",
+   "expectedTiltDeg": 9.8,
+   "expectedEngineRollDeg": 9.8,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": 9.993,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 9.635,
+   "remeasureOk": true
+  }
+ ],
+ "rotationFixtureCount": 78,
+ "fixtureGeoVerification": {
+  "method": "cv2 旋转配准（像素级，无特征点，见 test/batch/p0_verify_geo.py）",
+  "n": 78,
+  "geoVerifiedCount": 78,
+  "maxAbsErrorDeg": 0.015,
+  "minNcc": 0.9985,
+  "conclusion": "全部夹具角度经独立像素级配准确认，误差 ≤0.015°；夹具的 expectedTiltDeg 可直接作为 P0.3 的横轴真值"
+ }
+}

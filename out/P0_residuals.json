@@ -1,0 +1,718 @@
+{
+ "inputState": {
+  "headCommit": "846e09b54f0455c20ac64929da59c81e3cf1d0e7",
+  "note": "生产引擎来自该 commit + 当时未提交的工作树；逐文件 sha256 见 out/P0_anchors/_baseline_state.txt"
+ },
+ "P0_1_anchors": [
+  {
+   "id": "anchor_p1",
+   "src": null,
+   "trueTiltDeg": -4.4,
+   "expectedEngineRollDeg": -4.4,
+   "prodRollDeg": -4.415601499027407,
+   "rollSource": "pupil",
+   "residualDeg": -0.016,
+   "absResidualDeg": 0.016,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c01",
+   "src": null,
+   "trueTiltDeg": -1.3,
+   "expectedEngineRollDeg": -1.3,
+   "prodRollDeg": -1.3638506215196127,
+   "rollSource": "pupil",
+   "residualDeg": -0.064,
+   "absResidualDeg": 0.064,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c02",
+   "src": null,
+   "trueTiltDeg": -0.25,
+   "expectedEngineRollDeg": -0.25,
+   "prodRollDeg": -0.2611336172351786,
+   "rollSource": "pupil",
+   "residualDeg": -0.011,
+   "absResidualDeg": 0.011,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c03",
+   "src": null,
+   "trueTiltDeg": -3.72,
+   "expectedEngineRollDeg": -3.72,
+   "prodRollDeg": -3.7294607041078276,
+   "rollSource": "pupil",
+   "residualDeg": -0.009,
+   "absResidualDeg": 0.009,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c04",
+   "src": null,
+   "trueTiltDeg": -3.82,
+   "expectedEngineRollDeg": -3.82,
+   "prodRollDeg": -3.899664890784732,
+   "rollSource": "pupil",
+   "residualDeg": -0.08,
+   "absResidualDeg": 0.08,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c05",
+   "src": null,
+   "trueTiltDeg": -3.91,
+   "expectedEngineRollDeg": -3.91,
+   "prodRollDeg": -3.935848835105331,
+   "rollSource": "pupil",
+   "residualDeg": -0.026,
+   "absResidualDeg": 0.026,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c06",
+   "src": null,
+   "trueTiltDeg": -1.73,
+   "expectedEngineRollDeg": -1.73,
+   "prodRollDeg": -1.842595453260513,
+   "rollSource": "pupil",
+   "residualDeg": -0.113,
+   "absResidualDeg": 0.113,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c07",
+   "src": null,
+   "trueTiltDeg": -0.35,
+   "expectedEngineRollDeg": -0.35,
+   "prodRollDeg": -0.34019170194021264,
+   "rollSource": "pupil",
+   "residualDeg": 0.01,
+   "absResidualDeg": 0.01,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c08",
+   "src": null,
+   "trueTiltDeg": -8.01,
+   "expectedEngineRollDeg": -8.01,
+   "prodRollDeg": -7.330065325554254,
+   "rollSource": "pupil",
+   "residualDeg": 0.68,
+   "absResidualDeg": 0.68,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c10",
+   "src": null,
+   "trueTiltDeg": -3.44,
+   "expectedEngineRollDeg": -3.44,
+   "prodRollDeg": -3.312672210678832,
+   "rollSource": "pupil",
+   "residualDeg": 0.127,
+   "absResidualDeg": 0.127,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c11",
+   "src": null,
+   "trueTiltDeg": -0.11,
+   "expectedEngineRollDeg": -0.11,
+   "prodRollDeg": 0.0,
+   "rollSource": "unavailable",
+   "residualDeg": 0.11,
+   "absResidualDeg": 0.11,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c12",
+   "src": null,
+   "trueTiltDeg": -2.09,
+   "expectedEngineRollDeg": -2.09,
+   "prodRollDeg": -2.116266315338468,
+   "rollSource": "pupil",
+   "residualDeg": -0.026,
+   "absResidualDeg": 0.026,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_p2",
+   "src": null,
+   "trueTiltDeg": -0.2,
+   "expectedEngineRollDeg": -0.2,
+   "prodRollDeg": -0.33292317353053363,
+   "rollSource": "pupil",
+   "residualDeg": -0.133,
+   "absResidualDeg": 0.133,
+   "pass_1p5deg": true
+  }
+ ],
+ "P0_2_straight": [
+  {
+   "id": "anchor_p1_upright",
+   "src": null,
+   "trueTiltDeg": 0.0,
+   "expectedEngineRollDeg": 0.0,
+   "prodRollDeg": 0.005552121520154976,
+   "rollSource": "pupil",
+   "residualDeg": 0.006,
+   "absResidualDeg": 0.006,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c01_upright",
+   "src": null,
+   "trueTiltDeg": 0.0,
+   "expectedEngineRollDeg": 0.0,
+   "prodRollDeg": 0.38414248509449256,
+   "rollSource": "pupil",
+   "residualDeg": 0.384,
+   "absResidualDeg": 0.384,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c03_upright",
+   "src": null,
+   "trueTiltDeg": 0.0,
+   "expectedEngineRollDeg": 0.0,
+   "prodRollDeg": -0.03802095813405594,
+   "rollSource": "pupil",
+   "residualDeg": -0.038,
+   "absResidualDeg": 0.038,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c04_upright",
+   "src": null,
+   "trueTiltDeg": 0.0,
+   "expectedEngineRollDeg": 0.0,
+   "prodRollDeg": -0.1340627688287458,
+   "rollSource": "pupil",
+   "residualDeg": -0.134,
+   "absResidualDeg": 0.134,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c05_upright",
+   "src": null,
+   "trueTiltDeg": 0.0,
+   "expectedEngineRollDeg": 0.0,
+   "prodRollDeg": 0.042446329054089856,
+   "rollSource": "pupil",
+   "residualDeg": 0.042,
+   "absResidualDeg": 0.042,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c06_upright",
+   "src": null,
+   "trueTiltDeg": 0.0,
+   "expectedEngineRollDeg": 0.0,
+   "prodRollDeg": 0.1318114717947221,
+   "rollSource": "pupil",
+   "residualDeg": 0.132,
+   "absResidualDeg": 0.132,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c08_upright",
+   "src": null,
+   "trueTiltDeg": 0.0,
+   "expectedEngineRollDeg": 0.0,
+   "prodRollDeg": 0.25531504497987056,
+   "rollSource": "pupil",
+   "residualDeg": 0.255,
+   "absResidualDeg": 0.255,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c10_upright",
+   "src": null,
+   "trueTiltDeg": 0.0,
+   "expectedEngineRollDeg": 0.0,
+   "prodRollDeg": -0.13333146366496296,
+   "rollSource": "pupil",
+   "residualDeg": -0.133,
+   "absResidualDeg": 0.133,
+   "pass_1p5deg": true
+  },
+  {
+   "id": "anchor_c12_upright",
+   "src": null,
+   "trueTiltDeg": 0.0,
+   "expectedEngineRollDeg": 0.0,
+   "prodRollDeg": 0.007560204763846784,
+   "rollSource": "pupil",
+   "residualDeg": 0.008,
+   "absResidualDeg": 0.008,
+   "pass_1p5deg": true
+  }
+ ],
+ "P0_3_rotation": [
+  {
+   "src": "c01",
+   "nFixtures": 6,
+   "prodAtDelta0": -1.3638506215196127,
+   "slopeAll": 0.6723,
+   "r2All": 0.769,
+   "slopePos": -0.3699,
+   "r2Pos": 0.517,
+   "slopeNeg": 1.0282,
+   "r2Neg": 0.9984,
+   "nEstimated": 5,
+   "nUnavailable": 1,
+   "slopeEstimatedOnly": 1.0036,
+   "r2EstimatedOnly": 0.9993,
+   "inRange_0.85_1.15": false,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 1.3981
+  },
+  {
+   "src": "c02",
+   "nFixtures": 6,
+   "prodAtDelta0": -0.2611336172351786,
+   "slopeAll": 0.9912,
+   "r2All": 0.9992,
+   "slopePos": 0.9219,
+   "r2Pos": 0.9987,
+   "slopeNeg": 1.041,
+   "r2Neg": 1.0,
+   "nEstimated": 6,
+   "nUnavailable": 0,
+   "slopeEstimatedOnly": 0.9912,
+   "r2EstimatedOnly": 0.9992,
+   "inRange_0.85_1.15": true,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 0.1191
+  },
+  {
+   "src": "c03",
+   "nFixtures": 6,
+   "prodAtDelta0": -3.7294607041078276,
+   "slopeAll": 0.9991,
+   "r2All": 1.0,
+   "slopePos": 0.9899,
+   "r2Pos": 1.0,
+   "slopeNeg": 0.9976,
+   "r2Neg": 1.0,
+   "nEstimated": 6,
+   "nUnavailable": 0,
+   "slopeEstimatedOnly": 0.9991,
+   "r2EstimatedOnly": 1.0,
+   "inRange_0.85_1.15": true,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 0.0077
+  },
+  {
+   "src": "c04",
+   "nFixtures": 6,
+   "prodAtDelta0": -3.899664890784732,
+   "slopeAll": 0.3184,
+   "r2All": 0.3152,
+   "slopePos": 1.0002,
+   "r2Pos": 1.0,
+   "slopeNeg": -0.784,
+   "r2Neg": 0.5192,
+   "nEstimated": 4,
+   "nUnavailable": 2,
+   "slopeEstimatedOnly": 0.9968,
+   "r2EstimatedOnly": 1.0,
+   "inRange_0.85_1.15": false,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 1.7842
+  },
+  {
+   "src": "c05",
+   "nFixtures": 6,
+   "prodAtDelta0": -3.935848835105331,
+   "slopeAll": 0.9941,
+   "r2All": 1.0,
+   "slopePos": 0.992,
+   "r2Pos": 0.9999,
+   "slopeNeg": 1.0016,
+   "r2Neg": 0.9999,
+   "nEstimated": 6,
+   "nUnavailable": 0,
+   "slopeEstimatedOnly": 0.9941,
+   "r2EstimatedOnly": 1.0,
+   "inRange_0.85_1.15": true,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 0.0096
+  },
+  {
+   "src": "c06",
+   "nFixtures": 6,
+   "prodAtDelta0": -1.842595453260513,
+   "slopeAll": 1.1021,
+   "r2All": 0.7838,
+   "slopePos": 1.1668,
+   "r2Pos": 0.991,
+   "slopeNeg": -0.2312,
+   "r2Neg": 0.0352,
+   "nEstimated": 5,
+   "nUnavailable": 1,
+   "slopeEstimatedOnly": 1.0965,
+   "r2EstimatedOnly": 0.7753,
+   "inRange_0.85_1.15": false,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 1.398
+  },
+  {
+   "src": "c07",
+   "nFixtures": 6,
+   "prodAtDelta0": -0.34019170194021264,
+   "slopeAll": 1.0086,
+   "r2All": 0.9997,
+   "slopePos": 0.9847,
+   "r2Pos": 1.0,
+   "slopeNeg": 0.962,
+   "r2Neg": 1.0,
+   "nEstimated": 6,
+   "nUnavailable": 0,
+   "slopeEstimatedOnly": 1.0086,
+   "r2EstimatedOnly": 0.9997,
+   "inRange_0.85_1.15": true,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 0.0227
+  },
+  {
+   "src": "c08",
+   "nFixtures": 6,
+   "prodAtDelta0": -7.330065325554254,
+   "slopeAll": 0.7578,
+   "r2All": 0.5557,
+   "slopePos": 0.9287,
+   "r2Pos": 0.9999,
+   "slopeNeg": 1.5422,
+   "r2Neg": 0.3742,
+   "nEstimated": 5,
+   "nUnavailable": 1,
+   "slopeEstimatedOnly": 0.9981,
+   "r2EstimatedOnly": 0.9992,
+   "inRange_0.85_1.15": false,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 0.6135
+  },
+  {
+   "src": "c10",
+   "nFixtures": 6,
+   "prodAtDelta0": -3.312672210678832,
+   "slopeAll": 0.9922,
+   "r2All": 0.9998,
+   "slopePos": 1.0161,
+   "r2Pos": 0.9999,
+   "slopeNeg": 0.9538,
+   "r2Neg": 0.9996,
+   "nEstimated": 6,
+   "nUnavailable": 0,
+   "slopeEstimatedOnly": 0.9922,
+   "r2EstimatedOnly": 0.9998,
+   "inRange_0.85_1.15": true,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 0.0623
+  },
+  {
+   "src": "c11",
+   "nFixtures": 6,
+   "prodAtDelta0": 0.0,
+   "slopeAll": 0.0368,
+   "r2All": 0.0403,
+   "slopePos": -0.3789,
+   "r2Pos": 0.5192,
+   "slopeNeg": 0.0,
+   "r2Neg": null,
+   "nEstimated": 1,
+   "nUnavailable": 5,
+   "inRange_0.85_1.15": false,
+   "inRangeEstimatedOnly": null,
+   "directionAsymmetry": 0.3789
+  },
+  {
+   "src": "c12",
+   "nFixtures": 6,
+   "prodAtDelta0": -2.116266315338468,
+   "slopeAll": 0.9995,
+   "r2All": 1.0,
+   "slopePos": 0.9994,
+   "r2Pos": 1.0,
+   "slopeNeg": 0.9918,
+   "r2Neg": 0.9999,
+   "nEstimated": 6,
+   "nUnavailable": 0,
+   "slopeEstimatedOnly": 0.9995,
+   "r2EstimatedOnly": 1.0,
+   "inRange_0.85_1.15": true,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 0.0076
+  },
+  {
+   "src": "p1",
+   "nFixtures": 6,
+   "prodAtDelta0": -4.415601499027407,
+   "slopeAll": 0.9996,
+   "r2All": 1.0,
+   "slopePos": 1.0006,
+   "r2Pos": 1.0,
+   "slopeNeg": 1.0014,
+   "r2Neg": 1.0,
+   "nEstimated": 6,
+   "nUnavailable": 0,
+   "slopeEstimatedOnly": 0.9996,
+   "r2EstimatedOnly": 1.0,
+   "inRange_0.85_1.15": true,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 0.0008
+  },
+  {
+   "src": "p2",
+   "nFixtures": 6,
+   "prodAtDelta0": -0.33292317353053363,
+   "slopeAll": 0.9995,
+   "r2All": 0.9998,
+   "slopePos": 1.0346,
+   "r2Pos": 1.0,
+   "slopeNeg": 0.9773,
+   "r2Neg": 0.9999,
+   "nEstimated": 6,
+   "nUnavailable": 0,
+   "slopeEstimatedOnly": 0.9995,
+   "r2EstimatedOnly": 0.9998,
+   "inRange_0.85_1.15": true,
+   "inRangeEstimatedOnly": true,
+   "directionAsymmetry": 0.0573
+  }
+ ],
+ "summary": {
+  "P0_1_anchorCount": 13,
+  "P0_1_passCount": 13,
+  "P0_1_maxAbsResidualDeg": 0.68,
+  "P0_1_medianAbsResidualDeg": 0.064,
+  "P0_2_sampleCount": 9,
+  "P0_2_passCount": 9,
+  "P0_2_maxAbsResidualDeg": 0.384,
+  "P0_3_anchorCount": 13,
+  "P0_3_inRangeCount": 8,
+  "P0_3_inRangeEstimatedOnlyCount": 12,
+  "P0_3_maxDirectionAsymmetry": 1.7842,
+  "P0_3_fixtureUnavailableCount": 10,
+  "P0_3_fixtureCount": 78
+ },
+ "P0_4_coverage": {
+  "pictures_portrait": {
+   "total": 14,
+   "faceDetected": 14,
+   "rollSource": {
+    "pupil": 12,
+    "unavailable": 2
+   },
+   "pupilRate_overAll": 0.8571,
+   "pupilRate_overFaceDetected": 0.8571,
+   "unavailableRate_overFaceDetected": 0.1429
+  },
+  "pictures_nonportrait": {
+   "total": 66,
+   "faceDetected": 0,
+   "rollSource": {
+    "none": 66
+   },
+   "pupilRate_overAll": 0.0,
+   "pupilRate_overFaceDetected": null,
+   "unavailableRate_overFaceDetected": null
+  },
+  "golden": {
+   "total": 8,
+   "faceDetected": 8,
+   "rollSource": {
+    "pupil": 8
+   },
+   "pupilRate_overAll": 1.0,
+   "pupilRate_overFaceDetected": 1.0,
+   "unavailableRate_overFaceDetected": 0.0
+  },
+  "anchor": {
+   "total": 22,
+   "faceDetected": 22,
+   "rollSource": {
+    "pupil": 21,
+    "unavailable": 1
+   },
+   "pupilRate_overAll": 0.9545,
+   "pupilRate_overFaceDetected": 0.9545,
+   "unavailableRate_overFaceDetected": 0.0455
+  },
+  "rotated": {
+   "total": 78,
+   "faceDetected": 78,
+   "rollSource": {
+    "pupil": 68,
+    "unavailable": 10
+   },
+   "pupilRate_overAll": 0.8718,
+   "pupilRate_overFaceDetected": 0.8718,
+   "unavailableRate_overFaceDetected": 0.1282
+  }
+ },
+ "coverageSplit": {
+  "threshold_1.5": {
+   "anchor": {
+    "above": {
+     "n": 8,
+     "pupil": 8,
+     "unavailable": 0,
+     "other": 0,
+     "unavailableIds": []
+    },
+    "below": {
+     "n": 14,
+     "pupil": 13,
+     "unavailable": 1,
+     "other": 0,
+     "unavailableIds": [
+      "anchor_c11"
+     ]
+    },
+    "aboveThreshold_deg": 1.5
+   },
+   "rotated": {
+    "above": {
+     "n": 67,
+     "pupil": 58,
+     "unavailable": 9,
+     "other": 0,
+     "unavailableIds": [
+      "rot_c01_d+10",
+      "rot_c04_d-10",
+      "rot_c04_d-5",
+      "rot_c08_d-5",
+      "rot_c11_d+10",
+      "rot_c11_d+5",
+      "rot_c11_d-10",
+      "rot_c11_d-3",
+      "rot_c11_d-5"
+     ]
+    },
+    "below": {
+     "n": 11,
+     "pupil": 10,
+     "unavailable": 1,
+     "other": 0,
+     "unavailableIds": [
+      "rot_c06_d+3"
+     ]
+    },
+    "aboveThreshold_deg": 1.5
+   }
+  },
+  "threshold_2.0": {
+   "anchor": {
+    "above": {
+     "n": 7,
+     "pupil": 7,
+     "unavailable": 0,
+     "other": 0,
+     "unavailableIds": []
+    },
+    "below": {
+     "n": 15,
+     "pupil": 14,
+     "unavailable": 1,
+     "other": 0,
+     "unavailableIds": [
+      "anchor_c11"
+     ]
+    },
+    "aboveThreshold_deg": 2.0
+   },
+   "rotated": {
+    "above": {
+     "n": 64,
+     "pupil": 55,
+     "unavailable": 9,
+     "other": 0,
+     "unavailableIds": [
+      "rot_c01_d+10",
+      "rot_c04_d-10",
+      "rot_c04_d-5",
+      "rot_c08_d-5",
+      "rot_c11_d+10",
+      "rot_c11_d+5",
+      "rot_c11_d-10",
+      "rot_c11_d-3",
+      "rot_c11_d-5"
+     ]
+    },
+    "below": {
+     "n": 14,
+     "pupil": 13,
+     "unavailable": 1,
+     "other": 0,
+     "unavailableIds": [
+      "rot_c06_d+3"
+     ]
+    },
+    "aboveThreshold_deg": 2.0
+   }
+  }
+ },
+ "coverageSplitCrossPathMismatch": [],
+ "crossCheck_vs_gatekeeper_r1": {
+  "source": "out/GATE_P0_r1.md + out/gate_P0.json（gatekeeper 第 1 轮）",
+  "note": "两条独立路径的比对。gatekeeper 的 applied 来自 tools/gate/p0_roll_probe_test.dart，qa 的 applied 来自 test/batch/p0_compose_test.dart —— 调用序列不同、互不调用。",
+  "anchorIdentity": {
+   "n": 13,
+   "truthMaxDeltaDeg": 0.0,
+   "appliedMaxDeltaDeg": 0.004399,
+   "agree": true,
+   "conclusion": "13/13 锚点真值完全相同、施加角差 <0.01°。配合 coverageSplitCrossPathMismatch=[]（100 个重叠样本 rollSource 失配 0），排除随机性/状态污染。"
+  },
+  "disputedSamples": [
+   {
+    "id": "c05_d-10",
+    "gatekeeperClaim": "「源图被转了 Δ=-10°，估计却返回 unavailable（施加角 0）」，并把成片残测为 -10.75°（IoU 0.930）",
+    "qaMeasurement": {
+     "rollSource": "pupil",
+     "truthTiltDeg": -13.91,
+     "appliedStraightenDeg": -13.884,
+     "outputTiltDeg": 0.155,
+     "methodSpreadDeg": 0.471,
+     "methodTiltAbsMaxDeg": 0.317,
+     "status": "ok"
+    },
+    "qaConclusion": "引擎在 c05_d-10 上返回 pupil、施加 -13.88°（真值 -13.91°），成片眼线残余 0.155°，四种测法 spread 0.471° —— 这一张在本路径上**正常摆平**，不是 unavailable。",
+    "impact": "gatekeeper 的 c05 斜率 -侧 = -1.141 完全由这一个样本撑起；该样本归属一旦改变，c05 的 slope 判定可能随之翻转。",
+    "requestedAction": "请 gatekeeper 用独立路径复核 c05_d-10（输入应为 out/P0_anchors/c05_d-10.png），并确认其 harness 里 「Δ=-10」对应的输入文件与 qa 的 c05_d-10 是同一张。"
+   }
+  ],
+  "criterionConcerns": [
+   {
+    "item": "P0.1",
+    "severity": "high",
+    "issue": "gate_P0.json 的 P0.1 expected 写的是 `|truth − 生产实际施加角| ≤ 1.5`（即 ComposeDiagnostics.straightenDeg），而 ACCEPTANCE 计分口径第 5 条明确规定「硬判据一律用成片端到端残余；straightenDeg 只作诊断与定位，不作判据」。desc 说的是「最终成片残余」，expected 实现的是入射角残差，二者不一致。",
+    "risk": "符号在 compose 内写反时，straightenDeg 仍等于 rollDeg，本项照样 PASS，而用户拿到的每张成片都歪 2×真值 —— 正是本次事故的形态。这是把判据放在诊断量上的直接后果。",
+    "evidence": "qa 的成片端到端残余（Python 独立测）见 P0_1_anchors / out/P0_output_residual.json；两套数都指向 PASS，但只有后者口径无关。"
+   },
+   {
+    "item": "P0.1 样本集",
+    "severity": "medium",
+    "issue": "gatekeeper 报「锚点 22 张」，其中 9 张是 truth=0 的 uprightSynthetic。这 9 张的 |truth−applied| 天然为 0（永远返回 unavailable 的实现也全过），把锚点分母从 12 虚增到 22。",
+    "risk": "与计分口径第 1 条要堵的「免费通过」同一形态。",
+    "evidence": "ACCEPTANCE P0.1a 要求锚点 ≥8 张、P0.2 单独管竖直样本；qa 侧锚点 12 条（去重 11 张）。"
+   },
+   {
+    "item": "P0.2",
+    "severity": "medium",
+    "issue": "P0.2 只判 `|residual| ≤ 1.5`，未实现 ACCEPTANCE P0.2 后半句「uprightSynthetic 样本必须返回 pupil」。",
+    "risk": "该条正是为堵「永远放弃」策略而加；漏实现则策略重新免费。",
+    "evidence": "qa 侧实测 straight 1/1 pupil、uprightSynthetic 9/9 pupil，即使补上此项也是 PASS —— 但判据必须真的存在。"
+   },
+   {
+    "item": "P0.3",
+    "severity": "medium",
+    "issue": "P0.3 的 FAIL 理由多数是 slope（① 估计值 vs 真值），而 ACCEPTANCE P0.3a 把 ① 明确定义为**只作诊断**，硬判据是 ② 成片残余 vs 真值（|斜率| ≤0.15、|截距| ≤0.5°、max|残余| ≤1.5°）。",
+    "risk": "用诊断量下硬判决，既可能误杀（估计略衰减但成片已摆平），也可能漏放（① 过而 ② 炸，c06_d-3 就是实例：估计斜率 1.009 而 max|残余| 10.638°）。",
+    "evidence": "c01「Δ=10°→成片残 8.15°」、c04「Δ=-5°→成片残 -8.67°」是真 ② 违规，可保留；c05/c11 的 FAIL 目前只由 slope 支撑。"
+   }
+  ]
+ }
+}

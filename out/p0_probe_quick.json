@@ -1,0 +1,133 @@
+{
+  "generatedAt": "2026-09-17T03:10:40.196485",
+  "deltas": [
+    0.0
+  ],
+  "skip_coverage": true,
+  "blockers": [],
+  "ortDll": "C:\\Users\\liuyu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\onnxruntime-1.4.1\\windows\\onnxruntime.dll",
+  "measured_revision": {
+    "lib/core/matting/flutter_decode.dart": "e9dd8e7b1c4c0ee6d86d44e9f6518df38e31d5569321378f9ba380d6de017a88",
+    "lib/core/matting/image_header.dart": "9c6806114bc197912581bc3e8d82abb5e5cce32fa6418945c30396943e585cf9",
+    "lib/core/matting/image_ops.dart": "bc9dbc97e16b98ee1952a0000d22347195a6ab08c0f1a6eae9e8aa53ccc47515",
+    "lib/core/matting/iris_roll.dart": "aea61ac7d9dfd4f749711f169fb18a944240d9d04490c3e536b076d67242b9b8",
+    "lib/core/matting/matting_engine.dart": "79feee676ebe92a6bb665d5cc0b1e62c08faf96d06f41b7a3178d9998fa28098",
+    "lib/core/matting/matting_worker.dart": "65c696092159fa89d2a8e546e17f78c48bd352b86cf4cf8e913b7c8a2779a7b6",
+    "lib/core/matting/ort_runtime.dart": "c5572b02ff890db3d19a9b4dd7f9a55274319ff342bd8b337e4bae26518675bd",
+    "lib/core/matting/session_factory.dart": "4f9b45464403db497e3419151f18e6314d9e8524bc480c5ffb2219852ee81054",
+    "lib/core/matting/yunet_decoder.dart": "888b8ef84145a417fab6bb3bbd15de8dc616ea5be9e60d9052a8cafd2113ee1a",
+    "lib/core/imaging/compose_engine.dart": "e9bf8233510915ecda36dd1ea4703203deb504dacd5555f0ea257abbd2a4bb58",
+    "lib/core/imaging/compose_only_engine.dart": "92f28bf2f00c40cff2fefa3b886fab68c0dbd0ea1aa5f76363c4c612811dd1c6",
+    "lib/core/imaging/crop_geometry.dart": "5426b6804d1fc9fbf7fd1217511a226af5f22f368c4e358599c692e23c8201a3",
+    "lib/core/imaging/jpeg_dpi.dart": "51c2b1270dceee0c71f81102d7bf5899939539fa3c389f57b32cb50d738a9513",
+    "lib/core/imaging/matte_clean.dart": "4ff9cafce5819ff67b8d2cb406fdfedfdced4d36b44f9c402a2e500f138b34af",
+    "lib/core/imaging/render.dart": "ca2a9699d05a5c09318c394bf3ef7d5ba9757ea95406d890cf466df654826072"
+  },
+  "truth_file": "out/P0_truth.json",
+  "truth_file_exists": false,
+  "anchors": [
+    {
+      "id": "p2_user_upright",
+      "path": "C:/Users/liuyu/Pictures/2.jpg",
+      "kind": "upright",
+      "truth_apply_deg": -0.2,
+      "truth_note": "蓝底证件照，眼线/镜梁/衣领三方水平（imaging PITFALLS 2026-09-17），ACCEPTANCE P0.2 点名的已知竖直样本",
+      "truth_source": "builtin"
+    },
+    {
+      "id": "p1_user_portrait",
+      "path": "C:/Users/liuyu/Pictures/1 (2).jpg",
+      "kind": "portrait",
+      "truth_apply_deg": -4.4,
+      "truth_note": "虹膜精读 −5.9/−6.8、镜梁 −4.3、眉线 −9.5 同向（imaging PITFALLS 2026-09-17）",
+      "truth_source": "builtin"
+    }
+  ],
+  "anchor_count": 2,
+  "anchor_results": [
+    {
+      "id": "p2_user_upright",
+      "path": "C:/Users/liuyu/Pictures/2.jpg",
+      "kind": "upright",
+      "truth_apply_deg": -0.2,
+      "truth_source": "builtin",
+      "truth_note": "蓝底证件照，眼线/镜梁/衣领三方水平（imaging PITFALLS 2026-09-17），ACCEPTANCE P0.2 点名的已知竖直样本",
+      "configs": [
+        {
+          "delta": 0.0,
+          "detected": true,
+          "rollDeg": 0.0,
+          "rollSource": "unavailable",
+          "confidence": 0.9439361051327988,
+          "has_landmarks": true,
+          "applied_deg": 0.0,
+          "straightened": false,
+          "note": "裁剪框越界 2.3%（越出部分按 alpha=0 填底色）",
+          "out_size": "295x413",
+          "mask_px": 16986,
+          "mask_total": 30282,
+          "mask_w": 147,
+          "mask_h": 206,
+          "is_reference": true
+        }
+      ],
+      "src_size": "1080x1415",
+      "compose_rigid": {
+        "applied_0": 0.0,
+        "applied_10": 10.0,
+        "applied_-10": -10.0,
+        "measured_plus_deg": -8.099999999999998,
+        "iou_plus": 0.8946999357213814,
+        "measured_minus_deg": 8.225000000000003,
+        "iou_minus": 0.8947491384849016
+      }
+    },
+    {
+      "id": "p1_user_portrait",
+      "path": "C:/Users/liuyu/Pictures/1 (2).jpg",
+      "kind": "portrait",
+      "truth_apply_deg": -4.4,
+      "truth_source": "builtin",
+      "truth_note": "虹膜精读 −5.9/−6.8、镜梁 −4.3、眉线 −9.5 同向（imaging PITFALLS 2026-09-17）",
+      "configs": [
+        {
+          "delta": 0.0,
+          "detected": true,
+          "rollDeg": -4.415601499027407,
+          "rollSource": "pupil",
+          "confidence": 0.9466344540985798,
+          "has_landmarks": true,
+          "applied_deg": -4.415601499027407,
+          "straightened": true,
+          "note": "裁剪框越界 16.7%（越出部分按 alpha=0 填底色）",
+          "out_size": "295x413",
+          "mask_px": 13718,
+          "mask_total": 30282,
+          "mask_w": 147,
+          "mask_h": 206,
+          "is_reference": true
+        }
+      ],
+      "src_size": "2880x4982",
+      "compose_rigid": {
+        "applied_0": 0.0,
+        "applied_10": 10.0,
+        "applied_-10": -10.0,
+        "measured_plus_deg": -10.2,
+        "iou_plus": 0.975275107953754,
+        "measured_minus_deg": 9.650000000000002,
+        "iou_minus": 0.93170350366001
+      }
+    }
+  ],
+  "instrument_selftest": {
+    "injected_deg": 3.0,
+    "recovered_deg": -3.200000000000001,
+    "iou": 0.9538496385360237,
+    "mask_px": 105518
+  },
+  "coverage": {
+    "skipped": true,
+    "why": "P0_SKIP_COVERAGE=1（快速验通模式），本文件不得作为 P0.4 的判定依据"
+  }
+}

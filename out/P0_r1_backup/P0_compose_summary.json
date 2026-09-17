@@ -1,0 +1,16 @@
+{
+ "generatedBy": "qa-batch test/batch/p0_compose_test.dart",
+ "note": "生产引擎产成片（white 底）；眼线残余由 p0_output_residual.py 独立测量",
+ "cases": 100,
+ "ok": 110,
+ "mattingFail": 0,
+ "composeFail": 0,
+ "noFace": 0,
+ "crash": 0,
+ "primarySpec": "cn_big_1inch",
+ "spotlightSpecs": [
+  "cn_big_1inch",
+  "cn_1inch",
+  "visa_us"
+ ]
+}

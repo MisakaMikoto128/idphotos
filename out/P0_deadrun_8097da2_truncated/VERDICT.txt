@@ -1,0 +1,13 @@
+本轮产物 = 脏树 + 中途被 kill 的截断运行，**不得用作任何门禁数据**。
+  gitHead=8097da2, workingTreeDirty 含 M lib/core/matting/iris_roll.dart
+  100 个用例只跑完 17 个，87 条 outcome=missing
+  codeFingerprint 开跑/收尾一致 (-70fc4f72c296db6c)，说明它内部自洽，
+  但绑不到任何 commit —— 按 team-lead 裁定不进 out/P0_*.json 主链。
+保留原因：证据留痕。canonical 路径已回滚为 out/P0_r1_backup 快照。
+
+补充（同日）：
+  真凶已查明，**不是"被 kill 截断"**（进程 exit 0 正常跑完）。
+  87 条 missing 是**路径被拼两次**：P0_truth.json v1 里 uprightSynthetic/rotated 已是绝对路径，
+  而成片台又无条件拼了一次 $repo 前缀。已修（test/batch/p0_cases.dart + p0_resolve_check.dart）。
+  composed_overwrote_r1/ 里是这轮覆盖掉的 17 张成片；它们对应的 r1 原图无备份、不可恢复。
+  canonical 的 out/P0_anchors/composed/ 已回滚为纯 r1（93 张，03:30–03:31）。
