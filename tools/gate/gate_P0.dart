@@ -2067,7 +2067,14 @@ String _treeState(Map<String, dynamic> inputs) {
   final String dirtyStr = dirty.stdout.trim();
   b.writeln('- HEAD = `$headStr`；'
       '判 selfcheck 那几条（P0.5a）编译自**工作树**，不是这个 commit。');
-  if (dirtyStr.isEmpty) {
+  if (dirty.exitCode != 0) {
+    // 取不到 ≠ 没有。`git status` 失败时 stdout 是空的，若照旧走下面那条
+    // "干净"分支，报告会**断言一个它没能验证的事实** ——
+    // 与条款 1 那次是同一形状（命令没跑成，检查读成干净）。
+    // 判据侧的 `frozen` 已经查了 exitCode，这里修的是**报告文字**不许说假话。
+    b.writeln('- `git status lib/` **取不到**（exitCode=${dirty.exitCode}）：'
+        '本轮**无法**断言工作树是否干净。诊断：${dirty.stderr.trim()}');
+  } else if (dirtyStr.isEmpty) {
     b.writeln('- `git status lib/` **干净**：本轮读数可绑定到 `$headStr`。');
   } else {
     final List<String> files =
