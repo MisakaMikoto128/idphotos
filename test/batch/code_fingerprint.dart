@@ -19,6 +19,13 @@ import 'dart:io';
 const List<String> kMeasuredDirs = <String>['lib/core/matting', 'lib/core/imaging'];
 const List<String> kMeasuredFiles = <String>['lib/core/api.dart'];
 
+/// 取 git 输出的**宽松**版本，失败时返回 `'unknown'`。
+///
+/// ⚠ **只可用于"叙述性"字段**（`gitHead`、`workingTreeDirty` 这类给人看的记录）。
+/// **绝不可用它去算指纹** —— 见 [gitBlobHashStrict]：这些字符串一旦参与构成指纹，
+/// git 失败会让**两个不同的代码状态产生同一个指纹**，而指纹相等正是"这份数出自
+/// 当前代码"的唯一凭据。**两个瞎子互相作证。**
+/// 另：`'unknown'` 与 `''`（干净）可区分，但**不得读成"没有改动"** —— 来源缺失不等于清白。
 String gitText(List<String> args) {
   try {
     final r = Process.runSync('git', args);
@@ -26,6 +33,30 @@ String gitText(List<String> args) {
   } catch (_) {
     return 'unknown';
   }
+}
+
+/// `git hash-object` 的**严格**版本：算不出来就抛，**绝不返回哨兵值**。
+///
+/// 为什么必须抛而不是降级：指纹是由这些 blob 哈希拼出来的。若 git 失败时两边都
+/// 得到同一个哨兵字符串（例如 `'unknown'`），那么**两份内容不同的代码会算出同一个
+/// 指纹** —— 门禁据此断定"这份数出自当前代码"，而它实际什么都没证明。
+/// 这比"算不出指纹"危险得多：**算不出会暴露，算成相同会静默通过。**
+///
+/// 所以"算不出来"必须表现为**根本不存在可比的值**，而不是"恰好相等"。
+/// 调用点在 `codeFingerprint` 的最开头，git 坏掉会在第一秒炸，不会白跑一轮。
+String gitBlobHashStrict(String path) {
+  final r = Process.runSync('git', <String>['hash-object', path]);
+  final h = (r.stdout as String).trim();
+  if (r.exitCode != 0 || h.isEmpty) {
+    throw StateError(
+      'git hash-object 失败（exit ${r.exitCode}）：$path\n'
+      '被测代码指纹算不出来 ⇒ 本轮"这些数字出自哪份代码"无从判定。\n'
+      '**不要**在这里退化成哨兵值：那会让两份算不出的指纹互相判等，\n'
+      '把"无法自证"伪装成"已自证"。\n'
+      'stderr: ${r.stderr}',
+    );
+  }
+  return h;
 }
 
 /// 取 git 输出；git 正常跑完但非 0 退出时返回 null。
@@ -37,7 +68,6 @@ String gitText(List<String> args) {
 /// **刻意不包 try/catch。** 起不了 git 是环境故障，必须炸出来；若降级成 null，
 /// 上层会报"取不到 HEAD"，**把所有指纹的提交绑定静默置空还附一句错误解释** ——
 /// 这正是本项目反复记的那个形态（仪表看不见对象时说了"没有"）。
-/// 走到这里时 `gitText(['hash-object', ...])` 也早已失败，静默降级救不了任何东西。
 String? _gitOrNull(List<String> args) {
   final r = Process.runSync('git', args);
   if (r.exitCode != 0) return null;
@@ -101,7 +131,14 @@ String _relKey(String root, String full) {
 
 /// [root] 下的被测代码内容指纹。默认 root='.'（仓库根）。
 /// 传别的 root 是为了让自测能在沙箱副本上跑同一份实现。
-Map<String, Object?> codeFingerprint({String root = '.', List<String>? extraDirs}) {
+///
+/// [gitHash] 只在自测里注入，用来**模拟 git 不可用**，从而证明"算不出指纹"时不会
+/// 退化成"两份指纹相等"。生产调用一律走默认的 [gitBlobHashStrict]。
+Map<String, Object?> codeFingerprint({
+  String root = '.',
+  List<String>? extraDirs,
+  String Function(String path) gitHash = gitBlobHashStrict,
+}) {
   final dirs = <String>[...kMeasuredDirs, ...?extraDirs];
   final paths = <String>[];
   for (final dir in dirs) {
@@ -119,20 +156,42 @@ Map<String, Object?> codeFingerprint({String root = '.', List<String>? extraDirs
 
   final hashes = <String, String>{};
   for (final p in paths) {
-    hashes[_relKey(root, p)] = gitText(<String>['hash-object', p]);
+    hashes[_relKey(root, p)] = gitHash(p);
   }
   final joined = hashes.entries.map((e) => '${e.key}:${e.value}').join('\n');
-  var h = 0xcbf29ce484222325;
-  for (final c in joined.codeUnits) {
-    h ^= c;
-    h = (h * 0x100000001b3) & 0xFFFFFFFFFFFFFFFF;
-  }
   return <String, Object?>{
     'files': hashes.length,
-    'fnv1a64': h.toRadixString(16).padLeft(16, '0'),
+    'fnv1a64': fnv1a64Hex(joined),
     'blobHashes': hashes,
     ...commitBinding(hashes),
   };
+}
+
+/// FNV-1a 64 的十六进制，**无符号、16 字符小写**。抽出来是为了让它能被
+/// **公开测试向量**钉住（见 `fingerprint_selftest.dart` 第 7 段）——那是独立于
+/// 本仓库两个实现之外的权威，比"Dart 与 Python 互相比对"硬（后者只证明两边抄得一样）。
+///
+/// 为什么格式化要绕 BigInt：Dart 的 int 是**有符号** 64 位，乘法溢出按补码回绕 ——
+/// 这正好等价于无符号 64 位回绕，所以循环里**不需要**也没法再用一个掩码
+/// （`& 0xFFFFFFFFFFFFFFFF` 在 Dart 里就是个 `-1`，是**空操作**；曾经那么写，
+/// 看着像在维持无符号语义，其实什么都没做）。
+/// 但**输出**必须显式转无符号：`h` 为负时 `toRadixString(16)` 给出**带负号的
+/// 17 字符**（如 `-2f828fcfb4faf34e`），而 Python 侧 `format(h, "016x")` 给的是
+/// 无符号 16 字符（如 `d07d70304b050cb2`）。同一哈希的两种写法，**约一半的输入
+/// 会对不上**；而 `_measured_state()` 正是拿 Dart 写的指纹与 Python 现算的指纹做
+/// **跨语言**比较，会在 ~50% 的代码状态下误报 `undecidable`，白烧一轮。
+/// （`int.toUnsigned(64)` 不管用，实测原样返回负数。）
+///
+/// ⚠ 已知边界（**登记未改**，非 ASCII 路径才触发）：这里按 UTF-16 `codeUnits`
+/// 迭代，Python 侧按 UTF-8 字节迭代。本仓库被测集路径全为 ASCII，两者一致；
+/// 若将来 `lib/` 下出现非 ASCII 文件名的 `.dart`，两侧会算出不同的指纹。
+String fnv1a64Hex(String s) {
+  var h = 0xcbf29ce484222325;
+  for (final c in s.codeUnits) {
+    h ^= c;
+    h = h * 0x100000001b3;
+  }
+  return BigInt.from(h).toUnsigned(64).toRadixString(16).padLeft(16, '0');
 }
 
 /// 比较开跑/收尾两次指纹，给出本轮是否有效。

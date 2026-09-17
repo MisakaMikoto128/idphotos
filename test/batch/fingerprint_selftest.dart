@@ -108,7 +108,60 @@ Future<void> main() async {
   _check('不误报：只 touch 不改内容 → 仍判有效',
       roundVerdict(tBefore, tAfter)['codeStableDuringRun'] == true);
 
-  // 这里原先有一段「6. 没碰真实 lib/」——比较自测前后**真实仓库**的内容指纹。
+  // --- 6. git 不可用 → 指纹必须**不可比**，绝不能"两份都算不出 ⇒ 判等" ---
+  //     这是本文件里唯一一条直接对着"门禁会据此放行"的检查。指纹相等是
+  //     "这些数字出自当前代码"的**唯一凭据**；若哨兵值能让两份内容不同的代码
+  //     算出同一个指纹，这个凭据就是假的，而且**静默通过**（算不出会暴露，
+  //     算成相同不会）。所以既验"真实现抛错"，也把"哨兵会怎样伪造相等"演一遍。
+  Object? strictErr;
+  try {
+    gitBlobHashStrict('$kSandbox/绝对不存在的路径.dart');
+  } catch (e) {
+    strictErr = e;
+  }
+  _check('6a 真实现：hash-object 算不出 → 抛错，不返回任何哨兵值', strictErr != null,
+      '${strictErr.runtimeType}');
+
+  String sentinel(String p) => 'unknown';
+  final realPre = codeFingerprint(root: kSandbox);
+  final sentPre = codeFingerprint(root: kSandbox, gitHash: sentinel);
+  wFile.writeAsStringSync(
+      '${wFile.readAsStringSync()}\n// 第 6 段：制造一次真实的内容变化\n');
+  final realPost = codeFingerprint(root: kSandbox);
+  final sentPost = codeFingerprint(root: kSandbox, gitHash: sentinel);
+
+  // 前提：这两次的内容**确实不同**，否则下面那条负向对照是空转的。
+  _check('6b 对照前提：这两次内容确实不同（真实指纹翻了）',
+      realPre['fnv1a64'] != realPost['fnv1a64']);
+  // 负向对照：同样的两次，只把哈希换成"永远返回哨兵"，指纹立刻**相等** ——
+  // 这就是"两个瞎子互相作证"的具体形态。
+  _check('6c 负向对照：注入哨兵 → 内容不同的两次得到**同一指纹**',
+      sentPre['fnv1a64'] == sentPost['fnv1a64'],
+      'sent=${sentPre['fnv1a64']}');
+  // 而且这个伪造出来的指纹**长得完全正常**，看不出来历无效 —— 这才是它的危险之处。
+  _check('6d 伪造的指纹是个"合法"字符串（看不出来历无效）',
+      RegExp(r'^[0-9a-f]{16}$').hasMatch('${sentPre['fnv1a64']}'));
+
+  // --- 7. 算法本身对公开测试向量 ---
+  //     为什么不能用"Dart 与 Python 互相比对"代替：那只能证明两边**抄得一样**，
+  //     共用同一个错误时照样自洽（本项目已记过这个形态）。公开向量是**独立于本仓库
+  //     两个实现之外**的权威，才叫验证。
+  //     `'b'` 那条是专门选的：它的哈希最高位为 1，正是旧实现给出带负号 17 字符
+  //     （`-509c20b379fe0e5b`）的情形；没有它，这条测试全是正数、钉不住格式。
+  const Map<String, String> vectors = <String, String>{
+    '': 'cbf29ce484222325',
+    'a': 'af63dc4c8601ec8c',
+    'foobar': '85944171f73967e8',
+    'b': 'af63df4c8601f1a5',
+  };
+  for (final e in vectors.entries) {
+    final got = fnv1a64Hex(e.key);
+    _check('7 FNV-1a 64 公开向量 ${e.key.isEmpty ? '(空串)' : '"${e.key}"'}',
+        got == e.value, got == e.value ? '' : 'got=$got want=${e.value}');
+  }
+
+  // 这里原先还有一段（已删除，与上面的 6 段无关）「6. 没碰真实 lib/」——比较自测前后
+  // **真实仓库**的内容指纹。
   // 已删除：它**声明的**是"这个自测没污染 lib/"，**实际测的**却是"整个自测期间
   // 真实 lib/ 对任何人都没变"。两者不等价，它分不清"我写的"和"别人写的"，
   // 于是会因并发的编辑器红、并因编辑器停下而自行转绿 —— 同一命令两次结果不同。

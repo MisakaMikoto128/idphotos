@@ -22,13 +22,29 @@ import 'code_fingerprint.dart';
 
 const String kSelfcheck = 'lib/core/imaging/dev_selfcheck.dart';
 
-Map<String, Object?> _readJsonOrNull(String p) {
+/// 读一个 JSON 对象，**区分"不存在"与"读不出"**。
+///
+/// 返回 `(status, value, detail)`，status ∈ `{ok, missing, unreadable}`。
+///
+/// 为什么不写成 `?? <String, Object?>{}`：调用方会据此写下**具体的原因**。
+/// 原先两者都返回空对象，于是**文件损坏/读不了**时也照样报
+/// "那份成片是本机制加入之前跑的" —— 那句话是编的。而那个空对象长得像一个
+/// **合法的空结果**，没有任何一处会报错。
+/// **一个哨兵值最危险的时候，就是它长得像一个合法的空结果。**
+({String status, Map<String, Object?>? value, String? detail}) _readJson(String p) {
   final f = File(p);
-  if (!f.existsSync()) return <String, Object?>{};
+  if (!f.existsSync()) {
+    return (status: 'missing', value: null, detail: null);
+  }
   try {
-    return jsonDecode(f.readAsStringSync()) as Map<String, Object?>;
-  } catch (_) {
-    return <String, Object?>{};
+    final v = jsonDecode(f.readAsStringSync());
+    if (v is! Map<String, Object?>) {
+      return (status: 'unreadable', value: null,
+          detail: 'JSON 顶层不是对象，而是 ${v.runtimeType}');
+    }
+    return (status: 'ok', value: v, detail: null);
+  } catch (e) {
+    return (status: 'unreadable', value: null, detail: '$e');
   }
 }
 
@@ -69,8 +85,9 @@ void main(List<String> args) {
   final verdict = roundVerdict(fpStart, fpEnd);
 
   // 与成片台交叉比对：这是 r1 出问题的那一刀。
-  final compose = _readJsonOrNull('out/P0_compose_summary.json');
-  final cProv = (compose['provenance'] as Map?)?.cast<String, Object?>() ?? {};
+  final compose = _readJson('out/P0_compose_summary.json');
+  final cProv =
+      (compose.value?['provenance'] as Map?)?.cast<String, Object?>() ?? {};
   final cFp = (cProv['codeFingerprint'] as Map?)?.cast<String, Object?>();
   final cFn = cFp?['fnv1a64'];
   final myFn = fpStart['fnv1a64'];
@@ -78,9 +95,23 @@ void main(List<String> args) {
   bool? same;
   if (cFn == null) {
     same = null;
-    sameState = '**无法比对**：`out/P0_compose_summary.json` 里没有 '
-        '`provenance.codeFingerprint`（那份成片是本机制加入之前跑的）。'
-        '这一点本身就是 r1「两半不同版」的成因。';
+    // 三种情况必须分开说。原先"文件不存在"与"解码失败"都走同一句
+    // "那份成片是本机制加入之前跑的" —— 文件坏掉时那句话是编的。
+    switch (compose.status) {
+      case 'missing':
+        sameState = '**无法比对**：`out/P0_compose_summary.json` **不存在**。'
+            '该文件由成片台产出；缺它说明成片台没跑或产物被清掉了，'
+            '**不是**"成片跑在旧代码上"。';
+      case 'unreadable':
+        sameState = '**无法比对**：`out/P0_compose_summary.json` '
+            '**存在但读不出**（${compose.detail}）。'
+            '文件损坏与"本机制加入之前跑的产物"是两回事，'
+            '**不得**按后者解释，必须先修好读入再判。';
+      default:
+        sameState = '**无法比对**：文件读到了，但没有 `provenance.codeFingerprint`'
+            '（那份成片是本机制加入之前跑的）。'
+            '这一点本身就是 r1「两半不同版」的成因。';
+    }
   } else if (cFn == myFn) {
     same = true;
     sameState = '一致：dev_selfcheck 与成片台跑在**同一份被测代码内容**上，'
@@ -107,6 +138,8 @@ void main(List<String> args) {
     'codeFingerprintAtEnd': fpEnd,
     ...verdict,
     'composeFingerprint': cFn,
+    'composeSummaryRead': compose.status,
+    'composeSummaryReadDetail': compose.detail,
     'sameCodeStateAsCompose': same,
     'sameCodeStateNote': sameState,
     'gitHead': gitText(<String>['rev-parse', '--short', 'HEAD']),
