@@ -25,6 +25,7 @@ import numpy as np
 from PIL import Image, ImageOps
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import code_fingerprint as CF  # noqa: E402  （与 code_fingerprint.dart 同口径）
 import p0_lib as L  # noqa: E402
 
 REPO = L.REPO
@@ -54,6 +55,9 @@ def detect_on_source(path, work_long=4096):
 
 
 def main():
+    # 开跑/收尾各取一次被测代码指纹。跑一轮要几分钟，只在收尾取会把"跑完之后"的
+    # 代码状态记到"被测代码"头上（本项目实测发生过 evaluatedState 错标 commit）。
+    fp_start = CF.code_fingerprint()
     man = []
     with open(os.path.join(SCAN, "manifest.jsonl"), encoding="utf-8") as fh:
         for line in fh:
@@ -130,8 +134,25 @@ def main():
     fixtures = [r for r in assessable if "P0_anchors" in r["path"].replace("\\", "/")]
     originals = [r for r in assessable if r not in fixtures]
     holes = [r for r in assessable if r["eyeBandHole"]]
+    fp_end = CF.code_fingerprint()
+    changed = sorted(k for k in set(fp_start["blobHashes"]) | set(fp_end["blobHashes"])
+                     if fp_start["blobHashes"].get(k) != fp_end["blobHashes"].get(k))
+    stable = fp_start["fnv1a64"] == fp_end["fnv1a64"]
     payload = {
         "generatedBy": "qa-batch test/batch/p0_alpha_holes.py",
+        # 门禁按"产出它的代码指纹"钉本文件（out/ 不受冻结约束，不能按内容钉）。
+        # 键路径 `provenance.codeFingerprint` 是门禁定死的契约。
+        "provenance": {
+            "codeFingerprint": fp_start,
+            "codeFingerprintAtEnd": fp_end,
+            "codeStableDuringRun": stable,
+            "roundValid": stable,
+            "changedFiles": changed,
+            "inputProvenance": (
+                "⚠ 本文件测量的是 `out/P0_alpha_scan/` 下**更早一次扫描**产出的 alpha，"
+                "而那次扫描**没有记录自己的代码指纹**。所以这里的指纹只证明"
+                "「跑本脚本期间被测代码没有变」，**不能证明那些 alpha 出自同一份代码**。"),
+        },
         "question": "抠图在双眼区域产生大面积 alpha=0（脸上一个洞）是否独立于旋转、"
                     "在未旋转真实照片上就存在？",
         "answer": (

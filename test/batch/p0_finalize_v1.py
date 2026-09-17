@@ -24,6 +24,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import code_fingerprint as CF  # noqa: E402  （指纹实现，与 code_fingerprint.dart 同口径）
+
 REPO = r"C:\Users\liuyu\Desktop\WorkPlace\idPhotos"
 TRUTH = os.path.join(REPO, "out", "P0_truth.json")
 RESID = os.path.join(REPO, "out", "P0_output_residual.json")
@@ -670,91 +672,24 @@ def _git(args):
         return "unknown"
 
 
-def _git_ok(argv):
-    """取 git 输出；git 正常跑完但非 0 退出时返回 None。
-
-    与 `_git()` 的区别：后者把"命令非 0"和"起不了进程"都压成 `'unknown'`，
-    而 `rev-parse HEAD:<path>` 在"该文件不在这个提交里"时**预期内**地非 0 ——
-    这正是 commit 绑定要识别的情形，压成 `'unknown'` 就分不出来了。
-    argv 走**列表**不做 split：路径可能含空格。
-
-    **刻意不包 try/except。** 这里曾经有 `except Exception: return None`，而本文件
-    当时只在函数内部 `import subprocess`，于是 `_git_ok` 抛 NameError 被自己吃掉，
-    返回 None —— 上层据此报"取不到 HEAD（非 git 仓库？）"，**把所有指纹的提交绑定
-    静默置空，还附了一句错误的解释**。真正的异常（比如本地没有 git）必须炸出来，
-    不能降级成"这个对象不存在"。这正是本项目反复记的那个形态。
-    """
-    r = subprocess.run(["git"] + argv, cwd=REPO, capture_output=True, text=True)
-    return r.stdout.strip() if r.returncode == 0 else None
-
-
-def _commit_binding(hashes):
-    """把被测集绑定到一个 commit（与 `code_fingerprint.dart:commitBinding` 同一口径）。
-
-    按内容记的指纹能回答"变了没有"，回答不了"这是哪个版本的代码"。工作区有未提交
-    改动时指纹描述的是一个**历史里不存在的状态** —— 实测 ml-porting 未提交的估角改动
-    把 fnv 从 `5ba549780700fba9` 变成 `00a9fa55f822f55e`，后者在任何 commit 里都找不到。
-    """
-    head = _git_ok(["rev-parse", "HEAD"])
-    if not head:
-        # 只有在 git 正常跑完（exit 0）却给不出 HEAD 时才走到这里（空仓库等）。
-        # 起不了 git 走 `_git_ok` 抛异常，不会降级成本分支。
-        return {"headCommit": None, "allCommitted": None,
-                "uncommittedMeasuredFiles": [],
-                "commitBindingNote": "git 正常退出但给不出 HEAD，无法绑定提交。"}
-    uncommitted = sorted(rel for rel, blob in hashes.items()
-                         if _git_ok(["rev-parse", f"HEAD:{rel}"]) != blob)
-    return {
-        "headCommit": head,
-        "allCommitted": not uncommitted,
-        "uncommittedMeasuredFiles": uncommitted,
-        "commitBindingNote": (
-            f"被测集全部文件与该提交一致：本指纹即 {head} 的代码。"
-            if not uncommitted else
-            f"被测集有 {len(uncommitted)} 个文件与 {head} 不一致："
-            "本指纹描述的**不是任何提交**，只可用于内容比对。"),
-    }
-
-
 def _code_fingerprint():
-    """被测代码的**内容**指纹（不是 HEAD）。
+    """被测代码的**内容**指纹 + commit 绑定。
+
+    实现已抽到 `test/batch/code_fingerprint.py`（`code_fingerprint.dart` 的逐字节
+    同口径镜像）。**不再在本文件里留第二份实现** —— 两份实现会漂移，而漂移的表现
+    正是"同一棵树算出两个指纹"，即跨语言比较处的假 `undecidable`。这与我今天刚修掉的
+    "Dart 有符号十六进制 vs Python 无符号十六进制"是同一类故障。
 
     存在的理由：本轮成片/覆盖率/残余三份数字产出于 HEAD b3518ba + ml-porting
     未提交的估角改动；此后主会话又提交了若干 docs-only commit。若按 HEAD 记账，
     会把数字错标到一个与测量无关的 commit 上（实测已发生：evaluatedState 从
     b3518ba 漂到 5d4e89e）。按内容记账则与提交时序无关。
 
-    除内容指纹外另带 **commit 绑定**（`headCommit`/`allCommitted`/未提交文件表）：
+    除内容指纹外另带 commit 绑定（`headCommit`/`allCommitted`/未提交文件表）：
     只有内容指纹时，下游能判"不一致"却说不出"测量时跑的是哪份代码"，也就无法判
-    `undecidable`。绑定字段是**兄弟字段**，不参与 FNV，故不影响既有 `fnv1a64` 的可比性。
+    `undecidable`。绑定字段是**兄弟字段**，不参与 FNV。
     """
-    files = []
-    for d in ("lib/core/matting", "lib/core/imaging"):
-        p = os.path.join(REPO, *d.split("/"))
-        if os.path.isdir(p):
-            for root, _, names in os.walk(p):
-                files += [os.path.join(root, n) for n in names if n.endswith(".dart")]
-    api = os.path.join(REPO, "lib", "core", "api.dart")
-    if os.path.exists(api):
-        files.append(api)
-    files.sort()
-    hashes = {}
-    for f in files:
-        rel = os.path.relpath(f, REPO).replace("\\", "/")
-        try:
-            r = subprocess.run(["git", "hash-object", f], cwd=REPO,
-                               capture_output=True, text=True)
-            hashes[rel] = r.stdout.strip()
-        except Exception:  # noqa: BLE001
-            hashes[rel] = "unknown"
-    joined = "\n".join(f"{k}:{v}" for k, v in hashes.items())
-    h = 0xCBF29CE484222325
-    for ch in joined.encode("utf-8"):
-        h ^= ch
-        h = (h * 0x100000001B3) & 0xFFFFFFFFFFFFFFFF
-    return {"files": len(hashes), "fnv1a64": format(h, "016x"),
-            "blobHashes": hashes, **_commit_binding(hashes)}
-
+    return CF.code_fingerprint(REPO)
 
 
 def _measured_state(truth):

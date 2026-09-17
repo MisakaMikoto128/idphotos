@@ -4834,15 +4834,15 @@
   "roundSelfValid": null,
   "roundChangedFiles": [],
   "codeFingerprintAtFinalize": {
-   "fnv1a64": "00a9fa55f822f55e",
-   "files": 29,
-   "headCommit": "c1c35f02b647fcdeb990a331e58da1799cbd054a",
+   "fnv1a64": "1d9b461b91c7612b",
+   "files": 102,
+   "headCommit": "87cb625988ffb824ec87aab2721e7a3a02b494e8",
    "allCommitted": false
   },
   "codeFingerprintAtMeasure": null,
   "fingerprintVerdictCode": "unprovable",
   "fingerprintVerdict": "**无法自证**：产出成片的 `p0_compose_summary.json` 里没有 `provenance.codeFingerprint`（本轮跑的时候还没加这个字段），因此不能证明这些数字对应的代码内容 = 现在的代码内容。ml-porting 提交后重跑一遍即可补上，届时此字段会给出比对结论。",
-  "headAtFinalize": "c1c35f0"
+  "headAtFinalize": "87cb625"
  },
  "gateInputs": {
   "note": "qa-batch 提供的实测数字，供 gatekeeper 判定；本块不含 PASS/FAIL。硬判据按 ACCEPTANCE 计分口径第 5 条用 output_tilt（成片端到端残余）。",

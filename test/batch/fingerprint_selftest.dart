@@ -122,13 +122,14 @@ Future<void> main() async {
   _check('6a 真实现：hash-object 算不出 → 抛错，不返回任何哨兵值', strictErr != null,
       '${strictErr.runtimeType}');
 
-  String sentinel(String p) => 'unknown';
+  List<String> sentinelHashes(List<String> paths) =>
+      paths.map((String _) => 'unknown').toList();
   final realPre = codeFingerprint(root: kSandbox);
-  final sentPre = codeFingerprint(root: kSandbox, gitHash: sentinel);
+  final sentPre = codeFingerprint(root: kSandbox, gitHashes: sentinelHashes);
   wFile.writeAsStringSync(
       '${wFile.readAsStringSync()}\n// 第 6 段：制造一次真实的内容变化\n');
   final realPost = codeFingerprint(root: kSandbox);
-  final sentPost = codeFingerprint(root: kSandbox, gitHash: sentinel);
+  final sentPost = codeFingerprint(root: kSandbox, gitHashes: sentinelHashes);
 
   // 前提：这两次的内容**确实不同**，否则下面那条负向对照是空转的。
   _check('6b 对照前提：这两次内容确实不同（真实指纹翻了）',

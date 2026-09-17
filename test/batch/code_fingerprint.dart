@@ -15,9 +15,22 @@ library;
 
 import 'dart:io';
 
-/// 被测代码范围：抠图 + 成像 + 契约。改动这三个之外的代码不影响本门禁读数。
-const List<String> kMeasuredDirs = <String>['lib/core/matting', 'lib/core/imaging'];
-const List<String> kMeasuredFiles = <String>['lib/core/api.dart'];
+/// 被测代码范围：**由门禁定义**（`tools/gate/`），不是本文件自定。
+///
+/// - `lib/` 下全部 `.dart`
+/// - `test/batch/` 下全部 `.dart` 与 `.py`
+/// - 排除路径里含 `__pycache__` 的
+///
+/// 域比原先的"只看 `lib/core/matting` + `lib/core/imaging` + `lib/core/api.dart`"
+/// 宽是**故意的**：测量脚本本身也是"产出这些数的代码"。门禁的校验域里缺任何一条，
+/// 该产物一律判 `undecidable`。
+///
+/// key = 仓库相对路径、正斜杠。两侧（Dart / Python）必须逐字节同域同序，
+/// 否则会算出**不同的指纹**，在跨语言比较处表现为假漂移。
+const List<String> kMeasuredRoots = <String>['lib', 'test/batch'];
+const List<String> kMeasuredExts = <String>['.dart', '.py'];
+const String kMeasuredExclude = '__pycache__';
+
 
 /// 取 git 输出的**宽松**版本，失败时返回 `'unknown'`。
 ///
@@ -35,28 +48,87 @@ String gitText(List<String> args) {
   }
 }
 
-/// `git hash-object` 的**严格**版本：算不出来就抛，**绝不返回哨兵值**。
+/// `git hash-object` 的**严格批量**版本：一次进程取回全部 blob 哈希，
+/// **返回值顺序与入参一一对应**。算不出来就抛，**绝不返回哨兵值**。
+///
+/// 为什么批量：被测集现在是 `lib/` 全部 `.dart` + `test/batch/` 全部 `.dart`/`.py`
+/// （约 100 个文件）。逐个 spawn 会让**每次**取指纹付约 100 次进程创建，而自测一轮
+/// 要调十几次 —— 实测一轮 Dart 自测超过 5 分钟。批量后是 1 次。
+///
+/// 形式是 **argv 多路径**（`git hash-object f1 f2 …`），不是 `--stdin-paths`：
+/// `Process.runSync` **没有 stdin 参数**（只有 async 的 `Process.start` 能写 stdin，
+/// 而本文件的调用方全是同步的）。实测 `--stdin-paths` 还**不接受反斜杠路径**
+/// （报 `could not open '.\lib\core\api.dart'`），argv 形式两种斜杠都行。
+/// 按命令行长度分块，规避 Windows 约 32k 的 argv 上限。
+///
+/// 注意：**git 在有文件读不到时仍会为读得到的文件打印哈希**，只是 exit 非 0。
+/// 所以"退出码 + 条数"两个条件必须**同时**查，只查其中一个会把部分失败读成成功。
 ///
 /// 为什么必须抛而不是降级：指纹是由这些 blob 哈希拼出来的。若 git 失败时两边都
 /// 得到同一个哨兵字符串（例如 `'unknown'`），那么**两份内容不同的代码会算出同一个
 /// 指纹** —— 门禁据此断定"这份数出自当前代码"，而它实际什么都没证明。
 /// 这比"算不出指纹"危险得多：**算不出会暴露，算成相同会静默通过。**
-///
-/// 所以"算不出来"必须表现为**根本不存在可比的值**，而不是"恰好相等"。
-/// 调用点在 `codeFingerprint` 的最开头，git 坏掉会在第一秒炸，不会白跑一轮。
-String gitBlobHashStrict(String path) {
-  final r = Process.runSync('git', <String>['hash-object', path]);
-  final h = (r.stdout as String).trim();
-  if (r.exitCode != 0 || h.isEmpty) {
-    throw StateError(
-      'git hash-object 失败（exit ${r.exitCode}）：$path\n'
-      '被测代码指纹算不出来 ⇒ 本轮"这些数字出自哪份代码"无从判定。\n'
-      '**不要**在这里退化成哨兵值：那会让两份算不出的指纹互相判等，\n'
-      '把"无法自证"伪装成"已自证"。\n'
-      'stderr: ${r.stderr}',
-    );
+/// 门禁口径同此：`blobHashes` 出现 `''`/`'unknown'` 一律判 `undecidable`。
+List<String> gitBlobHashesStrict(List<String> paths) {
+  if (paths.isEmpty) return <String>[];
+  final out = <String>[];
+  const int kMaxArgvChars = 20000;
+  var i = 0;
+  while (i < paths.length) {
+    final chunk = <String>[];
+    var chars = 0;
+    while (i < paths.length &&
+        (chunk.isEmpty || chars + paths[i].length < kMaxArgvChars)) {
+      chunk.add(paths[i]);
+      chars += paths[i].length + 1;
+      i++;
+    }
+    final r = Process.runSync('git', <String>['hash-object', ...chunk]);
+    final lines = (r.stdout as String)
+        .split('\n')
+        .map((String l) => l.trim())
+        .where((String l) => l.isNotEmpty)
+        .toList();
+    if (r.exitCode != 0 || lines.length != chunk.length) {
+      throw StateError(
+        'git hash-object 失败（exit ${r.exitCode}）：'
+        '要 ${chunk.length} 个哈希，得到 ${lines.length} 个（本批首个路径 '
+        '${chunk.first}）。\n'
+        '被测代码指纹算不出来 ⇒ 本轮"这些数字出自哪份代码"无从判定。\n'
+        '**不要**在这里退化成哨兵值：那会让两份算不出的指纹互相判等，\n'
+        '把"无法自证"伪装成"已自证"。\n'
+        'stderr: ${r.stderr}',
+      );
+    }
+    out.addAll(lines);
   }
-  return h;
+  return out;
+}
+
+/// 单文件版，走同一个批量实现（语义完全一致），供自测与零星调用。
+String gitBlobHashStrict(String path) => gitBlobHashesStrict(<String>[path]).single;
+
+/// `HEAD` 的整棵树：路径（正斜杠，仓库相对）→ blob。一次进程。
+///
+/// 逐文件用 `git rev-parse HEAD:<path>` 也要 ~100 次进程创建，与哈希那批同理。
+/// 语义不变：**不在该提交里的文件**在 map 里查不到（返回 null），上层判为未提交。
+Map<String, String> _headTreeBlobs() {
+  final r = Process.runSync('git', <String>['ls-tree', '-r', 'HEAD']);
+  if (r.exitCode != 0) {
+    throw StateError('git ls-tree -r HEAD 失败（exit ${r.exitCode}）：${r.stderr}');
+  }
+  final m = <String, String>{};
+  for (final String line in (r.stdout as String).split('\n')) {
+    if (line.trim().isEmpty) continue;
+    final int tab = line.indexOf('\t');
+    if (tab < 0) continue;
+    final String meta = line.substring(0, tab).trim();
+    final String path = line.substring(tab + 1);
+    final List<String> parts = meta.split(' ');
+    if (parts.length < 3) continue;
+    m[path] = parts.last;
+  }
+  return m;
 }
 
 /// 取 git 输出；git 正常跑完但非 0 退出时返回 null。
@@ -82,7 +154,7 @@ String? _gitOrNull(List<String> args) {
 /// `00a9fa55f822f55e`，后者在任何 commit 里都找不到。此时若下游只比 fnv，
 /// 它会发现"不一致"，但说不出"测量时跑的是哪份代码"，也就无法判 `undecidable`。
 ///
-/// 做法：逐个文件比对工作区 blob 与 `HEAD:<path>` 的 blob。全等 → 这份指纹
+/// 做法：比对工作区 blob 与 `HEAD` 那棵树里的 blob。全等 → 这份指纹
 /// **就是** `headCommit` 的代码；有差异 → 列出具体哪些文件没有对应提交。
 ///
 /// 刻意**不改**参与 FNV 的字符串：改了会让本次改动前后记录的 `fnv1a64` 不可比，
@@ -99,10 +171,10 @@ Map<String, Object?> commitBinding(Map<String, String> hashes) {
       'commitBindingNote': 'git 正常退出但给不出 HEAD，无法绑定提交。',
     };
   }
+  final tree = _headTreeBlobs();
   final uncommitted = <String>[];
   for (final e in hashes.entries) {
-    final atHead = _gitOrNull(<String>['rev-parse', 'HEAD:${e.key}']);
-    if (atHead != e.value) uncommitted.add(e.key);
+    if (tree[e.key] != e.value) uncommitted.add(e.key);
   }
   uncommitted.sort();
   return <String, Object?>{
@@ -132,31 +204,35 @@ String _relKey(String root, String full) {
 /// [root] 下的被测代码内容指纹。默认 root='.'（仓库根）。
 /// 传别的 root 是为了让自测能在沙箱副本上跑同一份实现。
 ///
-/// [gitHash] 只在自测里注入，用来**模拟 git 不可用**，从而证明"算不出指纹"时不会
-/// 退化成"两份指纹相等"。生产调用一律走默认的 [gitBlobHashStrict]。
+/// [gitHashes] 只在自测里注入，用来**模拟 git 不可用**，从而证明"算不出指纹"时不会
+/// 退化成"两份指纹相等"。生产调用一律走默认的 [gitBlobHashesStrict]。
 Map<String, Object?> codeFingerprint({
   String root = '.',
-  List<String>? extraDirs,
-  String Function(String path) gitHash = gitBlobHashStrict,
+  List<String> Function(List<String> paths) gitHashes = gitBlobHashesStrict,
 }) {
-  final dirs = <String>[...kMeasuredDirs, ...?extraDirs];
   final paths = <String>[];
-  for (final dir in dirs) {
+  for (final dir in kMeasuredRoots) {
     final d = Directory(_join(root, dir));
     if (!d.existsSync()) continue;
     for (final e in d.listSync(recursive: true)) {
-      if (e is File && e.path.endsWith('.dart')) paths.add(e.path);
+      if (e is! File) continue;
+      final norm = e.path.replaceAll('\\', '/');
+      if (norm.contains(kMeasuredExclude)) continue;
+      if (!kMeasuredExts.any(norm.endsWith)) continue;
+      paths.add(e.path);
     }
-  }
-  for (final f in kMeasuredFiles) {
-    final p = _join(root, f);
-    if (File(p).existsSync()) paths.add(p);
   }
   paths.sort();
 
+  final rels = paths.map((String p) => _relKey(root, p)).toList();
+  final blobs = gitHashes(paths);
+  if (blobs.length != paths.length) {
+    throw StateError('gitHashes 返回 ${blobs.length} 个哈希，但有 ${paths.length} 个文件；'
+        '数目对不上时按序配对会**静默错位**，故直接判失败。');
+  }
   final hashes = <String, String>{};
-  for (final p in paths) {
-    hashes[_relKey(root, p)] = gitHash(p);
+  for (var i = 0; i < paths.length; i++) {
+    hashes[rels[i]] = blobs[i];
   }
   final joined = hashes.entries.map((e) => '${e.key}:${e.value}').join('\n');
   return <String, Object?>{
