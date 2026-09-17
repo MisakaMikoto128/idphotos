@@ -49,6 +49,18 @@ Map<String, dynamic> item({
       'specId': kSpec,
     };
 
+/// 一个"可判"的轮次状态：工作树冻结、样本条数对得上、成片文件都在。
+/// 大多数用例要考的是判定逻辑本身，所以默认给一个可信的 roundState；
+/// 专测"输入不可信"的用例（N）自己覆盖它。
+Map<String, dynamic> goodRoundState() => <String, dynamic>{
+      'frozen': true,
+      'dirty': <String>[],
+      'composeDeclared': 100,
+      'composeParsed': 100,
+      'composeMissingFiles': 0,
+      'composeMissingIds': <String>[],
+    };
+
 /// 组装 evaluateP0 的输入。
 ///
 /// [measured] 是 id → gatekeeper 眼线量具测出的成片倾角；没给的 id 视为
@@ -62,6 +74,9 @@ Map<String, dynamic> inputs({
   int devExit = 0,
   String devTail = '+9: All tests passed!',
   bool gateJsonsPass = true,
+  double siftDelta = 0.0,
+  Object? anticheat = const <String, dynamic>{'clean': true, 'summary': '测试桩'},
+  Map<String, dynamic>? roundState,
 }) {
   final List<Map<String, dynamic>> rows = <Map<String, dynamic>>[];
   measured.forEach((String id, double v) {
@@ -81,9 +96,9 @@ Map<String, dynamic> inputs({
     sift.add(<String, dynamic>{
       'id': c['id'],
       'ok': true,
-      'measured_applied_deg': a,
+      'measured_applied_deg': a + siftDelta,
       'residual_deg': t - a,
-      'applied_delta_vs_record': 0.0,
+      'applied_delta_vs_record': siftDelta,
     });
   }
   return <String, dynamic>{
@@ -107,7 +122,8 @@ Map<String, dynamic> inputs({
         <String, dynamic>{'id': '4.1', 'pass': gateJsonsPass},
       ],
     },
-    'anticheat': <String, dynamic>{'clean': true, 'summary': '测试桩'},
+    'anticheat': anticheat,
+    'roundState': roundState ?? goodRoundState(),
   };
 }
 
@@ -293,5 +309,114 @@ void main() {
     final List<Map<String, dynamic>> items = gate.evaluateP0(inp);
     expect((row(items, 'P0.1a')['actual'] as String).contains('derived_identity'), true,
         reason: '兜底路径必须留痕，否则就等于"悄悄算它通过"');
+  });
+
+  // ---------------------------------------------------------------------
+  // K / L：AC（防作弊）必须有 FAIL 控制。
+  // 背景：AC 曾把缺输入 `?? {'clean': true}` 默认成"清白"——"我不知道"被
+  // 翻译成"干净"。而 AC 恰恰是条款 1 唯一有结构性盲点的组件，
+  // 却没有一条用例能在它被接成恒真时变红。
+  // ---------------------------------------------------------------------
+  test('K 防作弊输入缺失 → AC 必须 MANUAL 且 pass 不得为 true（不许默认真清白）', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    final List<Map<String, dynamic>> items = gate.evaluateP0(inputs(
+      compose: compose,
+      measured: goodMeasured(compose),
+      anticheat: null, // 巡检未产出
+    ));
+    final Map<String, dynamic> ac = row(items, 'AC');
+    expect(ac['pass'], false, reason: '"我不知道"不得被翻译成"干净"');
+    expect(ac['manual'], true, reason: '缺输入必须是 MANUAL，不是 PASS');
+    expect((ac['actual'] as String).contains('不可判'), true);
+  });
+
+  test('L 防作弊巡检报出违规 → AC FAIL（接成恒真必须变红）', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    final List<Map<String, dynamic>> items = gate.evaluateP0(inputs(
+      compose: compose,
+      measured: goodMeasured(compose),
+      anticheat: <String, dynamic>{
+        'clean': false,
+        'violations': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'clause': '1',
+            'path': 'test/foo_test.dart',
+            'attribution': 'ml-porting',
+            'detail': '越界写 test/',
+          },
+        ],
+      },
+    ));
+    final Map<String, dynamic> ac = row(items, 'AC');
+    expect(ac['pass'], false);
+    expect((ac['actual'] as String).contains('test/foo_test.dart'), true,
+        reason: '违规必须点名到文件，否则读者不知道找谁');
+  });
+
+  test('M 2B.8 施加几何对不上 → P0.5b FAIL（此前无人守这一项）', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    // 施加角被量出来与记录差 4°：成片残余不受影响，只有 SIFT 的施加几何炸。
+    final List<Map<String, dynamic>> items = gate.evaluateP0(inputs(
+      compose: compose,
+      measured: goodMeasured(compose),
+      siftDelta: 4.0,
+    ));
+    expect(row(items, 'P0.5b')['pass'], false);
+    expect((row(items, 'P0.5b')['actual'] as String).contains('①'), true,
+        reason: '报告必须把炸掉的那个子量标出来');
+  });
+
+  // ---------------------------------------------------------------------
+  // N：一轮判决只能来自同一个被冻结、被标识的代码状态。
+  // 三种不可信输入都必须令整轮**作废**，而不是加一行说明放过去——
+  // r1 就是这么滑过去的（判决由两个不同状态的测量拼成）。
+  // ---------------------------------------------------------------------
+  test('N 输入不来自同一冻结状态 → 整轮作废，不得当成对代码的判决', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    final Map<String, double> m = goodMeasured(compose);
+
+    // N1：缺 roundState —— 不许默认可信（与 AC 那处同源：缺失 ≠ 通过）
+    final Map<String, dynamic> noStateInp = inputs(compose: compose, measured: m);
+    noStateInp.remove('roundState');
+    final List<Map<String, dynamic>> noStateItems = gate.evaluateP0(noStateInp);
+    expect(noStateItems.every((Map<String, dynamic> i) => i['roundInvalid'] == true),
+        true, reason: '缺 roundState 必须整轮作废，不得默认可信');
+
+    for (final Map<String, dynamic> bad in <Map<String, dynamic>>[
+      <String, dynamic>{
+        'frozen': false,
+        'dirty': <String>[' M lib/core/matting/iris_roll.dart'],
+        'composeDeclared': 100,
+        'composeParsed': 100,
+        'composeMissingFiles': 0,
+      },
+      <String, dynamic>{
+        'frozen': true,
+        'dirty': <String>[],
+        'composeDeclared': 100,
+        'composeParsed': 87, // 87 条静默 continue（qa-batch 真实踩过）
+        'composeMissingFiles': 0,
+      },
+      <String, dynamic>{
+        'frozen': true,
+        'dirty': <String>[],
+        'composeDeclared': 100,
+        'composeParsed': 87,
+        'composeMissingFiles': 13,
+      },
+    ]) {
+      final Map<String, dynamic> inp = inputs(
+        compose: compose,
+        measured: m,
+        roundState: bad,
+      );
+      final List<Map<String, dynamic>> items = gate.evaluateP0(inp);
+      expect(items.every((Map<String, dynamic> i) => i['pass'] != true), true,
+          reason: '输入不可信时任何一项都不得判 PASS');
+      expect(items.every((Map<String, dynamic> i) => i['roundInvalid'] == true), true,
+          reason: '必须整轮作废，而不是逐项解释');
+      expect(items.every((Map<String, dynamic> i) => i['manual'] == true), true,
+          reason: '作废轮是 MANUAL，不消耗实现方的修复轮次');
+    }
   });
 }

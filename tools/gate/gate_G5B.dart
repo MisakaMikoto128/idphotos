@@ -11,7 +11,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'gate_common.dart';
 import 'png_utils.dart';
 
 DecodedPng loadPng(String path) {

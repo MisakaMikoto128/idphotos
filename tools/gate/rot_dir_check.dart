@@ -43,7 +43,7 @@ void main() {
     final double ang = math.atan2(by - cy, bx - cx) * 180 / math.pi;
     base ??= ang;
     // 角度差归一到 (−180, 180]
-    double d = ang - base!;
+    double d = ang - base;
     while (d > 180) {
       d -= 360;
     }

@@ -36,6 +36,11 @@ const String kSpec = 'cn_big_1inch';
 
 const String kTruthPath = 'out/P0_truth.json';
 const String kComposePath = 'out/P0_compose_items.jsonl';
+const String kComposeSummaryPath = 'out/P0_compose_summary.json';
+
+/// 冻结判定覆盖的路径。`out/` 是共享输出目录，**不在**冻结条件内
+/// （它的脏是预期的：每轮都会往里写）。
+const List<String> kFreezeScopes = <String>['lib', 'test', 'tools', 'docs'];
 const String kEyelinePath = 'out/gate_P0_eyeline.json';
 const String kEyelineSelftestPath = 'out/gate_P0_eyeline_selftest.json';
 const String kRigidSelftestPath = 'out/gate_P0_rigid_selftest.json';
@@ -57,6 +62,9 @@ const double kResidInterceptAbsMax = 0.5;
 const double kCoverageMinTruthDeg = 1.5;
 /// 锚点下限，按法典口径 6 表述为"11 张不同照片"。
 const int kMinDistinctPhotos = 8;
+/// 合成竖直样本（uprightSynthetic）的条数下限。法典 P0.2 写的是 9 张。
+/// 设下限是为了不让"空集"静默通过：`notPupil.isEmpty` 在空集上恒真。
+const int kUprightSyntheticMin = 9;
 /// 量具自检的最大允许误差。量不准的量具没有资格判别人。
 ///
 /// 两条量具的门槛不同，是因为**它们在判据里扮演的角色不同**，不是通融：
@@ -166,12 +174,76 @@ Future<void> main(List<String> args) async {
     },
     'gateG2B': _readJson('out/gate_G2B.json'),
     'gateG4': _readJson('out/gate_G4.json'),
+    'composeSummary': _readJson(kComposeSummaryPath),
     'blockers': blockers,
     'spec': kSpec,
+    'roundState': _roundState(),
   };
 
   final List<Map<String, dynamic>> items = evaluateP0(inputs);
   await _finish(outPath: outPath, round: round, items: items, hashes: hashes, inputs: inputs);
+}
+
+/// 本轮输入是否来自**同一个被冻结、被标识的代码状态**。
+///
+/// 三件事一起测，缺一不可：
+///  1. `git status --porcelain -- lib test tools docs` 为空（冻结；`out/` 除外）；
+///  2. `$kComposePath` 的每条样本都能解析、成片文件都在；
+///  3. 清单声明的条数 == 实际解析到的条数（防"静默 continue 后在零样本上判定"）。
+///
+/// 教训来源（2026-09-17）：qa-batch 的成片台因路径被拼两次，87/100 静默跳过，
+/// **exit 0、crash 0、summary 看着完全健康**，却是在零样本上判 P0.2/P0.3a/P0.3b。
+/// 所以"进程没崩"不能当完整性证据，必须数条数。
+Map<String, dynamic> _roundState() {
+  final Map<String, dynamic> s = <String, dynamic>{};
+  final RunResult st = _gitSync(<String>[
+    'status', '--porcelain', '--untracked-files=all', '--', ...kFreezeScopes,
+  ]);
+  final List<String> dirty = st.stdout
+      .split('\n')
+      .map((String l) => l.trim())
+      .where((String l) => l.isNotEmpty)
+      .toList();
+  s['frozen'] = st.exitCode == 0 && dirty.isEmpty;
+  s['dirty'] = dirty.take(20).toList();
+
+  final List<dynamic> rows = _readJsonl(kComposePath);
+  int declared = 0;
+  int parsed = 0;
+  int missingFiles = 0;
+  final List<String> missingIds = <String>[];
+  for (final dynamic raw in rows) {
+    if (raw is! Map<String, dynamic>) continue;
+    if (raw['specId'] != kSpec) continue;
+    declared++;
+    if (raw['id'] == null || raw['truthTiltDeg'] == null) continue;
+    parsed++;
+    final Object? p = raw['composed'];
+    if (p is! String || !File(p).existsSync()) {
+      missingFiles++;
+      if (missingIds.length < 20) missingIds.add('${raw['id']}');
+    }
+  }
+  s['composeDeclared'] = declared;
+  s['composeParsed'] = parsed;
+  s['composeMissingFiles'] = missingFiles;
+  s['composeMissingIds'] = missingIds;
+
+  // 成片台的 summary 只作**旁证**：它缺 `casesAttempted`/`missing`/`complete`
+  // 三件套时不可作为完整性证据（`crash == 0` 本身不是证据）。
+  final Object? sum = _readJson(kComposeSummaryPath);
+  if (sum is Map<String, dynamic>) {
+    final bool hasTriple = sum.containsKey('casesAttempted') &&
+        sum.containsKey('missing') &&
+        sum.containsKey('complete');
+    s['summaryHasCompletenessTriple'] = hasTriple;
+    s['summaryCrash'] = sum['crash'];
+    s['summaryCases'] = sum['cases'];
+    s['summaryOk'] = sum['ok'];
+  } else {
+    s['summaryHasCompletenessTriple'] = false;
+  }
+  return s;
 }
 
 /// 量具自检：跑完检查有没有产出结果文件。
@@ -388,6 +460,14 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
 
   // ---------------- P0.2：不引入歪斜 ----------------
   {
+    // 语料取自**成片台**（`$kComposePath`）的 `corpus` 字段，那里的标注是准的。
+    // **不要改用覆盖率台的 `byCorpus`**：它把 uprightSynthetic 并进了 'anchor'
+    // （`p0_coverage_test.dart:99` 硬写 'corpus': 'anchor'），用它取 P0.2 的样本
+    // 会**整批漏掉且不报错**。
+    //
+    // `upright.length >= kUprightSyntheticMin` 这道下限是防"空集静默通过"：
+    // `notPupil.isEmpty` 在 upright 为空时为真，光靠它会让"一张竖直样本都没有"
+    // 也判 PASS——拿一个不存在的集合去证明"没有非 pupil"是假证据。
     final List<Map<String, dynamic>> cohort = <Map<String, dynamic>>[...straight, ...upright];
     final List<double> res =
         cohort.map((Map<String, dynamic> s) => (s['residual'] as double).abs()).toList();
@@ -396,15 +476,18 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         upright.where((Map<String, dynamic> s) => s['source'] != 'pupil').toList();
     final bool pass = instrumentsOk &&
         cohort.isNotEmpty &&
+        upright.length >= kUprightSyntheticMin &&
         maxAbs <= kResidualMaxDeg &&
         notPupil.isEmpty;
     items.add(<String, dynamic>{
       'id': 'P0.2',
       'description': '不引入歪斜：已知竖直样本残余 ≤ 1.5°，且 uprightSynthetic 必须返回 pupil',
-      'expected': '|residual| ≤ $kResidualMaxDeg 且 9 张 uprightSynthetic 全部 source=pupil',
+      'expected': '|residual| ≤ $kResidualMaxDeg 且 $kUprightSyntheticMin 张 uprightSynthetic 全部 source=pupil',
       'actual': _text(
         <String>[
-          '竖直样本 ${cohort.length} 条（用户 2.jpg 1 条 + 合成竖直 ${upright.length} 条），max|残余| = ${_f(maxAbs)}',
+          '竖直样本 ${cohort.length} 条（用户 2.jpg ${straight.length} 条 + 合成竖直 ${upright.length} 条，'
+              '后者下限 $kUprightSyntheticMin 条），max|残余| = ${_f(maxAbs)}'
+              '${upright.length >= kUprightSyntheticMin ? "" : " —— **合成竖直样本不足，本项不可判**"}',
           'uprightSynthetic 来源分布：${_sourceHist(upright)}'
               '${notPupil.isEmpty ? "（全部 pupil）" : "—— 非 pupil：" + notPupil.map((Map<String, dynamic> s) => s['id'] as String).join("、")}',
           _sampleLine(cohort),
@@ -412,7 +495,7 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         blockers,
       ),
       'pass': pass,
-      'manual': !instrumentsOk,
+      'manual': !instrumentsOk || upright.length < kUprightSyntheticMin,
       'owner': 'ml-porting',
     });
   }
@@ -602,13 +685,14 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       'pass': pass && siftDeltas.isNotEmpty && siftMax <= kResidualMaxDeg,
       'subchecks': <Map<String, dynamic>>[
         <String, dynamic>{
-          'name': '① 施加几何（判据量）',
+          'name': '① 施加几何',
           'value': siftMax,
           'criterion': true,
           'margin': kResidualMaxDeg - siftMax,
+          'instrumentErr': rigidErr,
         },
         <String, dynamic>{
-          'name': '② 跨量具一致性（辅助量）',
+          'name': '② 跨量具一致性',
           'value': maxDev,
           'criterion': false,
           'margin': kResidualMaxDeg - maxDev,
@@ -682,29 +766,108 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
 
   // ---------------- AC：防作弊 ----------------
   {
-    final Map<String, dynamic> ac =
-        inputs['anticheat'] as Map<String, dynamic>? ?? <String, dynamic>{'clean': true, 'violations': <dynamic>[]};
-    final bool clean = ac['clean'] == true;
-    items.add(<String, dynamic>{
-      'id': 'AC',
-      'description': 'ACCEPTANCE 防作弊条款 1–6',
-      'expected': '0 命中',
-      'actual': clean
-          ? '清白（${inputs['acSummary'] ?? ""}）'
-          : (ac['violations'] as List<dynamic>)
-              .map((dynamic v) => (v as Map<String, dynamic>)['path'] +
-                  ' ← ' +
-                  (v['attribution'] as String) +
-                  '：' +
-                  (v['detail'] as String))
-              .join('\n'),
-      'pass': clean,
-      'manual': false,
-      'owner': clean ? null : '见每条的 attribution',
-    });
+    // **缺输入绝不允许默认成"清白"。** 这里以前写成
+    //   inputs['anticheat'] ?? {'clean': true, ...}
+    // 等于把"我不知道"翻译成"干净"——巡检抛异常、键没设上、将来有人构造
+    // inputs 时漏了这个键，门禁都会静默报 AC PASS。而 AC 恰恰是最可疑的一条
+    // （条款 1 的可提交面依赖 diff，不看未跟踪文件的历史）。
+    // 现在：缺失 → MANUAL，pass 恒 false，报告写明"本轮不可判"。
+    final Object? rawAc = inputs['anticheat'];
+    if (rawAc is! Map<String, dynamic>) {
+      items.add(<String, dynamic>{
+        'id': 'AC',
+        'description': 'ACCEPTANCE 防作弊条款 1–6',
+        'expected': '0 命中',
+        'actual': '防作弊巡检未产出（`inputs["anticheat"]` 缺失或类型不对），'
+            '**本轮不可判**——不默认清白。',
+        'pass': false,
+        'manual': true,
+        'owner': 'gatekeeper（巡检未产出，不计实现方责任）',
+      });
+    } else {
+      final Map<String, dynamic> ac = rawAc;
+      // 用 `== true`（而非真值判断）：缺键/`null`/非布尔一律落到"非 clean"。
+      final bool clean = ac['clean'] == true;
+      items.add(<String, dynamic>{
+        'id': 'AC',
+        'description': 'ACCEPTANCE 防作弊条款 1–6',
+        'expected': '0 命中',
+        'actual': clean
+            ? '清白（${inputs['acSummary'] ?? ""}）'
+            : (ac['violations'] as List<dynamic>? ?? <dynamic>[])
+                .map((dynamic v) => (v as Map<String, dynamic>)['path'] +
+                    ' ← ' +
+                    (v['attribution'] as String) +
+                    '：' +
+                    (v['detail'] as String))
+                .join('\n'),
+        'pass': clean,
+        'manual': false,
+        'owner': clean ? null : '见每条的 attribution',
+      });
+    }
   }
 
-  return items;
+  return _applyRoundValidity(items, inputs);
+}
+
+/// 一轮判决只能由**同一个被冻结、被标识的代码状态**上的测量推导出来。
+///
+/// 存在理由（2026-09-17，主会话裁定，源自 r1 的真实缺陷）：r1 的判决是**拼起来的**
+/// ——P0.1a/2/3a/3b 来自 qa-batch 在它自己那版工作树上产出的 `P0_compose_items.jsonl`，
+/// 而 P0.5a 来自本机**当前**工作树编译的代码。两半可能不是同一版代码，
+/// 所以 r1 不是"对某个单一代码状态的判决"，只是基线测量。
+///
+/// **加一行说明拦不住它**（r1 就是这么滑过去的），所以这里直接令该轮**无效**：
+/// 所有条目 pass=false、manual=true，理由写在 actual 里。无效轮不消耗实现方的
+/// 修复轮次，也不得被引用为判决。
+List<Map<String, dynamic>> _applyRoundValidity(
+  List<Map<String, dynamic>> items,
+  Map<String, dynamic> inputs,
+) {
+  final List<String> reasons = _roundInvalidReasons(inputs);
+  if (reasons.isEmpty) return items;
+  final String why = '**本轮无效：${reasons.join("；")}**';
+  return items.map((Map<String, dynamic> i) {
+    return <String, dynamic>{
+      ...i,
+      'pass': false,
+      'manual': true,
+      'roundInvalid': true,
+      'actual': '$why\n原判定依据（**不作为判决**）：\n${i['actual']}',
+      'owner': 'gatekeeper（本轮输入不可信，不计实现方责任）',
+    };
+  }).toList();
+}
+
+/// 本轮输入是否可信。返回空表 = 可信；非空 = 逐条说明为何无效。
+List<String> _roundInvalidReasons(Map<String, dynamic> inputs) {
+  final List<String> r = <String>[];
+  final Object? rs = inputs['roundState'];
+  if (rs is! Map<String, dynamic>) {
+    // 缺失**不默认可信**——这正是 AC 那一处踩过的坑，不能在这里重演。
+    r.add('缺少 `roundState`，无法证明所有输入来自同一个被冻结的代码状态');
+    return r;
+  }
+  if (rs['frozen'] != true) {
+    r.add('工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：'
+        '${(rs['dirty'] as List<dynamic>? ?? <dynamic>[]).join("、")}');
+  }
+  final int missing = (rs['composeMissingFiles'] as num?)?.toInt() ?? -1;
+  final int declared = (rs['composeDeclared'] as num?)?.toInt() ?? -1;
+  final int parsed = (rs['composeParsed'] as num?)?.toInt() ?? -1;
+  if (missing < 0 || declared < 0 || parsed < 0) {
+    r.add('缺少样本解析计数（declared/parsed/missingFiles 三件套不齐）');
+  } else {
+    if (missing > 0) {
+      r.add('$declared 条样本里有 $missing 条的成片文件不存在');
+    }
+    if (declared != parsed) {
+      r.add('清单声明 $declared 条，实际只解析到 $parsed 条'
+          '（静默 `continue` 是已知失效模式：exit 0、crash 0、却在零样本上判定）');
+    }
+  }
+  return r;
 }
 
 // ---------------------------------------------------------------------------
@@ -940,12 +1103,16 @@ String _renderMd({
 }) {
   final int passed = items.where((Map<String, dynamic> i) => i['pass'] == true).length;
   final int manual = items.where((Map<String, dynamic> i) => i['manual'] == true).length;
+  final bool invalid =
+      items.any((Map<String, dynamic> i) => i['roundInvalid'] == true);
   final List<Map<String, dynamic>> failed =
       items.where((Map<String, dynamic> i) => i['pass'] != true).toList();
 
   final StringBuffer b = StringBuffer();
-  b.writeln('## G2B-P0 第 $round 轮：${failed.isEmpty ? 'PASS' : 'FAIL'}');
-  b.writeln('## 通过 $passed / ${items.length} 项，MANUAL 项 $manual 个');
+  b.writeln('## G2B-P0 第 $round 轮：'
+      '${invalid ? '**作废（本轮无效，不是对代码的判决）**' : (failed.isEmpty ? 'PASS' : 'FAIL')}');
+  b.writeln('## 通过 $passed / ${items.length} 项，MANUAL 项 $manual 个'
+      '${invalid ? '（全部条目因本轮输入不可信而作废）' : ''}');
   b.writeln('## 脚本完整性：${_hashVerdict(hashes, prevHashes)}');
   b.writeln('## 防作弊巡查：${ac['clean'] == true ? '清白' : '命中（见 AC 条目）'}');
   b.writeln();
@@ -961,14 +1128,27 @@ String _renderMd({
       '明令不作判据的量。故初判作废，本文件是**按冻结版判据重跑**后的第 1 轮结果，'
       '不消耗实现方的修复轮次。详见 `docs/ACCEPTANCE.md` 的「判据冻结声明」。');
   b.writeln();
-  b.writeln('### 轮次记账（主会话 2026-09-17 裁定，按 CLAUDE.md §7「最多 3 轮修复」）');
-  b.writeln('第 1 轮是**重写轮**（判据被中途改动致初判作废），**不消耗** ml-porting 的修复预算。');
+  b.writeln('### 轮次记账（主会话 2026-09-17 裁定，按 CLAUDE.md §7「最多 3 轮修复」）');  b.writeln('第 1 轮是**重写轮**（判据被中途改动致初判作废），**不消耗** ml-porting 的修复预算。');
   b.writeln('ml-porting 有 3 次修复机会，对应门禁运行 **r2 / r3 / r4**；r4 仍 FAIL → '
       '写 `out/BLOCKED_G2B-P0.md`，全流程停止等人工，不降阈值、不删夹具、不跳门禁。');
   b.writeln('本轮按 `r$round` 编号。');
   b.writeln();
+  b.writeln('### 轮次有效性判定（主会话 2026-09-17 裁定，**r2 起生效**）');
+  b.writeln('> **一轮判决只能由同一个被冻结、被标识的代码状态上的测量推导出来。**'
+      '任何一项判据的输入若来自另一个状态（不同工作树、不同 revision、'
+      '不同测量台的上一次产出），**要么重测，要么把该项标为无效**。');
+  b.writeln('机检三件：① `git status --porcelain -- lib test tools docs` 为空（`out/` 除外）；'
+      '② 每条样本都解析得到、成片文件都在；③ 声明条数 == 实际解析条数。'
+      '任一不过 → **整轮作废**（全部条目 pass=false、manual=true），'
+      '不消耗实现方修复轮次。**加一行说明拦不住它**——r1 就是这么滑过去的，'
+      '所以这里是判 `roundInvalid` 而不是写备注。');
+  b.writeln('**本机制晚于 r1**：r1 的 FAIL 判决（P0.3a max 11.368°、P0.3b 9 条）'
+      '按主会话裁定**保留为基线测量**，不因本机制追溯作废；'
+      '但它**不是对任何单一代码状态的判决**，不得用来论证"改了一轮没修好"。');
+  b.writeln();
+  b.writeln();
   b.writeln('### 本轮输入的一致性（读数绑在哪个版本上）');
-  b.writeln(_treeState());
+  b.writeln(_treeState(inputs));
   b.writeln();
   b.writeln('### 硬判据出自哪支量具（避免把量具差异读成分歧）');
   b.writeln('- **P0.1a / P0.2 / P0.3a② / P0.5b** 的成片残余：gatekeeper 的 **Haar 眼线量具**'
@@ -1211,22 +1391,31 @@ String _dedup(Map<String, dynamic> inputs) {
   final int entries = (o['anchor_entries'] as num).toInt();
   final List<dynamic> intra = (o['intra_duplicates'] as List<dynamic>? ?? <dynamic>[]);
   final List<dynamic> cross = (o['golden_overlap'] as List<dynamic>? ?? <dynamic>[]);
-  b.writeln('- 锚点条目 **$entries** 条；本量具测出**同图重复 ${intra.length} 对**：'
+  b.writeln('- 锚点条目 **$entries** 条（`corpus == anchor`，**不含 `p2`**——法典条款 6 订正后'
+      '明写 p2 归入 `straight`、不计入锚点栏）。本量具测出**同图重复 ${intra.length} 对**：'
       '${intra.map((dynamic d) => '`${(d as Map<String, dynamic>)['a']}` ≡ '
           '`${d['b']}`（MAE ${(d['mae'] as num).toStringAsFixed(2)}）').join('、')}。');
+  b.writeln('- **去重后 = $entries − ${intra.length} = '
+      '${(o['distinct_photos_after_dedup'] as num).toInt()} 张不同照片**，'
+      '与法典条款 6 订正后的算式「12 − `c03`/`c04` 这一对真重复 = 11」**独立吻合**。');
   final int same = (o['golden_same_photo_n'] as num?)?.toInt() ?? 0;
   final int gn = (o['golden_n'] as num?)?.toInt() ?? 0;
-  b.writeln('- 黄金集 $gn 张中 **$same 张在锚点集里有同图**'
-      '${o['golden_all_in_anchor'] == true ? '（**全部 8 张都是锚点**，黄金集不是独立样本）' : ''}：');
+  b.writeln('- 黄金集 $gn 张中 **$same 张在非旋转源照片里有同图**'
+      '${o['golden_all_in_anchor'] == true ? '（**全部 $gn 张都是锚点/竖直样本的照片**，黄金集不是独立样本）' : ''}：');
   for (final dynamic raw in cross) {
     final Map<String, dynamic> c = raw as Map<String, dynamic>;
     if (c['same_photo'] != true) continue;
     b.writeln('  - `${c['golden']}` ≡ `${c['nearest_anchor']}`'
-        '（MAE ${(c['mae'] as num).toStringAsFixed(2)}）');
+        '（${c['nearest_corpus'] ?? "anchor"}，MAE ${(c['mae'] as num).toStringAsFixed(2)}）');
   }
-  b.writeln('- **本量具的局限（必须写明）**：整幅签名法**测不出"同合影的不同裁切"**，'
-      '所以 `c10`/`c11`/`c12` 这类法典条款 6 已记的重叠，本表测不出来，'
-      '一律**采信法典口径 6**，不因本表没测到就当作独立样本。');
+  b.writeln('- **本量具的局限（必须写明）**：整幅签名法**测不出"同一场景的不同裁切/不同取景"**，'
+      '所以 `c10`/`c11`/`c12` 这类它分辨不了。**法典条款 6 已于 2026-09-17 订正：'
+      '三者是同一场景的三张不同照片，不去重、各自计数**（依据是"只统计结构像素"的'
+      'ECC 对齐复核，`c10`/`c11` 结构像素 ≤5 灰阶仅 11.3%，而已知同图对 `c03`/`c04` 为 95.2%）。'
+      '本门**不推翻也不重复验证**该结论，只声明本量具对这个量级不敏感、不参与该判定。');
+  b.writeln('- 同一订正还排除了 `c07`↔`p2`（全图相似度一度很高，限制到结构像素后仅 24.2%）。'
+      '这与本门的观察一致：该对 MAE 9.10，比同图簇（≤2.4）高一个量级，'
+      '本门当时就**没有**按同图计。');
   b.writeln('- **结论**：`P0.4` 的 `RollSource` 分布里，'
       '"黄金集"与"锚点"两列**讲的是同一批照片**，不得相加当作独立覆盖数；'
       '凡涉及"覆盖了多少张不同照片"的表述，本报告一律按去重口径写。');
@@ -1256,15 +1445,15 @@ String _borderline(List<Map<String, dynamic>> items) {
         final String tail = e is num
             ? (m != null && m.abs() < e
                 ? '**贴线**（余量 < 量具误差）'
-                : '余量未记账')
-            : '—（该量来自另一支量具，不参与贴线判定）';
+                : '余量 > 量具误差，稳过')
+            : '—（无对应该量的量具误差）';
         final String margin = m == null ? '—' : '${_f(m.toDouble())}°';
         final String err = e is num ? '${_f(e.toDouble())}°' : '—';
         rows.add('| ${i['id']} | $role ${s['name']} | 实测 $val° | '
             '$margin | $err | $tail |');
         if (s['criterion'] == true && m != null) {
-          notes.add('${s['name']} 的余量 ${_f(m.toDouble())}° '
-              '${m.abs() < kResidualMaxDeg * 0.5 ? "（充裕）" : "（偏紧，须看下面这条）"}');
+          final String q = (e is num && m.abs() < e) ? '**贴线，须两支量具一致才定罪**' : '余量充足';
+          notes.add('${s['name']}（判据量）实测 $val°，余量 ${_f(m.toDouble())}° → $q。');
         }
       }
       continue;
@@ -1313,7 +1502,7 @@ String _borderline(List<Map<String, dynamic>> items) {
 /// "提交了"只保证存在一个可引用的版本，不保证被测的字节就是它。HEAD 干净而
 /// 工作树脏时，跑出来的读数绑不到任何 commit，而且**不会报错**。
 /// 本项只报告事实，不因此判 FAIL——它是纪律问题，不是作弊。
-String _treeState() {
+String _treeState(Map<String, dynamic> inputs) {
   final StringBuffer b = StringBuffer();
   final RunResult head = _gitSync(<String>['rev-parse', '--short', 'HEAD']);
   final RunResult dirty = _gitSync(<String>['status', '--porcelain', 'lib/']);
@@ -1335,7 +1524,8 @@ String _treeState() {
         '两半可能不是同一版代码。修掉的办法只有一个：'
         '运行期间冻结 `lib/`，开跑前 `git status lib/` 必须干净。');
   }
-  b.writeln(_inputIntegrity());
+  b.writeln(_inputIntegrity(inputs));
+  b.writeln(_summaryCompleteness(inputs));
   return b.toString();
 }
 
@@ -1346,28 +1536,56 @@ String _treeState() {
 /// 于是 `out/P0_compose_items.jsonl` 记的路径**指向不存在的文件**。
 /// 这种情况下 `--reuse` 会把上一轮的读数当成这一轮的——看起来一切正常。
 /// 所以每次出报告都必须把这件事写出来，不许它静默。
-String _inputIntegrity() {
-  final List<dynamic> rows = _readJsonl(kComposePath);
-  final List<String> missing = <String>[];
-  int total = 0;
-  for (final dynamic raw in rows) {
-    final Map<String, dynamic> r = raw as Map<String, dynamic>;
-    if (r['specId'] != kSpec) continue;
-    total++;
-    final Object? p = r['composed'];
-    if (p is! String || !File(p).existsSync()) {
-      missing.add('${r['id']} → ${p ?? "(无路径)"}');
-    }
+String _inputIntegrity(Map<String, dynamic> inputs) {
+  final Object? rs = inputs['roundState'];
+  if (rs is! Map<String, dynamic>) {
+    return '- **输入完整性：无法判定**（缺 `roundState`）。';
   }
-  if (missing.isEmpty) {
-    return '- 输入完整性：`$kComposePath` 的 $total 条成片路径**全部存在**，'
-        '本轮读数可在本机复现。';
+  final Map<String, dynamic> r = rs;
+  final int total = (r['composeDeclared'] as num?)?.toInt() ?? 0;
+  final int parsed = (r['composeParsed'] as num?)?.toInt() ?? 0;
+  final int nMiss = (r['composeMissingFiles'] as num?)?.toInt() ?? 0;
+  final List<String> missing = (r['composeMissingIds'] as List<dynamic>? ?? <dynamic>[])
+      .map((dynamic e) => e.toString())
+      .toList();
+  if (nMiss == 0 && total == parsed) {
+    return '- 输入完整性：`$kComposePath` 声明 $total 条、解析到 $parsed 条，'
+        '成片文件**全部存在**。注意这只说明"此刻文件在"，**不等于历史轮次可复算**。';
   }
-  return '- **输入完整性：$total 条里有 ${missing.length} 条的成片文件不存在**'
+  return '- **输入完整性：$total 条里有 $nMiss 条的成片文件不存在**'
       '（读数对应的文件已被覆盖或删除，**本轮不可复现**）：'
       '${missing.take(15).join('、')}${missing.length > 15 ? ' …' : ''}\n'
       '- 后果：这些条目的读数来自**上一轮当时的文件**，现在既不能重测也不能复核。'
-      '出这一条本身不代表判决错，但读者必须知道哪些数字是**不可追溯**的。';
+      '出这一条本身不代表判决错，但读者必须知道哪些数字是**不可追溯**的。'
+      '**不要拿当前成片目录去重新推导历史轮次的残余**——那会得到一份看着像、其实是假的数字。';
+}
+
+/// 成片台 summary 的完整性三件套。
+///
+/// `crash == 0` **不是**完整性证据：qa-batch 的成片台曾因路径被拼两次，
+/// 87/100 静默 `continue`，而 `crash` 照样是 0、`ok` 照样是个好看的数字。
+/// 判"跑完了"必须靠 `casesAttempted`/`missing`/`complete` 三件套；
+/// 三者缺失即该项**不可判**，不得默认通过。
+String _summaryCompleteness(Map<String, dynamic> inputs) {
+  final Object? raw = inputs['composeSummary'];
+  if (raw is! Map<String, dynamic>) {
+    return '- 成片台 summary：**缺失**，`crash == 0` 无从谈起 → 完整性**不可判**。';
+  }
+  final Map<String, dynamic> s = raw;
+  final bool hasTriple = s.containsKey('casesAttempted') &&
+      s.containsKey('missing') &&
+      s.containsKey('complete');
+  final String head = '- 成片台 summary：`crash=${s['crash']}`、`cases=${s['cases']}`、'
+      '`ok=${s['ok']}`、`mattingFail=${s['mattingFail']}`、`composeFail=${s['composeFail']}`、'
+      '`noFace=${s['noFace']}`。';
+  if (!hasTriple) {
+    return '$head\n'
+        '- **该 summary 缺 `casesAttempted`/`missing`/`complete` 三件套 → '
+        '不能作为完整性证据**（`crash == 0` 本身不是证据：静默跳过的运行同样 crash 0）。'
+        '本轮改由门禁**自己数条数**（见上一条），不依赖它。'
+        '${s['cases'] != s['ok'] ? '另外 `cases=${s['cases']}` 与 `ok=${s['ok']}` 本身就对不上。' : ''}';
+  }
+  return '$head\n- 三件套齐备，本项可判。';
 }
 
 RunResult _gitSync(List<String> args) {

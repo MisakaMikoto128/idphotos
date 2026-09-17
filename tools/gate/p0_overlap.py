@@ -47,11 +47,19 @@ def main(argv=None):
             if line.strip():
                 rows.append(json.loads(line))
 
-    # 锚点集 = corpus==anchor 的条目（含 p1/p2），按 id 取源图
+    # 锚点集 = corpus=='anchor' 的条目（**不含 p2**：p2 的 corpus 是 'straight'，
+    # 法典条款 6 订正后明写"p2 归入 straight，不计入锚点栏"）。
+    # 黄金集要与**所有非旋转的源照片**比对，所以另留一份 anchor ∪ straight。
     anchor_src = {}
+    base_src = {}
     for r in rows:
-        if r.get("corpus") == "anchor" or r["id"] in ("p1", "p2"):
-            anchor_src.setdefault(r["id"], r.get("path"))
+        if not r.get("path"):
+            continue
+        if r.get("corpus") == "anchor":
+            anchor_src.setdefault(r["id"], r["path"])
+            base_src.setdefault(r["id"], r["path"])
+        elif r.get("corpus") == "straight":
+            base_src.setdefault(r["id"], r["path"])
 
     def read_all(mapping):
         out = {}
@@ -63,6 +71,7 @@ def main(argv=None):
         return out
 
     anchors = read_all(anchor_src)
+    base = read_all(base_src)
     gold = read_all({os.path.basename(p): p for p in sorted(glob.glob(
         os.path.join(args.golden, "*")))})
 
@@ -74,22 +83,23 @@ def main(argv=None):
             intra.append({"a": a, "b": b, "mae": mae,
                           "a_path": anchors[a][1], "b_path": anchors[b][1]})
 
-    # ---- 2. 黄金集 ↔ 锚点 ----
+    # ---- 2. 黄金集 ↔ 非旋转源照片（anchor ∪ straight）----
     cross = []
     for g in sorted(gold):
         best = None
-        for a in sorted(anchors):
-            mae = float(np.abs(gold[g][0] - anchors[a][0]).mean())
+        for a in sorted(base):
+            mae = float(np.abs(gold[g][0] - base[a][0]).mean())
             if best is None or mae < best[1]:
                 best = (a, mae)
         cross.append({"golden": g, "nearest_anchor": best[0],
+                      "nearest_corpus": "anchor" if best[0] in anchors else "straight",
                       "mae": best[1],
                       "same_photo": best[1] <= SAME_THRESHOLD,
                       "golden_path": gold[g][1],
-                      "anchor_path": anchors[best[0]][1]})
+                      "anchor_path": base[best[0]][1]})
 
     same = [c for c in cross if c["same_photo"]]
-    # 去重后的不同照片数 = 锚点条目 - 内部重复 - （黄金集里属于锚点的那部分不再另算）
+    # 去重后的不同照片数 = 锚点条目 - 内部重复（黄金集里属于锚点的那部分不再另算）
     n_anchor_entries = len(anchor_src)
     n_intra_dedup = len(intra)
     photos = n_anchor_entries - n_intra_dedup
@@ -97,8 +107,10 @@ def main(argv=None):
     payload = {
         "generatedBy": "gatekeeper tools/gate/p0_overlap.py",
         "method": f"缩到 {SIG}x{SIG} 灰度签名，逐对 MAE；≤{SAME_THRESHOLD} 记同图",
-        "limitation": "测不出同合影的不同裁切（c10/c11/c12 这类），那部分采信法典口径 6",
+        "limitation": "测不出同一场景的不同裁切/不同取景（c10/c11/c12 这类），"
+                      "那部分按法典条款 6 的订正结论办；本工具**不推翻**法典结论",
         "anchor_entries": n_anchor_entries,
+        "base_entries": len(base_src),
         "golden_n": len(gold),
         "golden_all_in_anchor": len(same) == len(gold) and len(gold) > 0,
         "golden_same_photo_n": len(same),
@@ -107,14 +119,16 @@ def main(argv=None):
         "distinct_photos_after_dedup": photos,
     }
 
-    print(f"锚点条目 {n_anchor_entries}，内部重复 {n_intra_dedup} 对")
+    print(f"锚点条目 {n_anchor_entries}（不含 p2），非旋转源照片 {len(base_src)}")
+    print(f"锚点内部重复 {n_intra_dedup} 对")
     for d in intra:
         print(f"  {d['a']} ≡ {d['b']}  MAE {d['mae']:.2f}")
-    print(f"黄金集 {len(gold)} 张，其中 {len(same)} 张在锚点集里有同图")
+    print(f"黄金集 {len(gold)} 张，其中 {len(same)} 张在非旋转源照片里有同图")
     for c in cross:
         mark = "同图" if c["same_photo"] else "不同"
-        print(f"  {c['golden']} → {c['nearest_anchor']}  MAE {c['mae']:6.2f}  {mark}")
-    print(f"去重后不同照片数（本量具可判的部分）= {photos}")
+        print(f"  {c['golden']} → {c['nearest_anchor']}({c['nearest_corpus']})  "
+              f"MAE {c['mae']:6.2f}  {mark}")
+    print(f"去重后不同照片数（锚点栏）= {photos}")
 
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=1)

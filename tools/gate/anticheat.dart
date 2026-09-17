@@ -40,17 +40,27 @@ class Violation {
 const Map<String, String> kSubjectPrefixOwner = <String, String>{
   'matting': 'ml-porting',
   'ml': 'ml-porting',
+  // 全名别名：团队实际写提交信息用的是全名（如 `ml-porting: 瞳孔级眼线估计…`），
+  // 少了这几条，真实的提交会被归属成"未知"。归属错了不会漏判
+  // （isForbiddenFor 对未知归属**一律从严**），但报告会点名不到人，
+  // 而回派指令的价值全在"点名到谁"。
+  'ml-porting': 'ml-porting',
   'imaging': 'imaging',
   'ui': 'ui-woodcraft',
+  'ui-woodcraft': 'ui-woodcraft',
   'release': 'release',
   'store': 'store-assets',
+  'store-assets': 'store-assets',
   'env': 'env-setup',
+  'env-setup': 'env-setup',
   'contract': '主会话',
   'gate': 'gatekeeper',
   'gatekeeper': 'gatekeeper',
   'qa': 'qa-batch',
+  'qa-batch': 'qa-batch',
   'adversarial': 'adversarial',
   'visual': 'visual-critic',
+  'visual-critic': 'visual-critic',
 };
 
 String ownerOfSubject(String subject) {
