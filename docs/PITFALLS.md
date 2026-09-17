@@ -2297,6 +2297,34 @@ r2 前核"测量产出缺 `codeFingerprint` 会不会作废本轮"。我 grep `p
 后果不是安全洞，是**诱导**：谁信了"改 `test/batch/*.py` 不动指纹"，动手就作废整轮。
 **注释少说与多说一样致命，因为它改变的是人对"我这么做会怎样"的预判。**
 
+## [gatekeeper] 同一份 JSON 里两个都像"倾角"的字段，用错一个分母就错 11 条
+
+`out/P0_truth*.json` 的每条旋转夹具同时有 `deltaDeg` 与 `expectedTiltDeg`：
+
+```json
+{"id": "c06_d+3", "deltaDeg": 3.0, "expectedTiltDeg": 1.27, ...}
+```
+
+**它们不是一回事**：`expectedTiltDeg` = 锚点基准倾角 + 注入旋转。真值件里
+**78 条旋转件中有 11 条的 `|deltaDeg| > 1.5` 而 `|expectedTiltDeg| ≤ 1.5`**（全是 `d+3`/`d+5` 行，
+基准倾角把注入量抵消掉了。`c06_d+3`：delta 3.0、实际倾角 1.27；`p1_d+5`：delta 5.0、实际 0.60）。
+
+P0.3b 的适用条件是 `|tilt| > 1.5`（ACCEPTANCE:91），**只能用 `expectedTiltDeg`**。
+按 `deltaDeg` 筛，会把这 11 条错当适格样本，于是：
+
+- **分母错**：P0.3b 分母是 **67**（78 − 11），不是 78；
+- **结论错**：`c06_d+3` 返回 `unavailable` 在 `|deltaDeg|` 口径下像违规，
+  在 `|expectedTiltDeg|` 口径下是**豁免**（|t| = 1.27 ≤ 1.5，"不转导致的残余本来就能过线"）。
+
+**这条不是假想的**：r2 前 ml-porting 报"78 条里 `unavailable` = 3（`c06_d-3.0`、`c06_d+3.0`、`c08_d-10.0`）"，
+其中 `c06_d+3` 正是上面那条豁免样本 —— **实际违规候选是 2 条**。
+（另：它写的 id `c06_d-3.0` 在真值件里查不到，真值件用 `c06_d-3`，**无 `.0`**。
+id 拼写对不上时人会得"这条不在分母里"的假结论，两处都要按真值件的字面核对。）
+
+**判据：凡是"某条样本适不适用某判据"，条件必须从真值件里那条**被引用的**字段算，
+不能从同一 entry 里名字更像"我注入了多少"的那个字段算。** 两个字段相邻、都带 `Deg`、
+数值都是几度 —— 差别只在语义，而语义不写在字段名里。
+
 ## [qa-batch] `git commit` 不带 pathspec 提交整个索引：并行时会卷走别人的 staged 内容
 
 本仓库多 agent 并行，`git commit`（不带 pathspec）提交的是**整个索引**。别人 `M `
@@ -2371,3 +2399,26 @@ A/B——**两个臂都是新的并查集分组**，只翻"先验/分数"这一�
 
 **通用形态**：**回退一个已上线的实现时，要分清"为了上线而回退的部分"和"诊断出来的
 真实结论"。** 前者该回退，后者不该跟着一起消失，否则下一次会以同样的理由再踩一遍。
+
+## 2026-09-17 主会话（release 构建与 flutter test 并行 —— 上面 09-16 ui-woodcraft 那条的镜像方向）
+
+- 现象：`flutter build apk --release` 输出
+  `GeneratedPluginRegistrant.java:39: 错误: 程序包 dev.flutter.plugins.integration_test 不存在`，
+  全文只有 1 个 javac 错误。**症状长得像源码缺陷**，第一反应会去查 `pubspec.yaml` 和 `android/`。
+- 根因：09-16 那条是"release 把 registrant 写成了**不含** dev 依赖的版本 → debug/`flutter drive` 缺
+  `IntegrationTestPlugin`"；这次是**反方向**——release 构建编译到了一份**含** `IntegrationTestPlugin`
+  的 dev 形态 registrant，而 release 侧不链接 dev_dependencies 插件，于是 javac 找不到那个包。
+  触发条件同一个：**同一个项目里 `flutter test`（或 `flutter drive`/debug 构建）与
+  `flutter build apk --release` 同时跑**，两个 flutter 工具互相重写这个文件。
+- **这是构建状态问题，不是代码缺陷。** 不要在 `pubspec.yaml`/`android/` 里找原因。
+- 怎么认出来（两条都能自查，不用问人）：
+  - `stat` registrant 的 mtime，看它落不落在某个并行 agent 的运行时间窗内；
+  - 比 **`.flutter-plugins-dependencies` 的插件集与 registrant 的插件集是否一致**。
+    本次两边对不上（deps 列了 `onnxruntime`/`path_provider_android` 而 registrant 没有），
+    这本身就是"其间有另一个工具以另一套插件集写过它"的直接证据。事后无法区分是谁写的
+    （两个工具的时间窗重合），**但"不一致"这一点不依赖归因**。
+- 解法：等**所有** flutter 工具都停下来，删掉 `GeneratedPluginRegistrant.java` 再重建，
+  下一次构建会按当前形态重新生成。（**不要**在别的 agent 正跑 `flutter test` 时删——
+  那份 dev 形态的 registrant 正是对方在用的，删了会打断对方。）
+- 代价：~15 分钟定位。**推论：本项目的 APK 构建与 `test/batch` 的 flutter 链不能并行**，
+  两头都会互相重写这个文件，且失败方报出的错都指向对方形态里才有的符号。
