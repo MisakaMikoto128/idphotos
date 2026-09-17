@@ -257,15 +257,26 @@ def leak():
                 rounds.append(json.loads(line))
     # marker 时间点（run-as tar 内容在 qa_out/ 下）
     beg = end = None
+    missing_markers = []
     pull_dir = os.path.join(OUT, "pull_leak", "qa_out")
     for name, var in (("leak_begin", "beg"), ("leak_end", "end")):
         p = os.path.join(pull_dir, name)
-        if os.path.exists(p):
-            ts = int(open(p).read().strip()) / 1000.0
-            if var == "beg":
-                beg = ts
-            else:
-                end = ts
+        if not os.path.exists(p):
+            # 不静默：marker 文件缺失会让下面的 baseline/settle 变成 null，
+            # 而 null 读起来像"这一轮没有可用的泄漏判断"，不像"切点丢了"。
+            missing_markers.append(name)
+            continue
+        ts = int(open(p).read().strip()) / 1000.0
+        if var == "beg":
+            beg = ts
+        else:
+            end = ts
+    if missing_markers:
+        print(f"  [leak r{R}] WARNING marker 文件缺失: "
+              f"{', '.join(missing_markers)}（{pull_dir}）→ "
+              f"baseline_kb/delta_settle_kb 将为 null。"
+              f" 若 batch_runner 侧写失败，logcat 里有 "
+              f"QA_MARKER_FILE_FAIL|<name>|<ts>|<err> 带出时间戳与原因。")
     samples = c["samples"]
     base_win = [kb for (t, kb) in samples
                 if kb and beg and beg - 8 <= t <= beg + 8]
@@ -276,6 +287,7 @@ def leak():
     during = [kb for (t, kb) in samples if kb and beg and end and beg <= t <= end + 3]
     res = {
         "n_rounds": len(rounds),
+        "marker_files_missing": missing_markers,
         "baseline_kb": base,
         "settle_min_kb": settle,
         "peak_during_kb": max(during) if during else c["peak_kb"],

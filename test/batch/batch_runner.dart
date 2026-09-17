@@ -84,13 +84,16 @@ Set<int> get kArtifactIdx => kArtifactsRaw.isEmpty
     : kArtifactsRaw.split(',').map((s) => int.parse(s.trim())).toSet();
 
 Future<void> appendJsonl(String name, Map<String, dynamic> rec) async {
-  final line = jsonEncode(rec);
+  var line = jsonEncode(rec);
   // 文件写入保留（debug 包可用）；release 真机通道走 logcat（见 qaLog）。
   try {
     final f = File('$kQaOut/$name');
     await f.writeAsString('$line\n', mode: FileMode.append, flush: true);
-  } catch (_) {
-    // 外部目录 FUSE 拒写等场景：文件通道失效不阻断，qaLog 仍带出全量数据
+  } catch (e) {
+    // 外部目录 FUSE 拒写等场景：文件通道失效不阻断，qaLog 仍带出全量数据。
+    // 但**失败原因必须可观测** —— 数据本身已由 qaLog 带出，丢的是"为什么没落盘"，
+    // 把它并进载荷而不是丢掉。
+    line = jsonEncode(<String, dynamic>{...rec, 'file_write_error': '$e'});
   }
   qaLog(name, line);
 }
@@ -116,11 +119,17 @@ void qaLog(String name, String payload) {
 
 Future<void> marker(String name) async {
   print('QA_MARKER|$name');
+  final int ts = DateTime.now().millisecondsSinceEpoch;
   try {
-    await File('$kQaOut/$name')
-        .writeAsString('${DateTime.now().millisecondsSinceEpoch}', flush: true);
-  } catch (_) {
-    // logcat 为主通道，文件写失败不影响
+    await File('$kQaOut/$name').writeAsString('$ts', flush: true);
+  } catch (e) {
+    // 这一处与上面两处不同：文件写失败时时间戳**没有别的通道**。
+    // `merge_results.py` 的 leak 切分只读文件内容（`int(open(p).read())`），不看 logcat，
+    // 文件缺失 → beg/end 为 None → leak_r*.json 里 baseline/delta 写成 null。
+    // 所以不能吞：把 ts 与原因打到 logcat，至少可据以重建切点。
+    // **不要**改成往 `QA_MARKER` 行上追加 ts —— `run_realdevice.py` 按第一个 '|'
+    // 之后全部当 name，追加会让 `wait_marker('leak_begin')` 永不命中。
+    print('QA_MARKER_FILE_FAIL|$name|$ts|$e');
   }
 }
 
@@ -400,15 +409,20 @@ Future<void> runPerf(IdPhotoEngineImpl engine) async {
     await engine.removeBackground(bytes);
     ms.add(sw.elapsedMilliseconds);
   }
+  final perf = <String, dynamic>{
+    'input': input.path,
+    'n': ms.length,
+    'ms': ms,
+  };
   try {
     await File('$kQaOut/perf_ms.json').writeAsString(
-        jsonEncode({'input': input.path, 'n': ms.length, 'ms': ms}),
+        jsonEncode(perf),
         flush: true);
-  } catch (_) {
-    // 文件通道失效不阻断，qaLog 仍带出全量数据
+  } catch (e) {
+    // 文件通道失效不阻断，qaLog 仍带出全量数据；但失败原因必须可观测
+    perf['file_write_error'] = '$e';
   }
-  qaLog('perf_ms.json',
-      jsonEncode({'input': input.path, 'n': ms.length, 'ms': ms}));
+  qaLog('perf_ms.json', jsonEncode(perf));
 }
 
 Future<void> main() async {
