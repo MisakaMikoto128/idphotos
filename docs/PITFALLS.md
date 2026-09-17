@@ -2544,3 +2544,78 @@ qa-batch 复算我给的越界填充统计，三条里两条对上，第三条�
 **可操作**：绕开二义性，别写 `sorted[n//2]`。要么显式写"取中间两值的平均"，
 要么在报告里**同时给均值与中位数及各自定义**（本例均值 10.43%、中位 5.31%，差两倍 ——
 两个都给，读者才知道分布是偏的）。**报统计量时，"哪个定义"是数的一部分，不是补充说明。**
+
+## 2026-09-17 主会话：指纹自称的范围比它读起来窄 —— `assets/models/` 在受钉域之外
+
+**症状**：`tools/gate/provenance.dart` 的 `codeFingerprintOfSources`（本轮 103 文件 / `0f66aabb3c08105f`）
+自称把测量产出"绑上了当前代码"，而本轮证据里有两项复现它。但 `provenance.dart:626` 的 summary 字符串
+**亲口写明**受钉范围 = `lib/` 全部 `.dart` + `test/batch/` 全部 `.dart`/`.py` —— **`assets` 零命中**。
+
+**后果**：`lib/core/matting/ort_runtime.dart:38,41` 加载的 `face_yunet_2023mar.onnx`（232,589 B）
+与 `modnet_portrait_int8.onnx`（7,537,642 B）**决定输出** —— 本轮四个测量量里 YuNet 眼位与 MODNet alpha
+直接出自这两个文件 —— 而它们已入库却**不在哈希表里**。换掉模型文件，`allCommitted=true` 与指纹**照样相符**：
+指纹钉住了"消费模型的代码"，没钉住"决定它输出的字节"。
+
+`tools/gate/anticheat.dart:110` 的 `isForbiddenFor` 是同一道缝的第二半：它只认
+`docs/ACCEPTANCE.md`、`docs/RUBRIC.md`、`tools/gate/`、`test/gate/`、`test/`，其余**一律 `return false`** ——
+`assets/**`（与 `native/**`）对**任何**归属都不判违规。
+
+**不是漏洞，别升级严重性**：门禁测端到端，换模型不是免费的，端到端数字会动。
+这是**证据记录诚实性**的问题（字段自称的覆盖面 > 实际），不是"有人能悄悄作弊"。
+
+**为什么当天不修**：`provenance.dart` 是 gatekeeper 的地盘；且 `docs/ACCEPTANCE.md:81-87` 冻结本轮判据，
+中途换量具会作废当轮、从第 1 轮重跑，还要重设标定靶基线。**列入 P0 后整改项**（零成本：多两个文件进哈希表 + 重设基线）。
+
+**怎么避免再踩**：见到 `...OfSources` / `...Fingerprint` / `allBound` 这类名字，去读它**实际枚举的目录与扩展名**，
+不要读名字。同日同类已是第三次（`evidenceProvenance.codeFingerprintOfSources` 硬编码 `None`、
+`out/P0_anchors/` 混放人看的图与程序吃的输入）。
+
+## 2026-09-17 门禁自伤：冻结豁免被 `trim()` 切掉路径首字母，只有 PITFALLS 被改时整轮作废（gatekeeper）
+
+**现象**：`out/GATE_P0_r2.md` 第一次跑出 `作废（本轮无效）`，理由写着
+`工作树未冻结：M docs/PITFALLS.md` —— 而 `docs/PITFALLS.md` 恰恰是**唯一被豁免的那个文件**。
+报告里豁免清单是空的。
+
+**根因**：`gate_P0.dart` 的 `_roundState()` 先对每行 porcelain 做 `.map((l) => l.trim())`，
+再交给 `_porcelainPath()`，而后者写的是 `line.substring(3)` —— 它假设行首保留
+`XY<空格>` 三字符。未暂存修改的行是 ` M docs/PITFALLS.md`（首字符是空格），
+`trim()` 把那个空格吃掉后 `substring(3)` 就从第 4 个字符开始：
+`M docs/PITFALLS.md`.substring(3) = `ocs/PITFALLS.md`。与 `docs/PITFALLS.md` 永不相等。
+
+**为什么难发现**：它对**已暂存**（`M  path`，状态在列 1）和**未跟踪**（`?? path`）都正确，
+只有未暂存修改（状态在列 2）错，而"改完没 `git add`"正是最常见的情形。
+另外错的方向是 **fail-closed**（多判脏），所以不会制造假绿 —— 只会让每一轮都作废，
+而且**恰好在这一条规则本想放行的那一种输入上发作**。
+
+**教训**：解析定长前缀的格式时，**行内容在到达解析函数之前不许被规范化**。
+要丢空行就判 `l.trim().isEmpty`，别把 `l.trim()` 传下去。
+同仓 `tools/gate/anticheat.dart:750-757` 是正确写法（先 `substring(0,2)` 再 `substring(2)`），
+两处对同一个格式各写一遍、只对了一处 —— 同一格式的解析应当只有一份实现。
+
+## 2026-09-17 门禁自伤：一致性旗标读深了一层，导致每一轮都无条件作废（gatekeeper）
+
+**现象**：三份测量产出全被判「无法自证属于当前代码」，`allBound=false` ⇒ 整轮作废。
+但把产出的 `blobHashes` 拿出来跟当前树逐条比，**103/103 全相符**。
+
+**根因**：`provenance.dart` 的 `_verifyOne()` 里
+`roundValid = fp['roundValid'] ?? fp['codeStableDuringRun']`，
+其中 `fp` 是 `digJson(doc, pointer)` 的返回值、`pointer` 以 `codeFingerprint` 结尾。
+但生产侧把这两个旗标写在**指纹块的父层**（`provenance.roundValid` /
+`summary.provenance.roundValid`），因为指纹块是 `code_fingerprint.dart` 的
+`codeFingerprint()` 的返回，而 `roundVerdict()` 是**另一个函数、另一张表**
+（`codeStableDuringRun`/`roundValid`/`changedFiles`/`verdict`），两张表并排铺在同一层。
+深了一层 ⇒ 永远 `null` ⇒ 「不是 true（实测 缺失）」恒真。
+
+**教训**：判"读到了没"之前，先确认**写到哪一层**——
+用 `python -c` 把父层键与子层键直接打出来（本次父层键
+`['changedFiles','codeFingerprint','codeFingerprintAtEnd','codeStableDuringRun','roundValid',…]`，
+子层键 `['allCommitted','blobHashes','commitBindingNote','files','fnv1a64','headCommit','unmeasured…']`，
+一眼可辨）。**缺字段的默认判定若是"作废整轮"，那么一处读错就会永久掩盖所有真实判决**：
+r2 的 P0.3b 违规 2 条被这个 bug 吃掉了整整一轮，报告上写着"与被测代码无关"。
+
+## 2026-09-17 bash 双引号里的反引号会做命令替换，静默吃掉 commit message（gatekeeper）
+
+`git commit -m "…（` M docs/PITFALLS.md` → `ocs/PITFALLS.md`）…"` 里的反引号被 bash
+当命令替换执行了，报 `syntax error: unexpected end of file` 与 `ocs/PITFALLS.md: No such file`，
+而 **commit 仍然成功**，只是正文里那两个例子变成了空括号。
+写含反引号/`$` 的正文用 `-F` 或 heredoc（`<<'EOF'` 引号定界不做展开），别用 `-m "…"`。
