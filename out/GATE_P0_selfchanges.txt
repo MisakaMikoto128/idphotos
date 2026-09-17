@@ -14,3 +14,10 @@ test/gate/p0_gate_judgment_test.dart
 tools/gate/gate_G5B.dart
 test/gate/anticheat_test.dart
 tools/gate/sha256.dart
+# 2026-09-17 追加（主会话裁定的两件 pre-tag 工作）：
+#  · `provenance.dart` / `provenance_test.dart` —— 测量产出的代码来源绑定；
+#  · `gate_common.dart` —— 补进清单：它在上一轮就被我改过（条款 5 的 kill 失败留痕），
+#    却一直没登记。清单漏一条 = 下一轮会**误判我自己越界**，与本条链上其余缺陷同形。
+tools/gate/provenance.dart
+test/gate/provenance_test.dart
+tools/gate/gate_common.dart

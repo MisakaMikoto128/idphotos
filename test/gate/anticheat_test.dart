@@ -225,9 +225,9 @@ void main() {
 
       expect(s['undecidable'], false, reason: 'why=${s['why']}');
       expect(commented.contains('comment_body.dart'), true,
-          reason: '注释体的空 catch 必须命中，且归入带理由的一类');
+          reason: '注释体的空 catch 必须命中，归入注释体那一类');
       expect(commented.contains('换下一个候选'), true,
-          reason: '命中里要带上作者自述的理由，供人裁定 —— 只报"有违规"没法回派');
+          reason: '命中里要带上作者自述的理由，供人阅读 —— 只报"有违规"没法回派');
       expect(bare.contains('semi_body.dart'), true,
           reason: '`catch (_) { ; }` 是空语句体，必须命中');
       expect(all.contains('real_body.dart'), false,
@@ -320,11 +320,52 @@ void main() {
     }
   });
 
-  test('G 巡检自身领地的命中：登记但不判违规，且不能借机洗白别人', () {
-    // 扫描器扫不了自己：anticheat.dart 里必然写着模式常量 `skip:`/`@Skip`，
-    // anticheat_test.dart 里必然摆着正例夹具 `catch (_) {}`。
+  test('L 条款 5 新口径：**加注释不构成减免** —— 两类一律定罪，分类只进报告', () {
+    // 主会话 2026-09-17 改口径。上一版按"体内有没有注释"分两类：无说明的自动定罪、
+    // 带注释的只登记。问题在于"加一句注释就把自动定罪降级为登记"是一条**能被扩写的
+    // 洗白通道**，而豁免表比常数危险得多。
+    // 让那几处生产代码清白的**不是注释，是它们周围的代码**（错误从返回值或紧随其后的
+    // 语句透出去）。既然真正的判据是"失败可否观测"，注释就**不是语义差别**。
+    //
+    // 这条规则从前藏在 `patrol` 的循环里，只能靠读代码确认；现在抽成纯函数，
+    // 就能像下面这样直接构造用例 —— **一个改错了没人会知道的规则，等于没有规则。**
+    final List<Violation> bareOnly =
+        emptyCatchViolations(<String>['lib/a.dart:10: catch (_) { }'], <String>[]);
+    expect(bareOnly.length, 1);
+    expect(bareOnly.first.clause, '5');
+
+    // 核心断言：注释体**同样**产生违规，且条数一一对应（不是"登记"，是"定罪"）。
+    final List<Violation> commentedOnly = emptyCatchViolations(
+      <String>[],
+      <String>['lib/b.dart:20: catch (_) { // 有理由 }'],
+    );
+    expect(commentedOnly.length, 1,
+        reason: '带注释的空 catch 必须和空体的一样定罪 —— 否则"加句注释"就是后门');
+    expect(commentedOnly.first.clause, '5');
+    expect(commentedOnly.first.path, 'lib/b.dart');
+    expect(commentedOnly.first.detail.contains('不再因此降级'), true,
+        reason: '报告里要写明它为什么不减免，免得读者以为是漏判');
+
+    // 两类混合：条数必须等于两类之和（不许其中一类被悄悄少算）。
+    final List<Violation> both = emptyCatchViolations(
+      <String>['lib/a.dart:1: catch (_) { }', 'lib/c.dart:3: catch (_) { }'],
+      <String>['lib/b.dart:2: catch (_) { // 理由 }'],
+    );
+    expect(both.length, 3);
+
+    // 负例控制：没有命中就必须产出 0 条（否则这条规则退化成"见 catch 就报"）。
+    expect(emptyCatchViolations(<String>[], <String>[]), isEmpty);
+  });
+
+  test('G 巡检自身领地的命中（**只适用于条款 3**）：登记但不判违规，且不能借机洗白别人', () {
+    // 扫描器扫不了自己：anticheat.dart 里必然写着模式常量 `skip:`/`@Skip`。
     // 一刀切会把这两处每轮都判成违规（噪声），全部隐去则是作弊。
     // 采取的是第三条路：**登记并公开**。
+    //
+    // **条款 5 不走这条路**（主会话 2026-09-17 改口径）：那里两类空 catch 一律定罪，
+    // 没有自身领地豁免 —— 见测试 L 与 `emptyCatchViolations`。
+    // 之所以能这么严：真正的代码里的 `catch (_) {}` 会被字符串/注释遮罩挡掉，
+    // 夹具里的那些写在字符串字面量里，本来就不会命中（实测 `test/` 0 命中）。
     expect(isScannerSelfTerritory('tools/gate/anticheat.dart'), true);
     expect(isScannerSelfTerritory('test/gate/anticheat_test.dart'), true);
     expect(isScannerSelfTerritory('tools\\gate\\anticheat.dart'), true,

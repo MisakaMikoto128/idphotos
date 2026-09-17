@@ -61,14 +61,19 @@ Future<RunResult> runProcess(
   final stderrSub = proc.stderr.transform(utf8.decoder).listen(stderrBuf.write);
 
   var timedOut = false;
+  // 收尾阶段的失败必须**可观测**。这里原来是一个空 catch（带一句"忽略"的注释），
+  // 于是 kill 抛异常时既没有痕迹、也不影响任何返回值 —— 正是条款 5 要禁的形态。
+  // 现在把原因挂进 stderr，读 RunResult 的人拿得到。
+  String killNote = '';
   int exitCode;
   try {
     exitCode = await proc.exitCode.timeout(timeout, onTimeout: () {
       timedOut = true;
       try {
         proc!.kill(ProcessSignal.sigkill);
-      } catch (_) {
-        // 进程可能已经退出，忽略 kill 失败本身，但 timedOut 标记不受影响。
+      } catch (e) {
+        killNote = '（kill 失败：${e.runtimeType}: $e —— 进程可能已自行退出；'
+            'timedOut 标记不受影响）';
       }
       return -1;
     });
@@ -91,7 +96,7 @@ Future<RunResult> runProcess(
     ok: true,
     exitCode: exitCode,
     stdout: stdoutBuf.toString(),
-    stderr: stderrBuf.toString(),
+    stderr: stderrBuf.toString() + killNote,
     timedOut: timedOut,
   );
 }

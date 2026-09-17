@@ -115,13 +115,18 @@ void main() {
       errors.add('churn 过程异常: ${e.runtimeType}: $e');
       result['churnDone'] = false;
     } finally {
+      // 收尾失败必须**可观测**。这里从前是两个空 catch（各带一句"忽略"的注释），
+      // 于是 dispose 抛异常时既不留痕、也不影响任何读数 —— 那正是条款 5 禁的形态：
+      // "没崩"与"真的清理干净了"长得一模一样。
       try {
         controller.dispose();
-      } catch (_) {// 忽略
+      } catch (e) {
+        errors.add('controller.dispose() 异常: ${e.runtimeType}: $e');
       }
       try {
         engine.dispose();
-      } catch (_) {// 忽略
+      } catch (e) {
+        errors.add('engine.dispose() 异常: ${e.runtimeType}: $e');
       }
     }
 

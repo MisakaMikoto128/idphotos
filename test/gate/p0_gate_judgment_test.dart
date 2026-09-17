@@ -78,6 +78,14 @@ Map<String, dynamic> inputs({
   double siftDelta = 0.0,
   Object? anticheat = const <String, dynamic>{'clean': true, 'summary': '测试桩'},
   Map<String, dynamic>? roundState,
+  /// 测量产出的来源绑定结论。真实内容由 `provenanceReport()` 产出，
+  /// 这里只放**它的输出形状**：本文件测的是"判定函数怎么用这个结论"，
+  /// 结论本身怎么算出来由 `test/gate/provenance_test.dart` 负责。
+  Map<String, dynamic>? provenance = const <String, dynamic>{
+    'reasons': <String>[],
+    'summary': '测试桩：三份测量产出均可自证与当前树同源',
+    'allBound': true,
+  },
   Object? overlap = const <String, dynamic>{
     'intra_duplicates': <Map<String, dynamic>>[
       <String, dynamic>{'a': 'c03', 'b': 'c04', 'mae': 2.33},
@@ -130,6 +138,7 @@ Map<String, dynamic> inputs({
     },
     'anticheat': anticheat,
     'overlap': overlap,
+    'provenance': provenance,
     'roundState': roundState ?? goodRoundState(),
   };
 }
@@ -425,6 +434,51 @@ void main() {
       expect(items.every((Map<String, dynamic> i) => i['manual'] == true), true,
           reason: '作废轮是 MANUAL，不消耗实现方的修复轮次');
     }
+  });
+
+  // ---------------------------------------------------------------------
+  test('P 测量产出与本轮代码不同源 → 整轮作废（`out/` 不受冻结约束）', () {
+    // 缺陷原样（主会话 2026-09-17 裁定）：`out/` 是共享输出目录，
+    // `git status -- lib test tools docs` 为空**推不出**"盘上这几份数是当前代码跑的"。
+    // 一份上一轮遗留的 `P0_output_residual.json` 会被当成当轮读数 ——
+    // 与 r1 判决作废同源（判决由两个不同代码状态的测量拼成），只是换了个入口。
+    // 机器检查落在 `inputs['provenance']` 上：缺、或有 reasons，都判整轮作废。
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    final Map<String, double> m = goodMeasured(compose);
+
+    // 前提：合格的 provenance → 本轮可判（否则下面的反例证明不了任何东西）。
+    final List<Map<String, dynamic>> ok = gate.evaluateP0(inputs(compose: compose, measured: m));
+    expect(ok.any((Map<String, dynamic> i) => i['roundInvalid'] == true), false,
+        reason: '绑定成立时不该作废 —— 一个谁都要作废的检查拦不住任何人');
+
+    // P1：整个 provenance 缺失 —— 不许默认可信（与 AC/roundState 两处同源）。
+    final Map<String, dynamic> noPv = inputs(compose: compose, measured: m);
+    noPv.remove('provenance');
+    final List<Map<String, dynamic>> noPvItems = gate.evaluateP0(noPv);
+    expect(noPvItems.every((Map<String, dynamic> i) => i['roundInvalid'] == true), true,
+        reason: '缺来源绑定必须作废，不得默认"这轮的数就是当前代码的"');
+
+    // P2：绑定产出但结论是"绑不上"（指纹不一致 / 产出缺字段 / roundValid=false）。
+    final Map<String, dynamic> unbound = inputs(
+      compose: compose,
+      measured: m,
+      provenance: const <String, dynamic>{
+        'reasons': <String>[
+          '测量产出 `out/P0_output_residual.json` 不可自证属于当前代码：'
+              '1 个文件的 blob 哈希与当前树不一致（＝这些数是**别的代码**跑出来的）',
+        ],
+        'summary': '**1/3 份测量产出无法自证来源**',
+        'allBound': false,
+      },
+    );
+    final List<Map<String, dynamic>> unboundItems = gate.evaluateP0(unbound);
+    expect(unboundItems.every((Map<String, dynamic> i) => i['roundInvalid'] == true), true);
+    expect(unboundItems.every((Map<String, dynamic> i) => i['pass'] != true), true,
+        reason: '不许拿旧代码的数当本轮的数 —— 一项都不许判 PASS');
+    expect(unboundItems.every((Map<String, dynamic> i) => i['manual'] == true), true,
+        reason: '作废轮是 MANUAL，不消耗实现方的修复轮次');
+    final String why = unboundItems.first['actual'] as String;
+    expect(why.contains('测量产出'), true, reason: '理由要写进报告，否则没法回派');
   });
 
   // ---------------------------------------------------------------------

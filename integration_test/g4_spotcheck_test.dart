@@ -89,14 +89,19 @@ Future<Map<String, dynamic>> _runOneItem(Map<String, dynamic> entry) async {
 
     // 人像成功态：逐张候选解码（可解码数=0 说明"产出"是坏数据）。
     var decoded = 0;
+    final List<String> decodeErrors = <String>[];
     for (final c in settled.candidates) {
       try {
         if (img.decodeJpg(c.jpegBytes) != null) decoded++;
-      } catch (_) {
-        // 解码失败计 0，不让解码异常逃出 harness
+      } catch (e) {
+        // 解码失败仍计 0（不让异常逃出 harness），但**必须留痕**：
+        // 空 catch 会让「候选是坏数据」与「harness 自己的解码器坏了」长得一样，
+        // 而这两种情形对判读的意义完全相反。
+        decodeErrors.add('${e.runtimeType}: $e');
       }
     }
     rec['candidatesDecoded'] = decoded;
+    if (decodeErrors.isNotEmpty) rec['candidateDecodeErrors'] = decodeErrors;
   } catch (e) {
     sw.stop();
     rec['ms'] = sw.elapsedMilliseconds;
@@ -108,14 +113,19 @@ Future<Map<String, dynamic>> _runOneItem(Map<String, dynamic> entry) async {
     rec['error'] = '未捕获异常: ${e.runtimeType}: $e';
     uncaught = e;
   } finally {
+    // 同 `g4_memcheck_test.dart`：收尾失败必须可观测，不许空 catch。
+    final List<String> disposeErrors = <String>[];
     try {
       controller?.dispose();
-    } catch (_) {// dispose 失败不影响测量记录
+    } catch (e) {
+      disposeErrors.add('controller.dispose(): ${e.runtimeType}: $e');
     }
     try {
       engine?.dispose();
-    } catch (_) {// 同上
+    } catch (e) {
+      disposeErrors.add('engine.dispose(): ${e.runtimeType}: $e');
     }
+    if (disposeErrors.isNotEmpty) rec['disposeErrors'] = disposeErrors;
   }
   if (uncaught != null) rec['uncaught'] = true;
   return rec;

@@ -27,6 +27,7 @@ import 'dart:math' as math;
 
 import 'anticheat.dart';
 import 'gate_common.dart';
+import 'provenance.dart';
 import 'sha256.dart';
 
 const String kBaseline = 'baseline-p6p0';
@@ -145,11 +146,18 @@ Future<void> main(List<String> args) async {
   }
   if (round == 0) round = _nextRound();
 
+  // 坏行账要在读输入之前清零，否则会把上一轮（或 `_roundState` 里的重复读取）
+  // 的条目算进本轮。
+  _jsonlBadLines.clear();
+
   final HashScan hs = hashScan();
   final Map<String, String> hashes = hs.hashes;
   // 判据分母（真值文件）的数值叶漂移。**必须在读输入之前算**，
   // 否则本轮读数就可能已经建立在被改过的真值上而不自知。
   final TruthDrift drift = truthDrift();
+  // 测量产出（`out/` 下那几份每轮重生成的数据）与本轮代码的同源绑定。
+  // 同样**必须在读输入之前算**：它决定下面读到的数能不能用。
+  final ProvenanceReport prov = provenanceReport();
   File('out/hashes_P0_r${round}_pre.txt')
     ..parent.createSync(recursive: true)
     ..writeAsStringSync(_formatHashes(hashes));
@@ -237,6 +245,7 @@ Future<void> main(List<String> args) async {
     'blockers': blockers,
     'spec': kSpec,
     'roundState': _roundState(),
+    'provenance': prov.toJson(),
   };
 
   final List<Map<String, dynamic>> items = evaluateP0(inputs);
@@ -303,6 +312,10 @@ Map<String, dynamic> _roundState() {
   s['composeParsed'] = parsed;
   s['composeMissingFiles'] = missingFiles;
   s['composeMissingIds'] = missingIds;
+  // 解析不了的行：**不许静默丢**。见 `_jsonlBadLines` 的注释。
+  // 放在这里读是因为 `_roundState()` 是最后读 `$kComposePath` 的地方，
+  // 前面 main() 里那次 `_readJsonl` 的坏行已经记进同一个集合了。
+  s['composeBadLines'] = _jsonlBadLines.toList()..sort();
 
   // 成片台的 summary 只作**旁证**：它缺 `casesAttempted`/`missing`/`complete`
   // 三件套时不可作为完整性证据（`crash == 0` 本身不是证据）。
@@ -979,6 +992,26 @@ List<String> _roundInvalidReasons(Map<String, dynamic> inputs) {
           '（静默 `continue` 是已知失效模式：exit 0、crash 0、却在零样本上判定）');
     }
   }
+  // 第四条：样本清单里有**解析不了的行**。从前那种行被一个空 catch 吞掉，
+  // 只在页面上少一条 —— 而 `parsed` 只数本 spec 的行，所以坏行未必表现为条数差。
+  final List<String> badLines =
+      (rs['composeBadLines'] as List<dynamic>? ?? <dynamic>[]).map((dynamic e) => '$e').toList();
+  if (badLines.isNotEmpty) {
+    r.add('$kComposePath 有 ${badLines.length} 行解析不了（已列进报告，未静默丢弃）：'
+        '${badLines.take(5).join("；")}${badLines.length > 5 ? " …" : ""}');
+  }
+  // 第五条：`out/` 是共享输出目录，不受冻结约束，所以"工作树是干净的"并不能
+  // 保证**盘上这几份测量产出**就是当前代码跑出来的。它们可能是上一轮的遗留。
+  // 缺这一条时，一份过期的 `P0_output_residual.json` 会被当成当轮读数 ——
+  // 与 r1 判决作废同源（判决由两个不同代码状态的测量拼成），换个入口而已。
+  final Object? pv = inputs['provenance'];
+  if (pv is! Map<String, dynamic>) {
+    r.add('缺少 `provenance`（测量产出的代码来源绑定），无法证明盘上的数是当前代码跑的');
+  } else {
+    for (final dynamic x in (pv['reasons'] as List<dynamic>? ?? <dynamic>[])) {
+      r.add('$x');
+    }
+  }
   return r;
 }
 
@@ -1060,16 +1093,27 @@ Map<String, dynamic> _readJson(String path) {
   }
 }
 
+/// `_readJsonl` 里**解析不了的行**。
+///
+/// 从前这里是一个带注释的空 catch（"单行坏掉不该让整轮判定崩掉；缺的样本会在
+/// 结果里以条数差暴露出来"）。**那个理由不成立**：条数差只对本 spec 的行敏感，
+/// 而 `parsed` 只数 `specId == kSpec` 的行 —— 一条被改坏的非本 spec 行会同时从
+/// 计数与视线里消失。空 catch 一律不许，所以改成把行号与原因记下来，
+/// 由 `_roundInvalidReasons` 判本轮作废。
+final Set<String> _jsonlBadLines = <String>{};
+
 List<Map<String, dynamic>> _readJsonl(String path) {
   final File f = File(path);
   if (!f.existsSync()) return <Map<String, dynamic>>[];
   final List<Map<String, dynamic>> out = <Map<String, dynamic>>[];
-  for (final String line in f.readAsLinesSync()) {
+  final List<String> lines = f.readAsLinesSync();
+  for (int i = 0; i < lines.length; i++) {
+    final String line = lines[i];
     if (line.trim().isEmpty) continue;
     try {
       out.add(jsonDecode(line) as Map<String, dynamic>);
-    } catch (_) {
-      // 单行坏掉不该让整轮判定崩掉；缺的样本会在结果里以条数差暴露出来。
+    } catch (e) {
+      _jsonlBadLines.add('$path:${i + 1}: ${e.runtimeType}: $e');
     }
   }
   return out;
@@ -1110,6 +1154,7 @@ Future<void> _finish({
   inputs['acSummary'] = '黄金集 src=$srcCount ref=$refCount；'
       'skip/catch 扫描：${_scanSummary(ac)}；'
       '**判据分母（$kTruthPath）**：${truthDriftResult.describe()}；'
+      '**测量产出同源**：${(inputs['provenance'] as Map<String, dynamic>?)?['summary'] ?? "（缺 provenance，无法自证）"}；'
       '受钉文件 ${hashes.length} 个'
       '${hashScanResult.unhashable.isEmpty ? "" : "，**另有 ${hashScanResult.unhashable.length} 个算不出哈希（已判不可判，未从表中消失）**"}；'
       '基线 $kBaseline 以来 test/ tools/gate/ ACCEPTANCE/RUBRIC 无实现类 agent 改动；'
@@ -1449,8 +1494,12 @@ String _renderMd({
   b.writeln('> **一轮判决只能由同一个被冻结、被标识的代码状态上的测量推导出来。**'
       '任何一项判据的输入若来自另一个状态（不同工作树、不同 revision、'
       '不同测量台的上一次产出），**要么重测，要么把该项标为无效**。');
-  b.writeln('机检三件：① `git status --porcelain -- lib test tools docs` 为空（`out/` 除外）；'
-      '② 每条样本都解析得到、成片文件都在；③ 声明条数 == 实际解析条数。'
+  b.writeln('机检五件：① `git status --porcelain -- lib test tools docs` 为空（`out/` 除外）；'
+      '② 每条样本都解析得到、成片文件都在；③ 声明条数 == 实际解析条数；'
+      '④ 样本清单里**没有解析不了的行**；'
+      '⑤ **`out/` 下三份测量产出各自记录的代码指纹与当前树逐条一致**'
+      '（`out/` 不受冻结约束，所以"工作树干净"推不出"盘上的数是当前代码跑的"——'
+      '缺这一条，上一轮的遗留会被当成本轮读数）。'
       '任一不过 → **整轮作废**（全部条目 pass=false、manual=true），'
       '不消耗实现方修复轮次。**加一行说明拦不住它**——r1 就是这么滑过去的，'
       '所以这里是判 `roundInvalid` 而不是写备注。');
@@ -1461,6 +1510,9 @@ String _renderMd({
   b.writeln();
   b.writeln('### 本轮输入的一致性（读数绑在哪个版本上）');
   b.writeln(_treeState(inputs));
+  b.writeln();
+  b.writeln('### 测量产出的来源绑定（`out/` 不受冻结约束，所以另有一道绑定）');
+  b.writeln(_provenanceSection(inputs));
   b.writeln();
   b.writeln('### 硬判据出自哪支量具（避免把量具差异读成分歧）');
   b.writeln('- **P0.1a / P0.2 / P0.3a② / P0.5b** 的成片残余：gatekeeper 的 **Haar 眼线量具**'
@@ -1898,8 +1950,16 @@ String _treeState(Map<String, dynamic> inputs) {
   return b.toString();
 }
 
-/// 输入文件完整性：`$kComposePath` 里记的成片路径，**现在是否还在磁盘上**。
+/// 测量产出的来源绑定：`out/` 下的数据每轮重生成，**不受冻结约束**，
+/// 所以"工作树干净"推不出"盘上的数是当前代码跑的"。这一节把绑定结论原样印出来。
 ///
+/// 渲染实现在 `provenance.dart`（`provenanceMdSection`）—— 放那边是为了能自测：
+/// 这段文本只有在 `main()` 走到最后才会生成，写在私有函数里就只能靠跑一整轮
+/// （含 40 分钟的 flutter test）来发现它崩了。
+String _provenanceSection(Map<String, dynamic> inputs) =>
+    provenanceMdSection(inputs['provenance'] as Map<String, dynamic>?);
+
+/// 输入文件完整性：`$kComposePath` 里记的成片路径，**现在是否还在磁盘上**。
 /// 存在理由（2026-09-17 实测）：qa-batch 的一轮死运行覆盖了 r1 的成片，
 /// 回滚后 13 条锚点成片（11 张锚点 + p1 + p2）不在原路径上，
 /// 于是 `out/P0_compose_items.jsonl` 记的路径**指向不存在的文件**。
@@ -2038,15 +2098,14 @@ String _scanSummary(Map<String, dynamic> ac) {
 
   // 条款 5：空体与"带注释理由的吞"分开报，两类都必须露出来。
   final int bareHits = countAll(<String, dynamic>{'x': ev['empty_catch_hits']});
-  final int bareSelf = countAll(<String, dynamic>{'x': ev['empty_catch_hits_self_reference']});
   final int commentedHits = countAll(<String, dynamic>{'x': ev['commented_catch_hits']});
   final List<String> catchBad = badDirs(ev['catch_scans']);
   final Object? defn = (ev['catch_scans'] as Map<String, dynamic>?)?['catch:lib'];
-  parts.add('条款 5：无说明的空 catch 命中 $bareHits'
-      '${bareSelf == 0 ? "" : "（其中 $bareSelf 条落在巡检自身领地）"}'
-      '；**带注释理由的吞异常 $commentedHits 处已逐条登记、不自动定罪**'
-      '（脚本分不出"有理由的降级"与"作弊的吞"，这一层留给人/adversarial；'
-      '它们每次都会印在报告里，藏不掉）'
+  parts.add('条款 5：空 catch 命中 $bareHits（无注释）\+ $commentedHits（体内只有注释）'
+      '＝ **共 ${bareHits + commentedHits} 处，一律计违规**'
+      '（主会话 2026-09-17 改口径：注释不该决定任何事 —— '
+      '"加一句注释就降级"是一条能被扩写的洗白通道。让那几处清白的不是注释，'
+      '是它们周围的代码，所以修法是改掉它们，不是给注释体开后门）'
       '${tail(catchBad)}'
       '${defn is Map<String, dynamic> ? "；判据定义：${defn['definition']}" : ""}');
   final List<dynamic> und = (ac['undecidable'] as List<dynamic>? ?? <dynamic>[]);

@@ -414,6 +414,28 @@ List<CatchSite> emptyCatchSites(String src) {
 /// 前者至少留下了作者自述的理由，后者什么也没有。
 bool catchBodyHasReason(String body) => body.contains('//') || body.contains('/*');
 
+/// 条款 5 的**定罪规则**，抽成纯函数是为了它能被自测直接驱动。
+///
+/// 规则一句话：**任何空 catch 都计违规，带不带注释完全一样。**
+/// 抽出来不是为了复用，是因为上一版的规则（注释体降级为"登记"）藏在 `patrol` 的
+/// 循环里，只能靠读代码确认 —— 而"注释体到底算不算"恰恰是那条规则的全部内容。
+/// 一个无法被单独构造用例检验的规则，改错了没人会知道。
+List<Violation> emptyCatchViolations(List<String> bare, List<String> commented) {
+  final List<Violation> out = <Violation>[];
+  for (final String h in bare) {
+    out.add(Violation('5', hitPath(h), '未定位', '空 catch 吞异常：$h'));
+  }
+  for (final String h in commented) {
+    out.add(Violation(
+      '5',
+      hitPath(h),
+      '未定位',
+      '空 catch 吞异常（体内只有注释，**不再因此降级**）：$h',
+    ));
+  }
+  return out;
+}
+
 /// 扫空 catch。两个引擎互相校验：
 ///  - A：状态机 [emptyCatchSites]（**权威**，覆盖注释体 / `;` 体）；
 ///  - B：正则 [kEmptyCatchPattern]（只认空白体，是 A 的**真子集**）。
@@ -488,6 +510,8 @@ Future<Map<String, dynamic>> scanEmptyCatches(String dir) async {
     'engine': '状态机(权威) ⊇ 正则(空白体子集)',
     'definition': '体内剥掉注释与字符串后，除空白与 `;` 外没有任何语句 ⇒ 空实现。'
         '**含注释体与 `catch (_) { ; }`**，不是只认 `{}`。',
+    'conviction': '`empty_body_hits` 与 `commented_body_hits` **两类一律计违规**，'
+        '分类只进报告、不改变定罪。加注释不构成减免。',
   };
 }
 
@@ -723,15 +747,26 @@ Future<Map<String, dynamic>> patrol({
   // 和 `catch (_) { ; }` 全漏掉 —— `lib/` 里正好漏了 2 处注释体。
   // **判据是条款的严格子集，等于悄悄放行了一个子集。**
   //
-  // 两类命中**都全量登记**，区别只在是否自动计违规：
-  //  - 体内**什么说明都没有** → 直接计违规（条款 5 字面所指）；
-  //  - 体内**带注释理由** → 登记并列出来（含原文），但**不自动定罪**：
-  //    脚本分不出"有理由的降级"和"作弊的吞"，这一层必须留给人/adversarial。
-  //    **这不等于放行**：它每次都会出现在报告里，藏不掉；能变的只是"是否自动判死"。
+  // 第二版按"体内有没有注释"分成两类：无说明的自动定罪、带注释的只登记。
+  // **主会话 2026-09-17 改口径，这一版再改**：注释不该决定任何事。
+  //   · "加一句注释就把自动定罪降级为登记"是一条**能被扩写的洗白通道**，
+  //     而豁免表比常数危险得多；
+  //   · 让那 5 处生产代码清白的**不是注释，是它们周围的代码**（错误从返回值
+  //     或紧随其后的语句透出去）。既然真正的判据是"失败可否观测"，
+  //     注释就**不是语义差别**，不该拿来当判别器。
+  //   · 正确修法是**把那几处改掉**（改完条款 5 不再需要任何豁免），不是给注释体
+  //     开后门。
+  // 现在：**任何空 catch，带不带注释，一律自动定罪，没有洗白通道。**
+  // 两类仍然分列登记（`empty_body_hits` / `commented_body_hits`），
+  // 但那只是**报告里的分类**，不再影响是否计违规。
+  //
+  // 扫描范围同时**扩到 `tools/gate/` 与 `integration_test/`**：
+  // 上一版只扫 `lib/` 与 `test/`，于是**巡检自己领地里的空 catch 结构性隐形**。
+  // 门禁不能对自己网开一面 —— 那正是"判据是条款的严格子集"的另一种写法。
   final Map<String, dynamic> catchScans = <String, dynamic>{};
   final List<String> catchBare = <String>[];
   final List<String> catchCommented = <String>[];
-  for (final String dir in <String>['lib', 'test']) {
+  for (final String dir in <String>['lib', 'test', 'tools/gate', 'integration_test']) {
     final Map<String, dynamic> s = await scanEmptyCatches(dir);
     catchScans['catch:$dir'] = s;
     if (s['undecidable'] == true) undecidable.add('条款 5 @ $dir');
@@ -741,18 +776,14 @@ Future<Map<String, dynamic>> patrol({
   evidence['catch_scans'] = catchScans;
   evidence['empty_catch_hits'] = catchBare..sort();
   evidence['commented_catch_hits'] = catchCommented..sort();
-  final List<String> catchSelf = <String>[];
-  for (final String h in catchBare) {
-    if (isScannerSelfTerritory(hitPath(h))) {
-      catchSelf.add(h);
-    } else {
-      violations.add(Violation('5', hitPath(h), '未定位', '空 catch 吞异常：$h'));
-    }
-  }
-  evidence['empty_catch_hits_self_reference'] = catchSelf;
-  evidence['commented_catch_registered'] = catchCommented
-      .map((String h) => isScannerSelfTerritory(hitPath(h)) ? '[自身领地] $h' : '[待裁定] $h')
-      .toList();
+  violations.addAll(emptyCatchViolations(catchBare, catchCommented));
+  // 保留这一栏只为**可读性**：让报告读者一眼看出哪些曾经靠注释"洗过"。
+  // 它**不影响**上面的定罪 —— `commented_catch_hits` 与 `empty_catch_hits`
+  // 里的每一条都已经在上面的循环里计过违规了。
+  evidence['commented_catch_registered'] = <String>[
+    '（**本栏只作分类展示，不改变定罪**：带注释的空 catch 与不带注释的一样计违规。）',
+    ...catchCommented,
+  ];
 
   // ---- 条款 4：黄金集不得减少 ----
   evidence['golden_src_count'] = goldenSrcCount;
