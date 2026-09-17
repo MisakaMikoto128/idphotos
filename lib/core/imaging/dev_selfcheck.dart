@@ -578,7 +578,8 @@ void main() {
       log.writeln('  输入 roll=${roll.toStringAsFixed(1)}° → '
           '成片残差 ${residual.toStringAsFixed(3)}°');
     }
-    // 死区验证：小于 ±3° 不应触发旋转
+    // 死区验证：小于 ±1° 不应触发旋转（P0 修复后死区从 3° 收窄到 1°），
+    // 1–3° 的真实倾斜现在必须摆正（dev_roll_probe 实验结论）。
     final _Synth small = _makeSynthetic(
       width: 1000,
       height: 1400,
@@ -586,7 +587,7 @@ void main() {
       headTopY: 320,
       chinY: 700,
       headWidth: 320,
-      rollDeg: 2.0,
+      rollDeg: 0.8,
       withEyeMarkers: true,
     );
     await engine.compose(
@@ -595,7 +596,7 @@ void main() {
         style: kBgWhite,
         face: small.face);
     final bool straightened = engine.lastDiagnostics!.straightened;
-    log.writeln('  输入 roll=2.0°（死区内）→ 是否旋转=$straightened');
+    log.writeln('  输入 roll=0.8°（死区内）→ 是否旋转=$straightened');
     // ignore: avoid_print
     print('[2B.8]\n$log  最差残差=${worst.toStringAsFixed(3)}° (阈值 1.5°)');
     expect(worst <= 1.5, isTrue);
@@ -614,7 +615,7 @@ void main() {
     // 测法不复算裁剪公式，而是量成片像素：合成人像的头部在「设计空间」里
     // 恒为 380×320，摆正后旋转空间里的头高应恢复成 380，于是成片头高恒为
     // 380 × 413/644 = 243.7px。任何对用户框的缩放都会等比例改变这个数字。
-    // 死区内（|roll| ≤ 3°）不摆正，头是斜的，肤色区的轴对齐高度理应是
+    // 死区内（|roll| ≤ 1°）不摆正，头是斜的，肤色区的轴对齐高度理应是
     // 380·cosθ + 320·sinθ —— 那是倾斜本身，不是缩放，按实际角度算进理想值。
     const double cropW = 460.0; // 460:644 = 295:413，正好是 cn_1inch 比例
     const double cropH = 644.0;
