@@ -161,6 +161,17 @@ class _CertificateCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
+                // 吉祥物"木木"立绘头像（豆包生成，阶段 6）：给证书卡一张脸
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.asset(
+                    'assets/images/mascot_about.jpg',
+                    height: 132,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Text(
                   '木照 MuZhao',
                   textAlign: TextAlign.center,

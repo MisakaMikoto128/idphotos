@@ -79,6 +79,7 @@ flutter:
     - assets/models/
     - assets/textures/
     - assets/fonts/
+    - assets/images/
 
   # ui-woodcraft 用 fontTools 从系统自带的 NotoSerifSC-VF.ttf(OFL) 实例化并按
   # lib/ 内实际出现的字符子集化，两个字重合计约 169KB（G2C.8 限 400KB）。
