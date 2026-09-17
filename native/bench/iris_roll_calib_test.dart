@@ -407,4 +407,89 @@ void main() {
     print('[E] n=${ms.length} median=${ms[ms.length ~/ 2].toStringAsFixed(1)}ms '
         'max=${ms.last.toStringAsFixed(1)}ms');
   });
+
+  // 判决稳定性：真实用户照片的缩放、JPEG 量化、轻微噪点都会提供与"换一个
+  // 夹具"同量级的扰动。qa-batch 报过同一夹具在两个测量台上判决相反
+  // （内存旋转台 unavailable / 落盘夹具 pupil，像素 MAE 19.29），gatekeeper
+  // 也报过 c06 在 d−5 与 d−3 之间判决跳变。**稳定比准更重要**——本次事故
+  // 就是"自信但错"，而一个一碰就翻的实现即使平均误差好看也会线上翻车。
+  test('F. 判决稳定性：轻微扰动下的可用性与角度', () async {
+    final List<String> srcs = <String>[
+      r'C:\Users\liuyu\Pictures\1 (2).jpg',
+      r'C:\Users\liuyu\Pictures\2.jpg',
+      'test/golden/src/g01.jpg',
+      'test/golden/src/g05.jpg',
+      'test/golden/src/g07.jpg',
+    ];
+    var stable = 0, total = 0;
+    for (final path in srcs) {
+      final File f = File(path);
+      if (!f.existsSync()) continue;
+      final Uint8List bytes = f.readAsBytesSync();
+      final img.Image? src = img.decodeImage(bytes);
+      if (src == null) continue;
+      // (标签, 字节, 期望 rollDeg 相对基准的偏移)
+      final List<(String, Uint8List, double)> variants =
+          <(String, Uint8List, double)>[
+        ('base', bytes, 0.0),
+        ('jpg85', Uint8List.fromList(img.encodeJpg(src, quality: 85)), 0.0),
+        (
+          'scale0.98',
+          Uint8List.fromList(img.encodeJpg(
+              img.copyResize(src,
+                  width: (src.width * 0.98).round(),
+                  interpolation: img.Interpolation.cubic),
+              quality: 92)),
+          0.0
+        ),
+        (
+          'scale1.02',
+          Uint8List.fromList(img.encodeJpg(
+              img.copyResize(src,
+                  width: (src.width * 1.02).round(),
+                  interpolation: img.Interpolation.cubic),
+              quality: 92)),
+          0.0
+        ),
+        (
+          'rot+0.3',
+          Uint8List.fromList(img.encodeJpg(
+              img.copyRotate(src, angle: 0.3, interpolation: img.Interpolation.cubic),
+              quality: 92)),
+          0.3
+        ),
+        (
+          'rot-0.3',
+          Uint8List.fromList(img.encodeJpg(
+              img.copyRotate(src, angle: -0.3, interpolation: img.Interpolation.cubic),
+              quality: 92)),
+          -0.3
+        ),
+      ];
+      double? base;
+      final List<double> dev = <double>[];
+      final List<String> miss = <String>[];
+      final List<String> line = <String>[];
+      for (final (String tag, Uint8List b, double shift) in variants) {
+        final FaceInfo? fi = await engine.detectFace(b);
+        final bool ok = fi != null && fi.rollSource == RollSource.pupil;
+        if (tag == 'base') base = ok ? fi!.rollDeg : null;
+        final double? v = ok ? fi!.rollDeg : null;
+        if (!ok) miss.add(tag);
+        if (ok && base != null) dev.add((v! - base) - shift);
+        line.add('$tag=${ok ? v!.toStringAsFixed(2) : 'unavail'}');
+      }
+      total++;
+      // 判据：全部可用，且相对基准的偏移（扣掉注入的 shift）≤0.5°。
+      final bool okAll = miss.isEmpty && dev.every((double d) => d.abs() <= 0.5);
+      if (okAll) stable++;
+      // ignore: avoid_print
+      print('[F] ${f.uri.pathSegments.last} ${okAll ? 'STABLE' : 'UNSTABLE'} '
+          '${line.join(' ')}'
+          '${dev.isEmpty ? '' : ' maxDev=${dev.map((e) => e.abs()).reduce(math.max).toStringAsFixed(2)}'}'
+          '${miss.isEmpty ? '' : ' UNAVAIL=[${miss.join(',')}]'}');
+    }
+    // ignore: avoid_print
+    print('[F] stable=$stable/$total');
+  });
 }
