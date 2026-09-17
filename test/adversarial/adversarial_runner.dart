@@ -186,7 +186,11 @@ Future<Map<String, dynamic>> runEngineCase(
         await File('$kAdvOut/artifacts/${c['id']}_alpha.png')
             .create(recursive: true)
             .then((f) => f.writeAsBytes(img.encodePng(png), flush: true));
-      } catch (_) {}
+      } catch (e) {
+        // 证据落盘失败必须留痕：空 catch 会让"产物缺失"与"产物正常"无法区分，
+        // 而 ACCEPTANCE 防作弊条款 5 禁止用它让检查静默通过。
+        rec['alpha_artifact_error'] = '$e';
+      }
     }
 
     final swFace = Stopwatch()..start();
