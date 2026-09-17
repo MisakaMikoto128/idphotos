@@ -21,6 +21,8 @@ out/shots/
 out/P0_anchors/
 out/GATE_ort/
 out/P0_alpha_scan/
+# ml-porting 的瞳孔目视证据（overlay 图，32MB，可再生产物）
+native/bench/out/
 
 # 大文件：模型权重按需决定是否提交
 # assets/models/*.onnx
