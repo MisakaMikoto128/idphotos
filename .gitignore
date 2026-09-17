@@ -19,6 +19,10 @@ out/shots/
 # 大文件：模型权重按需决定是否提交
 # assets/models/*.onnx
 
+# Python 字节码（曾在 5 处被误提交）
+__pycache__/
+*.pyc
+
 # IDE / OS
 .idea/
 .vscode/

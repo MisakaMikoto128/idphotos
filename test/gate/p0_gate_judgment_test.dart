@@ -1,0 +1,297 @@
+// test/gate/p0_gate_judgment_test.dart
+//
+// **门禁判定逻辑的自检 —— 考卷的考卷。**
+//
+// 存在理由：gatekeeper 自己写的门禁如果永远输出 PASS，它比没有门禁更糟
+// （给了全自动模式一个假的"已验证"）。这个测试把**已知答案**的原始记录灌进
+// `gate_P0.dart` 的纯判定函数 `evaluateP0`，断言它在该 FAIL 的地方 FAIL、
+// 在该 PASS 的地方 PASS。
+//
+// 每条用例的"已知答案"都来自一个真实的失败模式，不是我编的：
+//   A. 修前事故态（PITFALLS 2026-09-17）：p1 真值 −4.4 却不转；p2 真值 −0.2 被转歪 +3.7
+//   B. 合格实现 → 必须全 PASS（防止门禁"宁枉勿纵"到谁都过不了）
+//   C. 该摆正却返回 unavailable → P0.1b / P0.3b 条件覆盖率 FAIL
+//   D. 残余随倾角增长（估计衰减）→ P0.3a 硬判据② FAIL
+//   E. 量具自检不过 → 一律 MANUAL，**不许**默认通过
+//   F. 锚点不足 8 张 → P0.1a FAIL
+//   G. dev_selfcheck 回归 → P0.5a FAIL
+//   H. unavailable 却施加了非零角 → P0.4 诚实性 FAIL
+//
+// 本文件属 gatekeeper 势力范围（test/gate/），实现类 agent 改动即 FAIL。
+//
+// 运行：
+// ```
+// flutter test test/gate/p0_gate_judgment_test.dart
+// ```
+
+// flutter_test 是 dev_dependency。
+// ignore: depend_on_referenced_packages
+import 'package:flutter_test/flutter_test.dart';
+
+import '../../tools/gate/gate_P0.dart' as gate;
+
+const String kSpec = 'cn_big_1inch';
+
+/// 一条"生产记录 + 独立测量"的组合。字段名与 out/P0_compose_items.jsonl 一致。
+Map<String, dynamic> item({
+  required String id,
+  required String corpus,
+  required double truth,
+  required String source,
+  required double applied,
+}) =>
+    <String, dynamic>{
+      'id': id,
+      'corpus': corpus,
+      'truthTiltDeg': truth,
+      'rollSource': source,
+      'straightenDeg': applied,
+      'specId': kSpec,
+    };
+
+/// 组装 evaluateP0 的输入。
+///
+/// [measured] 是 id → gatekeeper 眼线量具测出的成片倾角；没给的 id 视为
+/// 量具测不出（走 derived_identity 兜底）。
+Map<String, dynamic> inputs({
+  required List<Map<String, dynamic>> compose,
+  Map<String, double> measured = const <String, double>{},
+  double eyeErr = 0.20,
+  double rigidErr = 0.10,
+  List<String> blockers = const <String>[],
+  int devExit = 0,
+  String devTail = '+9: All tests passed!',
+  bool gateJsonsPass = true,
+}) {
+  final List<Map<String, dynamic>> rows = <Map<String, dynamic>>[];
+  measured.forEach((String id, double v) {
+    rows.add(<String, dynamic>{'id': id, 'ok': true, 'tilt_deg': v});
+  });
+  for (final Map<String, dynamic> c in compose) {
+    if (!measured.containsKey(c['id'])) {
+      rows.add(<String, dynamic>{'id': c['id'], 'ok': false, 'reason': 'no_face'});
+    }
+  }
+  // SIFT 路径：把"实际施加角"原样量回来（合格实现下与记录一致），
+  // 残余 = 真值 − 实测施加角。
+  final List<Map<String, dynamic>> sift = <Map<String, dynamic>>[];
+  for (final Map<String, dynamic> c in compose) {
+    final double t = c['truthTiltDeg'] as double;
+    final double a = c['straightenDeg'] as double;
+    sift.add(<String, dynamic>{
+      'id': c['id'],
+      'ok': true,
+      'measured_applied_deg': a,
+      'residual_deg': t - a,
+      'applied_delta_vs_record': 0.0,
+    });
+  }
+  return <String, dynamic>{
+    'spec': kSpec,
+    'compose': compose,
+    'eyeline': <String, dynamic>{'rows': rows},
+    'siftAlign': <String, dynamic>{'rows': sift},
+    'eyelineSelftest': <String, dynamic>{'max_abs_err_deg': eyeErr, 'pass': eyeErr <= 0.5},
+    'rigidSelftest': <String, dynamic>{'max_abs_err_deg': rigidErr, 'pass': rigidErr <= 0.5},
+    'blockers': blockers,
+    'devSelfcheck': <String, dynamic>{'exitCode': devExit, 'tail': devTail},
+    'gateG2B': <String, dynamic>{
+      'gate': 'G2B',
+      'items': <Map<String, dynamic>>[
+        <String, dynamic>{'id': '2B.1', 'pass': gateJsonsPass},
+      ],
+    },
+    'gateG4': <String, dynamic>{
+      'gate': 'G4',
+      'items': <Map<String, dynamic>>[
+        <String, dynamic>{'id': '4.1', 'pass': gateJsonsPass},
+      ],
+    },
+    'anticheat': <String, dynamic>{'clean': true, 'summary': '测试桩'},
+  };
+}
+
+Map<String, dynamic> row(List<Map<String, dynamic>> items, String id) =>
+    items.firstWhere((Map<String, dynamic> i) => i['id'] == id);
+
+/// 造一整套"合格实现"的记录：12 条倾斜锚点 + p2 竖直 + 9 张合成竖直 + 旋转夹具。
+List<Map<String, dynamic>> goodCorpus() {
+  final List<Map<String, dynamic>> c = <Map<String, dynamic>>[];
+  const List<double> truth = <double>[4.4, -1.3, 0.25, 3.72, 8.01, 1.73, 0.35, 8.01, 3.44, 0.11, 2.09, 3.91];
+  for (int i = 0; i < truth.length; i++) {
+    final String id = i == 0 ? 'p1' : 'c${i.toString().padLeft(2, '0')}';
+    // 合格实现：估计值 ≈ 真值，死区内不转（0.25/0.35/0.11 落进 1° 死区）。
+    final double applied = truth[i].abs() > 1.0 ? truth[i] : 0.0;
+    c.add(item(id: id, corpus: 'anchor', truth: truth[i], source: 'pupil', applied: applied));
+  }
+  c.add(item(id: 'p2', corpus: 'straight', truth: -0.2, source: 'pupil', applied: 0.0));
+  for (final String id in <String>['p1', 'c01', 'c03', 'c04', 'c05', 'c06', 'c08', 'c10', 'c12']) {
+    c.add(item(id: '${id}_upright', corpus: 'uprightSynthetic', truth: 0.0, source: 'pupil', applied: 0.0));
+  }
+  for (final double base in <double>[-4.4, 3.72, -8.01]) {
+    for (final double d in <double>[3, -3, 5, -5, 10, -10]) {
+      final double t = base + d;
+      c.add(item(
+        id: 'f${base}_d$d',
+        corpus: 'rotated',
+        truth: t,
+        source: 'pupil',
+        applied: t.abs() > 1.0 ? t : 0.0,
+      ));
+    }
+  }
+  return c;
+}
+
+/// 合格实现下，量具测得的成片倾角：理想 0，给一点点噪声。
+Map<String, double> goodMeasured(List<Map<String, dynamic>> compose) {
+  final Map<String, double> m = <String, double>{};
+  for (final Map<String, dynamic> c in compose) {
+    m[c['id'] as String] = (c['truthTiltDeg'] as double) - (c['straightenDeg'] as double);
+  }
+  return m;
+}
+
+void main() {
+  test('A 修前事故态必须 FAIL（门禁抓得住已知坏状态）', () {
+    final List<Map<String, dynamic>> compose = <Map<String, dynamic>>[
+      // p1：旧估角器给出 +0.84（落进死区）→ 不转；真值 −4.4，成片仍歪 −4.4
+      item(id: 'p1', corpus: 'anchor', truth: -4.4, source: 'unavailable', applied: 0.0),
+      // p2：旧估角器给出 −3.85 → 转歪；真值 −0.2 → 成片残余 +3.65
+      item(id: 'p2', corpus: 'straight', truth: -0.2, source: 'pupil', applied: -3.85),
+      item(id: 'c03', corpus: 'anchor', truth: -3.72, source: 'unavailable', applied: 0.0),
+    ];
+    final Map<String, double> m = <String, double>{
+      'p1': -4.4, // 成片仍歪 −4.4
+      'p2': 3.65, // 成片被转歪 +3.65
+      'c03': -3.72,
+    };
+    final List<Map<String, dynamic>> items =
+        gate.evaluateP0(inputs(compose: compose, measured: m));
+
+    // p1/c03 真值 |tilt| > 1.5 却 unavailable —— 这正是事故的机制。
+    expect(row(items, 'P0.1b')['pass'], false, reason: '该摆正却说测不出，必须 FAIL');
+    // p2 被转歪 3.65°。
+    expect(row(items, 'P0.2')['pass'], false, reason: '转歪了竖直样本，必须 FAIL');
+    expect(row(items, 'P0.3b')['pass'], true, reason: '这条夹具都把角给出了，覆盖率本身没问题');
+  });
+
+  test('B 合格实现必须全 PASS（门禁不能宁枉勿纵到谁都过不了）', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    final List<Map<String, dynamic>> items =
+        gate.evaluateP0(inputs(compose: compose, measured: goodMeasured(compose)));
+    final List<Map<String, dynamic>> failed = items
+        .where((Map<String, dynamic> i) => i['pass'] != true && i['manual'] != true)
+        .toList();
+    expect(failed.map((Map<String, dynamic> i) => i['id']).toList(), <String>[],
+        reason: '合格数据被判 FAIL，说明判定逻辑有 bug');
+    // P0.5c 恒为 MANUAL：它要重跑设备端才知道有没有退化，本轮不重跑。
+    // 把它钉在测试里，防止哪天它被悄悄改成"默认通过"。
+    final List<String> manual = items
+        .where((Map<String, dynamic> i) => i['manual'] == true)
+        .map((Map<String, dynamic> i) => i['id'] as String)
+        .toList();
+    expect(manual, <String>['P0.5c']);
+  });
+
+  test('C 该摆正却返回 unavailable → P0.3b FAIL（堵住"永远返回测不出"的免费通道）', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    final Map<String, double> m = goodMeasured(compose);
+    // 把一条真值 6.28° 的夹具改成"测不出"：成片就会歪着 6.28°。
+    final int i = compose.indexWhere((Map<String, dynamic> c) => c['id'] == 'f-4.4_d10.0');
+    compose[i]['rollSource'] = 'unavailable';
+    compose[i]['straightenDeg'] = 0.0;
+    m['f-4.4_d10.0'] = 5.6; // 成片实测仍歪 5.6°
+    final List<Map<String, dynamic>> items =
+        gate.evaluateP0(inputs(compose: compose, measured: m));
+    expect(row(items, 'P0.3b')['pass'], false);
+    // 口径 1/2 的分工：unavailable 的样本不进 P0.3a 的残余统计
+    //（否则"永远返回测不出"在近竖直样本上残差天然为 0，会免费过关），
+    // 它的账由 P0.3b 的条件覆盖率来算。这条断言把这个分工钉住，
+    // 防止以后有人把 unavailable 混回残余统计里。
+    expect((row(items, 'P0.3a')['actual'] as String).contains('unavailable'),
+        true, reason: 'unavailable 样本必须离开残余统计，并在报告里看得见');
+  });
+
+  test('D 残余随倾角增长（估计衰减）→ P0.3a FAIL，且与符号约定无关', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    // 估计只做到真值的一半：真值 t 的成片残余 = t − t/2 = t/2，斜率 0.5。
+    for (final Map<String, dynamic> c in compose) {
+      if (c['corpus'] != 'rotated') continue;
+      final double t = c['truthTiltDeg'] as double;
+      c['straightenDeg'] = t / 2.0;
+      c['rollSource'] = 'pupil';
+    }
+    final List<Map<String, dynamic>> items =
+        gate.evaluateP0(inputs(compose: compose, measured: goodMeasured(compose)));
+    expect(row(items, 'P0.3a')['pass'], false);
+    expect((row(items, 'P0.3a')['actual'] as String).contains('② 硬判据'), true);
+  });
+
+  test('E 量具自检不过 → 一律 MANUAL，且永不算通过', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    final List<Map<String, dynamic>> items = gate.evaluateP0(inputs(
+      compose: compose,
+      measured: goodMeasured(compose),
+      eyeErr: 1.2, // 量不准
+    ));
+    final List<Map<String, dynamic>> manual =
+        items.where((Map<String, dynamic> i) => i['manual'] == true).toList();
+    expect(manual, isNotEmpty, reason: '量具不可信时必须标 MANUAL');
+    expect(manual.every((Map<String, dynamic> i) => i['pass'] != true), true,
+        reason: 'MANUAL 项绝不允许 pass=true');
+  });
+
+  test('F 锚点不足 8 张 → P0.1a FAIL', () {
+    final List<Map<String, dynamic>> compose = <Map<String, dynamic>>[
+      for (int i = 0; i < 5; i++)
+        item(id: 'a$i', corpus: 'anchor', truth: 3.0 + i, source: 'pupil', applied: 3.0 + i),
+    ];
+    final List<Map<String, dynamic>> items =
+        gate.evaluateP0(inputs(compose: compose, measured: goodMeasured(compose)));
+    expect(row(items, 'P0.1a')['pass'], false);
+  });
+
+  test('G dev_selfcheck 回归 → P0.5a FAIL', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    final List<Map<String, dynamic>> items = gate.evaluateP0(inputs(
+      compose: compose,
+      measured: goodMeasured(compose),
+      devExit: 1,
+      devTail: '+8 -1: Some tests failed.',
+    ));
+    expect(row(items, 'P0.5a')['pass'], false);
+  });
+
+  test('H unavailable 却施加了非零角 → P0.4 诚实性 FAIL', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    compose.add(item(id: 'x1', corpus: 'anchor', truth: 0.1, source: 'unavailable', applied: 2.5));
+    final List<Map<String, dynamic>> items =
+        gate.evaluateP0(inputs(compose: compose, measured: goodMeasured(compose)));
+    expect(row(items, 'P0.4')['pass'], false);
+  });
+
+  test('I 眼线量具测不出的样本，由 SIFT 独立补测并显式记账（条款 7）', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    final Map<String, double> m = goodMeasured(compose);
+    m.remove('p1'); // 眼线量具测不出这条
+    final List<Map<String, dynamic>> items =
+        gate.evaluateP0(inputs(compose: compose, measured: m));
+    final String actual = row(items, 'P0.1a')['actual'] as String;
+    expect(actual.contains('gate_sift_align'), true,
+        reason: '眼线量不出来的样本必须换一条独立路径量出来并写明出处，不许从统计里消失');
+  });
+
+  test('J 三条路径全测不出时，退回恒等式但必须显式标注（不许静默）', () {
+    final List<Map<String, dynamic>> compose = goodCorpus();
+    final Map<String, double> m = goodMeasured(compose);
+    m.remove('p1');
+    final Map<String, dynamic> inp = inputs(compose: compose, measured: m);
+    final List<Map<String, dynamic>> sift =
+        (inp['siftAlign'] as Map<String, dynamic>)['rows'] as List<Map<String, dynamic>>;
+    sift.removeWhere((Map<String, dynamic> r) => r['id'] == 'p1');
+    final List<Map<String, dynamic>> items = gate.evaluateP0(inp);
+    expect((row(items, 'P0.1a')['actual'] as String).contains('derived_identity'), true,
+        reason: '兜底路径必须留痕，否则就等于"悄悄算它通过"');
+  });
+}

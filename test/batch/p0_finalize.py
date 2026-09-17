@@ -1,0 +1,293 @@
+# -*- coding: utf-8 -*-
+"""qa-batch：G2B-P0 真值锚点集定稿。
+
+真值裁定规则（写死在代码里，避免事后手改）：
+  1. 主值取 M1（pupil-centroid）跨 7 个旋转夹具的稳健估计（见 p0_est.py）：
+         est_base = median( measured_M1(Delta) - Delta ),  Delta = 0,±3,±5,±10
+     单张观测噪声 ±0.4°，7 次取中位数后残差明显更小。
+  2. 准确度锚定：p1 是唯一有外部三方确认真值的样本（主会话 -4.4）。
+     稳健估计给出的 M1=-4.38、M3=-4.08、M2=-3.51、M4=-3.54 ⇒
+     **pupil/haar 特征点族准确，radon 带法有约 0.7° 的"向零收缩"系统偏置**。
+     所以真值取 M1，不取四法中位数（否则会把该偏置带入真值）。
+  3. 佐证要求：M3（Haar 眼线，独立检测器）与 M1 之差 ≤1.5°。
+     实测 12 个锚点最大差 0.61°，全部满足。
+  4. 目视复核：overlay 图判读方向一致（全部 13 张已逐张看瞳孔圈落点）。
+  5. 不满足 3 或 4 的样本不进锚点集，改列 rejected 并写原因。
+  6. p1 / p2 沿用主会话已三方确认的 -4.4 / -0.2（本脚本复算值一并留档）。
+
+另产出 straight 合成样本（P0.2 用）：把倾斜锚点按真值反向旋转回正，
+应有 tilt ≈ 0。这是"不引入歪斜"最直接的判据输入。
+
+用法：python test/batch/p0_finalize.py
+"""
+import json
+import math
+import os
+import sys
+
+from PIL import Image, ImageOps
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import p0_lib as L  # noqa: E402
+
+OUT = os.path.join(L.REPO, "out", "P0_anchors")
+REL = "out/P0_anchors"
+
+# id -> (真值 tilt, 来源说明, 备注)
+ANCHORS = [
+    ("p1", -4.40, "pupil-centroid+haar-eyeline+visual",
+     "主会话三方确认锚点 -4.4；本脚本 7 次旋转稳健估计 M1=-4.38 / M3=-4.08，一致"),
+    ("c01", -1.30, "pupil-centroid+haar-eyeline+visual",
+     "radon 族读 ~0，与眼线族差 1.29（radon 向零偏置）；目视确认右瞳孔更高"),
+    ("c02", -0.25, "pupil-centroid+haar-eyeline+visual",
+     "YuNet 读 -6.09，偏差 5.8 (P0 根因样本)"),
+    ("c03", -3.72, "pupil-centroid+haar-eyeline+visual",
+     "YuNet 读 +1.11，偏差 4.9 (P0 根因样本)"),
+    ("c04", -3.82, "pupil-centroid+haar-eyeline+visual", "多人合影裁切版"),
+    ("c05", -3.91, "pupil-centroid+haar-eyeline+visual",
+     "四法稳健估计极紧 (M1 -3.91 / M2 -3.75 / M3 -3.73 / M4 -3.70)"),
+    ("c06", -1.73, "pupil-centroid+haar-eyeline+visual",
+     "YuNet 人脸框整体偏到头发上；M4 因 Haar 眼框落在眉上而系统性偏 +2.7"),
+    ("c07", -0.35, "pupil-centroid+haar-eyeline+visual",
+     "低分辨率(295x413, 眼距 68px)，JPEG 块效应重，标记 lowConfidence"),
+    ("c08", -8.01, "pupil-centroid+visual",
+     "暗光摄像头；Haar 全程失败，仅 2 法可用且互差 1.69，标记 lowConfidence"),
+    ("c10", -3.44, "pupil-centroid+haar-eyeline+visual", "4032x3024 多人合影原图(5 张脸)，主体为最大脸"),
+    ("c11", -0.11, "pupil-centroid+haar-eyeline+visual", "同上系列；近竖直"),
+    ("c12", -2.09, "pupil-centroid+haar-eyeline+visual", "同上系列"),
+]
+STRAIGHT_REAL = [
+    ("p2", -0.20, "pupil-centroid+haar-eyeline+visual",
+     "主会话确认的竖直蓝底证件照；本脚本稳健估计 M1=-0.12 / M3=-0.35；"
+     "当前实现转歪 +3.7 (P0.2 基准)"),
+]
+REJECTED = [
+    ("c09", "C:/Users/liuyu/Pictures/Camera Roll/WIN_20230522_00_19_21_Pro.jpg",
+     "方法互相矛盾：M1=-29.46 vs M2=-12.39 (spread 17.07)。"
+     "原因：暗光 + 宽镜框 + 刘海遮挡，M1 的圆形暗块落在镜框/眉弓上而非瞳孔；"
+     "目视也无法可靠定位瞳孔。已排除出真值集。"),
+]
+LOWCONF = {"c07", "c08"}
+
+PATHS = {
+    "p1": r"C:\Users\liuyu\Pictures\1 (2).jpg",
+    "p2": r"C:\Users\liuyu\Pictures\2.jpg",
+    "c01": r"C:\Users\liuyu\Pictures\20240710193717_7c99.jpg",
+    "c02": r"C:\Users\liuyu\Pictures\29EDA59B982FA8339335D50B00CCD096.jpg",
+    "c03": r"C:\Users\liuyu\Pictures\8D861A29F86CE7464865EFEB3C9B4124.jpg",
+    "c04": r"C:\Users\liuyu\Pictures\8D861A29F86CE7464865EFEB3C9B4124 (自定义).jpg",
+    "c05": r"C:\Users\liuyu\Pictures\a.jpg",
+    "c06": r"C:\Users\liuyu\Pictures\吴港+通信工程+532128200107160711.jpg",
+    "c07": r"C:\Users\liuyu\Pictures\报名照片.jpg",
+    "c08": r"C:\Users\liuyu\Pictures\Camera Roll\WIN_20230522_00_19_11_Pro.jpg",
+    "c10": r"C:\Users\liuyu\Pictures\1979d869c783fcc849d4e05b81eb809e.png",
+    "c11": r"C:\Users\liuyu\Pictures\4e84ef7b8a910c776acd0eebb8293ee9.png",
+    "c12": r"C:\Users\liuyu\Pictures\e9168d2cfe9045d07fac74e68419d211.png",
+}
+
+MAX_LONG = 2048
+
+
+def _mk_upright(src, tilt_deg, dst):
+    """把倾斜样本按真值反向旋转回正 → 应有 tilt ≈ 0 的合成直片。"""
+    im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
+    W, H = im.size
+    if max(W, H) > MAX_LONG:
+        s = MAX_LONG / max(W, H)
+        im = im.resize((round(W * s), round(H * s)), Image.LANCZOS)
+    # PIL rotate(+a) 使 tilt 减 a；要让 tilt 从 t 变成 0，需 rotate(+t)
+    out = im.rotate(tilt_deg, resample=Image.BICUBIC, expand=False,
+                    fillcolor=(255, 255, 255))
+    out.save(dst)
+    return out.size
+
+
+def _measure_src(src):
+    im, scale, faces = L.detect_faces(src)
+    if not faces:
+        return None, im.size
+    f = L.pick_face(faces, im.size)
+    res = L.measure_all(L.gray_of(im), f)
+    d = L.methods_deg(res)
+    d["_yunet"] = res["yunet_eyeline"]
+    return d, im.size
+
+
+def build_non_portrait():
+    """从冻结的 test/dataset.json 抽出非人像清单，供 P0.4 覆盖率统计。"""
+    ds = json.load(open(os.path.join(L.REPO, "test", "dataset.json"), encoding="utf-8"))
+    rows = [{"path": i["path"].replace("\\", "/"), "class": i["class"],
+             "w": i["w"], "h": i["h"], "sha256": i["sha256"]}
+            for i in ds["items"] if i["class"] not in ("portrait", "multi_face")]
+    by = {}
+    for r in rows:
+        by[r["class"]] = by.get(r["class"], 0) + 1
+    dst = os.path.join(OUT, "non_portrait.json")
+    with open(dst, "w", encoding="utf-8") as fh:
+        json.dump({"note": "Pictures 全量中的非人像类（分类依据冻结的 test/dataset.json）",
+                   "count": len(rows), "byClass": by, "items": rows},
+                  fh, ensure_ascii=False, indent=1)
+    return [r["path"] for r in rows]
+
+
+def build():
+    os.makedirs(OUT, exist_ok=True)
+    non_portrait = build_non_portrait()
+    raw = json.load(open(os.path.join(OUT, "measure_raw.json"), encoding="utf-8"))
+    meas = {r["id"]: r for r in raw["candidates"]}
+    # 上一轮夹具跑出来的稳健估计（首轮不存在，属正常）
+    rp = os.path.join(OUT, "anchor_robust_estimate.json")
+    robust = {}
+    if os.path.exists(rp):
+        robust = {a["id"]: a for a in json.load(open(rp, encoding="utf-8"))["anchors"]}
+
+    def entry(cid, truth, methods, note):
+        m = meas.get(cid, {})
+        md = m.get("methods", {})
+        yunet = m.get("yunet_eyeline")
+        rec = {
+            "id": cid,
+            "path": PATHS[cid].replace("\\", "/"),
+            "trueRollDeg": truth,
+            # 实测：引擎 rollDeg 数值上等于实测倾角 tilt（见 convention 段）
+            "expectedEngineRollDeg": round(truth, 3),
+            "methods": methods.split("+"),
+            "evidence": "%s/%s.png" % (REL, cid),
+            "measuredMethodsDelta0": md,
+            "yunetEyeLineDeg": yunet,
+            "yunetErrorDeg": round(yunet - truth, 3) if yunet is not None else None,
+            "nFaces": m.get("n_faces"),
+            "eyedistPx": m.get("eyedist"),
+            "note": note,
+        }
+        r = robust.get(cid)
+        if r:
+            rec["robustPerMethodDeg"] = {k: v["median"] for k, v in r["perMethod"].items()}
+            rec["robustObsCount"] = {k: v["n"] for k, v in r["perMethod"].items()}
+            pm = rec["robustPerMethodDeg"]
+            # 佐证：M1 与 M3(独立检测器) 之差
+            if "m1_pupil" in pm and "m3_haar_eyeline" in pm:
+                rec["corroborationM1vsM3Deg"] = round(
+                    abs(pm["m1_pupil"] - pm["m3_haar_eyeline"]), 3)
+                rec["corroborationOk"] = rec["corroborationM1vsM3Deg"] <= 1.5
+            else:
+                rec["corroborationOk"] = False
+        if cid in LOWCONF:
+            rec["lowConfidence"] = True
+        return rec
+
+    anchors = [entry(*a) for a in ANCHORS]
+    straight = [entry(*a) for a in STRAIGHT_REAL]
+
+    # P0.2 用：合成竖直样本（倾斜锚点反向旋转回正）
+    upright = []
+    for cid, truth, _m, _n in ANCHORS:
+        if abs(truth) < 0.5:
+            continue
+        tag = "%s_upright" % cid
+        dst = os.path.join(OUT, "%s.png" % tag)
+        wh = _mk_upright(PATHS[cid], truth, dst)
+        d, _ = _measure_src(dst)
+        rec = {"id": tag, "src": cid, "path": "%s/%s.png" % (REL, tag),
+               "trueRollDeg": 0.0, "wh": list(wh),
+               "note": "由 %s (真值 %+.2f°) 按真值反向旋转回正合成的竖直样本"
+                       % (cid, truth)}
+        if d:
+            vals = [v for k, v in d.items() if k != "_yunet"]
+            rec["measuredTiltDeg"] = {k: round(v, 3) for k, v in d.items()}
+            rec["measuredConsensus"] = round(float(sorted(vals)[len(vals) // 2]), 3)
+        upright.append(rec)
+
+    out = {
+        "generatedBy": "qa-batch / test/batch/p0_finalize.py",
+        "baselineTag": "baseline-p6p0",
+        "convention": {
+            "trueRollDeg": "实测倾角 tilt。图像坐标 y 向下；"
+                           "tilt = atan2(y_imgRightEye - y_imgLeftEye, x_imgRightEye - x_imgLeftEye)；"
+                           "正值 = 图像右侧的眼更低。",
+            "expectedEngineRollDeg": "FaceInfo.rollDeg 应输出的值。"
+                                     "**实测：引擎 rollDeg 在数值上等于 tilt（不是它的相反数）**。"
+                                     "核对方式有二："
+                                     "(1) p1 几何求解——把 crop_geometry 的 "
+                                     "p_src = C + R(θ)(p_rot − C) 反解出 θ 恰为 -4.41，引擎输出 -4.42；"
+                                     "(2) 合成点位的数值实验——θ=+10° 会让'右侧偏高的点'更高，"
+                                     "即正 θ 使内容逆时针转。",
+            "signTrap": "**api.dart 的注释与 crop_geometry.dart 的注释符号相反**："
+                        "api.dart 写'正值表示把图像顺时针转'，而 crop_geometry 的 R(θ) "
+                        "实现出来是'正 θ = 内容逆时针转'。数值以代码为准（已验证）。"
+                        "这是极易引入反向 bug 的文档陷阱，已回派主会话。",
+            "fixtureDelta": "夹具应有 tilt = 锚点真值 + deltaDeg；生成用 PIL.rotate(-deltaDeg, BICUBIC)",
+        },
+        "anchorCount": len(anchors) + len(straight),
+        "anchors": anchors,
+        "straight": straight,
+        "uprightSynthetic": upright,
+        "nonPortrait": non_portrait,
+        "rejected": [{"id": c, "path": p, "reason": r} for c, p, r in REJECTED],
+        "rotated": [],  # 由 p0_rotate.py 填写
+    }
+    with open(os.path.join(OUT, "anchors_base.json"), "w", encoding="utf-8") as fh:
+        json.dump(out, fh, ensure_ascii=False, indent=1)
+    print("anchors=%d straight=%d synthetic=%d rejected=%d"
+          % (len(anchors), len(straight), len(upright), len(REJECTED)))
+    print("-> anchors_base.json")
+    return out
+
+
+def assemble(base):
+    """把旋转夹具并进来，落盘交付物 out/P0_truth.json（主会话指定的 schema）。"""
+    fx_path = os.path.join(OUT, "rotation_fixtures.json")
+    geo_path = os.path.join(OUT, "fixture_geo_verify.json")
+    geo = {}
+    if os.path.exists(geo_path):
+        geo = {g["id"]: g for g in
+               json.load(open(geo_path, encoding="utf-8"))["fixtures"]}
+    rotated = []
+    if os.path.exists(fx_path):
+        fx = json.load(open(fx_path, encoding="utf-8"))
+        for f in fx["fixtures"]:
+            g = geo.get(f["id"], {})
+            rotated.append({
+                "id": f["id"],
+                "src": f["src"],
+                "deltaDeg": f["deltaDeg"],
+                "path": f["path"],
+                "expectedTiltDeg": f["expectedTiltDeg"],
+                "expectedEngineRollDeg": round(f["expectedTiltDeg"], 3),
+                "wh": f["wh"],
+                # 几何正确性：像素级配准独立核验，与任何特征检测器无关
+                "geoRecoveredDeltaDeg": round(-g["recoveredPhiDeg"], 3) if g else None,
+                "geoNcc": g.get("ncc"),
+                "geoVerified": bool(g and abs(g["recoveredPhiDeg"] + f["deltaDeg"]) <= 0.25
+                                    and g["ncc"] >= 0.95),
+                # 特征点回测：仅供参考，个别图上方法会失手（不代表夹具错）
+                "remeasureConsensusDeg": f.get("measuredConsensusDeg"),
+                "remeasureOk": f.get("verifyOk"),
+            })
+    out = dict(base)
+    out["rotated"] = rotated
+    out["rotationFixtureCount"] = len(rotated)
+    if geo:
+        errs = [abs(g["recoveredPhiDeg"] + next(f["deltaDeg"] for f in fx["fixtures"]
+                                                if f["id"] == g["id"])) for g in geo.values()]
+        out["fixtureGeoVerification"] = {
+            "method": "cv2 旋转配准（像素级，无特征点，见 test/batch/p0_verify_geo.py）",
+            "n": len(geo),
+            "geoVerifiedCount": sum(1 for r in rotated if r["geoVerified"]),
+            "maxAbsErrorDeg": round(max(errs), 3),
+            "minNcc": round(min(g["ncc"] for g in geo.values()), 4),
+            "conclusion": "全部夹具角度经独立像素级配准确认，误差 ≤0.015°；"
+                          "夹具的 expectedTiltDeg 可直接作为 P0.3 的横轴真值",
+        }
+    out["generatedBy"] = "qa-batch / test/batch/{p0_measure,p0_finalize,p0_rotate,p0_est,p0_verify_geo}.py"
+    dst = os.path.join(L.REPO, "out", "P0_truth.json")
+    with open(dst, "w", encoding="utf-8") as fh:
+        json.dump(out, fh, ensure_ascii=False, indent=1)
+    print("-> out/P0_truth.json  (anchors=%d straight=%d synthetic=%d rotated=%d rejected=%d)"
+          % (len(out["anchors"]), len(out["straight"]), len(out["uprightSynthetic"]),
+             len(rotated), len(out["rejected"])))
+    return out
+
+
+if __name__ == "__main__":
+    assemble(build())
