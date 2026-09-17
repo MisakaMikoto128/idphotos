@@ -135,6 +135,10 @@ Future<RunResult> git(List<String> args) =>
 /// 后者会给攻击者一个"塞 81 个空格就隐形"的窗口。
 const String kEmptyCatchPattern = r'catch\s*\(\s*[A-Za-z_]*\s*\)\s*\{\s*\}';
 
+/// 判据的分母（真值文件）。与 `gate_P0.dart` 的 `kTruthPath` 同值——
+/// 这里重复写一次，是为了让 `anticheat.dart` 不反向依赖 `gate_P0.dart`。
+const String kTruthPathForEvidence = 'out/P0_truth.json';
+
 /// 被扫描的源码扩展名。**显式列出并在报告里回显**——
 /// "我扫了什么"和"我什么都没找到"必须分得开。
 const Set<String> kScannedExtensions = <String>{
@@ -559,6 +563,9 @@ Future<Map<String, dynamic>> patrol({
   int? prevGoldenSrcCount,
   int? prevGoldenRefCount,
   Set<String> selfTouched = const <String>{},
+  List<String> unhashable = const <String>[],
+  List<String> judgmentInputDrift = const <String>[],
+  String judgmentInputNote = '',
 }) async {
   final List<Violation> violations = <Violation>[];
   final Map<String, dynamic> evidence = <String, dynamic>{};
@@ -778,7 +785,26 @@ Future<Map<String, dynamic>> patrol({
   }
 
   // ---- 条款 2：gate 脚本 SHA256 ----
+  //
+  // 「哈希表里缺项」的处置，**明写在这里**，免得将来各自解释：
+  //  - 上一轮在、本轮**消失**，且不在 gatekeeper 自报清单里 → 记 diff（原样保留）；
+  //  - 本轮**算不出哈希**（文件读不出来）→ 进 `unhashable`，**不从表里悄悄消失**，
+  //    并在 AC 条目里报"不可判"。上一版就是这里静默少报：
+  //    `if (s != null) h[p] = s;` 让算不出来的文件直接蒸发。
   final List<String> hashDiffs = <String>[];
+  evidence['unhashable'] = unhashable;
+  if (unhashable.isNotEmpty) {
+    for (final String p in unhashable) {
+      undecidable.add('条款 2：$p 算不出哈希（本轮的哈希表里没有它）');
+    }
+    violations.add(Violation(
+      '2',
+      unhashable.first,
+      '未定位',
+      '有 ${unhashable.length} 个受钉文件算不出哈希：${unhashable.take(5).join("、")}'
+          '——不判"清白"，改判"不可判"',
+    ));
+  }
   if (prevHashes == null || prevHashes.isEmpty) {
     evidence['hash_note'] = '首轮无 out/hashes_prev.txt 基线，本轮建立（条款 2 首轮不判 FAIL）';
   } else {
@@ -796,6 +822,24 @@ Future<Map<String, dynamic>> patrol({
     }
   }
   evidence['hash_diffs'] = hashDiffs;
+
+  // ---- 条款 2 补：判据的**输入**（真值文件）不许被改 ----
+  //
+  // 哈希表管的是"考卷"；真值文件是**判据的分母**，此前进不了任何检查。
+  // 这里判的不是整文件哈希，而是**数值叶逐叶比对**：
+  // 合法的表述订正（整文件哈希变、数值一个没动）登记为豁免；
+  // **数值动了一个就判 FAIL**。
+  evidence['judgment_input_note'] = judgmentInputNote;
+  evidence['judgment_input_numeric_changes'] = judgmentInputDrift;
+  if (judgmentInputDrift.isNotEmpty) {
+    violations.add(Violation(
+      '2',
+      kTruthPathForEvidence,
+      '未定位',
+      '判据分母（真值）相对基线被改：${judgmentInputDrift.take(5).join("；")}'
+          '${judgmentInputDrift.length > 5 ? " …共 ${judgmentInputDrift.length} 处" : ""}',
+    ));
+  }
 
   return <String, dynamic>{
     'baseline': baseline,

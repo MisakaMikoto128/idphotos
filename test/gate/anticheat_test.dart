@@ -22,6 +22,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'dart:io';
 
 import '../../tools/gate/anticheat.dart';
+import '../../tools/gate/gate_P0.dart' as gate;
 
 /// 探针文件名：故意用 `.tmp` 后缀且放在 tools/gate/ 下，测完立刻删除。
 /// **必须在 finally 里删**——留下它就是给下一轮的门禁埋一个"工作树脏"。
@@ -345,5 +346,93 @@ void main() {
     expect(hitPath('test/gate/x.dart:12: catch (_) {}'), 'test/gate/x.dart');
     expect(hitPath('没有行号的怪东西'), '没有行号的怪东西');
     expect(isScannerSelfTerritory(hitPath('没有行号的怪东西')), false);
+  });
+
+  test('J 判据分母（真值文件）钉住了：数值动一个就 FAIL，纯表述订正放行', () {
+    // 缺陷原样：`out/P0_truth.json` 装的是全部 P0 判据的**分母**，
+    // 而它既不在冻结范围、也不在哈希表里 —— baseline 之后改一个真值，
+    // 两处都不响。这是"为通过而放宽"最短的一条路，比改阈值隐蔽得多。
+    // 2026-09-17 qa-batch 确实改过这个文件（改得对），但**门禁本来不会发现**。
+    final Directory tmp = Directory.systemTemp.createTempSync('gate_truth_');
+    try {
+      final String truth = '${tmp.path}/truth.json'.replaceAll('\\', '/');
+      final String base = '${tmp.path}/baseline.txt'.replaceAll('\\', '/');
+
+      // ① 数值叶抽取：只认数，不认措辞。
+      final List<String> leaves = gate.numericLeaves(<String, dynamic>{
+        'a': 1.5,
+        'b': <String, dynamic>{'c': -0.11, 'note': '真值'},
+        'd': <dynamic>[1, 2.25],
+        'e': true,
+      });
+      expect(leaves, <String>['a=1.5', 'b.c=-0.11', 'd[0]=1', 'd[1]=2.25'],
+          reason: '布尔与字符串不是判据分母，不许混进来；顺序必须稳定');
+
+      // ② 首轮：建立基线，不判 FAIL。
+      File(truth).writeAsStringSync('{"anchors":[{"id":"c11","trueRollDeg":-0.11}]}');
+      final gate.TruthDrift first = gate.truthDrift(truthPath: truth, baselinePath: base);
+      expect(first.baselineEstablished, true);
+      expect(first.numericChanges, <String>[]);
+      expect(first.leafCount, 1);
+
+      // ③ 改一个数值 → 必须报出来（这就是"改真值放行"那条路）。
+      File(truth).writeAsStringSync('{"anchors":[{"id":"c11","trueRollDeg":-0.05}]}');
+      final gate.TruthDrift changed = gate.truthDrift(truthPath: truth, baselinePath: base);
+      expect(changed.baselineEstablished, false);
+      expect(changed.numericChanges.length, 1);
+      expect(changed.numericChanges.first.contains('anchors[0].trueRollDeg'), true);
+      expect(changed.numericChanges.first.contains('-0.11 → -0.05'), true,
+          reason: '必须报出旧值与新值，否则没法回派');
+
+      // ④ **纯表述订正**：数值一个没动、整文件哈希变了 → 登记为豁免，不判 FAIL。
+      //    qa-batch 在 c11df1c 做的那次就是这个形状，通道必须留着。
+      File(truth).writeAsStringSync(
+          '{"anchors":[{"id":"c11","trueRollDeg":-0.11,"note":"口径 6 订正后的表述"}]}');
+      final gate.TruthDrift wording = gate.truthDrift(truthPath: truth, baselinePath: base);
+      expect(wording.numericChanges, <String>[], reason: '数值没动就不许报改动');
+      expect(wording.wordingOnly, true, reason: '整文件哈希变了、数值没动 → 表述订正');
+      expect(wording.describe().contains('表述差异'), true);
+
+      // ⑤ 删掉一个数值叶也算改动（否则"删掉不好看的样本"就没人拦）。
+      File(truth).writeAsStringSync('{"anchors":[]}');
+      final gate.TruthDrift removed = gate.truthDrift(truthPath: truth, baselinePath: base);
+      expect(removed.numericChanges.length, 1);
+      expect(removed.numericChanges.first.contains('删除'), true);
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  });
+
+  test('K 巡检失败时必须报"不可判"，不许从表里静默消失', () async {
+    // `_sha256` 原来的失败模式：算不出来 `return null`，调用方
+    // `if (s != null) h[p] = s;` → 该文件**从哈希表里蒸发**，不报错、不标不可判。
+    // 与条款 3/5 的 grep 事故是同一个形状。这里从**巡检出口**验它：
+    // 传进去一个"算不出哈希"的文件，必须变成违规 + 不可判，而不是无声无息。
+    final Map<String, dynamic> ac = await patrol(
+      baseline: 'baseline-p6p0',
+      currentHashes: <String, String>{},
+      prevHashes: null,
+      goldenSrcCount: 8,
+      goldenRefCount: 8,
+      unhashable: <String>['tools/gate/ghost.dart'],
+      judgmentInputDrift: <String>['anchors[0].trueRollDeg: -0.11 → -0.05'],
+      judgmentInputNote: '测试桩',
+    );
+
+    final List<Map<String, dynamic>> vs =
+        (ac['violations'] as List<dynamic>).cast<Map<String, dynamic>>();
+    expect(
+        vs.any((Map<String, dynamic> v) =>
+            v['clause'] == '2' && '${v['path']}'.contains('ghost.dart')),
+        true,
+        reason: '算不出哈希的文件必须报出来，不许从表里消失');
+    expect(
+        vs.any((Map<String, dynamic> v) =>
+            v['clause'] == '2' && '${v['detail']}'.contains('trueRollDeg')),
+        true,
+        reason: '判据分母被改必须判违规——这条以前完全没人守');
+    expect((ac['undecidable'] as List<dynamic>).isNotEmpty, true,
+        reason: '哈希算不出来属于"巡检自己判不了"，不得当清白');
+    expect(ac['clean'], false, reason: '有违规就不是清白');
   });
 }

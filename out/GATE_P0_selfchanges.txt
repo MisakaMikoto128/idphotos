@@ -13,3 +13,4 @@ tools/gate/rot_dir_check.dart
 test/gate/p0_gate_judgment_test.dart
 tools/gate/gate_G5B.dart
 test/gate/anticheat_test.dart
+tools/gate/sha256.dart

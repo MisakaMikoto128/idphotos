@@ -27,6 +27,7 @@ import 'dart:math' as math;
 
 import 'anticheat.dart';
 import 'gate_common.dart';
+import 'sha256.dart';
 
 const String kBaseline = 'baseline-p6p0';
 
@@ -144,7 +145,11 @@ Future<void> main(List<String> args) async {
   }
   if (round == 0) round = _nextRound();
 
-  final Map<String, String> hashes = _hashGateSources();
+  final HashScan hs = hashScan();
+  final Map<String, String> hashes = hs.hashes;
+  // 判据分母（真值文件）的数值叶漂移。**必须在读输入之前算**，
+  // 否则本轮读数就可能已经建立在被改过的真值上而不自知。
+  final TruthDrift drift = truthDrift();
   File('out/hashes_P0_r${round}_pre.txt')
     ..parent.createSync(recursive: true)
     ..writeAsStringSync(_formatHashes(hashes));
@@ -235,7 +240,15 @@ Future<void> main(List<String> args) async {
   };
 
   final List<Map<String, dynamic>> items = evaluateP0(inputs);
-  await _finish(outPath: outPath, round: round, items: items, hashes: hashes, inputs: inputs);
+  await _finish(
+    outPath: outPath,
+    round: round,
+    items: items,
+    hashes: hashes,
+    inputs: inputs,
+    hashScanResult: hs,
+    truthDriftResult: drift,
+  );
 }
 
 /// 本轮输入是否来自**同一个被冻结、被标识的代码状态**。
@@ -1072,6 +1085,8 @@ Future<void> _finish({
   required List<Map<String, dynamic>> items,
   required Map<String, String> hashes,
   required Map<String, dynamic> inputs,
+  required HashScan hashScanResult,
+  required TruthDrift truthDriftResult,
 }) async {
   final Map<String, String>? prev =
       _readHashes(File(kHashesRolling).existsSync() ? kHashesRolling : null);
@@ -1086,11 +1101,17 @@ Future<void> _finish({
     prevGoldenSrcCount: _readCount(kHashesRolling, 'golden_src'),
     prevGoldenRefCount: _readCount(kHashesRolling, 'golden_ref'),
     selfTouched: _selfTouched(),
+    unhashable: hashScanResult.unhashable,
+    judgmentInputDrift: truthDriftResult.numericChanges,
+    judgmentInputNote: truthDriftResult.describe(),
   );
   inputs['anticheat'] = ac;
   inputs['qaResidual'] = _readJson('out/P0_output_residual.json');
   inputs['acSummary'] = '黄金集 src=$srcCount ref=$refCount；'
       'skip/catch 扫描：${_scanSummary(ac)}；'
+      '**判据分母（$kTruthPath）**：${truthDriftResult.describe()}；'
+      '受钉文件 ${hashes.length} 个'
+      '${hashScanResult.unhashable.isEmpty ? "" : "，**另有 ${hashScanResult.unhashable.length} 个算不出哈希（已判不可判，未从表中消失）**"}；'
       '基线 $kBaseline 以来 test/ tools/gate/ ACCEPTANCE/RUBRIC 无实现类 agent 改动；'
       '门禁自身未提交改动 ${_selfTouched().length} 个，已在 out/GATE_P0_selfchanges.txt 逐条自报';
   // AC 条目要吃 patrol 结果，而 patrol 依赖本轮的哈希与黄金集计数，
@@ -1128,35 +1149,222 @@ int _nextRound() {
   return r;
 }
 
-Map<String, String> _hashGateSources() {
+/// 哈希扫描的结果：算出来的哈希 + **算不出来的**文件。
+///
+/// 后者必须单独带出来：让它"从表里消失"就是静默少报。
+class HashScan {
+  final Map<String, String> hashes;
+  final List<String> unhashable;
+  HashScan(this.hashes, this.unhashable);
+}
+
+/// 判据的**输入**也钉住 —— 不只是"考卷"。
+///
+/// `$kTruthPath` 装的是每条夹具的真值，也就是**全部 P0 判据的分母**。
+/// 它此前两边都不在：`kFreezeScopes` 只有 lib/test/tools/docs；
+/// `hashScan` 只有 tools/gate、test/gate、integration_test、ACCEPTANCE、RUBRIC。
+/// 于是 baseline 之后**改一个真值**，冻结检查不响、哈希比对也不响 ——
+/// 这是"为通过而放宽"最短的一条路，比改阈值隐蔽得多（阈值至少还有常数清单可核）。
+/// 2026-09-17 qa-batch 在 `c11df1c` 里确实改过这个文件（改得诚实且正确），
+/// 但**门禁本来不会发现**：一个只在当事人自觉时才存在的检查，不是检查。
+const List<String> kPinnedJudgmentInputs = <String>[kTruthPath];
+
+/// 判据分母的**数值叶基线**。首行 `sha256=<整文件哈希>`，其后每行一个 `路径=数值`。
+/// 用数值叶而不是整文件哈希，是为了给**合法表述订正**留一条通道：
+/// 表述变了、数值一个没动 → 登记为豁免；**数值动了一个 → 判 FAIL**。
+const String kTruthLeavesBaselinePath = 'out/hashes_P0_truth_leaves_baseline.txt';
+
+/// 把 JSON 里所有**数值叶**抽成 `路径=值` 的排序列表。
+/// 布尔与字符串不算：本门禁关心的是判断用的数，不是措辞。
+List<String> numericLeaves(Object? node) {
+  final List<String> out = <String>[];
+  void walk(Object? n, String p) {
+    if (n is Map) {
+      final List<String> ks =
+          n.keys.map((Object? k) => k.toString()).toList()..sort();
+      for (final String k in ks) {
+        walk(n[k], p.isEmpty ? k : '$p.$k');
+      }
+    } else if (n is List) {
+      for (int i = 0; i < n.length; i++) {
+        walk(n[i], '$p[$i]');
+      }
+    } else if (n is num) {
+      out.add('$p=$n');
+    }
+  }
+
+  walk(node, '');
+  out.sort();
+  return out;
+}
+
+HashScan hashScan() {
   final Map<String, String> h = <String, String>{};
+  final List<String> unhashable = <String>[];
+  void take(String p) {
+    final String? s = _sha256(p);
+    if (s == null) {
+      unhashable.add(p);
+    } else {
+      h[p] = s;
+    }
+  }
+
   for (final String dir in <String>['tools/gate', 'test/gate', 'integration_test']) {
     final Directory d = Directory(dir);
     if (!d.existsSync()) continue;
-    for (final FileSystemEntity e in d.listSync(recursive: true)) {
+    final List<FileSystemEntity> es = d.listSync(recursive: true)
+      ..sort((FileSystemEntity a, FileSystemEntity b) => a.path.compareTo(b.path));
+    for (final FileSystemEntity e in es) {
       if (e is! File) continue;
-      final String p = e.path.replaceAll('\\', '/');
-      final String? s = _sha256(p);
-      if (s != null) h[p] = s;
+      take(e.path.replaceAll('\\', '/'));
     }
   }
-  for (final String p in <String>['docs/ACCEPTANCE.md', 'docs/RUBRIC.md']) {
-    final String? s = _sha256(p);
-    if (s != null) h[p] = s;
+  for (final String p in <String>[
+    'docs/ACCEPTANCE.md',
+    'docs/RUBRIC.md',
+    ...kPinnedJudgmentInputs,
+  ]) {
+    take(p);
   }
-  return h;
+  return HashScan(h, unhashable);
 }
-
+/// 算一个文件的 SHA-256。**算不出来返回 null，由调用方登记为"不可判"**。
+///
+/// 上一版调 `sha256sum` 子进程，失败模式是**静默少报**：`exitCode != 0` 或空输出
+/// 就返回 null，调用方 `if (s != null) h[p] = s;` 于是该文件**从哈希表里直接消失**，
+/// 不报错、不标不可判。这与条款 3/5 的 `grep` 事故是同一个形状 ——
+/// **仪表失败时报告"更少"，而不是"看不到"。**
+/// 现在改用纯 Dart 实现（`tools/gate/sha256.dart`，已对 NIST 向量与 `sha256sum`
+/// 逐位校验），不再依赖外部进程，`null` 只剩"文件读不出来"这一种含义。
 String? _sha256(String path) {
   try {
-    final ProcessResult r = Process.runSync('sha256sum', <String>[path], runInShell: true);
-    if (r.exitCode != 0) return null;
-    final String s = (r.stdout as String).trim();
-    if (s.isEmpty) return null;
-    return s.split(RegExp(r'\s+')).first;
+    final File f = File(path);
+    if (!f.existsSync()) return null;
+    return sha256Hex(f.readAsBytesSync());
   } catch (_) {
     return null;
   }
+}
+
+/// 真值文件（判据分母）相对**基线**的漂移。
+///
+/// 为什么要有它：`out/P0_truth.json` 装的是每条夹具的真值，也就是全部 P0 判据的
+/// 分母。此前它既不在冻结范围、也不在哈希表里，于是 baseline 之后**改一个真值**
+/// 两处都不响。这是"为通过而放宽"最短的一条路。
+///
+/// 但要给**合法表述订正**留通道（qa-batch 在 `c11df1c` 就做过一次正确的表述订正）：
+/// 所以判的不是整文件哈希，而是**数值叶逐叶比对** ——
+/// 表述变了、数值一个没动 ⇒ 登记为豁免；**数值动了一个 ⇒ FAIL**。
+class TruthDrift {
+  final String path;
+  final bool baselineEstablished;
+  final List<String> numericChanges;
+  final bool wordingOnly;
+  final int leafCount;
+  final String? currentHash;
+  final String? baselineHash;
+
+  TruthDrift({
+    required this.path,
+    required this.baselineEstablished,
+    required this.numericChanges,
+    required this.wordingOnly,
+    required this.leafCount,
+    required this.currentHash,
+    required this.baselineHash,
+  });
+
+  String describe() {
+    if (baselineEstablished) {
+      return '$path 首轮建立数值叶基线（$leafCount 个数值叶），本轮不判 FAIL';
+    }
+    if (numericChanges.isNotEmpty) {
+      return '**$path 的数值叶相对基线改动了 ${numericChanges.length} 处**'
+          '：${numericChanges.take(10).join("；")}'
+          '${numericChanges.length > 10 ? " …" : ""}';
+    }
+    if (wordingOnly) {
+      return '$path 相对基线**只有表述差异**（整文件哈希变了、'
+          '$leafCount 个数值叶一个没动）→ 登记为豁免，不判 FAIL';
+    }
+    return '$path 相对基线无变化（$leafCount 个数值叶）';
+  }
+}
+
+TruthDrift truthDrift({
+  String truthPath = kTruthPath,
+  String baselinePath = kTruthLeavesBaselinePath,
+}) {
+  final Object? json = _readJson(truthPath);
+  final List<String> leaves = json == null ? <String>[] : numericLeaves(json);
+  final String? curHash = _sha256(truthPath);
+  final File f = File(baselinePath);
+
+  Map<String, String> asMap(List<String> ls) {
+    final Map<String, String> m = <String, String>{};
+    for (final String l in ls) {
+      final int i = l.indexOf('=');
+      if (i > 0) m[l.substring(0, i)] = l.substring(i + 1);
+    }
+    return m;
+  }
+
+  if (!f.existsSync()) {
+    f
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync('sha256=${curHash ?? "?"}\n${leaves.join("\n")}\n');
+    return TruthDrift(
+      path: truthPath,
+      baselineEstablished: true,
+      numericChanges: <String>[],
+      wordingOnly: false,
+      leafCount: leaves.length,
+      currentHash: curHash,
+      baselineHash: null,
+    );
+  }
+
+  final List<String> lines = f.readAsLinesSync();
+  final String? baseHash = lines.isNotEmpty && lines.first.startsWith('sha256=')
+      ? lines.first.substring(7).trim()
+      : null;
+  final Map<String, String> b = asMap(lines
+      .skip(1)
+      .map((String l) => l.trim())
+      .where((String l) => l.isNotEmpty)
+      .toList());
+  final Map<String, String> c = asMap(leaves);
+
+  final List<String> changes = <String>[];
+  for (final MapEntry<String, String> e in c.entries) {
+    final String? old = b[e.key];
+    if (old == null) {
+      changes.add('${e.key}: 新增 ${e.value}');
+    } else if (old != e.value) {
+      changes.add('${e.key}: $old → ${e.value}');
+    }
+  }
+  for (final MapEntry<String, String> e in b.entries) {
+    if (!c.containsKey(e.key)) changes.add('${e.key}: 删除（原 ${e.value}）');
+  }
+  changes.sort();
+
+  final bool wordingOnly = changes.isEmpty &&
+      baseHash != null &&
+      curHash != null &&
+      baseHash != curHash;
+
+  return TruthDrift(
+    path: truthPath,
+    baselineEstablished: false,
+    numericChanges: changes,
+    wordingOnly: wordingOnly,
+    leafCount: leaves.length,
+    currentHash: curHash,
+    baselineHash: baseHash,
+  );
 }
 
 String _formatHashes(Map<String, String> h) {

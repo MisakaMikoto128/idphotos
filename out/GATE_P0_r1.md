@@ -1,6 +1,6 @@
 ## G2B-P0 第 1 轮：**作废（本轮无效，不是对代码的判决）**
 ## 通过 0 / 10 项，MANUAL 项 10 个（全部条目因本轮输入不可信而作废）
-## 脚本完整性：OK（本轮自报改动：10 个，见 out/GATE_P0_selfchanges.txt）
+## 脚本完整性：OK（本轮自报改动：11 个，见 out/GATE_P0_selfchanges.txt）
 ## 防作弊巡查：清白
 
 ### 事后勘误（2026-09-17 追加；不推翻下方任何原始结论，只标注哪些证据当时是空的）
@@ -28,7 +28,7 @@ ml-porting 有 3 次修复机会，对应门禁运行 **r2 / r3 / r4**；r4 仍 
 
 
 ### 本轮输入的一致性（读数绑在哪个版本上）
-- HEAD = `c11df1c`；判 selfcheck 那几条（P0.5a）编译自**工作树**，不是这个 commit。
+- HEAD = `7193ba2`；判 selfcheck 那几条（P0.5a）编译自**工作树**，不是这个 commit。
 - `git status lib/` **不干净**（1 个文件）：`M lib/core/matting/iris_roll.dart`。
 - **结论：本轮读数绑定不到任何 commit。** 其中 P0.1a / P0.2 / P0.3a / P0.3b 来自 `out/P0_compose_items.jsonl`（qa-batch 在它自己那一版工作树上产出），P0.5a 来自本机**当前**工作树编译的 `dev_selfcheck` —— 两半可能不是同一版代码。修掉的办法只有一个：运行期间冻结 `lib/`，开跑前 `git status lib/` 必须干净。
 - **冻结范围**：`lib` / `test` / `tools` / `docs` **全部在冻结内**；唯一豁免 `docs/PITFALLS.md` 这一个文件（它不进任何测量链——门禁不读它、判据不引用它、读数不经过它；且 CLAUDE.md §4 规定所有 agent 可随时只追加）。**`docs/` 里除它以外的任何改动（含 `ACCEPTANCE.md`/`RUBRIC.md`/`CONTRACTS.md`/`DESIGN.md`/`ENV.md`）仍会作废整轮。**本轮无豁免条目。
@@ -119,7 +119,7 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
 #### P0.1a FAIL [MANUAL]
 - 期望：|residual| ≤ 1.5，中位 ≤ 1.0，样本 ≥ 8 张不同照片（数**不同照片**，不数行数）
 - 实测：
-  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**
+  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在**
   原判定依据（**不作为判决**）：
   可计分锚点 11 条 = **10 张不同照片**，下限 8 张不同照片
   去重口径出自 `out/gate_P0_overlap.json`（48×48 灰度签名逐对 MAE，≤5.0 记同图）：本轮判定 `c03≡c04` 为同一张照片（同图不同分辨率），故 11 行 → 10 张。**该量具分辨不了 `c10`/`c11`/`c12` 这类"同一场景的不同取景"**，声明不参与那三者的判定；法典条款 6 @ `98f3331` 裁定它们是**三张不同照片**、各自计数。量具不去重它们，方向上是保守的（只会让计数偏高、更容易过下限），因此不会制造假 FAIL，但也**不能**反过来用它论证"三张里有两张其实是同一张"。原始锚点栏 12 条，`p2` 不在锚点栏——它同现于 anchors 与 straight，成片台按 id 合并后归入 straight。
@@ -139,14 +139,14 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
 #### P0.1b FAIL [MANUAL]
 - 期望：需要摆正的 8 条锚点上 unavailable = 0
 - 实测：
-  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**
+  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在**
   原判定依据（**不作为判决**）：
   需要摆正（|truth| > 1.5°）的锚点 8 条，其中 unavailable 0 条
   |truth| ≤ 1.5° 而返回 unavailable 的 1 条，按口径 2 可接受：c11(-0.110)
 #### P0.2 FAIL [MANUAL]
 - 期望：|residual| ≤ 1.5 且 9 张 uprightSynthetic 全部 source=pupil
 - 实测：
-  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**
+  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在**
   原判定依据（**不作为判决**）：
   竖直样本 10 条（用户 2.jpg 1 条 + 合成竖直 9 条，后者下限 9 条），max|残余| = 0.637
   uprightSynthetic 来源分布：{pupil: 9}（全部 pupil）
@@ -163,7 +163,7 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
 #### P0.3a FAIL [MANUAL]
 - 期望：② 斜率 |·| ≤ 0.15、|截距| ≤ 0.5°、max|残余| ≤ 1.5°
 - 实测：
-  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**
+  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在**
   原判定依据（**不作为判决**）：
   ② 硬判据：残余 vs 真值 斜率 = -0.013（|·| ≤ 0.15），截距 = 0.279°（|·| ≤ 0.5），max|残余| = 11.368°（≤ 1.5）
   超 1.5° 的夹具 1 条：c06_d-3(11.368°)
@@ -174,7 +174,7 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
 #### P0.3b FAIL [MANUAL]
 - 期望：需要摆正的 67 条夹具上 unavailable = 0
 - 实测：
-  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**
+  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在**
   原判定依据（**不作为判决**）：
   违规 9 条（需要摆正 |truth| > 1.5° 却返回 unavailable）：c01_d+10(truth 8.700°)、c04_d-10(truth -13.820°)、c04_d-5(truth -8.820°)、c08_d-5(truth -13.010°)、c11_d-10(truth -10.110°)、c11_d-5(truth -5.110°)、c11_d-3(truth -3.110°)、c11_d+5(truth 4.890°)、c11_d+10(truth 9.890°)——这 9 条成片未施加任何旋转，仍歪着对应角度
   旋转夹具原始总数 78 条，需要摆正 67 条
@@ -183,7 +183,7 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
 #### P0.4 FAIL [MANUAL]
 - 期望：unavailable 样本施加角 = 0 的违规数 = 0，且不得出现 source=given
 - 实测：
-  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**
+  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在**
   原判定依据（**不作为判决**）：
   全量可合成样本 100 条，来源分布：{pupil: 89, unavailable: 11}
   锚点：{pupil: 11, unavailable: 1}；竖直：{pupil: 10}；夹具：{pupil: 68, unavailable: 10}
@@ -191,7 +191,7 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
 #### P0.5a FAIL [MANUAL]
 - 期望：退出码 0 且 通过 ≥ 9、失败 = 0
 - 实测：
-  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**
+  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在**
   原判定依据（**不作为判决**）：
   退出码=0；解析到 通过=9 失败=0（命中「+9」）
   ...(截断)...
@@ -243,7 +243,7 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
     roll=-10° 框心=(960,1360) 裁剪框=460.0×644.0 越界=0.0% 图外非白像素=0
     roll=-10° 框心=(500,-800) 裁剪框=460.0×644.0 越界=100.0% 图外非白像素=0
     最大越界比例=100.0% 图外非白像素（最差单张）=0 (阈值 0)
-  00:24 +7: 2B.9 边界安全（贴边人脸不抛异常、无黑边）
+  00:23 +7: 2B.9 边界安全（贴边人脸不抛异常、无黑边）
   [2B.9]
     setup0 完成，越界比例=26.0% 缩小=false 说明=裁剪框越界 26.0%（越出部分按 alpha=0 填底色）
     setup1 完成，越界比例=28.7% 缩小=false 说明=裁剪框越界 28.7%（越出部分按 alpha=0 填底色）
@@ -251,7 +251,7 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
     setup3 完成，越界比例=7.6% 缩小=true 说明=人脸过于贴边/过大，已按头顶锚点缩到越界 ≤ 45%：头高比 1.307（目标 0.640），越界 7.6% 填底色
     setup4 完成，越界比例=31.0% 缩小=false 说明=裁剪框越界 31.0%（越出部分按 alpha=0 填底色）
     图外区域出现的非底色像素总数（最差单张）=0 (阈值 0)
-  00:27 +8: 渐变底与去色边质量（蓝渐变 / 白底，合成原片）
+  00:26 +8: 渐变底与去色边质量（蓝渐变 / 白底，合成原片）
   [渐变] 顶部=(97,138,206) 期望≈(98,139,206) 底部=(43,89,160) 期望≈(43,90,160)
   [去色边] 换白底后残留蓝边像素=0 (阈值 0)
   00:27 +9: All tests passed!
@@ -261,7 +261,7 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
 #### P0.5b FAIL [MANUAL]
 - 期望：两个**分开报**的子量都要过：① 施加几何 —— SIFT 实测施加角 vs 生产记录 |差| ≤ 1.5°；② 跨量具一致性 —— 眼线实测残余 vs (真值−施加角) ≤ 1.5°
 - 实测：
-  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**
+  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在**
   原判定依据（**不作为判决**）：
   ①【判据量·施加几何】SIFT 源图↔成片配准，可配准 100 条，实测施加角 vs 生产记录 |差| 最大 0.070° （阈值 1.5°，余量 1.430°）—— 此项不读眼线、不读 alpha、不读生产诊断，是 2B.8 本体的直接测量
   ②【辅助量·跨量具一致性】眼线路径，可实测夹具 90 条，|眼线实测残余 − (真值−施加角)| 最大 1.450° （阈值 1.5°，余量 0.050°，眼线量具自检误差 0.413°）—— 这个量把**量具噪声**和几何误差混在一起，余量小于量具误差，**不作为定罪依据**
@@ -269,7 +269,7 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
 #### P0.5c FAIL [MANUAL]
 - 期望：原本通过的项重跑后仍 PASS；本项需重跑才能判定
 - 实测：
-  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**
+  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在**
   原判定依据（**不作为判决**）：
   本轮未重跑设备端（上游 P0.3a/P0.3b 未修好时重跑不产生新信息，一轮约 40 分钟）。
   既有 gate 结果里的未过项：G4/4.7
@@ -277,23 +277,23 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
 #### AC FAIL [MANUAL]
 - 期望：0 命中
 - 实测：
-  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在**
+  **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在**
   原判定依据（**不作为判决**）：
-  清白（黄金集 src=8 ref=8；skip/catch 扫描：条款 3：skip 命中 28（其中 28 条落在巡检自身领地，已登记不判违规）；注释掉的断言命中 0；**被放宽的阈值常量：无独立扫描器，靠基线 tag diff 结构性覆盖**（阈值只在 ACCEPTANCE.md 与 tools/gate/ 两处，分别受条款 1、条款 2 保护）；条款 5：无说明的空 catch 命中 0；**带注释理由的吞异常 5 处已逐条登记、不自动定罪**（脚本分不出"有理由的降级"与"作弊的吞"，这一层留给人/adversarial；它们每次都会印在报告里，藏不掉）；判据定义：体内剥掉注释与字符串后，除空白与 `;` 外没有任何语句 ⇒ 空实现。**含注释体与 `catch (_) { ; }`**，不是只认 `{}`。；基线 baseline-p6p0 以来 test/ tools/gate/ ACCEPTANCE/RUBRIC 无实现类 agent 改动；门禁自身未提交改动 10 个，已在 out/GATE_P0_selfchanges.txt 逐条自报）
+  清白（黄金集 src=8 ref=8；skip/catch 扫描：条款 3：skip 命中 28（其中 28 条落在巡检自身领地，已登记不判违规）；注释掉的断言命中 0；**被放宽的阈值常量：无独立扫描器，靠基线 tag diff 结构性覆盖**（阈值只在 ACCEPTANCE.md 与 tools/gate/ 两处，分别受条款 1、条款 2 保护）；条款 5：无说明的空 catch 命中 0；**带注释理由的吞异常 2 处已逐条登记、不自动定罪**（脚本分不出"有理由的降级"与"作弊的吞"，这一层留给人/adversarial；它们每次都会印在报告里，藏不掉）；判据定义：体内剥掉注释与字符串后，除空白与 `;` 外没有任何语句 ⇒ 空实现。**含注释体与 `catch (_) { ; }`**，不是只认 `{}`。；**判据分母（out/P0_truth.json）**：out/P0_truth.json 相对基线无变化（2217 个数值叶）；受钉文件 40 个；基线 baseline-p6p0 以来 test/ tools/gate/ ACCEPTANCE/RUBRIC 无实现类 agent 改动；门禁自身未提交改动 11 个，已在 out/GATE_P0_selfchanges.txt 逐条自报）
 
 ### 失败项
 | 项 | 期望 | 实测 | 责任 agent |
 |---|---|---|---|
-| P0.1a 锚点残差（只用 pupil 锚点）：成片端到端残余 |residual| ≤ 1.5°，中位 ≤ 1.0° | /residual/ ≤ 1.5，中位 ≤ 1.0，样本 ≥ 8 张不同照片（数**不同照片**，不数行数） | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
-| P0.1b 条件覆盖率：真值 |tilt| > 1.5° 的锚点必须给出 pupil 估计，unavailable 必须 = 0 | 需要摆正的 8 条锚点上 unavailable = 0 | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
-| P0.2 不引入歪斜：已知竖直样本残余 ≤ 1.5°，且 uprightSynthetic 必须返回 pupil | /residual/ ≤ 1.5 且 9 张 uprightSynthetic 全部 source=pupil | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
-| P0.3a 旋转等变：① 估计值 vs 真值斜率 ∈[0.85,1.15]（只作诊断）；② 成片残余 vs 真值斜率 |·| ≤ 0.15、|截距| ≤ 0.5°、max|残余| ≤ 1.5°（硬判据，口径无关） | ② 斜率 /·/ ≤ 0.15、/截距/ ≤ 0.5°、max/残余/ ≤ 1.5° | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
-| P0.3b 旋转夹具条件覆盖率：真值 |tilt| > 1.5° 的夹具上 unavailable 必须 = 0 | 需要摆正的 67 条夹具上 unavailable = 0 | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
-| P0.4 诚实性与分布：报告 RollSource 分布；unavailable 的施加角必须 = 0.0；禁止回退到 YuNet 眼睑路径（夹具里不得出现 given） | unavailable 样本施加角 = 0 的违规数 = 0，且不得出现 source=given | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
-| P0.5a 不回归：dev_selfcheck 9/9 | 退出码 0 且 通过 ≥ 9、失败 = 0 | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
-| P0.5b 不回归：2B.8 摆正几何（成片实测旋转 = 真值 − 施加角） | 两个**分开报**的子量都要过：① 施加几何 —— SIFT 实测施加角 vs 生产记录 /差/ ≤ 1.5°；② 跨量具一致性 —— 眼线实测残余 vs (真值−施加角) ≤ 1.5° | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
-| P0.5c 不回归：2B.8 之外的 G2B 项 / G4 已过项不退化（判据只覆盖"原本通过的项"） | 原本通过的项重跑后仍 PASS；本项需重跑才能判定 | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
-| AC ACCEPTANCE 防作弊条款 1–6 | 0 命中 | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
+| P0.1a 锚点残差（只用 pupil 锚点）：成片端到端残余 |residual| ≤ 1.5°，中位 ≤ 1.0° | /residual/ ≤ 1.5，中位 ≤ 1.0，样本 ≥ 8 张不同照片（数**不同照片**，不数行数） | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
+| P0.1b 条件覆盖率：真值 |tilt| > 1.5° 的锚点必须给出 pupil 估计，unavailable 必须 = 0 | 需要摆正的 8 条锚点上 unavailable = 0 | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
+| P0.2 不引入歪斜：已知竖直样本残余 ≤ 1.5°，且 uprightSynthetic 必须返回 pupil | /residual/ ≤ 1.5 且 9 张 uprightSynthetic 全部 source=pupil | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
+| P0.3a 旋转等变：① 估计值 vs 真值斜率 ∈[0.85,1.15]（只作诊断）；② 成片残余 vs 真值斜率 |·| ≤ 0.15、|截距| ≤ 0.5°、max|残余| ≤ 1.5°（硬判据，口径无关） | ② 斜率 /·/ ≤ 0.15、/截距/ ≤ 0.5°、max/残余/ ≤ 1.5° | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
+| P0.3b 旋转夹具条件覆盖率：真值 |tilt| > 1.5° 的夹具上 unavailable 必须 = 0 | 需要摆正的 67 条夹具上 unavailable = 0 | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
+| P0.4 诚实性与分布：报告 RollSource 分布；unavailable 的施加角必须 = 0.0；禁止回退到 YuNet 眼睑路径（夹具里不得出现 given） | unavailable 样本施加角 = 0 的违规数 = 0，且不得出现 source=given | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
+| P0.5a 不回归：dev_selfcheck 9/9 | 退出码 0 且 通过 ≥ 9、失败 = 0 | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
+| P0.5b 不回归：2B.8 摆正几何（成片实测旋转 = 真值 − 施加角） | 两个**分开报**的子量都要过：① 施加几何 —— SIFT 实测施加角 vs 生产记录 /差/ ≤ 1.5°；② 跨量具一致性 —— 眼线实测残余 vs (真值−施加角) ≤ 1.5° | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
+| P0.5c 不回归：2B.8 之外的 G2B 项 / G4 已过项不退化（判据只覆盖"原本通过的项"） | 原本通过的项重跑后仍 PASS；本项需重跑才能判定 | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
+| AC ACCEPTANCE 防作弊条款 1–6 | 0 命中 | **本轮无效：工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，唯一豁免 `docs/PITFALLS.md`）：M lib/core/matting/iris_roll.dart、M test/batch/code_fingerprint.dart、M test/batch/p0_finalize_v1.py、M test/gate/anticheat_test.dart、M tools/gate/anticheat.dart、M tools/gate/gate_P0.dart、?? tools/gate/sha256.dart；100 条样本里有 13 条的成片文件不存在** | gatekeeper（本轮输入不可信，不计实现方责任） |
 
 ### 回派指令
 - gatekeeper（本轮输入不可信，不计实现方责任）：P0.1a、P0.1b、P0.2、P0.3a、P0.3b、P0.4、P0.5a、P0.5b、P0.5c、AC 未达标，详见上面各项「实测」。
@@ -311,10 +311,11 @@ SIFT 路径：可配准 100 条，实测施加角与生产记录 |差| 最大 0.
 b1bf96c11240cfa22ebe2a8060d19589e5d468e5ffe2eee62285b7f1b57dbb24 *integration_test/g4_spotcheck_test.dart
 78bf239f5fdb50b89db9dadf0e1d3ab1d9bbec5514a7e7d5731c22bc9d59e559 *integration_test/matting_eval_test.dart
 f154b9531c2f64c7def1c492a46d82dc095f7b2dbd76c0d4334720f24a4f71ee *integration_test/shots_test.dart
-9de91bad094984dc899b5fc9d5151d897047225382c2786cdaad3e1ebfc41702 *test/gate/anticheat_test.dart
+af371627b429da5d1f3a79d1a4099019260e1715818c7378f305d15bda1a52fd *out/P0_truth.json
+4ccae0dec979ecb666140a502e14fcbad22625274efba262125ff3140b9bdc50 *test/gate/anticheat_test.dart
 cab1484dc6ec589ff2dee840d86e5eac100b7397d7d1a75cefb4783f969734c7 *test/gate/crop_interaction_test.dart
 c1e46c1451fd1d20d8590cf63c567c2ae24c8f57121e3d5aacc68189ddd679a2 *test/gate/p0_gate_judgment_test.dart
-a4638b0c721f16bd1e377b5d177bd10e155b56145c2a4a78b5c4df1a4eb5f220 *tools/gate/anticheat.dart
+e70252c19e753eabb2b7e90d0d0580092df7e2af239de2acfbffb42b56a62ad0 *tools/gate/anticheat.dart
 be3b1bc435e52c78d1bb9fcf43b8947a8a7a6d11dc83f473cf6e417ed531056c *tools/gate/capture_shots.dart
 b9b238773350d61d5dedb08011f5594a327839c73b78bd068589f9a3e06dd232 *tools/gate/collect_metrics.dart
 9ef0e19a1f5eed8ec0c5775b6c64afa21ddcd2a345251b6bad203f7d4d2ac828 *tools/gate/color_utils.dart
@@ -329,7 +330,7 @@ d5657019230268e08e994eede53a4e3cc2a8a04ddaea71c77e8dd7985ea2aea0 *tools/gate/gat
 f2e6744265cc246b9f1ba498dc875e069fdfebbea29f677cbeefd51c109071e6 *tools/gate/gate_G4.dart
 5ee6d8c75e22df71db5af180865203fae88056c7b4901f8fba4bb263e09f701b *tools/gate/gate_G5.dart
 c1048040824c8bb00487a73e44b6df60b479347fddbfac78940635b3625ecfe0 *tools/gate/gate_G5B.dart
-bd5800b22bd5c228c97ba1c94348933dfca0fa7b385c0c1e56b8aa2948b03ccf *tools/gate/gate_P0.dart
+998a87b0383f722a78053428e9935c2cb9c6cfe295b10b506fd3d8720f0724b1 *tools/gate/gate_P0.dart
 527e5584750f517d3f8ecb4767c804027b24a5bea1b9523ce6ee2673b67279a5 *tools/gate/gate_common.dart
 55a02caf2e5ba3b329ce1448fc4669dc52da2cf4796f1d439c575db929009f75 *tools/gate/jpeg_utils.dart
 9bf78e113a34a2c9e90197bc842f2fca1a8999ae3507176f95b1fa1306889be4 *tools/gate/p0_eyeline.py
@@ -338,4 +339,5 @@ bd5800b22bd5c228c97ba1c94348933dfca0fa7b385c0c1e56b8aa2948b03ccf *tools/gate/gat
 8fc0270be7475a702d4d71735b3f327db72ffd116091ba739e343c73249d81f0 *tools/gate/p0_roll_probe_test.dart
 fb0711446e483b8a1fc72f549516fec7fcd2fcbaf6eaf4d933456a59587c3ae2 *tools/gate/png_utils.dart
 45ada1647fc0766a7dbf594d015274b5252850a8b43f62925db9ba629fb712b0 *tools/gate/rot_dir_check.dart
+86ccf34ec2b960f74727cd0bf528a42f4337fcf8b92c35a2c6ab15675d167c0a *tools/gate/sha256.dart
 ```
