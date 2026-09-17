@@ -1219,6 +1219,42 @@ const List<String> kPinnedJudgmentInputs = <String>[kTruthPath];
 /// 表述变了、数值一个没动 → 登记为豁免；**数值动了一个 → 判 FAIL**。
 const String kTruthLeavesBaselinePath = 'out/hashes_P0_truth_leaves_baseline.txt';
 
+/// 真值数值叶比对里**唯一**的排除块（主会话 2026-09-17 裁定）。
+///
+/// 为什么必须排除、又为什么只排这一块：`evaluatedState` 记的是"这份文件在什么
+/// 状态下收尾"——`headAtFinalize` 是 HEAD 的字符串，`codeFingerprintAtFinalize.*`
+/// 含**数值叶**（`files`），二者都是 **HEAD 与工作区的函数**。r2 在 tag 之后重新
+/// 生成该文件，这些叶子必然与 tag 时不同，逐叶通道会**真报差异**（不是理论风险）。
+///
+/// 这个钉的**目的**是防"改一个判据输入、让不合格样本过关"。`evaluatedState`
+/// **不是判据输入**，是溯源记录；钉只该覆盖判据输入。
+///
+/// 刻意**比"白名单两个具体叶子"更窄**：白名单一演进就要维护，而且读不出
+/// "为什么豁免"。这里排除的是一整个**命名块**，理由就写在名字上。
+///
+/// 三条纪律（缺一不可）：
+///  1. 只能是常数，放在 `tools/gate/` —— 于是它受条款 2 的 SHA256 保护，
+///     谁想放宽都必须在 diff 里留下代码改动；
+///  2. **每轮把被排除的路径清单印出来**，与被钉住的东西同一个待遇：
+///     **命名、钉住、打印**，不许做成静默跳过；
+///  3. 除此以外的任何数值叶，照旧逐叶比对。
+///
+/// 结构性改进（已记下、**不进 pre-tag 队列**）：这个冲突的根子是"把每轮重生成的
+/// 东西塞进了冻结的东西里"，违反了「真值按内容钉、产出按指纹钉」的分工。
+/// 终态应把溯源块拆到兄弟文件、按指纹钉而非按内容钉。现在不值得为它重做基线。
+const List<String> kTruthLeafExcludedPrefixes = <String>['evaluatedState'];
+
+/// 某个数值叶路径是否落在排除块里。前缀匹配按路径段，不做子串匹配 ——
+/// `evaluatedStateX` 不该被 `evaluatedState` 匹配掉。
+bool truthLeafExcluded(String leafPath) {
+  for (final String p in kTruthLeafExcludedPrefixes) {
+    if (leafPath == p || leafPath.startsWith('$p.') || leafPath.startsWith('$p[')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// 把 JSON 里所有**数值叶**抽成 `路径=值` 的排序列表。
 /// 布尔与字符串不算：本门禁关心的是判断用的数，不是措辞。
 List<String> numericLeaves(Object? node) {
@@ -1308,6 +1344,10 @@ class TruthDrift {
   final List<String> numericChanges;
   final bool wordingOnly;
   final int leafCount;
+
+  /// 被 `kTruthLeafExcludedPrefixes` 排除掉的数值叶路径（**只记路径，不记值** ——
+  /// 这块的值每轮都变，记值等于把噪声当证据）。**每轮原样打印**。
+  final List<String> excludedLeafPaths;
   final String? currentHash;
   final String? baselineHash;
 
@@ -1317,25 +1357,48 @@ class TruthDrift {
     required this.numericChanges,
     required this.wordingOnly,
     required this.leafCount,
+    required this.excludedLeafPaths,
     required this.currentHash,
     required this.baselineHash,
   });
 
+  /// 排除清单的渲染。**空的时候也要显式说"排除了 0 个"**，不能因为没内容就消失 ——
+  /// 一条只在非空时才出现的说明，读者无法分辨"没有豁免"和"豁免没被打印"。
+  String exclusionNote() {
+    if (kTruthLeafExcludedPrefixes.isEmpty) {
+      return '数值叶排除集：**空**（一个都不排，全部逐叶比对）';
+    }
+    final String ps = kTruthLeafExcludedPrefixes.map((String p) => '`$p`').join('、');
+    if (excludedLeafPaths.isEmpty) {
+      return '数值叶排除集：$ps —— 本轮**实际排除 0 个数值叶**'
+          '（该块当前不含数值叶；排除集本身照列，供核对）';
+    }
+    return '数值叶排除集：$ps —— 本轮**实际排除 ${excludedLeafPaths.length} 个数值叶**，'
+        '逐条列出：${excludedLeafPaths.map((String p) => '`$p`').join('、')}';
+  }
+
   String describe() {
+    final String ex = exclusionNote();
     if (baselineEstablished) {
-      return '$path 首轮建立数值叶基线（$leafCount 个数值叶），本轮不判 FAIL';
+      return '$path 首轮建立数值叶基线（$leafCount 个数值叶参与比对），本轮不判 FAIL。$ex';
     }
     if (numericChanges.isNotEmpty) {
       return '**$path 的数值叶相对基线改动了 ${numericChanges.length} 处**'
           '：${numericChanges.take(10).join("；")}'
-          '${numericChanges.length > 10 ? " …" : ""}';
+          '${numericChanges.length > 10 ? " …" : ""}。$ex';
     }
     if (wordingOnly) {
       return '$path 相对基线**只有表述差异**（整文件哈希变了、'
-          '$leafCount 个数值叶一个没动）→ 登记为豁免，不判 FAIL';
+          '$leafCount 个数值叶一个没动）→ 登记为豁免，不判 FAIL。$ex';
     }
-    return '$path 相对基线无变化（$leafCount 个数值叶）';
+    return '$path 相对基线无变化（$leafCount 个数值叶参与比对）。$ex';
   }
+}
+
+/// 数值叶 `路径=值` → `路径`。
+String _leafKey(String leaf) {
+  final int i = leaf.indexOf('=');
+  return i > 0 ? leaf.substring(0, i) : leaf;
 }
 
 TruthDrift truthDrift({
@@ -1343,7 +1406,25 @@ TruthDrift truthDrift({
   String baselinePath = kTruthLeavesBaselinePath,
 }) {
   final Object? json = _readJson(truthPath);
-  final List<String> leaves = json == null ? <String>[] : numericLeaves(json);
+  final List<String> allLeaves = json == null ? <String>[] : numericLeaves(json);
+
+  // 排除集**两侧同用**。只排一侧的后果：基线文件里存着 `evaluatedState.*` 的叶子，
+  // 当前侧排掉之后它们在 `b` 里没有对应项，会被报成 **N 处"删除"** —— 一个纯粹的
+  // 假阳性，且看起来像是有人动过判据输入。排除的定义是"这块钱不参与比对"，
+  // 对基线和现值必须是对称的。
+  final List<String> leaves = <String>[];
+  final List<String> excluded = <String>[];
+  for (final String l in allLeaves) {
+    if (truthLeafExcluded(_leafKey(l))) {
+      // 只记**路径**，不记值：这块的值每轮都变，记进去等于把噪声当证据，
+      // 而且清单每轮都不一样就 diff 不了 —— 豁免清单要能被逐行对比才有用。
+      excluded.add(_leafKey(l));
+    } else {
+      leaves.add(l);
+    }
+  }
+  excluded.sort();
+
   final String? curHash = _sha256(truthPath);
   final File f = File(baselinePath);
 
@@ -1366,6 +1447,7 @@ TruthDrift truthDrift({
       numericChanges: <String>[],
       wordingOnly: false,
       leafCount: leaves.length,
+      excludedLeafPaths: excluded,
       currentHash: curHash,
       baselineHash: null,
     );
@@ -1379,6 +1461,7 @@ TruthDrift truthDrift({
       .skip(1)
       .map((String l) => l.trim())
       .where((String l) => l.isNotEmpty)
+      .where((String l) => !truthLeafExcluded(_leafKey(l)))
       .toList());
   final Map<String, String> c = asMap(leaves);
 
@@ -1407,6 +1490,7 @@ TruthDrift truthDrift({
     numericChanges: changes,
     wordingOnly: wordingOnly,
     leafCount: leaves.length,
+    excludedLeafPaths: excluded,
     currentHash: curHash,
     baselineHash: baseHash,
   );
@@ -1513,6 +1597,9 @@ String _renderMd({
   b.writeln();
   b.writeln('### 测量产出的来源绑定（`out/` 不受冻结约束，所以另有一道绑定）');
   b.writeln(_provenanceSection(inputs));
+  b.writeln();
+  b.writeln('### 判据分母的内容钉（$kTruthPath）与**豁免清单**');
+  b.writeln(_truthPinSection(inputs));
   b.writeln();
   b.writeln('### 硬判据出自哪支量具（避免把量具差异读成分歧）');
   b.writeln('- **P0.1a / P0.2 / P0.3a② / P0.5b** 的成片残余：gatekeeper 的 **Haar 眼线量具**'
@@ -1958,6 +2045,59 @@ String _treeState(Map<String, dynamic> inputs) {
 /// （含 40 分钟的 flutter test）来发现它崩了。
 String _provenanceSection(Map<String, dynamic> inputs) =>
     provenanceMdSection(inputs['provenance'] as Map<String, dynamic>?);
+
+/// 判据分母的内容钉 —— 含**被排除的路径逐条列出**，以及一条不许被误读的附注。
+///
+/// 附注存在的理由（主会话 2026-09-17 要求写进 evidence）：
+/// 「数值叶哈希未变」**推不出**「证据仍然有效」。叶子不变只能证明**没人在文件里
+/// 改过这个数**，证明不了**这个数还是当前代码会产生的结果**。两条真实的反例：
+///
+///  - `c06_d-3`（具体到可复核）：真值文件记着 `appliedStraightenDeg = -15.424`、
+///    `outputTiltDeg = 10.638`。而 `native/bench/` 连续四版（04:47 / 05:04 / 05:20 /
+///    05:44）都报 `c06_d-3 est=unavail` —— 按契约 `unavailable ⇒ rollDeg = 0.0`，
+///    于是实际施加 0.0。**记着的 −15.424 是陈旧的**，叶没变、值已经不成立。
+///  - "数目相等 ≠ 内容相同"：本轮之前已经出现两次（`lib` 域 29 vs 101 个文件、
+///    `files` 计数相等而集合不同）。叶比对是同一形状的第三次机会。
+///
+/// 所以：**内容钉只覆盖"判据输入有没有被人动过"，覆盖率/有效性由覆盖率类条目与
+/// 同源绑定分别管**，本条目不兼任。
+String _truthPinSection(Map<String, dynamic> inputs) {
+  final Object? t = inputs['truthDriftResult'];
+  return truthPinMdSection(t is TruthDrift ? t : null);
+}
+
+/// 渲染实现**公开**，理由与 `provenanceMdSection` 相同：这段文本只有
+/// `gate_P0.dart` 的 `main()` 走到最后才会生成，留在私有函数里就只能靠跑一整轮
+/// （含 40 分钟的 `flutter test dev_selfcheck`）才发现它崩了。已经栽过一次
+/// （`'$b.path'` 被 Dart 解析成 `$b` + 字面量 `.path`，渲染出 `Instance of ...`）。
+String truthPinMdSection(TruthDrift? t) {
+  if (t == null) {
+    return '缺少 `truthDriftResult`，**无法证明判据分母未被改动** → 判不可判，不判通过。';
+  }
+  final StringBuffer b = StringBuffer();
+  b.writeln('- 参与逐叶比对的数值叶：**${t.leafCount} 个**；'
+      '被排除：**${t.excludedLeafPaths.length} 个**');
+  b.writeln('- ${t.exclusionNote()}');
+  b.writeln('- 排除集定义位置：`tools/gate/gate_P0.dart` 的 '
+      '`kTruthLeafExcludedPrefixes`（**常数**，故受防作弊条款 2 的 SHA256 保护 —— '
+      '想放宽必须在 diff 里留下代码改动，不能靠改数据做到）');
+  b.writeln('- 排除**两侧同用**（基线侧也过滤）：只排一侧会把基线里的同名叶子报成 N 处"删除"，'
+      '是纯假阳性。');
+  b.writeln('- **排除集是有代价的，代价写在这里**：该前缀下**新增**的数值叶将来也不会被报告。'
+      '换句话说，`evaluatedState` 这一块**不受内容钉保护**。'
+      '它现在只装溯源记录（`headAtFinalize`、`codeFingerprintAtFinalize.*`），'
+      '一旦有人往里放判据输入，内容钉看不见 —— 这条只有靠 review 兜。');
+  b.writeln('- **附注（不许被误读）：数值叶哈希未变 ≠ 证据仍然有效。**'
+      '叶不变只证明**没人在文件里改过这个数**，证明不了**这个数还是当前代码会产生的结果**。'
+      '实例：`c06_d-3` 在本文件里记着 `appliedStraightenDeg = -15.424`、'
+      '`outputTiltDeg = 10.638`，而 `native/bench/` 连续四版（04:47 / 05:04 / 05:20 / 05:44）'
+      '均报 `c06_d-3 est=unavail` —— 按契约"`unavailable` ⇒ `rollDeg = 0.0`"，'
+      '实际施加的是 **0.0**，记着的 −15.424 是**陈旧的**。'
+      '这个叶从头到尾没变过，值却早就不成立了。'
+      '**"叶哈希未变"是"没人动过"的证据，不是"数据仍然成立"的证据**——'
+      '后者由覆盖率类条目（P0.1b / P0.3b）与测量产出的同源绑定分别负责。');
+  return b.toString();
+}
 
 /// 输入文件完整性：`$kComposePath` 里记的成片路径，**现在是否还在磁盘上**。
 /// 存在理由（2026-09-17 实测）：qa-batch 的一轮死运行覆盖了 r1 的成片，

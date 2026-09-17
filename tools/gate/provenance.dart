@@ -526,13 +526,29 @@ class ProvenanceReport {
   /// 当前树的 `路径→blob哈希`。`null` = 门禁侧取不到 git。
   final Map<String, String>? currentHashes;
 
+  /// **实际参与指纹的域文件清单**（排序）。
+  ///
+  /// 为什么要把清单本身带在报告里，而不是只报个数：本轮之前已经栽过两次同类 ——
+  /// `lib` 域 **29 vs 101** 个文件（两边各按自己的规则枚举，数目对不上才发现），
+  /// 以及 `files` 计数相等而集合不同的情形。**"数目相等 ≠ 内容相同"**，
+  /// 只印个数的话，下一次"数目恰好相等而集合不同"就还是会滑过去。
+  /// 所以清单每轮原样打印，可被逐行 diff。
+  ///
+  /// 这是**门禁声明的**域（`requiredFingerprintPaths` 枚举得到），
+  /// 与 `currentHashes!` 的键集恒等（`currentBlobHashes` 全成或全空），
+  /// 故 git 不可用时它仍然可用 —— 域的定义不依赖 git。
+  final List<String> requiredPaths;
+
   ProvenanceReport({
     required this.bindings,
     required this.pin,
     required this.currentHashes,
+    required this.requiredPaths,
   });
 
-  int get requiredCount => currentHashes?.length ?? 0;
+  /// 声明域的文件数。**与 git 是否可用无关** —— 取不到哈希是"这一轮不可判"，
+  /// 不该顺带把"域里有几个文件"也报成 0（那是把仪表故障读成样本消失）。
+  int get requiredCount => requiredPaths.length;
 
   String? get codeDigest {
     final Map<String, String>? h = currentHashes;
@@ -571,6 +587,7 @@ class ProvenanceReport {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'requiredCount': requiredCount,
+        'requiredPaths': requiredPaths,
         'requiredDirs': kFingerprintRequiredDirs,
         'requiredExtensions': kFingerprintSourceExt.toList()..sort(),
         'gitAvailable': currentHashes != null,
@@ -629,6 +646,7 @@ ProvenanceReport provenanceReport({String root = '.'}) {
     bindings: bindings,
     pin: pin,
     currentHashes: current,
+    requiredPaths: required,
   );
 }
 
@@ -649,6 +667,18 @@ String provenanceMdSection(Map<String, dynamic>? pv) {
       '代码摘要 `${pv['codeDigest'] ?? "?"}`。'
       '生产者记录的是超集也接受，**缺任何一个都判不可判**——域若能被生产者收窄，'
       '这个检查就形同虚设（少记一个文件 = 那个文件改了也不响）。');
+  // 清单本身，逐行 —— 不只是个数。**"数目相等 ≠ 内容相同"** 这个形状在本项目
+  // 已经出现过两次（`lib` 域 29 vs 101；`files` 计数相等而集合不同），
+  // 只印个数的检查第三次还会被同样的方式绕过。
+  final List<dynamic> dom = pv['requiredPaths'] as List<dynamic>? ?? <dynamic>[];
+  b.writeln('- **实际域文件清单（本轮逐行，可直接 diff 上一轮）**，共 ${dom.length} 条：');
+  b.writeln();
+  b.writeln('```');
+  for (final dynamic p in dom) {
+    b.writeln(p);
+  }
+  b.writeln('```');
+  b.writeln();
   for (final dynamic rawB in (pv['bindings'] as List<dynamic>? ?? <dynamic>[])) {
     final Map<String, dynamic> bd = (rawB as Map).cast<String, dynamic>();
     b.writeln('  - `${bd['path']}` → **${bd['tag']}**：${bd['describe']}');

@@ -29,6 +29,9 @@
 // ignore: depend_on_referenced_packages
 import 'package:flutter_test/flutter_test.dart';
 
+import 'dart:convert';
+import 'dart:io';
+
 import '../../tools/gate/gate_P0.dart' as gate;
 
 const String kSpec = 'cn_big_1inch';
@@ -540,5 +543,233 @@ void main() {
     final Map<String, dynamic> p1a = row(gate.evaluateP0(noOv), 'P0.1a');
     expect(p1a['pass'], false, reason: '去重量具缺位时不得判过');
     expect(p1a['manual'], true, reason: '去重量具缺位时必须显式报"判不了"');
+  });
+
+  // ---------------------------------------------------------------------
+  // 判据分母（`out/P0_truth.json`）数值叶基线的**排除集**。
+  //
+  // 存在理由：`evaluatedState` 那一块记的是"这份文件在什么状态下收尾"
+  // （`headAtFinalize`、`codeFingerprintAtFinalize.*`），是 **HEAD 与工作区的函数**。
+  // r2 在 tag 之后重新生成该文件时它必然变，逐叶通道会真报差异——不是理论风险。
+  // 所以主会话 2026-09-17 裁定：**只排这一块**。
+  //
+  // 豁免写歪的后果是把"判据输入可被改动而不响"重新打开，而那正是这个钉存在的原因。
+  // 所以豁免的**每一条性质**都要有对照，尤其是**不许宽一个字节**：
+  // 上一轮已经栽过三次"判据是条款的严格子集"（`lib` 域 29 vs 101、`files` 计数相等
+  // 而集合不同、扫描范围漏掉 `tools/gate`），这里是第四次机会。
+  group('判据分母数值叶基线：排除集', () {
+    const String kTmp = 'out/tmp_gk_truth_test';
+    const String kTruth = '$kTmp/truth.json';
+    const String kBase = '$kTmp/leaves.txt';
+
+    void writeTruth(Map<String, dynamic> m) {
+      final File f = File(kTruth);
+      f.parent.createSync(recursive: true);
+      f.writeAsStringSync(jsonEncode(m));
+    }
+
+    /// 基线用**门禁自己的抽叶函数**生成，不手搓格式 ——
+    /// 手搓一份"我以为的"基线格式，测的是我的想象，不是生产路径。
+    void writeBaseline(Map<String, dynamic> m) {
+      final List<String> leaves = gate.numericLeaves(m)..sort();
+      final File f = File(kBase);
+      f.parent.createSync(recursive: true);
+      f.writeAsStringSync('sha256=deadbeef\n${leaves.join("\n")}\n');
+    }
+
+    gate.TruthDrift drift() =>
+        gate.truthDrift(truthPath: kTruth, baselinePath: kBase);
+
+    tearDown(() {
+      final Directory d = Directory(kTmp);
+      if (d.existsSync()) d.deleteSync(recursive: true);
+    });
+
+    test('P 排除集被钉在**唯一命名的块**上（放宽必须在 diff 里可见）', () {
+      // 这不是"测逻辑"，是把豁免本身钉住：谁想多豁免一处，必须先改这里，
+      // 于是改动必然出现在 diff 里，而不是靠改数据悄悄做到。
+      expect(gate.kTruthLeafExcludedPrefixes, <String>['evaluatedState'],
+          reason: '这是**唯一**被允许的豁免块。加一条 = 放宽判据 = 必须留痕。'
+              '真有必要加，请连同 docs/ACCEPTANCE.md 的说明一起改，别加个常量了事。');
+    });
+
+    test('Q 排除按**路径段**匹配：evaluatedStateX 不许被顺带豁免', () {
+      // 该排的（真形状来自 out/P0_truth.json）。
+      expect(gate.truthLeafExcluded('evaluatedState'), true);
+      expect(gate.truthLeafExcluded('evaluatedState.files'), true);
+      expect(gate.truthLeafExcluded('evaluatedState.codeFingerprintAtFinalize.files'), true);
+      expect(gate.truthLeafExcluded('evaluatedState.roundChangedFiles[0]'), true);
+      // **不该排的**：同前缀但不是那个块。子串匹配会误伤，这里钉死。
+      expect(gate.truthLeafExcluded('evaluatedStateX'), false);
+      expect(gate.truthLeafExcluded('evaluatedStateX.files'), false);
+      expect(gate.truthLeafExcluded('myEvaluatedState.files'), false);
+      expect(gate.truthLeafExcluded('anchors[0].truthTiltDeg'), false);
+      expect(gate.truthLeafExcluded('straight'), false);
+    });
+
+    test('R 正向对照：evaluatedState 的数值叶变了 → 不报改动，但**必须逐条列出**', () {
+      final Map<String, dynamic> before = <String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+        'evaluatedState': <String, dynamic>{
+          'headAtFinalize': 'aaa',
+          'codeFingerprintAtFinalize': <String, dynamic>{'files': 29},
+        },
+      };
+      writeBaseline(before);
+      writeTruth(before);
+
+      // 只有 evaluatedState 里的那个数值叶变了 —— 正是 r2 会真实发生的事。
+      final Map<String, dynamic> after =
+          jsonDecode(jsonEncode(before)) as Map<String, dynamic>;
+      (after['evaluatedState'] as Map<String, dynamic>)['codeFingerprintAtFinalize'] =
+          <String, dynamic>{'files': 101};
+      writeTruth(after);
+
+      final gate.TruthDrift d = drift();
+      expect(d.numericChanges, isEmpty,
+          reason: '这一块的漂移是**预期的**（HEAD 的函数），不该判 FAIL；'
+              '判了就是拿一个必然变化的东西当判据，等于每轮都红，'
+              '红到后来就没人看了 —— 那是比不判更坏的结局');
+      expect(d.leafCount, 1, reason: '参与比对的只剩 anchors[0].truthTiltDeg');
+      expect(d.excludedLeafPaths, <String>['evaluatedState.codeFingerprintAtFinalize.files'],
+          reason: '**排除必须被打印**：命名、钉住、打印。'
+              '静默跳过的豁免和一个没写出来的豁免是一样的');
+    });
+
+    test('R2 深层排除不误伤兄弟：同一份文件里换个判据输入改了 → 必须红', () {
+      writeBaseline(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'c06', 'truthTiltDeg': -15.424},
+        ],
+        'evaluatedState': <String, dynamic>{
+          'codeFingerprintAtFinalize': <String, dynamic>{'files': 29},
+        },
+      });
+      writeTruth(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'c06', 'truthTiltDeg': -4.4},
+        ],
+        'evaluatedState': <String, dynamic>{
+          'codeFingerprintAtFinalize': <String, dynamic>{'files': 101},
+        },
+      });
+      final gate.TruthDrift d = drift();
+      expect(d.numericChanges, <String>['anchors[0].truthTiltDeg: -15.424 → -4.4'],
+          reason: '改真值让不合格样本过关，是这个钉**唯一**要拦的事。'
+              '它必须在豁免生效的同时照旧拦住 —— 否则豁免就不是豁免，是拆门');
+    });
+
+    test('S 两侧同用：基线里有、现值里没有 → 不许报成"删除"（纯假阳性）', () {
+      writeBaseline(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+        'evaluatedState': <String, dynamic>{
+          'codeFingerprintAtFinalize': <String, dynamic>{'files': 29},
+        },
+      });
+      // 现值里这一项变成了字符串（不再是数值叶）——
+      // 生产者换个写法就会这样，什么都没做错。
+      writeTruth(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+        'evaluatedState': <String, dynamic>{
+          'codeFingerprintAtFinalize': <String, dynamic>{'files': '101'},
+        },
+      });
+      final gate.TruthDrift d = drift();
+      expect(d.numericChanges, isEmpty,
+          reason: '只过滤当前侧的话，基线里那个叶子会被报成'
+              '「evaluatedState.codeFingerprintAtFinalize.files: 删除（原 29）」——'
+              '一个看起来像"有人动过判据输入"的假阳性。'
+              '排除的定义是"这块不参与比对"，对两侧必须对称');
+    });
+
+    test('T 豁免清单在"排除 0 个"时**也要打印**，且必须点名排除集', () {
+      writeBaseline(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+      });
+      writeTruth(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+      });
+      final gate.TruthDrift d = drift();
+      expect(d.excludedLeafPaths, isEmpty);
+      final String n = d.exclusionNote();
+      expect(n.contains('实际排除 0 个'), true,
+          reason: '一条只在非空时才出现的说明，读者分不清"没有豁免"和"豁免没被打印"。'
+              '豁免清单必须每轮出现，哪怕内容是 0');
+      expect(n.contains('evaluatedState'), true,
+          reason: '要点名**排除集本身**，不只报个数 —— 只看个数看不出豁免了什么');
+      expect(d.describe().contains('evaluatedState'), true,
+          reason: 'AC 条目里渲染的是 describe()，豁免说明必须跟着进报告');
+    });
+
+    test('U 端到端：判据分母被改一个数 → 报告文本里看得见，且判 FAIL 的原料齐备', () {
+      writeBaseline(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+        'evaluatedState': <String, dynamic>{'files': 29},
+      });
+      writeTruth(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': 0.0},
+        ],
+        'evaluatedState': <String, dynamic>{'files': 101},
+      });
+      final gate.TruthDrift d = drift();
+      expect(d.numericChanges.isNotEmpty, true);
+      final String s = d.describe();
+      expect(s.contains('truthTiltDeg'), true, reason: '要指名道姓，不是"有 1 处改动"');
+      expect(s.contains('改动了'), true);
+      expect(s.contains('evaluatedState'), true, reason: '同一句里也要带上豁免说明');
+    });
+
+    test('V 渲染：缺输入 → 判不了（不许默认清白）；有输入 → 豁免逐条印出来', () {
+      // 缺输入时必须显式说"判不了"，而不是渲染成空串 —— 空串在报告里
+      // 与"这一节没内容"长得一模一样。
+      final String missing = gate.truthPinMdSection(null);
+      expect(missing.contains('无法证明'), true);
+      expect(missing.contains('不判通过'), true);
+
+      writeBaseline(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+        'evaluatedState': <String, dynamic>{
+          'codeFingerprintAtFinalize': <String, dynamic>{'files': 29},
+        },
+      });
+      writeTruth(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+        'evaluatedState': <String, dynamic>{
+          'codeFingerprintAtFinalize': <String, dynamic>{'files': 101},
+        },
+      });
+      final String md = gate.truthPinMdSection(drift());
+      // 每一条豁免都要能被读者看见，而不是"排除了 1 个"了事。
+      expect(md.contains('evaluatedState.codeFingerprintAtFinalize.files'), true,
+          reason: '被排除的路径要逐条印出来');
+      expect(md.contains('kTruthLeafExcludedPrefixes'), true,
+          reason: '要写明排除集定义在哪，读者才能去查它受不受条款 2 保护');
+      expect(md.contains('SHA256'), true);
+      // 这条附注是这个豁免最容易被误读的地方：叶没变 ≠ 数据仍然成立。
+      expect(md.contains('不是"数据仍然成立"的证据') || md.contains('证据仍然有效'), true,
+          reason: '必须写明"叶哈希未变 ≠ 证据仍然有效"，'
+              '否则下一轮就会有人拿"叶没变"论证数据没问题');
+      expect(md.contains('c06_d-3'), true, reason: '附注要带可复核的实例，不是泛泛而谈');
+      expect(md.contains('-15.424'), true);
+      // 渲染事故的回归：`'$b.path'` 曾渲染成 `Instance of ...`。
+      expect(md.contains('Instance of'), false);
+    });
   });
 }

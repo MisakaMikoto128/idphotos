@@ -426,5 +426,48 @@ void main() {
       expect(badMd, contains('整轮作废'));
       expect(badMd, isNot(contains('绑定成立')));
     });
+
+    test('指纹域印的是**文件清单**，不只是个数', () {
+      // 存在理由：本项目已经栽过两次"数目相等 ≠ 内容相同"——
+      // ① `lib` 域两边各按自己的规则枚举，29 vs 101；
+      // ② `files` 计数相等而集合不同。
+      // 只印个数的检查，第三次还会被同样的方式绕过。
+      _rmSandbox();
+      _buildSandbox();
+      final Map<String, String> h = _current();
+      _writeSummary(blobHashes: h);
+      _writeResidual(h);
+      _writeAlphaHoles(h);
+
+      final List<String> dom = requiredFingerprintPaths(root: kSandbox);
+      final ProvenanceReport rep = provenanceReport(root: kSandbox);
+      final String md = provenanceMdSection(rep.toJson());
+
+      expect(md, contains('实际域文件清单'), reason: '要有一节专门印清单');
+      for (final String p in dom) {
+        expect(md, contains(p), reason: '域里的 `$p` 必须在报告里逐行出现');
+      }
+      // 清单与 toJson 里带的是同一份，不是两处各算各的。
+      expect(rep.requiredPaths, dom);
+      expect(rep.requiredCount, dom.length,
+          reason: '数目与清单必须出自同一处 —— 分两处算就是下一次"数目相等而内容不同"');
+      // 不在域里的不许混进来（域被放宽 = 检查形同虚设）。
+      expect(md, isNot(contains('lib/readme.md')));
+      expect(md, isNot(contains('g01.jpg')));
+      expect(md, isNot(contains('__pycache__')));
+    });
+
+    test('git 不可用时：域清单仍在、数目不塌成 0（仪表故障 ≠ 样本消失）', () {
+      // `currentBlobHashes` 在 git 起不来时返回 null。上一版的 `requiredCount`
+      // 是 `currentHashes?.length ?? 0`，于是"取不到哈希"会顺带把"域里有几个文件"
+      // 也报成 0——正是本项目反复出现的那个形状：**仪表失败时报告"更少"，而不是
+      // "看不到"**。现在数目由域的定义给出，与 git 是否可用无关。
+      _rmSandbox();
+      _buildSandbox();
+      final List<String> dom = requiredFingerprintPaths(root: kSandbox);
+      expect(dom, isNotEmpty);
+      expect(currentBlobHashes(dom, root: '$kSandbox/__does_not_exist__'), isNull,
+          reason: '沙箱不存在的仓库根 → git 必然失败，用来构造"取不到"的情形');
+    });
   });
 }

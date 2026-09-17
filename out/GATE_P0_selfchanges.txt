@@ -21,3 +21,9 @@ tools/gate/sha256.dart
 tools/gate/provenance.dart
 test/gate/provenance_test.dart
 tools/gate/gate_common.dart
+# 2026-09-17 追加（主会话裁定的 pre-tag 收尾三件）：
+#  · gate_P0.dart —— 真值数值叶基线的 `evaluatedState` 排除集（常数 + 两侧同用 +
+#    每轮打印被排除的路径清单）+ 指纹域文件清单渲染 + 「叶哈希未变 ≠ 证据有效」附注；
+#  · p0_gate_judgment_test.dart —— 上述排除集的正负对照（P/Q/R/R2/S/T/U/V）；
+#  · provenance_test.dart —— 域清单渲染（不只个数）与 git 不可用时的数目口径。
+# 三个文件都在上面已列出，这里只是记明**本轮为什么动它们**。
