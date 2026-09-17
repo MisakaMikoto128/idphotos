@@ -48,6 +48,13 @@ class SessionFactory {
   /// 全部会话共同的 OrtEnv 地址；一个会话都没建过时为 null。
   int? get envAddress => _envAddress;
 
+  /// 最近一次 [dispose] 没能走完关闭握手的**原因**。
+  ///
+  /// dispose 的结局不受影响（`isolate?.kill()` 照常执行），丢掉的是原因：
+  /// worker 已经死了 / 从未握手成功 / 5 秒超时，对外长得一样。留这个字段让
+  /// "为什么没握上手"可读。成功关闭时置 null。
+  String? lastDisposeError;
+
   Future<SendPort> _ensurePort() {
     return _port ??= _spawn();
   }
@@ -126,6 +133,7 @@ class SessionFactory {
 
   /// 关闭工厂：先通知 worker 显式 ReleaseEnv 再退出，native env 不留悬空。
   Future<void> dispose() async {
+    lastDisposeError = null;
     final port = _port;
     final isolate = _isolate;
     _port = null;
@@ -138,10 +146,15 @@ class SessionFactory {
       send!.send(<Object>[done.sendPort]);
       // worker 回执后自行 Isolate.exit；等不到就强杀（模型创建失败的
       // worker 可能已经死了，属于正常路径）。
-      await done.first.timeout(const Duration(seconds: 5), onTimeout: () {});
+      await done.first.timeout(const Duration(seconds: 5), onTimeout: () {
+        // 超时也是"没握上手"的一种，记下来：worker 卡死与 worker 已退出
+        // 在下面那句 kill 的结局上看不出区别。
+        lastDisposeError = 'release handshake timeout';
+      });
       done.close();
-    } catch (_) {
-      // 工厂已死或从未握手成功：无事可做。
+    } catch (e) {
+      // 工厂已死或从未握手成功：无事可做，但**原因要留下来**。
+      lastDisposeError = '$e';
     }
     isolate?.kill(priority: Isolate.immediate);
   }

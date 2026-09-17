@@ -78,6 +78,7 @@ bool ensureOrtRuntimeLoaded() {
   try {
     ffi.DynamicLibrary.open('onnxruntime.dll');
     // 按名字已经能打开（App 形态，dll 在 exe 旁），无需预载。
+    ortLoadFailureReason = null;
     return false;
   } on ArgumentError {
     // 继续按候选路径找。
@@ -113,13 +114,21 @@ bool ensureOrtRuntimeLoaded() {
     if (!File(path).existsSync()) continue;
     try {
       ffi.DynamicLibrary.open(path);
+      ortLoadFailureReason = null;
       return true;
-    } catch (_) {
-      // 换下一个候选。
+    } catch (e) {
+      // 换下一个候选，但**把原因留下来**：候选全失败时本函数只回 false，
+      // 调用方随后撞上 ORT 绑定自己的 `onnxruntime.dll` 装载错误，那条消息
+      // 不会说试过哪些路径、各自为什么失败。全部候选都失败时这里就是唯一线索。
+      ortLoadFailureReason = '$path: $e';
     }
   }
   return false;
 }
+
+/// 最近一次候选路径装载失败的原因（`"<path>: <error>"`），成功装载或按名字
+/// 直接打开时置 null。仅供排查——见 [ensureOrtRuntimeLoaded]。
+String? ortLoadFailureReason;
 
 /// 把模型资源落地成一个可被 ORT 直接打开的文件路径。
 Future<String> resolveModelPath(String assetKey) async {
