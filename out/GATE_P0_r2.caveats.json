@@ -1,0 +1,58 @@
+{
+  "about": "out/GATE_P0_r2.json",
+  "role": "caveat",
+  "generatedBy": "gatekeeper",
+  "generatedAt": "2026-09-17",
+  "notAnAmendment": "本文件不修改 out/GATE_P0_r2.json。那份 JSON 是 r2 那一轮门禁的原始输出记录，改它等于篡改裁决记录。这里是并列的旁注，只增不改；读者应同时读两者。",
+  "whyThisFileExists": "本轮的适用域与覆盖缺口此前只写在 out/GATE_P0_r2.md 里，而下游更可能只读 JSON。限定词写在没人读的载体上等于没写。",
+  "caveats": [
+    {
+      "id": "C1-revision-scope",
+      "appliesTo": ["P0.3b"],
+      "statement": "P0.3b = 2 条只对 out/GATE_P0_r2.md 判据声明节的那个 revision 有效。当前 JSON 的 P0.3b.actual 里没有这一句，只读 JSON 会拿到一个裸的 2。",
+      "doNotReadAs": "P0.3b = 2 不等于『摆正问题只剩这两条』。",
+      "detail": "P0 至少有 3 条腿：① 死区盲区（imaging，已由 27670b3 修复）② 估计器 unavailable 时施加 0（ml-porting，未修）③ 门禁当前测到的 2 条。判决里那个 2 只描述 ③。",
+      "nextRoundRequirement": "r3 起 P0.3b.actual 必须自带适用范围（记为 r3 强制项）。"
+    },
+    {
+      "id": "C2-deadzone-band-10-not-8",
+      "appliesTo": ["P0.3b", "dead-zone history"],
+      "statement": "曾落在旧 3° 死区 kRollDeadZoneDeg（lib/core/imaging/crop_geometry.dart:125；2026-09-08 引入为 3.0，2026-09-17 00:37 由 27670b3 改为 1.0）内的样本共 10 条，不是 8 条。",
+      "breakdown": {
+        "inP03bDenominator": { "count": 8, "corpus": "rotated", "ids": ["c01_d+3", "c02_d+3", "c07_d+3", "c08_d+10", "c10_d+5", "c11_d+3", "c12_d+5", "p2_d+3"] },
+        "notInDenominator": { "count": 2, "corpus": "anchor", "ids": ["c06", "c12"], "truthTiltDeg": { "c06": -1.73, "c12": -2.09 } }
+      },
+      "denominatorDefinition": "corpus == 'rotated'（tools/gate/gate_P0.dart:570）",
+      "currentStatus": "10/10 已正确摆正（复算：8 条 rotated 残余 ≤ 1.5°，最大 0.5369；2 条 anchor 残余 0.0194 / 0.0535；全部 rollSource=pupil）。此结论由复算得出，非采信提交信息。",
+      "doNotReadAs": "裸的 8 会被读成『盲区的全部』。",
+      "unmeasurable": "该 10 条在 27670b3 之前的历史违规，在当前 revision 上不可测。"
+    },
+    {
+      "id": "C3-no-criterion-covers-visible-slicing",
+      "severity": "coverage-gap",
+      "appliesTo": ["G4/2B.9", "P0", "越界 outOfBounds"],
+      "statement": "没有任何一条门禁判据覆盖『成片看起来被切了一刀』这个属性。本门禁对此没有读数。",
+      "criterionActuallySays": "2B.9 的判据是『图外区域出现的非底色像素总数 = 0』（阈值 0）。越界本身被明确允许——越出部分按 alpha=0 填底色，填的就是底色，判据当然为 0。",
+      "designTolerance": {
+        "constant": "maxOutOfBounds",
+        "value": 0.45,
+        "where": "lib/core/imaging/crop_geometry.dart:416",
+        "alsoAssertedAt": "lib/core/imaging/dev_repro_g4.dart:162 (lessThanOrEqualTo(0.45))"
+      },
+      "workedExample": "用户自己的照片 p1 越界 = 15.46%（out/P0_compose_items.jsonl，specId=cn_big_1inch），远在 45% 容忍之内，故不触发缩小，成片上留下一道斜切口。",
+      "whyItMatters": "判据问的是『图外有没有非底色像素』，用户看的是『身体被斜着切断了』。判据的范围窄于用户可见属性。",
+      "notClaimed": "本门禁不断言该不该收紧。那是产品决定，可能要走 docs/ACCEPTANCE.md，而该文件只有主会话能改、且只在人工明确要求时改。此处只报事实：这道口子现在是敞开的，且在判据里看不见。",
+      "disclosurePrinciple": "沉默比缺失更容易被当成『没问题』。故显式写明『本门禁对此没有读数』，与 native/ 、android/ 的处理方式一致。"
+    },
+    {
+      "id": "C4-alpha-holes-not-version-bound",
+      "appliesTo": ["out/P0_alpha_holes.json", "报告中一切『有洞/无洞』引用"],
+      "statement": "该产物记录的指纹（provenance.codeFingerprint，103 文件 / 0f66aabb3c08105f）绑的是分析脚本跑时的代码状态，绑不住它量的那 87 份 alpha。",
+      "evidence": "扫描源 out/P0_alpha_scan/manifest.jsonl 共 87 行，字段只有 path/outcome/err/zh，无任何指纹；目录创建 03:46、文件 mtime 07:39-07:40，跨度约 4 小时。",
+      "producerSelfDeclaration": "该产物 provenance.inputProvenance（test/batch/p0_alpha_holes.py:151）原文：『本文件测量的是 out/P0_alpha_scan/ 下更早一次扫描产出的 alpha，而那次扫描没有记录自己的代码指纹。所以这里的指纹只证明「跑本脚本期间被测代码没有变」，不能证明那些 alpha 出自同一份代码。』",
+      "coverageGap": "该产物 items 只覆盖 Pictures/** 80 条 + out/P0_anchors/** 7 条（全 c08 家族）。c06_d-3 从未被它扫过——而 out/P0_anchors/ 下有 114 张 PNG 且含 c06_d-3.png。",
+      "consequence": "P0.3b 的 c06_d-3 一条靠两件（真值自洽 + 两支独立量具），不是三件；『眼区干净』已撤回。",
+      "doNotReadAs": "『有洞/无洞』只能当作一次未绑定版本的观测，不能当作可复现的判定依据。"
+    }
+  ]
+}
