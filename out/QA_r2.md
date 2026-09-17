@@ -127,6 +127,8 @@
 
 **边界（重要）**：本节是**归因线索**，**不是判据**，**不改变任何一条判据的通过与否**；`ds_portrait_37` 仍按「单列、不入分母」处理。本轮判定仍只由 `out/GATE_P0_r2.md` 出。
 
+**通道澄清（防误读）**：眼带 alpha 空洞与瞳孔估计器失败**不在同一通道上**，不得读成因果。`estimatePupilRoll` 吃的是**原图灰度** —— `matting_worker.dart:399-411` 的 `runFaceFromRgb` 从 `image.rgb` 造 `gray`，与 `removeBackground(bytes)` 消费的是**同一份原始字节**（`controller.dart:137/:146`），成片与 alpha 都是其**下游产物**。因此 §4b① 的 alpha 空洞**不是**估计器失败的原因；gatekeeper §样本账 中「抠图失效（眼区被 alpha 空洞打掉）」那一列指的是**其自身眼线量具在成片上失效**，不是生产估计器失效。三条读数同指 c08 只支持「该 session 对多种方法都不友好」，**不支持**「一个原因造成三个后果」。另：`unavailable` 是**诚实失败**，按 `matting_worker.dart:398-399` 的注释设计上**不回退眼睑关键点**。
+
 ## 5. 夹具沿用（未重生成）及其一致性证据
 
 本轮**未重新生成**旋转夹具（`p0_rotate.py` 按 team-lead 裁定出范围）。改用与瞳孔法完全无关的第二读数做交叉验证：`p0_verify_geo.py` 用 cv2 像素级旋转配准（NCC 在 phi 上取极大），**不调引擎、不用特征检测器**，输出 `out/P0_anchors/fixture_geo_verify.json`：
