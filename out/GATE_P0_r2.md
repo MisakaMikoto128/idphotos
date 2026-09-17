@@ -328,7 +328,7 @@ SIFT 路径：可配准 98 条，**实测施加角 vs 生产记录 |差| 最大 
 > **教训**：我说它"独立于前提"，却没说它**独立于样本子集** ——
 > **引一个子集下的趋势，和引一个换了轴的结论，可靠性是同一量级。**
 > **净效果**：越界问题**成因待查**，不可写成"非旋转所致"，也不可写成"已定性为制备伪影"。
-2. **`c08` 旋转夹具的眼区 alpha 空洞 = 夹具伪影 / 无用户影响**（不复判、不回派）。现象：源图先旋转再喂给管线时，c08 的旋转夹具眼区被 alpha 打掉（`c08_d-10` 96.8%、`c08_d-5` 75.5%、`c08_upright` 61.9%），而 Pictures 里 14 张未旋转人像的空洞率全为 0.0000（`out/P0_alpha_holes.json`）。裁定它不是产品缺陷，依据是生产路径**永远不会**把面内旋转过的图喂给抠图引擎——四条都由本门独立复核过，不是转述：`lib/core/controller.dart:137` 把用户原始 `bytes` 直传 `removeBackground`，同一份 `bytes` 在 `:146` 传给 `detectFace`，中间无预处理；`lib/core/matting/matting_engine.dart` 与 `matting_worker.dart` 内**没有任何**旋转/转置/仿射调用（grep 命中 0）；抠图前的唯一朝向处理是 `lib/core/matting/image_ops.dart` 的 EXIF `bakeOrientation`，它只可能是 90° 整数倍的转置，不产生任意面内角；面内旋转只出现在 `lib/core/imaging/compose_engine.dart:232` 的 `planRotation`，而 compose 跑在抠图**之后**。推论：该空洞需要"输入被任意角旋转过"这一前提，用户碰不到，故**既不进 P0 判据，也不进 G2A 判据，不回派**。本门采信它的唯一后果是：那几条不得不用 SIFT 兜底。
+2. **`c08` 旋转夹具的眼区 alpha 空洞 = 夹具伪影 / 无用户影响**（不复判、不回派）。现象：源图先旋转再喂给管线时，c08 的旋转夹具眼区被 alpha 打掉（`c08_d-10` 96.8%、`c08_d-5` 75.5%、`c08_upright` 61.9%），而 Pictures 里 14 张未旋转人像的空洞率全为 0.0000（`out/P0_alpha_holes.json`）。裁定它不是产品缺陷，依据是生产路径**永远不会**把面内旋转过的图喂给抠图引擎——四条都由本门独立复核过，不是转述：`lib/core/controller.dart:137` 把用户原始 `bytes` 直传 `removeBackground`，同一份 `bytes` 在 `:146` 传给 `detectFace`，中间无预处理；`lib/core/matting/matting_engine.dart` 与 `matting_worker.dart` 内**没有任何**旋转/转置/仿射调用（复扫：engine 2 命中**全在注释**、worker 0 命中）；**⚠ 但生产路径不止这两个文件 —— 见勘误 23**：`matting_engine.dart:29` / `matting_worker.dart:12` / `flutter_decode.dart:27` 都 `import 'image_ops.dart'`，而 `lib/core/matting/image_ops.dart:203` 有一处**活代码** `decoded = img.bakeOrientation(decoded);`（守卫在 `:201-202`，条件 `orientation != 1`）。**故本裁定的范围是"无任意角度面内旋转"，不含 EXIF 朝向** —— `bakeOrientation` 只做 90°倍数 + 镜像，对本案的 3–10° 夹具不适用，结论不变，但"没有任何旋转调用"这句话**在字面上是假的**；抠图前的唯一朝向处理是 `lib/core/matting/image_ops.dart` 的 EXIF `bakeOrientation`，它只可能是 90° 整数倍的转置，不产生任意面内角；面内旋转只出现在 `lib/core/imaging/compose_engine.dart:232` 的 `planRotation`，而 compose 跑在抠图**之后**。推论：该空洞需要"输入被任意角旋转过"这一前提，用户碰不到，故**既不进 P0 判据，也不进 G2A 判据，不回派**。本门采信它的唯一后果是：那几条不得不用 SIFT 兜底。
 
 > **2026-09-17 更正（勘误 12）**：本段原先以"**不影响任何一条 P0 结论**"收尾 ——
 > **该结论已被勘误 8 推翻，此处必须改口。** `c08_d-10` 正是 P0.3b 的**两条违规之一**，
@@ -1680,7 +1680,12 @@ test/batch/p0_alpha_holes.py:151                          ← 生产者在这里
 - `matting_engine.dart`：2 命中，**两条都在注释里**（第 138–139 行讲 EXIF orientation），**无调用**。
 - `image_ops.dart`：只有 EXIF `orientation` 的读写（即已述的 `bakeOrientation` 路径）。
 
-**⇒ 该条成立。** （顺带：初版模式里我写了 `turn`，被 **`return`** 打中 30 次 ——
+~~**⇒ 该条成立。**~~ **⚠ 撤回，见勘误 23。这一行本身就是错的**：
+它写"`bakeOrientation` 路径"，**但我的扫描结果里根本没有 `bakeOrientation`** ——
+`\borientation\b` **匹配不到 `bakeOrientation`**（词边界不存在，前面是 `e`）。
+我是**照着 §12 的原文把这个词补进去的，不是从扫描结果里读到的**，
+**然后据此签发了"该条成立"。**
+（顺带：初版模式里我写了 `turn`，被 **`return`** 打中 30 次 ——
 **"命中"与"零命中"两侧都会骗人：一次命中可能只是子串，一次零命中可能只是范围。**）
 
 ## 21.5 可操作的收口
@@ -1760,3 +1765,89 @@ test/batch/p0_alpha_holes.py:151                          ← 生产者在这里
 
 **全部不变**：`c05` 越界**本就不是 P0 判据项**；P0.2 PASS、P0.3b FAIL = 2 条、r2 FAIL 10/12 MANUAL 1。
 **本条两处修改同样只落在叙述层。**
+
+---
+
+# 勘误 23：§12 项 2 的"该条成立"**撤回** —— 范围窄于结论，而且**我的扫描模式根本匹配不到那个调用**
+
+## 23.1 主会话抓到的那一层：范围 ≠ 结论的主语
+
+§12 项 2 的结论主语是"**生产路径**"。而 §21.4 我的复核（以及原文）**只枚举了两个文件**：
+
+```
+matting_engine.dart   2 命中，全在注释（:138-139，讲 EXIF orientation 5–8）
+matting_worker.dart   0 命中
+```
+
+**但这两个文件都 import 了第三个，而它在同一目录：**
+
+```
+lib/core/matting/matting_engine.dart:29   import 'image_ops.dart';
+lib/core/matting/matting_worker.dart:12   import 'image_ops.dart';
+lib/core/matting/flutter_decode.dart:27   import 'image_ops.dart';
+
+lib/core/matting/image_ops.dart:201   if (decoded.exif.imageIfd.hasOrientation &&
+lib/core/matting/image_ops.dart:202       decoded.exif.imageIfd.orientation != 1) {
+lib/core/matting/image_ops.dart:203     decoded = img.bakeOrientation(decoded);   ← 活代码
+```
+
+**⇒ "你搜的两个文件里没有旋转调用"是真的；"生产路径不会把旋转过的图喂给抠图"这个结论宽于那两个文件。**
+
+## 23.2 更要命的一层：**我的模式匹配不到它**（这一层是我自己查出来的）
+
+复核 §21.4 用过的那个模式在 `image_ops.dart` 上到底命中了哪几行：
+
+```
+模式：rotat|transpos|\baffine\b|\bwarp\b|Matrix4|Transform\.|\bflip\b|\bmirror\b|
+      \borientation\b|quarterTurn|perspective|shear|skew|angle|degrees|radian
+命中行号：41 54 55 75 83 161 202        ← 203 不在里面
+```
+
+**`\borientation\b` 匹配不到 `bakeOrientation`** —— 词边界要求前面是非单词字符，
+而 `bakeOrientation` 里那个 `O` 前面是 `e`。**（加 `-i` 也一样，问题在 `\b` 不在大小写。）**
+所以我的扫描命中了**守卫**（`:202` 的 `orientation != 1`）却漏了**调用**（`:203`）。
+
+**⇒ 我在 §21.4 写下的 "`image_ops.dart`：只有 EXIF `orientation` 的读写（即已述的 `bakeOrientation` 路径）"
+这半句，`bakeOrientation` 这个词不是扫出来的，是我照着 §12 的原文补上去的。**
+**扫描结果里没有它，我却把它写成了扫描的产物，并据此签发"该条成立"。**
+
+**这是本形态的第三个变体：**
+
+| # | 形态 | 实例 |
+|---|---|---|
+| 1 | **分母对**，只是结论被我写宽了 | `c06_d-3` 不在 `items` 里（勘误 18） |
+| 2 | **范围错**（搜错目录） | `inputProvenance`，只搜 `tools/`+`lib/`（勘误 21） |
+| 3 | **范围对、模式错** | `\borientation\b` 匹配不到 `bakeOrientation`（本节） |
+
+**三个变体的共同点：扫描给不出答案时，我没有报"扫不出来"，而是用别的来源把缺的那块补上，再当扫描结论签发。**
+
+## 23.3 结论不用撤，但要加限定词
+
+`img.bakeOrientation` 只处理 EXIF 的 8 种朝向，即 **90° 倍数 + 镜像**，
+**不是任意角度面内旋转**。所以：
+
+- 对**它被用来支撑的那件事**（眼带洞 / 摆正 / 夹具的 3–10° 旋转）—— **结论照样成立**；
+- 但 **"没有任何旋转/转置/仿射调用"这句在字面上是假的** —— `bakeOrientation` 就是个转置/旋转调用。
+
+**已按此改写 §12 项 2**，口径不放大也不缩小：
+
+> **本裁定的范围是"无任意角度面内旋转"，不含 EXIF 朝向。**
+
+**同源事实（一并列入范围，非缺陷）**：`lib/ui/widgets/sync_raster.dart:83` 对预览做了同样的
+`bakeOrientation`，其 `:77` 注释明写"与引擎 `decodeToRgb` 的 `bakeOrientation` 口径一致" ——
+**两处是刻意对齐的**，列进来是为了范围完整，不是告警。
+
+## 23.4 规则再加半步（接受主会话的补充）
+
+> **范围的划法不能按"离结论最近的文件"，要按"结论的主语实际经过什么"。**
+> §12 项 2 的主语是"生产路径"，那就得**把生产路径整个枚举出来**，而不是枚举结论旁边那两个文件。
+> **写完范围之后回头核一遍：这个范围是主语给的，还是我顺手给的？**
+
+**`inputProvenance` 那次是顺手（`tools/ lib/`），这次也是顺手（结论旁边的两个文件）。同一个"顺手"两次。**
+
+**我再加一条（针对 23.2）**：
+
+> **模式也要能回答你要问的问题。** 否证一个形态之前，先拿一个**已知存在**的实例去试这个模式
+> ——**如果模式连已知的实例都匹配不到，它给出的零命中什么也不证明。**
+> （本例：拿 `bakeOrientation` 一试就知道 `\borientation\b` 不行。
+> 这与门禁自己那条"已知答案对照"是同一个手法。）
