@@ -2,7 +2,7 @@
  "generatedBy": "gatekeeper tools/gate/p0_rigid_check.py align",
  "method": "SIFT + estimateAffinePartial2D，旋转分量即实际施加角（符号已实测钉死）",
  "n": 100,
- "n_ok": 98,
+ "n_ok": 99,
  "rows": [
   {
    "id": "p1",
@@ -849,14 +849,14 @@
    "source": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c06_d-3.png",
    "composed": "out/P0_anchors/composed/c06_d-3__cn_big_1inch.jpg",
    "truth_apply_deg": -4.73,
-   "recorded_applied_deg": 0.0,
+   "recorded_applied_deg": -5.038280217217584,
    "ok": true,
    "measured_applied_deg": -5.0362481138432065,
    "scale": 1.106493657761546,
    "inliers": 132,
    "matches": 141,
    "residual_deg": 0.30624811384320605,
-   "applied_delta_vs_record": -5.0362481138432065
+   "applied_delta_vs_record": 0.0020321033743773143
   },
   {
    "id": "c06_d+3",
@@ -989,9 +989,14 @@
    "source": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-10.png",
    "composed": "out/P0_anchors/composed/c08_d-10__cn_big_1inch.jpg",
    "truth_apply_deg": -18.01,
-   "recorded_applied_deg": 0.0,
-   "ok": false,
-   "reason": "weak_alignment(inl=67,scale=0.000)"
+   "recorded_applied_deg": -17.822220223380846,
+   "ok": true,
+   "measured_applied_deg": -17.844343367083837,
+   "scale": 0.6805484876158132,
+   "inliers": 77,
+   "matches": 193,
+   "residual_deg": -0.16565663291616417,
+   "applied_delta_vs_record": -0.0221231437029914
   },
   {
    "id": "c08_d-5",

@@ -1,0 +1,140 @@
+{
+  "gate": "G2B-P0",
+  "generatedAt": "2026-09-17T09:15:05.651836",
+  "items": [
+    {
+      "id": "P0.1a",
+      "description": "锚点残差（只用 pupil 锚点）：成片端到端残余 |residual| ≤ 1.5°，中位 ≤ 1.0°",
+      "expected": "|residual| ≤ 1.5，中位 ≤ 1.0，样本 ≥ 8 张不同照片（数**不同照片**，不数行数）",
+      "actual": "可计分锚点 12 条 = **11 张不同照片**，下限 8 张不同照片\n去重口径出自 `out/gate_P0_overlap.json`（48×48 灰度签名逐对 MAE，≤5.0 记同图）：本轮判定 `c03≡c04` 为同一张照片（同图不同分辨率），故 11 行 → 10 张。**该量具分辨不了 `c10`/`c11`/`c12` 这类\"同一场景的不同取景\"**，声明不参与那三者的判定；法典条款 6 @ `98f3331` 裁定它们是**三张不同照片**、各自计数。量具不去重它们，方向上是保守的（只会让计数偏高、更容易过下限），因此不会制造假 FAIL，但也**不能**反过来用它论证\"三张里有两张其实是同一张\"。原始锚点栏 12 条，`p2` 不在锚点栏——它同现于 anchors 与 straight，成片台按 id 合并后归入 straight。\nmax|残余| = 0.725，中位 = 0.312\n残余出处：{gate_eyeline: 11, gate_sift_align: 1}（derived_identity = 两条量具都测不出，用已验证恒等式 残余=真值−施加角 推出）\np1: truth=-4.400 applied=-4.463 resid=0.162 src=pupil by=gate_eyeline\nc01: truth=-1.300 applied=-1.374 resid=0.305 src=pupil by=gate_eyeline\nc02: truth=-0.250 applied=0.000 resid=-0.144 src=pupil by=gate_eyeline\nc03: truth=-3.720 applied=-3.773 resid=0.640 src=pupil by=gate_eyeline\nc04: truth=-3.820 applied=-3.900 resid=0.644 src=pupil by=gate_eyeline\nc05: truth=-3.910 applied=-3.919 resid=0.318 src=pupil by=gate_eyeline\nc06: truth=-1.730 applied=-1.711 resid=0.725 src=pupil by=gate_eyeline\nc07: truth=-0.350 applied=0.000 resid=-0.451 src=pupil by=gate_eyeline\nc08: truth=-8.010 applied=-7.850 resid=-0.145 src=pupil by=gate_sift_align\nc10: truth=-3.440 applied=-3.624 resid=0.606 src=pupil by=gate_eyeline\nc11: truth=-0.110 applied=0.000 resid=0.286 src=pupil by=gate_eyeline\nc12: truth=-2.090 applied=-2.144 resid=0.297 src=pupil by=gate_eyeline",
+      "pass": true,
+      "manual": false,
+      "owner": "ml-porting"
+    },
+    {
+      "id": "P0.1b",
+      "description": "条件覆盖率：真值 |tilt| > 1.5° 的锚点必须给出 pupil 估计，unavailable 必须 = 0",
+      "expected": "需要摆正的 8 条锚点上 unavailable = 0",
+      "actual": "需要摆正（|truth| > 1.5°）的锚点 8 条，其中 unavailable 0 条\n|truth| ≤ 1.5° 而返回 unavailable 的 0 条，按口径 2 可接受：",
+      "pass": true,
+      "manual": false,
+      "owner": "ml-porting"
+    },
+    {
+      "id": "P0.2",
+      "description": "不引入歪斜：已知竖直样本残余 ≤ 1.5°，且 uprightSynthetic 必须返回 pupil",
+      "expected": "|residual| ≤ 1.5 且 9 张 uprightSynthetic 全部 source=pupil",
+      "actual": "竖直样本 10 条（用户 2.jpg 1 条 + 合成竖直 9 条，后者下限 9 条），max|残余| = 0.637\nuprightSynthetic 来源分布：{pupil: 9}（全部 pupil）\np2: truth=-0.200 applied=0.000 resid=-0.160 src=pupil by=gate_eyeline\np1_upright: truth=0.000 applied=0.000 resid=0.487 src=pupil by=gate_eyeline\nc01_upright: truth=0.000 applied=0.000 resid=0.454 src=pupil by=gate_eyeline\nc03_upright: truth=0.000 applied=0.000 resid=-0.161 src=pupil by=gate_eyeline\nc04_upright: truth=0.000 applied=0.000 resid=0.479 src=pupil by=gate_eyeline\nc05_upright: truth=0.000 applied=0.000 resid=0.637 src=pupil by=gate_eyeline\nc06_upright: truth=0.000 applied=0.000 resid=0.582 src=pupil by=gate_eyeline\nc08_upright: truth=0.000 applied=0.000 resid=-0.019 src=pupil by=gate_sift_align\nc10_upright: truth=0.000 applied=0.000 resid=0.597 src=pupil by=gate_eyeline\nc12_upright: truth=0.000 applied=0.000 resid=0.000 src=pupil by=gate_eyeline",
+      "pass": true,
+      "manual": false,
+      "owner": "ml-porting"
+    },
+    {
+      "id": "P0.3a",
+      "description": "旋转等变：① 估计值 vs 真值斜率 ∈[0.85,1.15]（只作诊断）；② 成片残余 vs 真值斜率 |·| ≤ 0.15、|截距| ≤ 0.5°、max|残余| ≤ 1.5°（硬判据，口径无关）",
+      "expected": "② 斜率 |·| ≤ 0.15、|截距| ≤ 0.5°、max|残余| ≤ 1.5°",
+      "actual": "② 硬判据：残余 vs 真值 斜率 = 0.000（|·| ≤ 0.15），截距 = 0.251°（|·| ≤ 0.5），max|残余| = 1.753°（≤ 1.5）\n超 1.5° 的夹具 1 条：c06_d+3(1.753°)\n只用 pupil 夹具 100 条（原始 100 条）\n① 诊断：估计值 vs 真值 斜率 = 0.999（带 [0.85, 1.15]，不参与 PASS/FAIL）\n按口径 1 排除在残余统计外的 unavailable 样本 0 条（它们的账由 P0.3b 条件覆盖率算，不许在这里被悄悄算成通过）：\n残余出处：{derived_identity: 1, gate_eyeline: 88, gate_sift_align: 11}（derived_identity = 两条量具都测不出，用已验证恒等式 残余=真值−施加角 推出）",
+      "pass": false,
+      "manual": false,
+      "owner": "ml-porting"
+    },
+    {
+      "id": "P0.3b",
+      "description": "旋转夹具条件覆盖率：真值 |tilt| > 1.5° 的夹具上 unavailable 必须 = 0",
+      "expected": "需要摆正的 67 条夹具上 unavailable = 0",
+      "actual": "需要摆正（|truth| > 1.5°）的 67 条夹具上 unavailable = 0\n旋转夹具原始总数 78 条，需要摆正 67 条\n|truth| ≤ 1.5° 而 unavailable 的 0 条，按口径 2 可接受\n分母：可计分 78 条 / 原始 78 条（无样本因量测失效被扣除，见条款 7 样本账）",
+      "pass": true,
+      "manual": false,
+      "owner": "ml-porting"
+    },
+    {
+      "id": "P0.4",
+      "description": "诚实性与分布：报告 RollSource 分布；unavailable 的施加角必须 = 0.0；禁止回退到 YuNet 眼睑路径（夹具里不得出现 given）",
+      "expected": "unavailable 样本施加角 = 0 的违规数 = 0，且不得出现 source=given",
+      "actual": "全量可合成样本 100 条，来源分布：{pupil: 100}\n锚点：{pupil: 12}；竖直：{pupil: 10}；夹具：{pupil: 78}\nunavailable 的施加角 ≠ 0 的违规 0 条；夹具里 source=given 的 0 条",
+      "pass": true,
+      "manual": false,
+      "owner": "ml-porting"
+    },
+    {
+      "id": "P0.5a",
+      "description": "不回归：dev_selfcheck 9/9",
+      "expected": "退出码 0 且 通过 ≥ 9、失败 = 0",
+      "actual": "退出码=0；解析到 通过=9 失败=0（命中「+9」）\n...(截断)...\n\n[2B.6/2B.7 验收口径]\n  灰矩形画布 cn_1inch             绿=0 品红=0\n  灰矩形画布 cn_small_1inch       绿=0 品红=0\n  灰矩形画布 cn_big_1inch         绿=0 品红=0\n  灰矩形画布 cn_2inch             绿=0 品红=0\n  灰矩形画布 cn_small_2inch       绿=0 品红=0\n  灰矩形画布 cn_social_security   绿=0 品红=0\n  灰矩形画布 visa_us              绿=0 品红=0\n  黄金集 g01 绿=0 品红=0\n  黄金集 g02 绿=0 品红=0\n  黄金集 g03 绿=0 品红=0\n  黄金集 g04 绿=0 品红=0\n  黄金集 g05 绿=0 品红=0\n  黄金集 g06 绿=0 品红=0\n  黄金集 g07 绿=0 品红=0\n  黄金集 g08 绿=0 品红=0\n  合计溢色像素=0 (阈值 0)\n00:18 +4: 2B.8 摆正（±10° 输入的残差角）\n[2B.8]\n  输入 roll=-10.0° → 成片残差 -0.039°\n  输入 roll=-6.0° → 成片残差 -0.034°\n  输入 roll=6.0° → 成片残差 0.034°\n  输入 roll=10.0° → 成片残差 0.039°\n  输入 roll=0.8°（死区内）→ 是否旋转=false\n  最差残差=0.039° (阈值 1.5°)\n00:20 +5: 用户框选 × 摆正：主体尺度守恒（REVIEW_G2 #3 回归）\n[用户框选×摆正]\n  roll=0.0° 摆正=false 裁剪框=460.0×644.0（用户框 460×644） 成片头高=243.0px（理想 243.7） 保留比例=99.7%\n  roll=2.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=6.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=10.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=-10.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  roll=20.0° 摆正=true 裁剪框=460.0×644.0（用户框 460×644） 成片头高=245.0px（理想 243.7） 保留比例=100.5%\n  最差偏离=0.5% (阈值 3%)\n00:22 +6: 用户框选 × 摆正 × 越界：无黑边（2B.9 的反旋转新路径）\n[用户框选×摆正×越界]\n  roll=10° 框心=(40,40) 裁剪框=460.0×644.0 越界=50.7% 图外非白像素=0\n  roll=10° 框心=(960,40) 裁剪框=460.0×644.0 越界=42.8% 图外非白像素=0\n  roll=10° 框心=(40,1360) 裁剪框=460.0×644.0 越界=0.0% 图外非白像素=0\n  roll=10° 框心=(960,1360) 裁剪框=460.0×644.0 越界=39.9% 图外非白像素=0\n  roll=10° 框心=(500,-800) 裁剪框=460.0×644.0 越界=100.0% 图外非白像素=0\n  roll=-10° 框心=(40,40) 裁剪框=460.0×644.0 越界=42.8% 图外非白像素=0\n  roll=-10° 框心=(960,40) 裁剪框=460.0×644.0 越界=50.7% 图外非白像素=0\n  roll=-10° 框心=(40,1360) 裁剪框=460.0×644.0 越界=39.9% 图外非白像素=0\n  roll=-10° 框心=(960,1360) 裁剪框=460.0×644.0 越界=0.0% 图外非白像素=0\n  roll=-10° 框心=(500,-800) 裁剪框=460.0×644.0 越界=100.0% 图外非白像素=0\n  最大越界比例=100.0% 图外非白像素（最差单张）=0 (阈值 0)\n00:23 +7: 2B.9 边界安全（贴边人脸不抛异常、无黑边）\n[2B.9]\n  setup0 完成，越界比例=26.0% 缩小=false 说明=裁剪框越界 26.0%（越出部分按 alpha=0 填底色）\n  setup1 完成，越界比例=28.7% 缩小=false 说明=裁剪框越界 28.7%（越出部分按 alpha=0 填底色）\n  setup2 完成，越界比例=0.0% 缩小=false 说明=裁剪框完全在图内\n  setup3 完成，越界比例=7.6% 缩小=true 说明=人脸过于贴边/过大，已按头顶锚点缩到越界 ≤ 45%：头高比 1.307（目标 0.640），越界 7.6% 填底色\n  setup4 完成，越界比例=31.0% 缩小=false 说明=裁剪框越界 31.0%（越出部分按 alpha=0 填底色）\n  图外区域出现的非底色像素总数（最差单张）=0 (阈值 0)\n00:26 +8: 渐变底与去色边质量（蓝渐变 / 白底，合成原片）\n[渐变] 顶部=(97,138,206) 期望≈(98,139,206) 底部=(43,89,160) 期望≈(43,90,160)\n[去色边] 换白底后残留蓝边像素=0 (阈值 0)\n00:26 +9: All tests passed!\n\nstderr:\n",
+      "pass": true,
+      "manual": false,
+      "owner": "imaging"
+    },
+    {
+      "id": "P0.5b",
+      "description": "不回归：2B.8 摆正几何（成片实测旋转 = 真值 − 施加角）",
+      "expected": "两个**分开报**的子量都要过：① 施加几何 —— SIFT 实测施加角 vs 生产记录 |差| ≤ 1.5°；② 跨量具一致性 —— 眼线实测残余 vs (真值−施加角) ≤ 1.5°",
+      "actual": "①【判据量·施加几何】SIFT 源图↔成片配准，可配准 99 条，实测施加角 vs 生产记录 |差| 最大 0.077° （阈值 1.5°，余量 1.423°）—— 此项不读眼线、不读 alpha、不读生产诊断，是 2B.8 本体的直接测量\n②【辅助量·跨量具一致性】眼线路径，可实测夹具 88 条，|眼线实测残余 − (真值−施加角)| 最大 1.096° （阈值 1.5°，余量 0.404°，眼线量具自检误差 0.410°）—— 这个量把**量具噪声**和几何误差混在一起，余量小于量具误差，**不作为定罪依据**\n说明：本项不注入夹具，而是用真值已知的旋转夹具反查同一件事；施加几何一旦出问题（符号反了/没转），① 会立刻爆到 2 倍真值",
+      "pass": true,
+      "subchecks": [
+        {
+          "name": "① 施加几何",
+          "value": 0.07697898529632674,
+          "criterion": true,
+          "margin": 1.4230210147036733,
+          "instrumentErr": 0.5
+        },
+        {
+          "name": "② 跨量具一致性",
+          "value": 1.0955474898589954,
+          "criterion": false,
+          "margin": 0.4044525101410046,
+          "instrumentErr": 0.4101256717524797
+        }
+      ],
+      "margin": 0.4044525101410046,
+      "instrumentErr": 0.4101256717524797,
+      "corroboration": "margin > instrumentErr 才是确定性违规；若 margin < instrumentErr，须 SIFT 路径独立复现同一超线才计违规，否则记「边界噪声 / 证据不足」，不消耗实现方修复轮次（本条不适用 P0.3a：P0.3a 超阈值 7 倍以上，两支量具均独立复现，按原样记 FAIL）",
+      "corroborated": true,
+      "manual": false,
+      "owner": "imaging"
+    },
+    {
+      "id": "P0.5c",
+      "description": "不回归：2B.8 之外的 G2B 项 / G4 已过项不退化（判据只覆盖\"原本通过的项\"）",
+      "expected": "原本通过的项重跑后仍 PASS；本项需重跑才能判定",
+      "actual": "本轮未重跑设备端（上游 P0.3a/P0.3b 未修好时重跑不产生新信息，一轮约 40 分钟）。\n既有 gate 结果里的未过项：G4/4.7\n注意：这些是**本轮之前就存在的**未过项，不是 P0 引入的退化；逐条原因见各自的 out/GATE_*_r*.md，不计在 ml-porting 账上。",
+      "pass": false,
+      "manual": true,
+      "owner": "gatekeeper（本轮未重跑，无法判定是否退化；留待上游修好后补跑）"
+    },
+    {
+      "id": "PIN",
+      "description": "判据分母：生成的 `out/P0_truth.json` 与手写的 `out/P0_truth_v0.json` 逐条相等",
+      "expected": "逐条相等（唯一允许的差：anchors/p2）",
+      "actual": "逐条相等。比了 anchors=12条、nonPortrait=66条、rejected=1条、rotated=78条、straight=1条、uprightSynthetic=9条；登记豁免 1 条（anchors/p2）；v0 没有、故**未比**的生成件清单：knownLimitations；因形状豁免**未逐值比**的字段：methods×13（定义在 `kDenominatorShapeAllowance`，受条款 2 保护）",
+      "pass": true,
+      "manual": false,
+      "owner": null
+    },
+    {
+      "id": "EVID",
+      "description": "派生块证据溯源：`gateInputs/rotationFailureBoundary/evidenceProvenance/sourceSha256` 记的摘要 == 盘上产物现算的摘要",
+      "expected": "逐份相符（**只证\"叙述与产物一致\"，不证\"产物出自当前代码\"**）",
+      "actual": "**不相符**：核了 3 份源产物：out/P0_output_residual.json=不一致、out/P0_compose_items.jsonl=不一致、out/P0_alpha_holes.json=不一致\n- out/P0_alpha_holes.json：记录的摘要 67497012047ee087… ≠ 盘上现算的 3ad3a37951061645… —— **产物在 finalize 之后被改过**，叙述里的行值/条数描述的不是现在这份产物\n- out/P0_compose_items.jsonl：记录的摘要 aea8b3cc9ab95f75… ≠ 盘上现算的 8c39d726caaf970a… —— **产物在 finalize 之后被改过**，叙述里的行值/条数描述的不是现在这份产物\n- out/P0_output_residual.json：记录的摘要 249a56ec358f9f5a… ≠ 盘上现算的 a80d66ee4e81262f… —— **产物在 finalize 之后被改过**，叙述里的行值/条数描述的不是现在这份产物",
+      "pass": false,
+      "manual": false,
+      "owner": "qa-batch（叙述与产物不同源；若产物被 finalize 之后重跑过，重跑 finalize 即可）"
+    },
+    {
+      "id": "AC",
+      "description": "ACCEPTANCE 防作弊条款 1–6",
+      "expected": "0 命中",
+      "actual": "清白（**条款 1 自 `7773df4` 起才真正执行 —— 该 commit 之前各轮的「清白」在条款 1 上是空的，不得引用为历史**；黄金集 src=8 ref=8；skip/catch 扫描：条款 3：skip 命中 33（其中 33 条落在巡检自身领地，已登记不判违规）；注释掉的断言命中 0；**被放宽的阈值常量：无独立扫描器，靠基线 tag diff 结构性覆盖**（阈值只在 ACCEPTANCE.md 与 tools/gate/ 两处，分别受条款 1、条款 2 保护）；条款 5：空 catch 命中 0（无注释）+ 0（体内只有注释）＝ **共 0 处，一律计违规**（主会话 2026-09-17 改口径：注释不该决定任何事 —— \"加一句注释就降级\"是一条能被扩写的洗白通道。让那几处清白的不是注释，是它们周围的代码，所以修法是改掉它们，不是给注释体开后门）；判据定义：体内剥掉注释与字符串后，除空白与 `;` 外没有任何语句 ⇒ 空实现。**含注释体与 `catch (_) { ; }`**，不是只认 `{}`。；**判据分母内容钉（out/P0_truth_v0.json 手写件）**：out/P0_truth_v0.json 相对基线无变化（949 个数值叶参与比对）。数值叶排除集：**空**（一个都不排，全部逐叶比对） 钉子对象：`out/P0_truth_v0.json`（本轮未变）；换靶历史（**只增不删**）：`out/P0_truth.json -> out/P0_truth_v0.json`；**分母一致性（生成件 vs 手写件）**：比了 anchors=12条、nonPortrait=66条、rejected=1条、rotated=78条、straight=1条、uprightSynthetic=9条；登记豁免 1 条（anchors/p2）；v0 没有、故**未比**的生成件清单：knownLimitations；因形状豁免**未逐值比**的字段：methods×13（定义在 `kDenominatorShapeAllowance`，受条款 2 保护）；**派生数字证据溯源**：核了 3 份源产物：out/P0_output_residual.json=不一致、out/P0_compose_items.jsonl=不一致、out/P0_alpha_holes.json=不一致；**测量产出同源**：3 份测量产出均可自证与当前树同源（受钉源码 103 个文件 = `lib/` 全部 `.dart` + `test/batch/` 全部 `.dart`/`.py`；代码摘要 -32be85b2dab13e3e）；标定靶：test/golden/src/g01.jpg 与内容钉一致（sha256=25b14d07b1375bc3…）；期间代码已变（0f66aabb3c08105f→-32be85b2dab13e3e）但标定靶未变，属预期；受钉文件 43 个；基线 baseline-p6p0 以来 test/ tools/gate/ ACCEPTANCE/RUBRIC 无实现类 agent 改动；门禁自身未提交改动 19 个，已在 out/GATE_P0_selfchanges.txt 逐条自报）",
+      "pass": true,
+      "manual": false,
+      "owner": null
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "passed": 9,
+    "manual": 1
+  },
+  "pass": false
+}

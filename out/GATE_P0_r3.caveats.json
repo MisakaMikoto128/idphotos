@@ -1,0 +1,94 @@
+{
+  "about": "out/gate_P0_r3.json",
+  "role": "caveat",
+  "generatedBy": "gatekeeper",
+  "generatedAt": "2026-09-17T09:15:05-10:00",
+  "notAnAmendment": "本文件不修改 out/gate_P0_r3.json。那份 JSON 是本轮门禁的原始输出记录，改它等于篡改裁决记录。这里是并列的旁注，只增不改；读者应同时读两者。",
+  "whyThisFileExists": "本轮要求 P0.3b.actual 自带适用范围，但 actual 由 tools/gate/gate_P0.dart 生成，而该目录本轮处于冻结（主会话 2026-09-17 裁定：测量期间 tools/gate/** 与 test/gate/** 不得改动，以免动到已冻结的量具基线）。故适用范围改放此处 —— 位置换了，机器可读性没换。",
+  "followUp": "解冻后应把适用范围直接写进 gate_P0.dart 的 P0.3b 'actual'，届时本文件的 C1 可由代码生成而不再依赖人工维护。",
+  "caveats": [
+    {
+      "id": "C1-p03b-scope",
+      "appliesTo": ["P0.3b"],
+      "verdictThisRound": "PASS（unavailable 违规 0 条）",
+      "statement": "P0.3b 本轮读数为 0 违规，其**适用范围**如下，裸的 0 不得越界引用。",
+      "denominator": {
+        "value": 67,
+        "definition": "corpus == 'rotated' 且 |truthTiltDeg| > 1.5（tools/gate/gate_P0.dart:748 / :180 kCoverageMinTruthDeg）",
+        "specId": "cn_big_1inch"
+      },
+      "doesNotCover": [
+        "|真值| <= 1.5 的夹具：它们被排除在分母外，本项对它们**没有任何断言**。见 C3。",
+        "27670b3(2026-09-17 00:37, 死区 3.0->1.0) 之前的历史违规：在 27670b3 之前的 revision 上，(1.5, 3.0] 带内的样本曾被静默跳过，本项在当前 revision 上测不到那段历史。",
+        "被 qa-batch 标为可靠性不足而排除的样本（若有）不计入分母。"
+      ],
+      "notAClaimThat": "0 违规不等于『摆正问题已经全部解决』。它只说明：当前 revision 上，分母内 67 条里没有一条返回 unavailable。成片残余是否达标是 P0.3a 的事，本轮 P0.3a FAIL。",
+      "priorRound": "r2 同一分母上为 2 条违规（c06_d-3、c08_d-10）。r2 的 out/gate_P0_r2.json 内 actual 全文零适用范围，那是已归档的记录，不追溯修改；见 out/GATE_P0_r2.caveats.json 的 C1-revision-scope。"
+    },
+    {
+      "id": "C2-p03a-fails-on-one-sample-inside-instrument-error",
+      "appliesTo": ["P0.3a"],
+      "severity": "边界",
+      "statement": "P0.3a 本轮记 FAIL（max|成片残余| = 1.7534° > 1.5°），但超线只有 1 条，且余量小于量具自身误差，第二支量具未复现该超线。",
+      "overLineSamples": [
+        { "id": "c06_d+3", "eyelineTiltDeg": 1.7534, "siftResidualDeg": 1.2610, "truthTiltDeg": 1.27, "appliedDeg": 0.0 }
+      ],
+      "runnerUp": { "id": "c12_d+3", "eyelineTiltDeg": 1.4764, "distanceBelowThresholdDeg": 0.0236 },
+      "margin": -0.2534,
+      "instrumentSelfCheckError": { "gate_eyeline": 0.41, "gate_rigid_sift": 0.5 },
+      "crossInstrumentDisagreementDeg": 0.4924,
+      "ruleConflict": {
+        "rule": "余量 < 量具误差 ⇒ 单支量具的 FAIL 不足以定罪；须第二支独立量具复现同一超线才计违规，否则记『边界噪声 / 证据不足』，不消耗实现方修复轮次。",
+        "ruleSource": "主会话 2026-09-17 裁定；写在 tools/gate/gate_P0.dart:275 与 :892-900",
+        "exemptionForP03a": "本规则不适用于 P0.3a：它超阈值 7 倍以上且两支量具独立复现，是确定性违规。",
+        "whyTheExemptionDoesNotHoldThisRound": "本轮超阈值 1.17 倍（非 7 倍以上），且第二支量具（SIFT 1.2610°）未复现超线。那段豁免理由描述的是 r1 的状态（P0.3a 当时 11.368°），未被更新。"
+      },
+      "disposition": "门禁官按冻结判据记 FAIL，不自行适用贴线规则（该规则明文排除 P0.3a；tools/gate/** 本轮冻结；阈值与判据只有主会话能动）。已上交主会话裁定。裁定为边界噪声则本轮不消耗 ml-porting 修复预算。"
+    },
+    {
+      "id": "C3-small-tilt-band-has-no-residual-criterion",
+      "appliesTo": ["P0.3a", "P0.3b", "dead zone"],
+      "severity": "coverage-gap",
+      "statement": "|真值| <= 1.5° 的夹具既不在 P0.3b 分母内，也没有任何残余判据覆盖；而死区恰好在这个区间留下最大的成片倾角。本门禁对这段区间没有读数。",
+      "mechanism": "lib/core/imaging/crop_geometry.dart:125 kRollDeadZoneDeg = 1.0；:143 |roll| <= deadZoneDeg 时返回恒等变换。故 |真值| 落在死区内或附近的样本，引擎施加 0.0°，成片保留原倾角，该倾角即残余。",
+      "evidence": {
+        "topThreeWorstResidualsAreAllAppliedZero": [
+          { "id": "c06_d+3", "truth": 1.27, "applied": 0.0, "eyelineTiltDeg": 1.7534 },
+          { "id": "c12_d+3", "truth": 0.91, "applied": 0.0, "eyelineTiltDeg": 1.4764 },
+          { "id": "p1_d+5", "truth": 0.6, "applied": 0.0, "eyelineTiltDeg": 1.3020 }
+        ],
+        "grouped": {
+          "smallTilt_absTruth_le_3": { "n": 18, "maxAbsResidualDeg": 1.7534, "medianAbsResidualDeg": 0.3710 },
+          "largeTilt_absTruth_gt_3": { "n": 50, "maxAbsResidualDeg": 0.8725, "medianAbsResidualDeg": 0.3115 }
+        },
+        "notARegression": "r2 时这三条同样施加 0.0。这不是本轮引入的回归，是死区大小与 1.5° 判据之间余量本来就薄。"
+      },
+      "notClaimed": "本门禁不断言死区该不该调小。那是产品/阈值决定。（调小会重新触碰 crop_geometry.dart:120-124 注释所述的小角度抖动问题。）"
+    },
+    {
+      "id": "C4-alpha-holes-is-not-a-criterion",
+      "appliesTo": ["out/P0_alpha_holes.json", "报告中一切『有洞/无洞』引用"],
+      "statement": "门禁里没有任何判据读 out/P0_alpha_holes.json。它在 tools/gate/gate_P0.dart 中只出现一处（:2776），且是 writeln 的字符串字面量，不是判据。",
+      "evidence": "grep -n 'alphaHoles|alpha_holes' tools/gate/gate_P0.dart -> 仅 :2776，位于 b.writeln(...) 的字符串拼接内。",
+      "consequence": "该产物的『洞』读数**进不了 PASS/FAIL**。它不出现在本轮的 12 条判据里，本轮判决不依赖它。",
+      "freshnessThisRound": "out/P0_alpha_scan/ 本轮已随 qa-batch 重跑（manifest.jsonl mtime 09:04:31，out/P0_alpha_holes.json mtime 09:06:35），故与本轮代码（cd417a4d254ec1c2）同源。",
+      "stillApplies": "但 out/GATE_P0_r2.caveats.json 的 C4（该产物的 inputProvenance 记录了历史上的同源缺口）与 C5（87 是扫描行数不是测量数；可评估仅 21 条 = Pictures 未旋转人像 14 + out/P0_anchors 7）**仍然成立**，引用时一并读。"
+    },
+    {
+      "id": "C5-blind-spot-c08_d-10-residual-unverifiable",
+      "appliesTo": ["c08_d-10", "P0.3a", "P0.3b"],
+      "severity": "blind-spot",
+      "statement": "c08_d-10 的成片残余**无法独立确认**，记为盲区。不是通过，也不是失败 —— 是本门禁没有读数。",
+      "why": "该夹具的真值自身标注 lowConfidence：out/P0_truth.json -> /anchors/8/note「暗光摄像头；Haar 全程失败，仅 2 法可用且互差 1.69，标记 lowConfidence」。真值自身不确定度 ~1.7°，大于 1.5° 判据。",
+      "thisRoundReading": { "appliedDeg": -17.822220, "rollSource": "pupil", "wasUnavailableInR2": true },
+      "directionIsBetterButNotVerified": "修前施加 0.0（错约 18°），本轮施加 -17.8222。方向必然更好，但『准不准』没有独立路径可确认。",
+      "doNotReadAs": "不得把这一条读成通过。也不得静默判它失败。它是公开盲区。"
+    },
+    {
+      "id": "C6-derived-identity-residual-count",
+      "appliesTo": ["P0.3a", "residual provenance"],
+      "statement": "本轮残余出处：gate_eyeline 88 条、gate_sift_align 11 条、derived_identity 1 条。那 1 条是用已验恒等式 残余=真值−施加角 推出来的，不是测出来的。",
+      "doNotReadAs": "不要把 derived_identity 那 1 条与其余 99 条同等看待 —— 它是恒等式回填，不是独立测量。"
+    }
+  ]
+}

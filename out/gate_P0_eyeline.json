@@ -1715,31 +1715,31 @@
   },
   {
    "ok": true,
-   "tilt_deg": -4.354221063069611,
+   "tilt_deg": 0.581663057505372,
    "method": "haar_eyeline_2x",
-   "n_eyes": 3,
+   "n_eyes": 4,
    "left": [
-    146.5,
-    235.5
+    143.0,
+    232.5
    ],
    "right": [
-    245.0,
-    228.0
+    241.5,
+    233.5
    ],
-   "eyedist": 98.8,
+   "eyedist": 98.5,
    "face": [
-    76,
-    140,
-    256,
-    256
+    62,
+    134,
+    268,
+    268
    ],
    "id": "c06_d-3",
    "path": "out/P0_anchors/composed/c06_d-3__cn_big_1inch.jpg",
    "specId": "cn_big_1inch",
    "corpus": "rotated",
    "truthTiltDeg": -4.73,
-   "rollSource": "unavailable",
-   "applied_straighten_deg": 0.0,
+   "rollSource": "pupil",
+   "applied_straighten_deg": -5.038280217217584,
    "expectedEngineRollDeg": -4.73
   },
   {
@@ -1767,7 +1767,7 @@
    "specId": "cn_big_1inch",
    "corpus": "rotated",
    "truthTiltDeg": 1.27,
-   "rollSource": "unavailable",
+   "rollSource": "pupil",
    "applied_straighten_deg": 0.0,
    "expectedEngineRollDeg": 1.27
   },
@@ -2012,8 +2012,8 @@
    "specId": "cn_big_1inch",
    "corpus": "rotated",
    "truthTiltDeg": -18.01,
-   "rollSource": "unavailable",
-   "applied_straighten_deg": 0.0,
+   "rollSource": "pupil",
+   "applied_straighten_deg": -17.822220223380846,
    "expectedEngineRollDeg": -18.01
   },
   {
