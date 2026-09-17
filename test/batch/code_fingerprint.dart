@@ -206,11 +206,21 @@ String _relKey(String root, String full) {
 ///
 /// [gitHashes] 只在自测里注入，用来**模拟 git 不可用**，从而证明"算不出指纹"时不会
 /// 退化成"两份指纹相等"。生产调用一律走默认的 [gitBlobHashesStrict]。
+///
+/// ⚠ **排序用的是规范键（仓库相对、正斜杠），不是 `e.path`。** 这两者今天同序是
+/// **运气**：`/`(0x2F) 与 `\`(0x5C) 相对字母的大小关系**相反**，所以
+/// `lib/ui/x.dart` 与 `lib/uiA.dart` 在两种键下的先后**正好翻转** ——
+/// 一旦域里出现"目录名是另一文件名前缀"的组合，拼接串不同 ⇒ FNV 不同 ⇒
+/// 与 `code_fingerprint.py`（同口径）以及门禁（排正斜杠相对路径）**跨实现误判**。
+/// 同 `toRadixString(16)` 那条一样，**当前值恰好落在两种写法一致的区间**，
+/// 所以它不会自己暴露。第 8 段自测专门造了这对形状把它钉住。
 Map<String, Object?> codeFingerprint({
   String root = '.',
   List<String> Function(List<String> paths) gitHashes = gitBlobHashesStrict,
 }) {
-  final paths = <String>[];
+  // 先算规范键，**再按规范键排序**；绝对路径只是取哈希时要用的入参，
+  // 它带着 OS 分隔符，**不参与定序、也不进 joined**。
+  final relToAbs = <String, String>{};
   for (final dir in kMeasuredRoots) {
     final d = Directory(_join(root, dir));
     if (!d.existsSync()) continue;
@@ -219,12 +229,18 @@ Map<String, Object?> codeFingerprint({
       final norm = e.path.replaceAll('\\', '/');
       if (norm.contains(kMeasuredExclude)) continue;
       if (!kMeasuredExts.any(norm.endsWith)) continue;
-      paths.add(e.path);
+      final String rel = _relKey(root, e.path);
+      if (relToAbs.containsKey(rel)) {
+        // 同一个规范键对应两个物理文件 ⇒ 无论选哪个都会**静默**丢掉一条，
+        // 而"少记一个文件 = 那个文件改了也不响"。宁可炸。
+        throw StateError('规范键重复：$rel 同时对应 ${relToAbs[rel]} 与 ${e.path}');
+      }
+      relToAbs[rel] = e.path;
     }
   }
-  paths.sort();
+  final rels = relToAbs.keys.toList()..sort();
+  final paths = rels.map((String r) => relToAbs[r]!).toList();
 
-  final rels = paths.map((String p) => _relKey(root, p)).toList();
   final blobs = gitHashes(paths);
   if (blobs.length != paths.length) {
     throw StateError('gitHashes 返回 ${blobs.length} 个哈希，但有 ${paths.length} 个文件；'

@@ -176,6 +176,39 @@ Future<void> main() async {
   // （所有写操作都走 kSandbox 下的路径），且第 1 段已证明沙箱是真实仓库的
   // 逐字节忠实副本。**运行时的作废判定归 roundVerdict，不归对实现的自测。**
 
+  // --- 8. 规范键排序：造一对"目录名是另一文件名前缀"的路径 ---
+  //     为什么需要：定序若按物理路径（`e.path`，带 OS 分隔符），`/`(0x2F) 与
+  //     `\`(0x5C) 相对字母的大小关系**相反**，`lib/ui/x.dart` 与 `lib/uiA.dart`
+  //     的先后会**正好翻转** ⇒ 与 `code_fingerprint.py`（同口径）、门禁
+  //     （排正斜杠相对路径）拼接出不同的串 ⇒ 跨实现误判。
+  //     **当前仓库里没有这种形状，所以这条缺陷不会自己暴露** —— 与
+  //     `toRadixString(16)` 那条同形：当前值恰好落在两种写法一致的区间。
+  //     期望值是与 Python 侧共用的**独立常量**（`code_fingerprint.py` 的
+  //     `CANONICAL_ORDER_VECTOR_FNV`），比"两侧互相比对"硬。
+  const String kCanonVectorFnv = '93a7e164fa0c3b50';
+  const List<String> kCanonVectorOrder = <String>['lib/ui/x.dart', 'lib/uiA.dart'];
+  const String kCanonSandbox = 'out/P0_selftest_tmp/_canon_dart';
+  final Directory canonDir = Directory(kCanonSandbox);
+  if (canonDir.existsSync()) canonDir.deleteSync(recursive: true);
+  File('$kCanonSandbox/lib/ui/x.dart'.replaceAll('/', Platform.pathSeparator))
+    ..parent.createSync(recursive: true)
+    ..writeAsStringSync('// x\n');
+  File('$kCanonSandbox/lib/uiA.dart'.replaceAll('/', Platform.pathSeparator))
+    ..parent.createSync(recursive: true)
+    ..writeAsStringSync('// A\n');
+  final Map<String, Object?> canon = codeFingerprint(root: kCanonSandbox);
+  final List<String> canonKeys =
+      (canon['blobHashes'] as Map).keys.cast<String>().toList()..sort();
+  _check('8 规范键序：$kCanonVectorOrder', canonKeys.join(',') == kCanonVectorOrder.join(','),
+      canonKeys.join(','));
+  _check('8 规范键排序的 fnv 与 Python 侧同常量',
+      canon['fnv1a64'] == kCanonVectorFnv,
+      canon['fnv1a64'] == kCanonVectorFnv
+          ? ''
+          : 'got=${canon['fnv1a64']} want=$kCanonVectorFnv'
+            '（若为 0109982efdbe237e，说明排的是反斜杠物理路径）');
+  canonDir.deleteSync(recursive: true);
+
   sandbox.deleteSync(recursive: true);
   stdout.writeln('\n${_fail == 0 ? 'FINGERPRINT SELFTEST PASS' : 'FINGERPRINT SELFTEST FAIL ($_fail)'}');
   exit(_fail == 0 ? 0 : 1);
