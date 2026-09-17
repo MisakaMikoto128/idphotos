@@ -42,6 +42,29 @@ const String kComposeSummaryPath = 'out/P0_compose_summary.json';
 /// （它的脏是预期的：每轮都会往里写）。
 const List<String> kFreezeScopes = <String>['lib', 'test', 'tools', 'docs'];
 
+/// 冻结范围的**唯一豁免**：只此一个文件，不是整个 `docs/`。
+///
+/// 主会话 2026-09-17 裁定（选 B：窄口径）。理由三条：
+///  1. 冻结的目的是"判决的输入来自同一个代码状态"。PITFALLS **不进任何测量链** ——
+///     门禁不读它、判据不引用它、读数不经过它。
+///  2. CLAUDE.md §4 写"`docs/PITFALLS.md`：**所有 agent 只追加**"，即所有 agent
+///     **随时**可写。把它放进冻结范围，等于让一次**合规的**追加动作触发整轮作废 ——
+///     这条规则会对着正确行为开火。豁免涵盖主会话与各裁判。
+///  3. r1 死于"判据中途被改"，那是 ACCEPTANCE/RUBRIC 的问题，与 PITFALLS 同类不同源。
+///
+/// **不要用"把 `docs/` 移出 `kFreezeScopes`"来实现这条豁免** —— 那会连带放行
+/// `ACCEPTANCE.md` / `RUBRIC.md`（判据本体，r1 就是被它坑掉的）以及
+/// `CONTRACTS.md` / `DESIGN.md` / `ENV.md` 的中途改动。
+const String kFreezeExemptPath = 'docs/PITFALLS.md';
+
+/// 从 porcelain v1 的一行（`XY PATH`，重命名是 `XY OLD -> NEW`）里取回路径。
+String _porcelainPath(String line) {
+  if (line.length < 4) return line.trim();
+  String p = line.substring(3).trim();
+  if (p.contains(' -> ')) p = p.split(' -> ').last.trim();
+  return p.replaceAll('"', '').replaceAll('\\', '/');
+}
+
 /// 事后勘误，按轮次。**只追加，不改动下方任何原始结论。**
 ///
 /// 写在生成器里而不是手工贴在 md 上：报告是可重生成的产物，
@@ -230,13 +253,21 @@ Map<String, dynamic> _roundState() {
   final RunResult st = _gitSync(<String>[
     'status', '--porcelain', '--untracked-files=all', '--', ...kFreezeScopes,
   ]);
-  final List<String> dirty = st.stdout
+  final List<String> dirtyAll = st.stdout
       .split('\n')
       .map((String l) => l.trim())
       .where((String l) => l.isNotEmpty)
       .toList();
+  // 唯一豁免：`docs/PITFALLS.md`（见 kFreezeExemptPath）。豁免的条目**照记不误**，
+  // 只是不计入"未冻结"——登记而公开，不是隐去。
+  final List<String> exempted =
+      dirtyAll.where((String l) => _porcelainPath(l) == kFreezeExemptPath).toList();
+  final List<String> dirty =
+      dirtyAll.where((String l) => _porcelainPath(l) != kFreezeExemptPath).toList();
   s['frozen'] = st.exitCode == 0 && dirty.isEmpty;
   s['dirty'] = dirty.take(20).toList();
+  s['freezeExempt'] = exempted.take(20).toList();
+  s['freezeExemptPath'] = kFreezeExemptPath;
 
   final List<dynamic> rows = _readJsonl(kComposePath);
   int declared = 0;
@@ -437,20 +468,35 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         cohort.map((Map<String, dynamic> s) => (s['residual'] as double).abs()).toList();
     final double maxAbs = res.isEmpty ? double.nan : res.reduce(math.max);
     final double median = _median(res);
+    // 下限数的是**不同照片**，不是行数。见 distinctPhotoCount 的注释：
+    // 判据文本写的是"≥ 8 张不同照片"，用 `cohort.length` 判就是判据比它的名字松。
+    final int? distinct =
+        distinctPhotoCount(cohort, inputs['overlap'] as Map<String, dynamic>?);
     final bool pass = instrumentsOk &&
-        cohort.length >= kMinDistinctPhotos &&
+        distinct != null &&
+        distinct >= kMinDistinctPhotos &&
         maxAbs <= kResidualMaxDeg &&
         median <= kResidualMedianMaxDeg;
     items.add(<String, dynamic>{
       'id': 'P0.1a',
       'description': '锚点残差（只用 pupil 锚点）：成片端到端残余 |residual| ≤ 1.5°，中位 ≤ 1.0°',
-      'expected': '|residual| ≤ $kResidualMaxDeg，中位 ≤ $kResidualMedianMaxDeg，样本 ≥ $kMinDistinctPhotos 张不同照片',
+      'expected': '|residual| ≤ $kResidualMaxDeg，中位 ≤ $kResidualMedianMaxDeg，'
+          '样本 ≥ $kMinDistinctPhotos 张不同照片（数**不同照片**，不数行数）',
       'actual': _text(
         <String>[
-          '可计分锚点 ${cohort.length} 条（原始 ${anchors.length} 条；法典口径 6 @ `98f3331`：'
-              '锚点栏 12 条 − c03≡c04 这一对真重复 = **11 张不同照片**；'
-              'c10/c11/c12 为**三张不同照片**，各自计数。'
-              'p2 不在锚点栏——它同现于 anchors 与 straight，成片台按 id 合并后归入 straight）',
+          distinct == null
+              ? '**去重量具未产出/结论不完整，无法把行数折算成不同照片数** —— '
+                  '本项按判不了处理（不退回行数：退回行数正是这条缺陷本身）'
+              : '可计分锚点 ${cohort.length} 条 = **$distinct 张不同照片**，'
+                  '下限 $kMinDistinctPhotos 张不同照片',
+          '去重口径出自 `$kOverlapPath`（48×48 灰度签名逐对 MAE，≤5.0 记同图）：'
+              '本轮判定 `c03≡c04` 为同一张照片（同图不同分辨率），故 11 行 → 10 张。'
+              '**该量具分辨不了 `c10`/`c11`/`c12` 这类"同一场景的不同取景"**，'
+              '声明不参与那三者的判定；法典条款 6 @ `98f3331` 裁定它们是**三张不同照片**、各自计数。'
+              '量具不去重它们，方向上是保守的（只会让计数偏高、更容易过下限），'
+              '因此不会制造假 FAIL，但也**不能**反过来用它论证"三张里有两张其实是同一张"。'
+              '原始锚点栏 12 条，`p2` 不在锚点栏——它同现于 anchors 与 straight，'
+              '成片台按 id 合并后归入 straight。',
           'max|残余| = ${_f(maxAbs)}，中位 = ${_f(median)}',
           _provenance(cohort),
           _sampleLine(cohort),
@@ -458,7 +504,7 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         blockers,
       ),
       'pass': pass,
-      'manual': !instrumentsOk,
+      'manual': !instrumentsOk || distinct == null,
       'owner': instrumentsOk ? 'ml-porting' : 'gatekeeper（量具未通过自检，不计实现方责任）',
     });
   }
@@ -902,7 +948,8 @@ List<String> _roundInvalidReasons(Map<String, dynamic> inputs) {
     return r;
   }
   if (rs['frozen'] != true) {
-    r.add('工作树未冻结（`git status --porcelain -- lib test tools docs` 非空）：'
+    r.add('工作树未冻结（`git status --porcelain -- lib test tools docs` 非空，'
+        '唯一豁免 `$kFreezeExemptPath`）：'
         '${(rs['dirty'] as List<dynamic>? ?? <dynamic>[]).join("、")}');
   }
   final int missing = (rs['composeMissingFiles'] as num?)?.toInt() ?? -1;
@@ -1441,6 +1488,63 @@ String _sampleLedger(Map<String, dynamic> inputs) {
 ///
 /// 数字全部来自 `out/gate_P0_overlap.json`（gatekeeper 自己的量具量的），
 /// 不写死——写死的话下一轮换了夹具就变成假证据。
+/// 用**去重量具**（`tools/gate/p0_overlap.py` → `$kOverlapPath`）给出的同图对，
+/// 把一组样本按"是不是同一张照片"归并，返回**不同照片数**。
+///
+/// 为什么不能直接用 `rows.length`：那是**行数**，恒 ≥ 不同照片数。
+/// P0.1a 的判据文本写的是"样本 ≥ 8 张**不同照片**"，用行数判就是**判据比它的
+/// 名字松** —— 同一个形状本轮已经在 `visual`、`singleObsDeg`、`_delta_of`、
+/// owner 别名上见过五次，这次长在门禁自己身上（主会话 2026-09-17 报的）。
+/// 这是把**实现对齐到冻结的判据文本**，不是改阈值：`kMinDistinctPhotos = 8` 未动。
+///
+/// 量具的**局限一并继承**：48×48 签名法测不出"同一场景的不同裁切/不同取景"，
+/// `c10`/`c11`/`c12` 这类它分辨不了 —— 所以它**不去重**它们（法典条款 6 的订正
+/// 结论本就是三张不同照片、各自计数）。不去重是保守方向：只会让计数偏高、
+/// 更容易过下限，因此**不会**制造假 FAIL；但也**不能**反过来拿它论证
+/// "那三张里有两张其实是同一张"。
+///
+/// 返回 `null` = 去重量具没产出 / 结论不完整 ⇒ 调用方必须报"判不了"。
+/// **不许退回行数** —— 退回行数正是这个缺陷本身。
+int? distinctPhotoCount(
+  List<Map<String, dynamic>> rows,
+  Map<String, dynamic>? overlap,
+) {
+  if (overlap == null) return null;
+  final Object? dup = overlap['intra_duplicates'];
+  if (dup is! List<dynamic>) return null;
+  final Map<String, String> parent = <String, String>{};
+  String find(String x) {
+    parent.putIfAbsent(x, () => x);
+    String root = x;
+    while (parent[root] != root) {
+      root = parent[root]!;
+    }
+    // 路径压缩
+    String cur = x;
+    while (parent[cur] != root) {
+      final String next = parent[cur]!;
+      parent[cur] = root;
+      cur = next;
+    }
+    return root;
+  }
+
+  for (final dynamic d in dup) {
+    if (d is! Map<String, dynamic>) return null;
+    final Object? a = d['a'];
+    final Object? b = d['b'];
+    if (a is! String || b is! String) return null;
+    parent[find(a)] = find(b);
+  }
+  final Set<String> roots = <String>{};
+  for (final Map<String, dynamic> r in rows) {
+    final Object? id = r['id'];
+    if (id is! String) return null;
+    roots.add(find(id));
+  }
+  return roots.length;
+}
+
 String _dedup(Map<String, dynamic> inputs) {
   final Map<String, dynamic>? o = inputs['overlap'] as Map<String, dynamic>?;
   if (o == null) return '去重量具未产出 `$kOverlapPath`，本轮无法给出重叠关系。';
@@ -1599,6 +1703,17 @@ String _inputIntegrity(Map<String, dynamic> inputs) {
     return '- **输入完整性：无法判定**（缺 `roundState`）。';
   }
   final Map<String, dynamic> r = rs;
+  final List<String> exempt = (r['freezeExempt'] as List<dynamic>? ?? <dynamic>[])
+      .map((dynamic e) => e.toString())
+      .toList();
+  // 豁免的**范围与理由**必须写在报告里，免得将来有人把"一个文件不进测量链"
+  // 读成"门禁放松了"。
+  final String freezeNote = '- **冻结范围**：`lib` / `test` / `tools` / `docs` **全部在冻结内**；'
+      '唯一豁免 `$kFreezeExemptPath` 这一个文件（它不进任何测量链——门禁不读它、判据不引用它、'
+      '读数不经过它；且 CLAUDE.md §4 规定所有 agent 可随时只追加）。'
+      '**`docs/` 里除它以外的任何改动（含 `ACCEPTANCE.md`/`RUBRIC.md`/`CONTRACTS.md`/`DESIGN.md`/`ENV.md`）'
+      '仍会作废整轮。**'
+      '${exempt.isEmpty ? "本轮无豁免条目。" : "本轮豁免条目：${exempt.join("、")}。"}\n';
   final int total = (r['composeDeclared'] as num?)?.toInt() ?? 0;
   final int parsed = (r['composeParsed'] as num?)?.toInt() ?? 0;
   final int nMiss = (r['composeMissingFiles'] as num?)?.toInt() ?? 0;
@@ -1606,10 +1721,12 @@ String _inputIntegrity(Map<String, dynamic> inputs) {
       .map((dynamic e) => e.toString())
       .toList();
   if (nMiss == 0 && total == parsed) {
-    return '- 输入完整性：`$kComposePath` 声明 $total 条、解析到 $parsed 条，'
+    return freezeNote +
+        '- 输入完整性：`$kComposePath` 声明 $total 条、解析到 $parsed 条，'
         '成片文件**全部存在**。注意这只说明"此刻文件在"，**不等于历史轮次可复算**。';
   }
-  return '- **输入完整性：$total 条里有 $nMiss 条的成片文件不存在**'
+  return freezeNote +
+      '- **输入完整性：$total 条里有 $nMiss 条的成片文件不存在**'
       '（读数对应的文件已被覆盖或删除，**本轮不可复现**）：'
       '${missing.take(15).join('、')}${missing.length > 15 ? ' …' : ''}\n'
       '- 后果：这些条目的读数来自**上一轮当时的文件**，现在既不能重测也不能复核。'

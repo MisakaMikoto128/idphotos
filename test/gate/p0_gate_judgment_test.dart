@@ -16,6 +16,7 @@
 //   F. 锚点不足 8 张 → P0.1a FAIL
 //   G. dev_selfcheck 回归 → P0.5a FAIL
 //   H. unavailable 却施加了非零角 → P0.4 诚实性 FAIL
+//   O. P0.1a 的样本下限数的是**不同照片**而非行数（含 c03≡c04 的负向对照）
 //
 // 本文件属 gatekeeper 势力范围（test/gate/），实现类 agent 改动即 FAIL。
 //
@@ -77,6 +78,11 @@ Map<String, dynamic> inputs({
   double siftDelta = 0.0,
   Object? anticheat = const <String, dynamic>{'clean': true, 'summary': '测试桩'},
   Map<String, dynamic>? roundState,
+  Object? overlap = const <String, dynamic>{
+    'intra_duplicates': <Map<String, dynamic>>[
+      <String, dynamic>{'a': 'c03', 'b': 'c04', 'mae': 2.33},
+    ],
+  },
 }) {
   final List<Map<String, dynamic>> rows = <Map<String, dynamic>>[];
   measured.forEach((String id, double v) {
@@ -123,6 +129,7 @@ Map<String, dynamic> inputs({
       ],
     },
     'anticheat': anticheat,
+    'overlap': overlap,
     'roundState': roundState ?? goodRoundState(),
   };
 }
@@ -418,5 +425,66 @@ void main() {
       expect(items.every((Map<String, dynamic> i) => i['manual'] == true), true,
           reason: '作废轮是 MANUAL，不消耗实现方的修复轮次');
     }
+  });
+
+  // ---------------------------------------------------------------------
+  test('O P0.1a 的样本下限数的是**不同照片**，不是行数（负向对照）', () {
+    // 缺陷原样（主会话 2026-09-17 报，qa-batch 提供实况）：
+    //   `cohort.length >= kMinDistinctPhotos`
+    // 而**同一项**的 expected 写的是「样本 ≥ 8 张**不同照片**」。
+    // `cohort.length` 是**行数**，恒 ≥ 不同照片数 —— 判据比它的名字松。
+    // 这是把实现对齐到冻结的判据文本，阈值 8 未动。
+    const Map<String, dynamic> ov = <String, dynamic>{
+      'intra_duplicates': <Map<String, dynamic>>[
+        <String, dynamic>{'a': 'c03', 'b': 'c04', 'mae': 2.33},
+      ],
+    };
+    List<Map<String, dynamic>> rows(List<String> ids) =>
+        ids.map((String id) => <String, dynamic>{'id': id}).toList();
+
+    // ① 11 行里 c03≡c04 是同一张 → 必须报 **10**，不是 11。
+    final List<String> eleven = <String>[
+      'p1', 'c01', 'c02', 'c03', 'c04', 'c05', 'c06', 'c07', 'c08', 'c11', 'c12',
+    ];
+    expect(eleven.length, 11);
+    expect(gate.distinctPhotoCount(rows(eleven), ov), 10,
+        reason: '数行数会得到 11；判据要的是不同照片数');
+
+    // ② **少一张真照片**：8 行看着正好卡在下限上，实际只有 7 张不同照片。
+    //    这正是这条缺陷的假通过 —— 行数达标而不同照片数不达标。
+    final List<String> eight = <String>[
+      'p1', 'c01', 'c02', 'c03', 'c04', 'c05', 'c06', 'c07',
+    ];
+    expect(eight.length, 8, reason: '行数正好等于下限');
+    expect(gate.distinctPhotoCount(rows(eight), ov), 7,
+        reason: '行数 8、不同照片 7 —— 必须能分辨出来，否则下限形同虚设');
+
+    // ③ 端到端：同一条记录，行数达标而不同照片不达标 → P0.1a 必须变红。
+    final List<Map<String, dynamic>> compose = <Map<String, dynamic>>[
+      for (final String id in eight)
+        item(id: id, corpus: 'anchor', truth: 3.0, source: 'pupil', applied: 3.0),
+    ];
+    final Map<String, dynamic> inp =
+        inputs(compose: compose, measured: goodMeasured(compose));
+    expect(row(gate.evaluateP0(inp), 'P0.1a')['pass'], false,
+        reason: '8 行但只有 7 张不同照片，仍不得过 8 张不同照片的下限');
+
+    // ④ 去重量具缺位/结论不完整 → **判不了**，不许退回行数。
+    //    退回行数正是这条缺陷本身，所以这里必须 manual 而不是 pass。
+    expect(gate.distinctPhotoCount(rows(eleven), null), isNull);
+    expect(gate.distinctPhotoCount(rows(eleven), <String, dynamic>{}), isNull);
+    expect(
+        gate.distinctPhotoCount(
+            rows(eleven),
+            <String, dynamic>{
+              'intra_duplicates': <dynamic>[<String, dynamic>{'a': 'c03'}],
+            }),
+        isNull,
+        reason: '同图对字段不完整时也必须报判不了，不能当成"无重复"');
+    final Map<String, dynamic> noOv =
+        inputs(compose: goodCorpus(), measured: goodMeasured(goodCorpus()), overlap: null);
+    final Map<String, dynamic> p1a = row(gate.evaluateP0(noOv), 'P0.1a');
+    expect(p1a['pass'], false, reason: '去重量具缺位时不得判过');
+    expect(p1a['manual'], true, reason: '去重量具缺位时必须显式报"判不了"');
   });
 }
