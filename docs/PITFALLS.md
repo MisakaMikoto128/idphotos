@@ -1029,3 +1029,24 @@
   一个同样不可信的 0.77 去转、并让死区带内更多噪声估计付诸旋转。
 - 教训：a) 多图系列按图统计时每图必须清零累加器，否则均值单调增长假象（g04 起全是
   跨图累计）；b) 「融合多信号」在信号间强相关时是零和的——先测相关性再设计权重。
+
+## [imaging] P0 二次修复落地：多线融合层整体删除，compose 无条件消费 FaceInfo.rollDeg —— 别重建
+- 背景（2026-09-17）：契约把 `rollDeg` 语义改成「待施加的摆正角」（测不出必须给 0.0），
+  并新增 `RollSource{pupil,unavailable,given}` 仅诊断用。上一轮 imaging 落的
+  `roll_fusion.dart`（眼线为主 + 嘴线共识门平均，覆盖解码器 rollDeg）**整层删除**：
+  它在 104 组系列对照里与纯眼线差 ±0.02°（噪声级），p1/p2 两张真实照片一张没救回
+  （见上一条 imaging 归因）。根因在眼球关键点定位，换线/融合都是零和的。
+- 现状：`compose_engine.dart` 的 `planRotation(rollDeg: face?.rollDeg ?? 0.0)` 是**唯一**
+  摆正入口，无任何二次仲裁分支；`ComposeDiagnostics.rollFusion` 字段一并删除，
+  `straightenDeg`（实际施加角，门禁判残差用）语义与取值不变。
+- 后手别踩：① 想再引入「多信号融合估角」前先读 `out/tmp/roll_repro/lm_fusion_baseline.json`
+  与上一条条目——同一组 YuNet 眼睑关键点派生出的任何线都是强相关的，融合是零和的；
+  ② 摆正残差实验必须读生产路径的 `lastDiagnostics.straightenDeg`，自己复制一份阈值
+  会测出「修前=修后」的假对照；③ `RollSource` 只是给门禁判「覆盖率与诚实性」用的，
+  消费方**不得**据它改变行为（行为差异全部由 `rollDeg` 承载）。
+- 复测口径（本地已验证，commit 0bf4f3b，ml-porting 瞳孔估计尚未落地，`rollSource=given`）：
+  `dev_selfcheck` 9/9；`dev_roll_repro` 两图 p1 straightenDeg=0.000（est +0.837 落死区内）、
+  p2 straightenDeg=-3.913（est -3.913）；设备端 `compose_eval_test` 2B.8 ±10° 残差
+  0.220/0.390（阈值 1.5）。该夹具 `landmarks == null`，改前走 fuseRollDeg 的 legacy
+  分支、改后直取 rollDeg，**同一条路径**，残差与 r2 记录（0.0/0.195）的差异是设备端
+  测量噪声，不是回归。

@@ -32,12 +32,7 @@ void _preloadHostOnnxRuntime() {
   }
 }
 
-class _Engine with MattingEngineMixin {
-  @override
-  void dispose() {
-    disposeMattingEngine();
-  }
-}
+class _Engine with MattingEngineMixin {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

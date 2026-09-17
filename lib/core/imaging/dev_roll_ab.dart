@@ -10,7 +10,6 @@ import 'dart:typed_data';
 
 // ignore: depend_on_referenced_packages
 import 'package:flutter_test/flutter_test.dart';
-import 'package:image/image.dart' as img;
 
 import 'package:muzhao/core/api.dart';
 import 'package:muzhao/core/matting/matting_engine.dart';

@@ -88,6 +88,7 @@ void main() {
       }
       // ignore: avoid_print
       print('[$tag] YuNet rollDeg=${face.rollDeg.toStringAsFixed(3)} '
+          'rollSource=${face.rollSource.name} '
           'conf=${face.confidence.toStringAsFixed(3)} '
           'box=(${face.box.left.toStringAsFixed(1)},'
           '${face.box.top.toStringAsFixed(1)},'
