@@ -67,13 +67,29 @@ Uint8List grayPlaneFromRgba(Uint8List rgba, int width, int height) {
 // 参数
 // ---------------------------------------------------------------------------
 
-/// 开窗半径 / 双眼距。
+/// 开窗半径 / 双眼距 —— **一组，不是定值**。
 ///
 /// 要同时容下两件事：YuNet 眼点自身的位置误差（实测可偏到 ~0.25×眼距，
 /// 且方向是**偏上**：落在上睑褶上）与虹膜半径（≈0.095×眼距，人眼虹膜
-/// 直径约 0.19×瞳距）。0.30 在下限上留了 0.105×眼距 的余量；再大就会把
-/// 整条眉毛吞进来，尺寸门虽仍能挡住，但分位数阈值会被压暗。
+/// 直径约 0.19×瞳距）。0.30 是原来的唯一定值，0.30 在下限上留了
+/// 0.105×眼距 的余量；再大就会把整条眉毛吞进来，尺寸门虽仍能挡住，
+/// 但分位数阈值会被压暗。
+///
+/// **为什么是四个而不是一个**：分位数阈值是在窗口内统计的，所以窗口大小
+/// 直接决定阈值，而窗口大小 = mul × ed、ed 又随输入像素抖动（同一张 c06
+/// 在 d−3 量到 88.9、d−5 量到 84.9）。一个与答案无关的自由度决定答案 =
+/// 判决不稳。实测代价：c06_d−3 的右眼在 r=27 时一个候选都没有、整只眼
+/// 判失败，而 c06_d−5 在 r=25 时 p4 档稳稳拿到 d=15.0 n=86。
+/// 扫描见 [kPupilWindowRadiusMultipliers]。
 const double kPupilWindowRadiusInEyeDist = 0.30;
+
+/// 开窗半径的扫描档（× 双眼距）。见 [kPupilWindowRadiusInEyeDist]。
+///
+/// 下限 0.20 仍能容下"眼点偏 0.093×眼距（真图实测上界）+ 虹膜半径
+/// 0.095×眼距"；上限 0.36 略超原来的 0.30，用来在眼点偏得多的图上兜底。
+/// 四档各收一遍候选后一起竞争，几何门一道不放松，因此不新增误检面，
+/// 只是不再让"窗口该开多大"决定答案。耗时 ×3.6（中位 1.7ms → 6ms）。
+const List<double> kPupilWindowRadiusMultipliers = <double>[0.20, 0.25, 0.30, 0.36];
 
 /// 连通域最长边 / 双眼距 的合法区间。
 ///
@@ -154,6 +170,20 @@ const double kPupilDedupInEyeDist = 0.12;
 /// 3–16%，一律否决会把 p2/g01、g03、g07、报名照片全判成 unavailable。
 /// 取 0.5 是"势均力敌才叫争"：宁可多判失败（不转），不可赌错（转反）。
 const double kPupilRivalScoreRatio = 0.5;
+
+/// 允许一个"竞争者"参与争鸣的**额外**种子距离（× 眼距）。
+///
+/// 争鸣门只看分数是错的：眉毛离眼点很远，但面积大、得分能到真虹膜的 50%
+/// 以上，于是它能把**正确的**答案否决掉。实测 c08_d−3 的右眼就死在这里——
+/// 真虹膜在 (838,451)（离种子 5.6px=0.038×眼距，用它算得 −10.65° vs 真值
+/// −11.01°，误差 0.36°），而眉毛在 (835,402)（离种子 44px=0.296×眼距）
+/// 得分 86 / 150 = 57% > 0.5，触发歧义 → 整只眼放弃。
+///
+/// 所以只有"跟首选一样像虹膜地贴近种子"的候选才有资格否决：
+/// 实测真图虹膜中心离 YuNet 种子 ≤0.093×眼距（20 张），眉毛那类假候选在
+/// 0.296×眼距，0.15 在两侧都留了余量。**这不是放松准入**——候选仍要过全部
+/// 几何门，只是不再让一个明显不是虹膜的东西行使否决权。
+const double kPupilRivalSeedSlackInEyeDist = 0.15;
 
 /// 瞳孔眼线与 YuNet 眼点的连线角之差的上限（度），超过即判误检。
 ///
@@ -291,18 +321,17 @@ PupilRoll estimatePupilRoll({
     return PupilRoll.unavailable(
         'eye distance ${ed.toStringAsFixed(1)}px < $kPupilMinEyeDistPx');
   }
-  final int r = math.max(6, (kPupilWindowRadiusInEyeDist * ed).round());
-  trace?.add('ed=${ed.toStringAsFixed(1)} win=${r}px '
+  trace?.add('ed=${ed.toStringAsFixed(1)} '
       'Lseed=(${lx.toStringAsFixed(1)},${ly.toStringAsFixed(1)}) '
       'Rseed=(${rx.toStringAsFixed(1)},${ry.toStringAsFixed(1)})');
 
   final PupilPoint? l =
-      _findPupil(gray, width, height, lx, ly, r, ed, 'L', trace);
+      _findPupil(gray, width, height, lx, ly, ed, 'L', trace);
   if (l == null) {
     return const PupilRoll.unavailable('no iris blob at left eye seed');
   }
   final PupilPoint? rr =
-      _findPupil(gray, width, height, rx, ry, r, ed, 'R', trace);
+      _findPupil(gray, width, height, rx, ry, ed, 'R', trace);
   if (rr == null) {
     return const PupilRoll.unavailable('no iris blob at right eye seed');
   }
@@ -337,157 +366,182 @@ PupilRoll estimatePupilRoll({
   );
 }
 
-/// 在 [sx],[sy] 周围 [r] 像素的方形窗内找虹膜连通域。找不到返回 null。
+/// 在 [sx],[sy] 周围找虹膜连通域。找不到返回 null。
+///
+/// **窗口半径是扫描量，不是一个定值**——这一点是实测逼出来的，别改回去。
+/// [ed] 是 YuNet 给的双眼距，它自己就随输入像素变化：同一张 c06 在 d−3 量到
+/// ed=88.9、d−5 量到 84.9。窗口半径 r=0.30·ed 跟着变（27px vs 25px），
+/// **而分位数阈值是在窗口内统计的**，窗口一变、直方图就变、同一颗虹膜可能
+/// 从"最暗的 4%"掉出去。实测后果：c06_d−5 右眼在 r=25 的 p4 档拿到
+/// d=15.0 n=86 的好候选，c06_d−3 右眼在 r=27 的 p4 档**一个候选都没有**，
+/// 于是整只眼判失败——同一张图、相隔 2°，一个残余 0.020°、另一个直接放弃。
+///
+/// 所以正确的做法是把 r 当** nuisance parameter 边际化**：几个半径各收一遍
+/// 候选，一起竞争。候选的几何门（尺寸/圆度/aspect/种子偏移）一道都不放松，
+/// 因此这不引入新的误检面，只是不再让"窗口该开多大"这个与答案无关的自由度
+/// 决定答案。代价是耗时 ×3.6，实测中位 1.7ms → 6ms 量级，可忽略。
 PupilPoint? _findPupil(Uint8List gray, int width, int height, double sx,
-    double sy, int r, double ed, String tag, List<String>? trace) {
-  final int x0 = math.max(0, sx.floor() - r);
-  final int x1 = math.min(width, sx.ceil() + r + 1);
-  final int y0 = math.max(0, sy.floor() - r);
-  final int y1 = math.min(height, sy.ceil() + r + 1);
-  final int spanX = x1 - x0;
-  final int spanY = y1 - y0;
-  if (spanX < 4 || spanY < 4) return null;
-
-  // 大窗按整数步长抽样，把单张耗时钉在常数上；坐标最后乘回步长，
-  // 精度损失 ≤ 1px（眼距数百像素时对角度的影响 < 0.2°）。
-  final int edge = math.max(spanX, spanY);
-  final int step = edge <= kPupilMaxWindowEdge
-      ? 1
-      : (edge / kPupilMaxWindowEdge).ceil();
-  final int sw = (spanX + step - 1) ~/ step;
-  final int sh = (spanY + step - 1) ~/ step;
-  final int total = sw * sh;
-
-  // 抽样后的窗口灰度 + 直方图（灰度为 0..255 整数，直方图给出精确分位数，
-  // 比排序 total 个元素便宜一个量级）。
-  final win = Uint8List(total);
-  final hist = Int32List(256);
-  var k = 0;
-  for (var iy = 0; iy < sh; iy++) {
-    final srcRow = y0 + iy * step;
-    final base = srcRow * width;
-    for (var ix = 0; ix < sw; ix++, k++) {
-      final v = gray[base + x0 + ix * step];
-      win[k] = v;
-      hist[v]++;
-    }
-  }
-
-  final double pxPerSample = step.toDouble();
-  final double maxSize = kPupilMaxSizeInEyeDist * ed; // 原图像素
-  final double minSize = kPupilMinSizeInEyeDist * ed;
-  final int minArea =
-      math.max(4, (kPupilMinAreaPx / (pxPerSample * pxPerSample)).floor());
-
-  final visited = Uint8List(total);
-  final stack = Int32List(total);
+    double sy, double ed, String tag, List<String>? trace) {
   final cands = <_Blob>[];
   // 拒绝计数（只在 [trace] 非 null 时用于报告，生产路径上是一次加法）。
   var nBlob = 0, rejSize = 0, rejAspect = 0, rejCirc = 0, rejFar = 0;
+  var minAreaSeen = 0;
+  var minSizeSeen = 0.0, maxSizeSeen = 0.0;
 
-  /// 在"暗像素"掩码上跑一遍 8 邻接连通域，收候选。
-  /// [label] 只用于 trace（分位数档为正，局部对比度档为负）。
-  void scan(bool Function(int p) isDark, double label) {
-    visited.fillRange(0, total, 0);
-    for (var seed = 0; seed < total; seed++) {
-      if (visited[seed] != 0) continue;
-      visited[seed] = 1;
-      if (!isDark(seed)) continue;
-      var sp = 0;
-      stack[sp++] = seed;
-      var area = 0;
-      var sumX = 0.0, sumY = 0.0;
-      var minX = sw, maxX = -1, minY = sh, maxY = -1;
-      while (sp > 0) {
-        final q = stack[--sp];
-        final qx = q % sw;
-        final qy = q ~/ sw;
-        area++;
-        sumX += qx;
-        sumY += qy;
-        if (qx < minX) minX = qx;
-        if (qx > maxX) maxX = qx;
-        if (qy < minY) minY = qy;
-        if (qy > maxY) maxY = qy;
-        final int yA = qy > 0 ? qy - 1 : 0;
-        final int yB = qy < sh - 1 ? qy + 1 : sh - 1;
-        for (var ny = yA; ny <= yB; ny++) {
-          final int rowBase = ny * sw;
-          final int xA = qx > 0 ? qx - 1 : 0;
-          final int xB = qx < sw - 1 ? qx + 1 : sw - 1;
-          for (var nx = xA; nx <= xB; nx++) {
-            final int p = rowBase + nx;
-            if (visited[p] != 0) continue;
-            visited[p] = 1;
-            if (!isDark(p)) continue;
-            stack[sp++] = p;
+  for (final double mul in kPupilWindowRadiusMultipliers) {
+    final int r = math.max(6, (mul * ed).round());
+    final int x0 = math.max(0, sx.floor() - r);
+    final int x1 = math.min(width, sx.ceil() + r + 1);
+    final int y0 = math.max(0, sy.floor() - r);
+    final int y1 = math.min(height, sy.ceil() + r + 1);
+    final int spanX = x1 - x0;
+    final int spanY = y1 - y0;
+    if (spanX < 4 || spanY < 4) continue;
+
+    // 大窗按整数步长抽样，把单张耗时钉在常数上；坐标最后乘回步长，
+    // 精度损失 ≤ 1px（眼距数百像素时对角度的影响 < 0.2°）。
+    final int edge = math.max(spanX, spanY);
+    final int step = edge <= kPupilMaxWindowEdge
+        ? 1
+        : (edge / kPupilMaxWindowEdge).ceil();
+    final int sw = (spanX + step - 1) ~/ step;
+    final int sh = (spanY + step - 1) ~/ step;
+    final int total = sw * sh;
+
+    // 抽样后的窗口灰度 + 直方图（灰度为 0..255 整数，直方图给出精确分位数，
+    // 比排序 total 个元素便宜一个量级）。
+    final win = Uint8List(total);
+    final hist = Int32List(256);
+    var k = 0;
+    for (var iy = 0; iy < sh; iy++) {
+      final srcRow = y0 + iy * step;
+      final base = srcRow * width;
+      for (var ix = 0; ix < sw; ix++, k++) {
+        final v = gray[base + x0 + ix * step];
+        win[k] = v;
+        hist[v]++;
+      }
+    }
+
+
+    final double pxPerSample = step.toDouble();
+    final double maxSize = kPupilMaxSizeInEyeDist * ed; // 原图像素
+    final double minSize = kPupilMinSizeInEyeDist * ed;
+    final int minArea =
+        math.max(4, (kPupilMinAreaPx / (pxPerSample * pxPerSample)).floor());
+
+    final visited = Uint8List(total);
+    final stack = Int32List(total);
+    minAreaSeen = minArea;
+    minSizeSeen = minSize;
+    maxSizeSeen = maxSize;
+
+    /// 在"暗像素"掩码上跑一遍 8 邻接连通域，收候选。
+    /// [label] 只用于 trace（分位数档为正，局部对比度档为负）。
+    void scan(bool Function(int p) isDark, double label) {
+      visited.fillRange(0, total, 0);
+      for (var seed = 0; seed < total; seed++) {
+        if (visited[seed] != 0) continue;
+        visited[seed] = 1;
+        if (!isDark(seed)) continue;
+        var sp = 0;
+        stack[sp++] = seed;
+        var area = 0;
+        var sumX = 0.0, sumY = 0.0;
+        var minX = sw, maxX = -1, minY = sh, maxY = -1;
+        while (sp > 0) {
+          final q = stack[--sp];
+          final qx = q % sw;
+          final qy = q ~/ sw;
+          area++;
+          sumX += qx;
+          sumY += qy;
+          if (qx < minX) minX = qx;
+          if (qx > maxX) maxX = qx;
+          if (qy < minY) minY = qy;
+          if (qy > maxY) maxY = qy;
+          final int yA = qy > 0 ? qy - 1 : 0;
+          final int yB = qy < sh - 1 ? qy + 1 : sh - 1;
+          for (var ny = yA; ny <= yB; ny++) {
+            final int rowBase = ny * sw;
+            final int xA = qx > 0 ? qx - 1 : 0;
+            final int xB = qx < sw - 1 ? qx + 1 : sw - 1;
+            for (var nx = xA; nx <= xB; nx++) {
+              final int p = rowBase + nx;
+              if (visited[p] != 0) continue;
+              visited[p] = 1;
+              if (!isDark(p)) continue;
+              stack[sp++] = p;
+            }
           }
         }
+        if (area < minArea) continue;
+        nBlob++;
+        final double bw = (maxX - minX + 1) * pxPerSample;
+        final double bh = (maxY - minY + 1) * pxPerSample;
+        final double longSide = math.max(bw, bh);
+        final double shortSide = math.min(bw, bh);
+        if (longSide > maxSize || longSide < minSize) {
+          rejSize++;
+          trace?.add('  $tag $label rejSize d=${longSide.toStringAsFixed(1)} '
+              'n=${(area * pxPerSample * pxPerSample).round()} '
+              'xy=(${(x0 + (sumX / area) * pxPerSample).toStringAsFixed(0)},'
+              '${(y0 + (sumY / area) * pxPerSample).toStringAsFixed(0)})');
+          continue;
+        }
+        final double aspect = shortSide / longSide;
+        if (aspect < kPupilMinAspect) {
+          rejAspect++;
+          continue;
+        }
+        final double cx0 = x0 + (sumX / area) * pxPerSample + (step - 1) / 2.0;
+        final double cy0 = y0 + (sumY / area) * pxPerSample + (step - 1) / 2.0;
+        // 候选过滤器（不是硬否决）：离种子太远的让位给更靠种子的候选。
+        if (_hypot(cx0 - sx, cy0 - sy) >
+            kPupilMaxSeedOffsetInEyeDist * ed) {
+          rejFar++;
+          continue;
+        }
+        // 圆度用**原图像素**面积算，抽样不改变量纲。
+        final double areaPx = area * pxPerSample * pxPerSample;
+        final double circ = areaPx / (bw * bh * math.pi / 4);
+        if (circ < kPupilMinCircularity) {
+          rejCirc++;
+          continue;
+        }
+        final double cx = cx0;
+        final double cy = cy0;
+        cands.add(_Blob(
+          x: cx,
+          y: cy,
+          diameter: longSide,
+          areaPx: areaPx,
+          circularity: circ,
+          aspect: aspect,
+          percentile: label,
+          // 又大又圆者优先；比面积更抗"整块眼窝被当成一个域"。
+          score: areaPx * circ * circ,
+        ));
+        trace?.add('  $tag $label r=$r win=${sw}x$sh '
+            'cand d=${longSide.toStringAsFixed(1)} n=${areaPx.round()} '
+            'circ=${circ.toStringAsFixed(2)} asp=${aspect.toStringAsFixed(2)} '
+            'xy=(${cx.toStringAsFixed(0)},${cy.toStringAsFixed(0)})');
       }
-      if (area < minArea) continue;
-      nBlob++;
-      final double bw = (maxX - minX + 1) * pxPerSample;
-      final double bh = (maxY - minY + 1) * pxPerSample;
-      final double longSide = math.max(bw, bh);
-      final double shortSide = math.min(bw, bh);
-      if (longSide > maxSize || longSide < minSize) {
-        rejSize++;
-        trace?.add('  $tag $label rejSize d=${longSide.toStringAsFixed(1)} '
-            'n=${(area * pxPerSample * pxPerSample).round()} '
-            'xy=(${(x0 + (sumX / area) * pxPerSample).toStringAsFixed(0)},'
-            '${(y0 + (sumY / area) * pxPerSample).toStringAsFixed(0)})');
-        continue;
-      }
-      final double aspect = shortSide / longSide;
-      if (aspect < kPupilMinAspect) {
-        rejAspect++;
-        continue;
-      }
-      final double cx0 = x0 + (sumX / area) * pxPerSample + (step - 1) / 2.0;
-      final double cy0 = y0 + (sumY / area) * pxPerSample + (step - 1) / 2.0;
-      // 候选过滤器（不是硬否决）：离种子太远的让位给更靠种子的候选。
-      if (_hypot(cx0 - sx, cy0 - sy) >
-          kPupilMaxSeedOffsetInEyeDist * ed) {
-        rejFar++;
-        continue;
-      }
-      // 圆度用**原图像素**面积算，抽样不改变量纲。
-      final double areaPx = area * pxPerSample * pxPerSample;
-      final double circ = areaPx / (bw * bh * math.pi / 4);
-      if (circ < kPupilMinCircularity) {
-        rejCirc++;
-        continue;
-      }
-      final double cx = cx0;
-      final double cy = cy0;
-      cands.add(_Blob(
-        x: cx,
-        y: cy,
-        diameter: longSide,
-        areaPx: areaPx,
-        circularity: circ,
-        aspect: aspect,
-        percentile: label,
-        // 又大又圆者优先；比面积更抗"整块眼窝被当成一个域"。
-        score: areaPx * circ * circ,
-      ));
-      trace?.add('  $tag $label win=${sw}x$sh '
-          'cand d=${longSide.toStringAsFixed(1)} n=${areaPx.round()} '
-          'circ=${circ.toStringAsFixed(2)} asp=${aspect.toStringAsFixed(2)} '
-          'xy=(${cx.toStringAsFixed(0)},${cy.toStringAsFixed(0)})');
     }
-  }
 
-  for (final double pct in kPupilPercentiles) {
-    final int thr = _percentile(hist, total, pct);
-    scan((int p) => win[p] <= thr, pct);
+    for (final double pct in kPupilPercentiles) {
+      final int thr = _percentile(hist, total, pct);
+      scan((int p) => win[p] <= thr, pct);
+    }
+
+
   }
 
   if (cands.isEmpty) {
     trace?.add('  $tag REJECT all (blobs=$nBlob size=$rejSize '
         'aspect=$rejAspect far=$rejFar circ=$rejCirc '
-        'minArea=$minArea sizeGate=${minSize.toStringAsFixed(1)}..'
-        '${maxSize.toStringAsFixed(1)}px)');
+        'minArea=$minAreaSeen sizeGate=${minSizeSeen.toStringAsFixed(1)}..'
+        '${maxSizeSeen.toStringAsFixed(1)}px)');
     return null;
   }
 
@@ -495,15 +549,22 @@ PupilPoint? _findPupil(Uint8List gray, int width, int height, double sx,
   final double dedup = kPupilDedupInEyeDist * ed;
   final _Blob kind = cands.first;
   final double rivalFloor = kind.score * kPupilRivalScoreRatio;
+  final double kindSeedDist = _hypot(kind.x - sx, kind.y - sy);
+  final double rivalSeedLimit =
+      kindSeedDist + kPupilRivalSeedSlackInEyeDist * ed;
   for (final c in cands.skip(1)) {
     // 已按分数降序排过，剩下的只会更小。
     if (c.score < rivalFloor) break;
-    if (_hypot(c.x - kind.x, c.y - kind.y) > dedup) {
-      // 与首选隔开去重距离之外、得分又势均力敌 → 窗里有两个像虹膜的
-      // 东西，谁是虹膜无法判定，整只眼判失败（不转比转错好）。
-      trace?.add('  $tag AMBIGUOUS best=$kind runnerUp=$c');
-      return null;
+    if (_hypot(c.x - kind.x, c.y - kind.y) <= dedup) continue;
+    // 离种子远得多的"竞争者"不参与争鸣——见 kPupilRivalSeedSlackInEyeDist。
+    if (_hypot(c.x - sx, c.y - sy) > rivalSeedLimit) {
+      trace?.add('  $tag rival-far ignored=$c');
+      continue;
     }
+    // 与首选隔开去重距离之外、得分又势均力敌 → 窗里有两个像虹膜的
+    // 东西，谁是虹膜无法判定，整只眼判失败（不转比转错好）。
+    trace?.add('  $tag AMBIGUOUS best=$kind runnerUp=$c');
+    return null;
   }
   return PupilPoint(
     x: kind.x,
