@@ -20,8 +20,15 @@
      —— 后者说明**被测代码自测量以来没变**；
   6. 逐行 jsonl（自己没有 provenance）用 summary 里记的 `itemsSha256` 复核
      —— "同一个 run 写的所以应该没问题"是推断，摘要对得上才是记录。
+  7. **成片真的在盘上**（`after-compose` 起就查）：`outcome == 'ok'` 的行，
+     它的 `composed` 路径必须存在且非空。**"记录了 ok" 与 "文件真的在" 是两件事**
+     —— `out/P0_anchors/composed/` 现存 93/110，而 `P0_compose_items.jsonl` 里
+     110 行全是 `ok`、`P0_compose_summary.json` 也写着 `ok: 110`（两次事故同形）。
+     jsonl 与 summary 是同一次运行一起写的，**它们互相自洽与文件是否存在无关**，
+     所以上面 1–6 条全过，17 张成片照样可以不在。
 
-退出码非 0 = 不要往下跑。它**不判 PASS/FAIL**，只判"这份数据能不能被归属"。
+退出码非 0 = 不要往下跑。它**不判 PASS/FAIL**，只判"这份数据能不能被归属、
+以及它声称产出的东西是不是真的在"。
 """
 import hashlib
 import json
@@ -166,6 +173,96 @@ def _check_items(name, summary_name, prob):
                     f"盘上实测 {got[:16]}…；这份 jsonl 不属于本次运行")
 
 
+def _load_jsonl(name):
+    p = os.path.join(OUT, name)
+    if not os.path.exists(p):
+        return None, "文件不存在"
+    rows = []
+    try:
+        with open(p, encoding="utf-8") as fh:
+            for i, line in enumerate(fh, 1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rows.append(json.loads(line))
+                except Exception as e:  # noqa: BLE001
+                    return None, f"第 {i} 行解析不出 JSON：{e}"
+    except Exception as e:  # noqa: BLE001
+        return None, f"读不出：{e}"
+    return rows, None
+
+
+def _check_compose_artifacts(prob):
+    """成片存在性 + 条数一致性。**这是"记录了 ok"与"文件真的在"之间的那道缝。**
+
+    为什么必须在早期出口就查：`out/P0_anchors/composed/` 现为 93/110，而 jsonl 的
+    110 行 `outcome` 全是 `ok`、summary 写着 `ok: 110`。截断类事故（脏树轮覆盖，
+    见 `docs/PITFALLS.md`）产出的正是这种状态 —— 一路自洽，只是文件不在。
+    若等到成片残余测完才发现，已经烧掉了后面每一步。
+    """
+    rows, err = _load_jsonl("P0_compose_items.jsonl")
+    if rows is None:
+        prob.append(f"P0_compose_items.jsonl: {err}")
+        return
+    summary, serr = _load("P0_compose_summary.json")
+
+    ok_rows = [r for r in rows if r.get("outcome") == "ok"]
+    # 7a. 逐条查成片存在且非空 —— **逐条打印，不只报个数**
+    bad = []
+    for r in ok_rows:
+        rel = r.get("composed")
+        if not rel:
+            bad.append((r.get("id"), r.get("specId"), "(缺 composed 字段)"))
+            continue
+        p = os.path.join(REPO, *str(rel).replace("\\", "/").split("/"))
+        if not os.path.exists(p):
+            bad.append((r.get("id"), r.get("specId"), f"{rel} —— **不存在**"))
+        elif os.path.getsize(p) == 0:
+            bad.append((r.get("id"), r.get("specId"), f"{rel} —— **0 字节**"))
+    if bad:
+        prob.append(
+            f"P0_compose_items.jsonl: {len(bad)}/{len(ok_rows)} 行 `outcome=ok` "
+            "但成片不在盘上或为空（**记录了 ok ≠ 文件真的在**）：")
+        for i, s, d in bad[:40]:
+            prob.append(f"      {i} [{s}] {d}")
+        if len(bad) > 40:
+            prob.append(f"      …另有 {len(bad) - 40} 条")
+
+    # 7b. 条数与 summary 声明的一致（声明缺了就报"无法核对"，不当成通过）
+    ids = [r.get("id") for r in rows]
+    pairs = [(r.get("id"), r.get("specId")) for r in rows]
+    if len(set(pairs)) != len(pairs):
+        dup = sorted({p for p in pairs if pairs.count(p) > 1})
+        prob.append(f"P0_compose_items.jsonl: (id, specId) 有重复：{dup[:8]}")
+
+    def declared(key):
+        if not isinstance(summary, dict):
+            return None
+        return summary.get(key)
+
+    exp, nids, nok = declared("expectedOutputs"), declared("cases"), declared("ok")
+    if exp is None or nids is None or nok is None:
+        prob.append(
+            "P0_compose_summary.json: 缺 "
+            + "、".join(k for k, v in (("expectedOutputs", exp), ("cases", nids),
+                                      ("ok", nok)) if v is None)
+            + " —— **完整性无从核对**（不能把「读不到」当成「条数对」）")
+    else:
+        if len(rows) != exp:
+            prob.append(f"P0_compose_items.jsonl: 行数 {len(rows)} ≠ summary "
+                        f"expectedOutputs {exp}")
+        if len(set(ids)) != nids:
+            prob.append(f"P0_compose_items.jsonl: 去重后 id 数 {len(set(ids))} "
+                        f"≠ summary.cases {nids}")
+        if len(ok_rows) != nok:
+            prob.append(f"P0_compose_items.jsonl: outcome=ok 行数 {len(ok_rows)} "
+                        f"≠ summary.ok {nok} —— 两个消费者读的是同一件事却说不同数")
+    print(f"  {'OK  ' if not bad else 'FAIL'} 成片存在性："
+          f"{len(ok_rows) - len(bad)}/{len(ok_rows)} 张在盘上（行数 {len(rows)}，"
+          f"去重 id {len(set(ids))}）")
+
+
 def main():
     global OUT
     argv = sys.argv[1:]
@@ -205,6 +302,12 @@ def main():
         print(f"  {'OK  ' if ok else 'FAIL'} {items}  ← {summary}#itemsSha256")
         if ok:
             done.append(items)
+    # 成片存在性：凡本轮要看成片台的阶段都查（三个阶段都含 compose_summary）
+    if "P0_compose_summary.json" in STAGES[stage]:
+        before = len(prob)
+        _check_compose_artifacts(prob)
+        if len(prob) == before:
+            done.append("成片存在性")
 
     print()
     if prob:
