@@ -38,3 +38,10 @@ tools/gate/gate_common.dart
 tools/gate/device_harness_common.dart
 tools/gate/gate_G4.dart
 tools/gate/gate_G5.dart
+# 2026-09-17 第四批：补登两个 `integration_test/` 文件。
+# 它们在本阶段早期就被我改过（条款 5：`finally` 里的 dispose 空 catch 改为
+# 收集成 `disposeErrors`），但一直没进清单 —— 与 `gate_common.dart` 那次同形。
+# 清单漏一条的后果不是"少写一行"：它会让下一轮的哈希差异栏里出现**无法解释的改动**，
+# 而"无法解释"与"有问题"在报告里看起来是一样的。
+integration_test/g4_memcheck_test.dart
+integration_test/g4_spotcheck_test.dart
