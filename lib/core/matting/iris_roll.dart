@@ -185,6 +185,14 @@ const double kPupilRivalScoreRatio = 0.5;
 /// 几何门，只是不再让一个明显不是虹膜的东西行使否决权。
 const double kPupilRivalSeedSlackInEyeDist = 0.15;
 
+/// 虹膜直径的生物常数先验（直径 / 双眼距）。
+///
+/// 人眼虹膜横径约 11–12mm，成人瞳距约 60–65mm，比值 ≈0.19，且**与个体、
+/// 性别、年龄近似无关**——这是验光/生物识别里可以直接用的硬常数。
+/// 本文件只在**同一个 dedup 组内**用它挑代表（见 [_findPupil] 的 reps），
+/// 不用它做全局重排，避免惩罚真实的大虹膜（实测真图合法上限 0.284×眼距）。
+const double kPupilIrisDiameterPrior = 0.19;
+
 /// 瞳孔眼线与 YuNet 眼点的连线角之差的上限（度），超过即判误检。
 ///
 /// **这不是回退**——YuNet 的值只用来否决，永远不出现在输出里。YuNet 眼点
@@ -547,12 +555,39 @@ PupilPoint? _findPupil(Uint8List gray, int width, int height, double sx,
 
   cands.sort((a, b) => b.score.compareTo(a.score));
   final double dedup = kPupilDedupInEyeDist * ed;
-  final _Blob kind = cands.first;
+  final double prior = kPupilIrisDiameterPrior * ed;
+
+  // 同一颗虹膜在不同半径档下会被量成**一组嵌套的域**：窗口开大就把上睑阴影
+  // 连进来，测得偏大。它们在 dedup 距离内，属于同一个物体，不该按"谁面积大
+  // 谁赢"挑——那会系统性偏向"虹膜+眼睑阴影"的合并域（实测 c08_d−3 左眼：
+  // r=30 给 d=31、r=37 给 d=39，后者面积大所以赢，于是双眼直径比
+  // 39/22=1.77 撞上 1.6 的门，把一只本来找对的眼睛判失败）。
+  // 组内改挑**直径最接近生物常数 0.19×眼距**的那个；跨组仍按分数排，
+  // 所以不同物体之间的竞争规则没变。
+  final List<_Blob> reps = <_Blob>[];
+  for (final _Blob c in cands) {
+    var host = -1;
+    for (var i = 0; i < reps.length; i++) {
+      if (_hypot(c.x - reps[i].x, c.y - reps[i].y) <= dedup) {
+        host = i;
+        break;
+      }
+    }
+    if (host < 0) {
+      reps.add(c);
+    } else if ((math.log(c.diameter / prior)).abs() <
+        (math.log(reps[host].diameter / prior)).abs()) {
+      reps[host] = c;
+    }
+  }
+  reps.sort((a, b) => b.score.compareTo(a.score));
+
+  final _Blob kind = reps.first;
   final double rivalFloor = kind.score * kPupilRivalScoreRatio;
   final double kindSeedDist = _hypot(kind.x - sx, kind.y - sy);
   final double rivalSeedLimit =
       kindSeedDist + kPupilRivalSeedSlackInEyeDist * ed;
-  for (final c in cands.skip(1)) {
+  for (final c in reps.skip(1)) {
     // 已按分数降序排过，剩下的只会更小。
     if (c.score < rivalFloor) break;
     if (_hypot(c.x - kind.x, c.y - kind.y) <= dedup) continue;
