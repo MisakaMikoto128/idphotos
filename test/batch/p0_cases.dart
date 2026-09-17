@@ -47,19 +47,25 @@ String resolvePath(String p, String repo, String sep) {
 }
 
 /// 按 truth 文件里的四个语料构造成片台清单。
-/// **顺序即优先级**：同 id 后写覆盖先写，与旧实现的 `add()` 语义一致。
+///
+/// **按 id 去重，后写覆盖先写**（首次出现的位置保留）。为什么必须在这里做：
+/// `p0_finalize_v1.py` 为满足"`anchors` 内至少 1 条 upright"把 `straight[0]`
+/// （即 `p2`）追加进了 `anchors`，而 `straight` 里那条没删 —— 无条件 append 会
+/// 得到 101 行 / 100 个 id。两个消费方（`p0_compose_test.dart`、
+/// `p0_resolve_check.dart`）各自用 `cases[c.id] = c` 兜了一遍，所以此前没出事；
+/// 但那意味着**本函数的返回值与注释所写的语义分叉**，读它的人会以为出 101 行。
 List<P0Case> buildCases(Map<String, dynamic> truth,
     {required String repo, required String sep}) {
-  final out = <P0Case>[];
+  final out = <String, P0Case>{};
   void take(String corpus, String truthKey, String field) {
     for (final a in (truth[truthKey] as List? ?? const <dynamic>[])) {
       final m = a as Map<String, dynamic>;
-      out.add(P0Case(
+      out[m['id'] as String] = P0Case(
         m['id'] as String,
         resolvePath(m['path'] as String, repo, sep),
         (m[field] as num).toDouble(),
         corpus,
-      ));
+      );
     }
   }
 
@@ -67,5 +73,5 @@ List<P0Case> buildCases(Map<String, dynamic> truth,
   take('straight', 'straight', 'trueRollDeg');
   take('uprightSynthetic', 'uprightSynthetic', 'trueRollDeg');
   take('rotated', 'rotated', 'expectedTiltDeg');
-  return out;
+  return out.values.toList();
 }

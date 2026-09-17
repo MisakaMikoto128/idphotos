@@ -8,6 +8,7 @@
 @Timeout(Duration(minutes: 30))
 library;
 
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
@@ -51,6 +52,27 @@ const List<String> kIds = <String>[
   'c11_d-10',
 ];
 
+/// 「裸 id」那批（c01..c12/p1/p2）在 `out/P0_anchors/<id>.png` 里是
+/// `p0_measure.py` 画的测量 overlay —— `save_overlay` 会画 5 条贯穿画面中心的
+/// 整条直线，**不是干净图**。喂进 `removeBackground` 会改变抠图结果，于是
+/// `out/P0_anchors/alpha/<id>_magenta.jpg` 与未画的同一张图不可比
+/// （曾导致 `P0_output_residual.json` 里 `c08`（`corpus: anchor`）报 `alphaHole: true`，
+/// 与 `P0_alpha_holes.json`"未旋转真实照片无洞"的结论相左）。
+/// 未旋转对照必须取原始照片，故从 truth 的 `anchors`/`straight` 里取 path。
+Map<String, String> _cleanSource(String repo, String sep) {
+  final out = <String, String>{};
+  final f = File('$repo${sep}out${sep}P0_truth.json');
+  if (!f.existsSync()) return out;
+  final t = jsonDecode(f.readAsStringSync()) as Map<String, dynamic>;
+  for (final key in <String>['anchors', 'straight']) {
+    for (final dynamic a in (t[key] as List<dynamic>? ?? <dynamic>[])) {
+      final m = a as Map<String, dynamic>;
+      out[m['id'] as String] = (m['path'] as String).replaceAll('/', sep);
+    }
+  }
+  return out;
+}
+
 void main() {
   _preloadHostOnnxRuntime();
   final repo = Directory.current.path;
@@ -66,13 +88,15 @@ void main() {
   tearDownAll(() => engine.disposeMattingEngine());
 
   test('dump alpha / rgba for white-hole triage', () async {
+    final clean = _cleanSource(repo, sep);
     for (final id in kIds) {
-      final p = '$repo${sep}out${sep}P0_anchors${sep}$id.png';
+      final p = clean[id] ?? '$repo${sep}out${sep}P0_anchors${sep}$id.png';
       final f = File(p);
       if (!f.existsSync()) {
-        stdout.writeln('MISSING $id');
+        stdout.writeln('MISSING $id <- $p');
         continue;
       }
+      stdout.writeln('SRC $id <- $p');
       try {
         final m = await engine.removeBackground(await f.readAsBytes());
         final a = img.Image.fromBytes(
