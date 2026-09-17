@@ -851,12 +851,12 @@
    "truth_apply_deg": -4.73,
    "recorded_applied_deg": 0.0,
    "ok": true,
-   "measured_applied_deg": 0.011880739154102874,
-   "scale": 1.1176078078210756,
-   "inliers": 128,
-   "matches": 150,
-   "residual_deg": -4.741880739154103,
-   "applied_delta_vs_record": 0.011880739154102874
+   "measured_applied_deg": -5.0362481138432065,
+   "scale": 1.106493657761546,
+   "inliers": 132,
+   "matches": 141,
+   "residual_deg": 0.30624811384320605,
+   "applied_delta_vs_record": -5.0362481138432065
   },
   {
    "id": "c06_d+3",
