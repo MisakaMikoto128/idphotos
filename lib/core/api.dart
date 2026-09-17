@@ -187,10 +187,17 @@ class FaceInfo {
   final double confidence;
 
   /// YuNet 五关键点，依次 [左眼(x,y), 右眼, 鼻尖, 左嘴角, 右嘴角]，
-  /// 长度 10（Float32），与 [MattingResult] 同一坐标系。
-  /// null = 解码器未提供。供 imaging 做**多线融合估角**——
-  /// 单凭眼球连线在眼镜/上睑下垂/单眼 hooded 时误差 3.7~6.7° 且可反号
-  /// （阶段 6 P0 复现结论，详见 out/tmp/roll_repro/ 与 PITFALLS）。
+  /// 长度 10（Float32），与 [MattingResult] 同一坐标系。null = 解码器未提供。
+  ///
+  /// ⚠️ **不要拿这四个眼球点当角度用**。它们在真实照片上落在**上睑褶**而非
+  /// 瞳孔，误差 3.7~6.7° 且可反号（阶段 6 P0 复现结论，详见 PITFALLS），
+  /// 这正是本次 P0 事故的根因。
+  /// 唯一正确的用法是当**瞳孔搜索的种子**：[0..3] 只用来给出两只眼睛的大致
+  /// 位置，由 `estimatePupilRoll` 在各自窗口内找真实瞳孔中心，再由瞳孔连线定角
+  /// （见 `matting_worker.dart` 的 `eyeAx/eyeAy/eyeBx/eyeBy` 入参）。
+  /// imaging 曾据此做过「眼线为主 + 嘴线共识门」的多线融合（已删除）——
+  /// 三条线同源于同一组关键点、强相关（104 组对照差 ±0.02°，噪声级），
+  /// 合并拿不到新增信息。**别再重做这个实验。**
   final Float32List? landmarks;
 
   const FaceInfo({
