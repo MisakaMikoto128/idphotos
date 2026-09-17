@@ -34,30 +34,37 @@ OUT = os.path.join(L.REPO, "out", "P0_anchors")
 REL = "out/P0_anchors"
 
 # id -> (真值 tilt, 来源说明, 备注)
+#
+# ⚠️ 来源说明里的 `+visual` 已删。原因见 docs/PITFALLS.md "用副本冒充佐证"：
+# 目视复查**不是**一条独立方法——它在 P0_truth.json 里的记录值与 trueRollDeg
+# 逐位相同（14/14 全中），是人工确认后写下的副本，不构成第二个证据。
+# 真正独立的只有 pupil-centroid / haar-eyeline 两条特征族线；且对 c08 而言
+# 这两条也没跑满（Haar 全程失败，corroborationOk=false）。
+# 字段本身已被 entry() 丢弃、不进 P0_truth.json，这里只是别让它继续误导读代码的人。
 ANCHORS = [
-    ("p1", -4.40, "pupil-centroid+haar-eyeline+visual",
+    ("p1", -4.40, "pupil-centroid+haar-eyeline",
      "主会话三方确认锚点 -4.4；本脚本 7 次旋转稳健估计 M1=-4.38 / M3=-4.08，一致"),
-    ("c01", -1.30, "pupil-centroid+haar-eyeline+visual",
+    ("c01", -1.30, "pupil-centroid+haar-eyeline",
      "radon 族读 ~0，与眼线族差 1.29（radon 向零偏置）；目视确认右瞳孔更高"),
-    ("c02", -0.25, "pupil-centroid+haar-eyeline+visual",
+    ("c02", -0.25, "pupil-centroid+haar-eyeline",
      "YuNet 读 -6.09，偏差 5.8 (P0 根因样本)"),
-    ("c03", -3.72, "pupil-centroid+haar-eyeline+visual",
+    ("c03", -3.72, "pupil-centroid+haar-eyeline",
      "YuNet 读 +1.11，偏差 4.9 (P0 根因样本)"),
-    ("c04", -3.82, "pupil-centroid+haar-eyeline+visual", "多人合影裁切版"),
-    ("c05", -3.91, "pupil-centroid+haar-eyeline+visual",
+    ("c04", -3.82, "pupil-centroid+haar-eyeline", "多人合影裁切版"),
+    ("c05", -3.91, "pupil-centroid+haar-eyeline",
      "四法稳健估计极紧 (M1 -3.91 / M2 -3.75 / M3 -3.73 / M4 -3.70)"),
-    ("c06", -1.73, "pupil-centroid+haar-eyeline+visual",
+    ("c06", -1.73, "pupil-centroid+haar-eyeline",
      "YuNet 人脸框整体偏到头发上；M4 因 Haar 眼框落在眉上而系统性偏 +2.7"),
-    ("c07", -0.35, "pupil-centroid+haar-eyeline+visual",
+    ("c07", -0.35, "pupil-centroid+haar-eyeline",
      "低分辨率(295x413, 眼距 68px)，JPEG 块效应重，标记 lowConfidence"),
-    ("c08", -8.01, "pupil-centroid+visual",
+    ("c08", -8.01, "pupil-centroid",
      "暗光摄像头；Haar 全程失败，仅 2 法可用且互差 1.69，标记 lowConfidence"),
-    ("c10", -3.44, "pupil-centroid+haar-eyeline+visual", "4032x3024 多人合影原图(5 张脸)，主体为最大脸"),
-    ("c11", -0.11, "pupil-centroid+haar-eyeline+visual", "同上系列；近竖直"),
-    ("c12", -2.09, "pupil-centroid+haar-eyeline+visual", "同上系列"),
+    ("c10", -3.44, "pupil-centroid+haar-eyeline", "4032x3024 多人合影原图(5 张脸)，主体为最大脸"),
+    ("c11", -0.11, "pupil-centroid+haar-eyeline", "同上系列；近竖直"),
+    ("c12", -2.09, "pupil-centroid+haar-eyeline", "同上系列"),
 ]
 STRAIGHT_REAL = [
-    ("p2", -0.20, "pupil-centroid+haar-eyeline+visual",
+    ("p2", -0.20, "pupil-centroid+haar-eyeline",
      "主会话确认的竖直蓝底证件照；本脚本稳健估计 M1=-0.12 / M3=-0.35；"
      "当前实现转歪 +3.7 (P0.2 基准)"),
 ]

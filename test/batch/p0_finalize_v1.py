@@ -8,6 +8,7 @@
     signTrap 措辞已失效）。
   * `anchors` / `straight` / `uprightSynthetic` 每条补：
       kind、truth_apply_deg、methods[{name,value_deg,evidence}]、visual_review、
+      derivedAnnotations（`visual` 降级后的落点，见 methods_block 的注释）、
       end_to_end（成片端到端残余，来自 out/P0_output_residual.json）
   * `rotated` 每条补 truth_apply_deg
   * 全部 path 改为**绝对路径 + 正斜杠**，调用方不用猜工作目录。
@@ -82,7 +83,16 @@ def absfix(p):
 
 
 def methods_block(rec, idv):
-    """把 robustPerMethodDeg + measure_raw 的 Delta0 值组装成 methods[]。"""
+    """把 robustPerMethodDeg + measure_raw 的 Delta0 值组装成 methods[]。
+
+    返回 `(methods, derivedAnnotations)`。
+
+    ⚠️ `visual` **不进 `methods[]`**。它的值就是 `trueRollDeg` 的逐位副本
+    （见 `docs/PITFALLS.md` 的"用副本冒充佐证"条），把它并列进方法列表会让
+    一份实际只有 1~4 条独立测量的真值在纸面上看起来有"4 法 + 目视"五个证据。
+    它降级为**派生标注**：单独一栏、显式 `independent: false`，不参与任何计数。
+    人眼复查的原始结论保留在同级的 `visual_review` 文本字段里。
+    """
     robust = rec.get("robustPerMethodDeg") or {}
     d0 = rec.get("measuredMethodsDelta0") or {}
     out = []
@@ -100,13 +110,21 @@ def methods_block(rec, idv):
             "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，"
                     "压制单次 ±0.4° 噪声",
         })
-    out.append({
-        "name": "visual",
-        "value_deg": rec.get("trueRollDeg"),
-        "evidence": "out/P0_anchors/_sheet_anchors_review.png",
-        "doc": METHOD_DOC["visual"],
-    })
-    return out
+    derived = []
+    if out:
+        # 只有真做过人眼复查的锚点/竖直样本才有这一栏；
+        # 合成夹具（uprightSynthetic / rotated）不产出，避免凭空多出一条"方法"。
+        derived.append({
+            "name": "visual",
+            "value_deg": rec.get("trueRollDeg"),
+            "derived": "trueRollDeg",
+            "independent": False,
+            "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+            "doc": METHOD_DOC["visual"],
+            "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。"
+                    "不得计入方法数，也不得当作真值的佐证。",
+        })
+    return out, derived
 
 
 def _load_jsonl(p):
@@ -763,7 +781,7 @@ def main():
         o["kind"] = kind
         o["corpus"] = corpus
         o["truth_apply_deg"] = o.get("trueRollDeg")
-        o["methods"] = methods_block(o, a["id"])
+        o["methods"], o["derivedAnnotations"] = methods_block(o, a["id"])
         if corpus == "anchor":
             o["visual_review"] = VISUAL.get(a["id"], "")
         elif corpus == "straight":
@@ -839,9 +857,15 @@ def main():
         "smallImageReliability": resid.get("smallImageReliability"),
     }
     truth["knownLimitations"] = [
-        "c03 与 c04 是同一张照片的不同分辨率副本（缩放后 mean|diff|=2.74），"
-        "统计独立样本时应视为 1 张：12 条 anchor 实际覆盖 11 张不同照片。",
-        "c10 / c11 / c12 是同一场景（五人合影）的不同裁切，结构相关 0.68–0.84。",
+        "c03 与 c04 是同一张照片的不同分辨率副本（缩放后逐像素 mean|diff|≈2，"
+        "缩放比 0.4165 恰为分辨率比、相对旋转 −0.024°），统计独立样本时应视为 1 张："
+        "anchor 栏 12 条实际覆盖 11 张不同照片。",
+        "c10 / c11 / c12 是**同一场景、同一群人的三张不同照片**，"
+        "**不是**同一张照片的不同裁切。复核方法：ECC 对齐后只统计结构像素"
+        "（Sobel 梯度 >25）的逐像素差，三对的一致度 10–11%（≤5 灰阶）；"
+        "而确为同一张不同分辨率副本的 c03/c04 达到 95%——两端差一个数量级。"
+        "三张均为 4032×3024 全画幅原图，可见取景与站位不同。"
+        "证据图 out/P0_anchors/c10_c11_c12_sheet.png。",
         "锚点集以东亚男性青年为主，无儿童/老人/深肤色/强逆光样本，"
         "不能据此声称普适覆盖率。",
         "c08 的**被旋转过的**夹具（d-10/d-5/d+3/upright）抠图会在双眼区域产生"

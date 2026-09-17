@@ -22,6 +22,11 @@ import p0_lib as L  # noqa: E402
 OUT = os.path.join(L.REPO, "out", "P0_anchors")
 METHODS = ("m1_pupil", "m2_radon_yunet", "m3_haar_eyeline", "m4_radon_haar")
 
+# |稳健估计 − 手写真值| 超过本值即标 needsReview（人工必须复核并留下结论）。
+# 由来：c08 实测 1.447°，越过了这条线，但既没改真值、也没留下复核记录 —
+# 这正是"阈值存在但没人看"的典型。现在它会被写进 JSON，不能只靠人眼扫表。
+REVIEW_THRESHOLD_DEG = 0.8
+
 
 def main():
     base = json.load(open(os.path.join(OUT, "anchors_base.json"), encoding="utf-8"))
@@ -35,7 +40,7 @@ def main():
 
     out = {"anchors": [], "perMethod": {}}
     print("%-5s %8s %8s %8s %6s %6s  %s" %
-          ("id", "single", "robust", "delta", "nObs", "spread", "per-method est"))
+          ("id", "手写真值", "robust", "delta", "nObs", "spread", "per-method est"))
     for a in base["anchors"] + base["straight"]:
         cid = a["id"]
         per = {}
@@ -54,16 +59,23 @@ def main():
                           "max": round(max(ests), 2)}
         cands = [v["median"] for v in per.values()]
         robust = round(statistics.median(cands), 3) if cands else None
-        single = a["trueRollDeg"]
-        delta = round(robust - single, 3) if robust is not None else None
-        out["anchors"].append({"id": cid, "singleObsDeg": single,
+        # ⚠️ 这里读的是 p0_finalize.py 的 ANCHORS 表里**手写**的真值，
+        # **不是一次观测**。旧字段名 `singleObsDeg` 会让人以为它是测出来的
+        # （"单张 Delta=0 观测"），从而把它当成一条独立证据 —— 改名。
+        truth = a["trueRollDeg"]
+        delta = round(robust - truth, 3) if robust is not None else None
+        needs = delta is not None and abs(delta) > REVIEW_THRESHOLD_DEG
+        out["anchors"].append({"id": cid, "handEnteredTruthDeg": truth,
                                "robustDeg": robust, "deltaDeg": delta,
+                               "reviewThresholdDeg": REVIEW_THRESHOLD_DEG,
+                               "needsReview": needs,
                                "perMethod": per})
-        print("%-5s %8.2f %8.2f %8s      -      -  %s" % (
-            cid, single, robust if robust is not None else float("nan"),
+        print("%-5s %8.2f %8.2f %8s      -      -  %s%s" % (
+            cid, truth, robust if robust is not None else float("nan"),
             ("%+.2f" % delta) if delta is not None else "n/a",
             "  ".join("%s=%+.2f(n=%d)" % (m.split("_")[0], v["median"], v["n"])
-                      for m, v in per.items())))
+                      for m, v in per.items()),
+            "   ⚠ 需人工复核" if needs else ""))
 
     with open(os.path.join(OUT, "anchor_robust_estimate.json"), "w",
               encoding="utf-8") as fh:
