@@ -145,12 +145,20 @@ class FaceInfo {
   /// 检出置信度，0–1。
   final double confidence;
 
+  /// YuNet 五关键点，依次 [左眼(x,y), 右眼, 鼻尖, 左嘴角, 右嘴角]，
+  /// 长度 10（Float32），与 [MattingResult] 同一坐标系。
+  /// null = 解码器未提供。供 imaging 做**多线融合估角**——
+  /// 单凭眼球连线在眼镜/上睑下垂/单眼 hooded 时误差 3.7~6.7° 且可反号
+  /// （阶段 6 P0 复现结论，详见 out/tmp/roll_repro/ 与 PITFALLS）。
+  final Float32List? landmarks;
+
   const FaceInfo({
     required this.box,
     required this.chinY,
     required this.headTopY,
     required this.rollDeg,
     required this.confidence,
+    this.landmarks,
   });
 
   /// 头高（头顶到下巴）像素数。

@@ -137,6 +137,11 @@ ui-woodcraft **只依赖 `IdPhotoController` 和 `AppState`**，阶段 2 用 `Fa
 | MattingException | 抠图失败了，换一张试试吧 |
 | NoFaceException（仅提示，不阻断） | 没找到人脸，请手动框选 |
 
+**语义扩展记录（阶段 6 P0，主会话授权）**：[FaceInfo] 新增可空 `landmarks`
+（YuNet 五关键点，工作分辨率坐标）。P0 歪斜复现证明单凭眼球连线估角在
+眼镜/上睑下垂/单眼 hooded 时误差 3.7~6.7° 且可反号——imaging 将用
+多线（眼线/嘴线/鼻梁）中位融合仲裁。ml-porting 负责填充，imaging 负责消费。
+
 **语义扩展记录（G4，主会话授权）**：ml-porting 的 G4.3 修复在 `removeBackground`
 入口加了人脸门槛——非人像输入（无人脸）**作为阻断性拒绝抛出 NoFaceException**，
 而不是产出碎片拼贴的"伪成功"候选（item 60 电路板案例，详见 out/GATE_G4_r1.md）。
