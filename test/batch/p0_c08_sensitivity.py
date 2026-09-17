@@ -52,17 +52,23 @@ H1 修完**更贴门禁**，这是修对了的旁证——修之前是"更远离
      所以"一致"不构成独立验证。
   6. ~~**七个常量** —— 本文件不校验它们与 `gate_P0.dart` 是否同步。~~
      **已由构造消除**（2026-09-17）：改为从 `gate_P0.dart` 正则抽取，找不到就抛错、
-     不回退内置值。运行时会打印源文件与 sha256 前 12 位，报告可据此注明用了哪一版阈值。
-     注意仍有**未消除**的一半：**判据的语义**（如 P0.1a 数行数还是数不同照片）
-     仍是手抄镜像，抽常量管不到它。见下条。
+     不回退内置值。运行时会打印指纹，报告可据此注明用了哪一版阈值。
+     指纹用 **git blob 哈希**（对行尾不敏感），并同时打印 HEAD blob：
+     **两者不等 = 我读的是未落库的工作区状态**，此时指纹绑不到 commit，不得当版本号引用。
+     另存 `--strict`，未落库时直接拒绝出数——开跑时必须用它。
+     注意仍有**未消除**的一半：**判据的语义**仍是手抄镜像，抽常量管不到它。见下条。
   7. **上游输入**（`gate_P0_eyeline.json` / `gate_P0_sift_align.json` /
      `P0_output_residual.json`）整体继承。其中眼线那份与门禁复核成片用的是**同族**量具，
      它的系统误差本文件无法察觉（即 `m3_haar_eyeline` 那条已知局限）。
   8. **判据的语义**是手抄镜像，抽常量管不到。已知一例：P0.1a 门禁写
      `cohort.length >= kMinDistinctPhotos`（数**行数**），而同项 expected 写的是
-     "样本 ≥ 8 张**不同照片**"。当前 11 行 / 10 张不同照片（`c03`≡`c04`），都 ≥ 8 故不改结论，
-     但**本脚本原样抄了这道松法**。gatekeeper 已回派在打 tag 前改成数不同照片，
-     改完本脚本需对齐一次——那一次对齐**没有自检能替你发现漏做**。
+     "样本 ≥ 8 张**不同照片**"。当前 11 行 / 10 张不同照片（`c03`≡`c04`），都 ≥ 8 故不改结论。
+     **本文件已改为按语义数不同照片**（`count_distinct_photos()`），并配**已知答案检验**
+     （`selftest_distinct()`，含 12 条 → 11 张、去掉真照片 c05 → 10 张、重复 c03 不重复计数
+     等个案，且要求至少 2 个个案具备鉴别力——即朴素 `len()` 蒙不对）。
+     这套检验**只依赖本文件**、不抄门禁，故不落第 4 条的陷阱，与门禁那边互为独立见证。
+     门禁落库后仍需人工确认两边口径一致：**那一步没有自检能替你发现漏做**，
+     但至少本文件的计数本身已被钉住。
 
 **关于本脚本"复算与门禁一致"的正确口径**（team-lead 2026-09-17 裁定，别引用错）：
 一致性是**转录正确性检查**，**不是**独立验证。理由就是第 4 条——`_median`/`_slope`/
@@ -85,6 +91,7 @@ import json
 import math
 import os
 import re
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -133,9 +140,45 @@ def load_constants(path=GATE_SRC):
     for mine, gate in _CONST_NAMES.items():
         kind, v = found[gate]
         vals[mine] = int(v) if kind == "int" else v
-    vals["_src_sha256"] = hashlib.sha256(src.encode("utf-8")).hexdigest()[:12]
     vals["_src_path"] = path
     return vals
+
+
+def _git(args):
+    """跑一条 git 命令，失败返回 None（不抛）。"""
+    try:
+        r = subprocess.run(["git"] + args, cwd=L.REPO, capture_output=True,
+                           text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def gate_revision(path=GATE_SRC):
+    """给"读的是哪一版阈值"一个**能跨机器比对**的指纹。
+
+    为什么不用 sha256（team-lead 2026-09-17 指出）：裸文件 sha256 与行尾约定绑定——
+    同一份判据在 CRLF 工作区算出 `7072c362cffc`、在 LF 归一后算出 `37eb21d51cac`
+    （本文件初版报的就是后者，因为 Python 文本模式读入会把 CRLF 折成 LF）。
+    换台机器、换个 `core.autocrlf`，同一个"判据版本"就是另一个哈希，
+    那它就没法用来比对版本——而这是它唯一的用途。
+
+    改用 **git blob 哈希**（对行尾不敏感，与 `code_fingerprint.dart` 同一套口径），
+    并同时给出 HEAD 的 blob：**两者不等 = 我读的是未落库的工作区状态**，
+    这时指纹绑不到任何 commit，报告里不许把它当版本号用。
+    git 不可用时退回 LF 归一后的 sha256，并**在输出里标明是归一后的**。
+    """
+    rel = os.path.relpath(path, L.REPO).replace("\\", "/")
+    blob = _git(["hash-object", "--", rel])
+    head_blob = _git(["rev-parse", "HEAD:" + rel])
+    head_commit = _git(["rev-parse", "--short", "HEAD"])
+    if blob is None:
+        raw = open(path, "rb").read()
+        return dict(kind="lf-sha256(归一后)", id=hashlib.sha256(
+            raw.replace(b"\r\n", b"\n")).hexdigest()[:12],
+            committed=None, head_blob=None, head_commit=head_commit)
+    return dict(kind="git-blob", id=blob[:12], committed=(blob == head_blob),
+                head_blob=(head_blob or "")[:12], head_commit=head_commit)
 
 
 _C = load_constants()
@@ -146,6 +189,54 @@ K_INTERCEPT_ABS_MAX = _C["K_INTERCEPT_ABS_MAX"]
 K_COVERAGE_MIN_TRUTH = _C["K_COVERAGE_MIN_TRUTH"]  # |truth| > 此值必须给出 pupil
 K_MIN_DISTINCT = _C["K_MIN_DISTINCT"]
 K_UPRIGHT_MIN = _C["K_UPRIGHT_MIN"]
+
+
+# ---- 不同照片计数 ----------------------------------------------------------
+#
+# 背景（2026-09-17）：门禁 `gate_P0.dart:410` 写的是 `cohort.length >= kMinDistinctPhotos`
+# ——数**行数**；而同项 expected（:416）写的是"样本 ≥ 8 张**不同照片**"。
+# 当前 P0.1a 队列 11 行、但只有 10 张不同照片（c03≡c04），两者都 ≥ 8 故不改结论，
+# 但判据比它的名字**松**。team-lead 已回派 gatekeeper 改成数不同照片。
+#
+# 本函数按**语义**（法典口径 6）实现，不等门禁——这样两边互为独立见证：
+# 我这份不抄门禁的实现，所以不落"第 4 条"那个"共用同一个错误仍自洽"的陷阱。
+KNOWN_SAME_PHOTO = (frozenset({"c03", "c04"}),)
+# 证据：ECC 欧氏对齐后只统计结构像素（Sobel > 25），c03/c04 一致度 95.2%（中位差 1），
+# 而 c10/c11 为 11.3%(33)、c10/c12 为 10.6%(36)，差一个数量级。详见 docs/PITFALLS.md。
+
+
+def count_distinct_photos(ids):
+    """数**不同照片**：已证同图的 id 折成一类，其余各自计数。"""
+    seen, n = set(), 0
+    for i in ids:
+        if i in seen:
+            continue
+        grp = next((g for g in KNOWN_SAME_PHOTO if i in g), frozenset({i}))
+        seen |= set(grp)
+        n += 1
+    return n
+
+
+def selftest_distinct():
+    """已知答案检验——**只依赖本文件的代码**，不抄门禁，故不落第 4 条的陷阱。
+
+    返回 (bad, weak)：bad = 与手算答案不符的 case；weak = 朴素 `len()` 也能蒙对的
+    case（不具鉴别力）。要求至少 2 个 case 具鉴别力，否则这套检验等于没牙。
+    """
+    anchors12 = ["c01", "c02", "c03", "c04", "c05", "c06", "c07", "c08",
+                 "c10", "c11", "c12", "p1"]
+    pupil11 = [i for i in anchors12 if i != "c11"]   # c11 unavailable，不进 P0.1a 队列
+    cases = [
+        (anchors12, 11, "锚点栏 12 条 − c03≡c04 → 11 张（法典口径 6）"),
+        (pupil11, 10, "P0.1a 队列 11 行 − c03≡c04 → 10 张"),
+        ([i for i in anchors12 if i != "c05"], 10, "去掉一张**真**照片 c05 → 11 条 → 10 张"),
+        ([i for i in anchors12 if i != "c04"], 11, "去掉 c04 但 c03 仍在 → 该照片仍被代表 → 11 张"),
+        (pupil11 + ["c03"], 10, "重复出现 c03 不得再加一（按 id 去重）"),
+    ]
+    bad = ["%s：期望 %d 实得 %d" % (why, want, count_distinct_photos(ids))
+           for ids, want, why in cases if count_distinct_photos(ids) != want]
+    weak = [why for ids, want, why in cases if len(ids) == want]
+    return bad, weak, len(cases)
 
 C08_RECORDED = -8.01
 HYPOTHESES = [("H1 手写值", -8.01), ("H2 稳健估计", -6.56), ("H3 YuNet 眼线", -9.389)]
@@ -275,9 +366,12 @@ def verdicts(samples):
     # P0.1a
     co = [s for s in anchors if s["source"] == "pupil"]
     res = [abs(s["residual"]) for s in co]
-    p1a = (len(co) >= K_MIN_DISTINCT and max(res) <= K_RESIDUAL_MAX
+    # 用**不同照片**数（不是行数）对齐 kMinDistinctPhotos 的语义，见 count_distinct_photos()。
+    n_distinct = count_distinct_photos([s["id"] for s in co])
+    p1a = (n_distinct >= K_MIN_DISTINCT and max(res) <= K_RESIDUAL_MAX
            and _median(res) <= K_RESIDUAL_MEDIAN_MAX) if res else False
-    p1a_detail = dict(n=len(co), max=max(res) if res else None,
+    p1a_detail = dict(n=len(co), n_distinct=n_distinct,
+                      max=max(res) if res else None,
                       median=_median(res) if res else None)
 
     # P0.1b
@@ -362,10 +456,32 @@ def selfcheck(base):
 
 
 def main():
+    strict = "--strict" in sys.argv[1:]
     base = load()
-    print("阈值来源 %s @ %s" % (_C["_src_path"], _C["_src_sha256"]))
+    rev = gate_revision()
+    print("阈值来源 %s" % _C["_src_path"])
+    print("  指纹 %s:%s" % (rev["kind"], rev["id"]))
+    if rev["committed"] is True:
+        print("  已落库：与 HEAD blob %s 相同（HEAD %s）"
+              % (rev["head_blob"], rev["head_commit"]))
+    elif rev["committed"] is False:
+        print("  ⚠ **未落库**：HEAD blob 是 %s，我读的是工作区 blob %s（HEAD %s）"
+              % (rev["head_blob"], rev["id"], rev["head_commit"]))
+        print("    此时这枚指纹**绑不到任何 commit**，报告里不得当版本号引用。")
+    else:
+        print("  ⚠ git 不可用，退回哈希；kind 已标明是否做过行尾归一。")
     print("  " + "  ".join("%s=%s" % (n, _C[n]) for n in sorted(_CONST_NAMES)))
     print()
+    if strict and rev["committed"] is not True:
+        print("--strict：阈值来源未绑定到 commit，拒绝出数（见上）。")
+        sys.exit(2)
+
+    dbad, dweak, dtotal = selftest_distinct()
+    strong = dtotal - len(dweak)
+    print("不同照片计数 已知答案检验：%s（具鉴别力的 case %d/%d）"
+          % ("PASS" if not dbad else "FAIL %s" % dbad, strong, dtotal))
+    if strong < 2:
+        print("  ⚠ 鉴别力不足：太多个案连朴素 len() 都能蒙对，这套检验没有牙。")
     bad = selfcheck(base)
     print("空变换自检（H1 应逐条还原）：%s\n"
           % ("PASS" if not bad else "FAIL %s" % bad[:6]))
@@ -375,8 +491,8 @@ def main():
         v, d = verdicts(apply_hypothesis(base, t))
         results[name] = (v, d)
         print("=== %s：c08 真值 = %.3f ===" % (name, t))
-        print("  P0.1a %s  n=%d max=%.3f 中位=%.3f" % (
-            "PASS" if v["p1a"] else "FAIL", d["p1a"]["n"],
+        print("  P0.1a %s  %d 行 / %d 张不同照片  max=%.3f 中位=%.3f" % (
+            "PASS" if v["p1a"] else "FAIL", d["p1a"]["n"], d["p1a"]["n_distinct"],
             d["p1a"]["max"] or 0, d["p1a"]["median"] or 0))
         print("  P0.1b %s  需摆正 %d 条，其中 unavailable %d %s" % (
             "PASS" if v["p1b"] else "FAIL", d["p1b"]["need"],
