@@ -174,6 +174,10 @@ void main() {
         'elapsed=${sw.elapsedMilliseconds}ms');
   });
 
+  // 口径说明：phi=0 走**原始字节**，phi≠0 走 `decode → copyRotate(cubic) →
+  // encodeJpg(q=95)`。所以 `Δpupil` / `Δyunet` 两列量的是"旋转 **+ 重编码**"，
+  // 不是纯旋转；重编码杂质约 0.05° 量级（见 F 段的 jpg85 对照），不影响判据，
+  // 但列名断言的出处比实际多一项。
   test('B. 注入旋转系列：符号与线性度标定', () async {
     final List<String> srcs = <String>[
       for (final g in _kGolden) 'test/golden/src/$g.jpg',
