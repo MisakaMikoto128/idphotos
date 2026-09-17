@@ -195,6 +195,22 @@ def gate_revision(path=GATE_SRC):
 LOAD_META = {}
 
 
+def gate_declared_spec(path=GATE_SRC):
+    """读门禁**写死**的成片规格 `kSpec`（`gate_P0.dart:35`）。
+
+    与本文件从量测文件 `specId` **解出**的 spec 是两个独立来源：门禁写死、我从数据解出。
+    两者必须一致——不一致就抛错，不猜、不静默比下去。
+    只把它打印出来是不够的：若文件里的 spec 集合整体变成另一个值，我会安静地解出那个值，
+    再和门禁比出一个**假一致**（两边的 id 序列甚至数字都可能仍然对得上）。
+    """
+    with open(path, encoding="utf-8") as f:
+        src = f.read()
+    m = re.search(r"^const\s+String\s+kSpec\s*=\s*'([^']*)'\s*;", src, re.M)
+    if not m:
+        raise RuntimeError("gate_P0.dart 里找不到 kSpec，拒绝猜测成片规格")
+    return m.group(1)
+
+
 _C = load_constants()
 K_RESIDUAL_MAX = _C["K_RESIDUAL_MAX"]              # |residual| 上限
 K_RESIDUAL_MEDIAN_MAX = _C["K_RESIDUAL_MEDIAN_MAX"]  # 中位残余上限
@@ -342,6 +358,12 @@ def load():
         raise RuntimeError(
             "量测文件的 specId 不唯一（%s），无法确定成片规格，拒绝猜测" % spec_ids)
     spec = spec_ids[0]
+    declared = gate_declared_spec()
+    if spec != declared:
+        raise RuntimeError(
+            "成片规格两个来源不一致：量测文件解出 %r，门禁写死 kSpec=%r。"
+            "两边在对不同的东西，拒绝继续比——否则会静默比出一个假一致。"
+            % (spec, declared))
 
     items_all = json.load(open(
         os.path.join(L.REPO, "out", "P0_output_residual.json"),
