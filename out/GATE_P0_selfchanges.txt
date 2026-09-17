@@ -27,3 +27,8 @@ tools/gate/gate_common.dart
 #  · p0_gate_judgment_test.dart —— 上述排除集的正负对照（P/Q/R/R2/S/T/U/V）；
 #  · provenance_test.dart —— 域清单渲染（不只个数）与 git 不可用时的数目口径。
 # 三个文件都在上面已列出，这里只是记明**本轮为什么动它们**。
+# 2026-09-17 第二批：同上三个文件，另加本文件与 docs/PITFALLS.md。
+#  · gate_P0.dart —— 基线文件进 kPinnedJudgmentInputs；基线重建轮整轮作废；
+#    TruthDrift.describe() 在重建时**不再**写"本轮不判 FAIL"（那句话就是绕过路径的门）；
+#  · p0_gate_judgment_test.dart —— 测试 W（删基线买不到免疫）、X（锚在受钉集里）；
+#  · docs/PITFALLS.md —— 追加一条（只追加，未删改他人条目）。

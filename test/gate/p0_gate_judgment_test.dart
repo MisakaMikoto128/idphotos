@@ -771,5 +771,52 @@ void main() {
       // 渲染事故的回归：`'$b.path'` 曾渲染成 `Instance of ...`。
       expect(md.contains('Instance of'), false);
     });
+
+    test('W 删掉基线文件 = 重置锚点：必须买不到"本轮免疫"', () {
+      // 这是我**在自己门禁里找到的洞**，不是设想的：
+      // `truthDrift` 在基线文件不存在时会建立一份新的并返回 `baselineEstablished: true`，
+      // 而旧措辞是"本轮不判 FAIL"。于是
+      //     del out\hashes_P0_truth_leaves_baseline.txt
+      // 一步就能把"改过判据分母"洗掉 —— 比改一个数容易得多，
+      // 且与 `kTruthPath` 当初两边都不在是同一个洞，只换了入口。
+      //
+      // 现在的规则：重建轮**整轮作废**。删文件买到的是 void，不是放过。
+      final Directory d = Directory(kTmp);
+      if (d.existsSync()) d.deleteSync(recursive: true);
+      writeTruth(<String, dynamic>{
+        'anchors': <dynamic>[
+          <String, dynamic>{'id': 'p1', 'truthTiltDeg': -4.4},
+        ],
+      });
+      final gate.TruthDrift fresh = drift();
+      expect(fresh.baselineEstablished, true, reason: '文件不存在 → 本轮只能重建');
+      expect(File(kBase).existsSync(), true, reason: '重建要真的把锚落盘，否则永远重建');
+      expect(fresh.describe().contains('不判 FAIL'), false,
+          reason: '**不许再出现"本轮不判 FAIL"** —— 这句话就是那条绕过路径的门');
+      expect(fresh.describe().contains('整轮作废'), true);
+
+      // 端到端：重建轮必须整轮作废，且**不许**消耗实现方的修复轮次。
+      final List<Map<String, dynamic>> compose = goodCorpus();
+      final Map<String, dynamic> inp =
+          inputs(compose: compose, measured: goodMeasured(compose));
+      inp['truthDriftResult'] = fresh;
+      final List<Map<String, dynamic>> items = gate.evaluateP0(inp);
+      expect(items.every((Map<String, dynamic> i) => i['roundInvalid'] == true), true,
+          reason: '锚被重建的那一轮不作判决');
+      expect(items.every((Map<String, dynamic> i) => i['pass'] != true), true,
+          reason: '作废轮一项都不许判 PASS');
+      expect(items.every((Map<String, dynamic> i) => i['manual'] == true), true,
+          reason: '作废轮是 MANUAL，不消耗实现方的修复预算');
+      expect((items.first['actual'] as String).contains('重建'), true,
+          reason: '要写明是重建轮，不能让人以为是普通作废');
+    });
+
+    test('X 基线文件本身在受钉之列（改它 / 删它都要看得见）', () {
+      // 只把 `kTruthPath` 放进受钉集是不够的：钉的**锚**不受钉，
+      // 绕过就只是"删一个文件"。
+      expect(gate.kPinnedJudgmentInputs, contains(gate.kTruthPath));
+      expect(gate.kPinnedJudgmentInputs, contains(gate.kTruthLeavesBaselinePath),
+          reason: '锚必须在受钉集里，否则删掉它 = 重置 = 免疫');
+    });
   });
 }

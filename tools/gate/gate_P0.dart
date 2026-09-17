@@ -1012,6 +1012,16 @@ List<String> _roundInvalidReasons(Map<String, dynamic> inputs) {
       r.add('$x');
     }
   }
+  // 第六条：判据分母的**锚**本轮被重建过 → 作废。
+  //
+  // 这一条拦的是"删掉钉 = 本轮免疫"：`truthDrift` 在基线文件不存在时会建立一份新的
+  // 并返回 `baselineEstablished = true`，而旧逻辑下那一句是"本轮不判 FAIL"。
+  // 于是删一个文件就能把"改过判据分母"洗掉 —— 比改一个数容易得多。
+  // 现在重建轮一律 void：删文件买不到通过，只买到一轮作废，且作废写进报告。
+  final Object? td = inputs['truthDriftResult'];
+  if (td is TruthDrift && td.baselineEstablished) {
+    r.add(kBaselineRetakeNote);
+  }
   return r;
 }
 
@@ -1212,11 +1222,46 @@ class HashScan {
 /// 这是"为通过而放宽"最短的一条路，比改阈值隐蔽得多（阈值至少还有常数清单可核）。
 /// 2026-09-17 qa-batch 在 `c11df1c` 里确实改过这个文件（改得诚实且正确），
 /// 但**门禁本来不会发现**：一个只在当事人自觉时才存在的检查，不是检查。
-const List<String> kPinnedJudgmentInputs = <String>[kTruthPath];
+/// **基线文件本身也在受钉之列。**
+///
+/// 它是钉的**锚**，不是钉的产出。不钉它的后果是一条一步到位的绕过：
+///
+/// ```
+/// del out\hashes_P0_truth_leaves_baseline.txt
+/// ```
+///
+/// 下一次运行就会 `baselineEstablished = true` → "首轮建立基线，本轮不判 FAIL"，
+/// 于是**改过判据分母也能全身而退**。这与 `kTruthPath` 当初两边都不在是同一个洞，
+/// 只不过入口从"改文件内容"换成了"删文件"—— 而删一个文件比改一个数容易得多。
+///
+/// 放进 `kPinnedJudgmentInputs` 之后它进哈希表，删掉会表现为"算不出哈希"
+/// （不判成不存在，见 `HashScan.unhashable`），改掉会表现为哈希漂移。
+const List<String> kPinnedJudgmentInputs = <String>[
+  kTruthPath,
+  kTruthLeavesBaselinePath,
+];
+
+/// 基线**重建**轮：应当被显式登记，而不是被当成"没这回事"。
+///
+/// 删除基线文件仍会建立一份新的，但那一轮**不作判决**（整轮作废）——
+/// 否则"删掉钉 = 本轮免疫"这个激励还在。把它做成作废轮，删文件就买不到任何东西：
+/// 买到的是一轮 void，且 void 会被逐条写进报告。
+///
+/// 首次落地时同样会走这里（首轮本来就是 void），这是**故意**的：
+/// 建立钉的那一轮不该同时充当判决，两件事分开。
+const String kBaselineRetakeNote =
+    '基线文件 `$kTruthLeavesBaselinePath` 本轮为**重建**（原文件不存在）。'
+        '本轮只建立锚点、**不作判决**（整轮作废，不消耗实现方修复轮次）。'
+        '理由：钉的锚如果能靠删掉它来重置，那"删掉即免疫"就是一条最短的绕过路径。'
+        '重建必须是有意识的行为，因此必须留下记录 —— 见下方「排除集与豁免」一节。';
 
 /// 判据分母的**数值叶基线**。首行 `sha256=<整文件哈希>`，其后每行一个 `路径=数值`。
 /// 用数值叶而不是整文件哈希，是为了给**合法表述订正**留一条通道：
 /// 表述变了、数值一个没动 → 登记为豁免；**数值动了一个 → 判 FAIL**。
+///
+/// 这个文件本身也受钉（见 `kPinnedJudgmentInputs`），且**不存在时建立的那一轮
+/// 整轮作废**（见 `kBaselineRetakeNote`）—— 否则删掉它就能重置锚点，
+/// "删掉即免疫"比"改一个数"容易得多。
 const String kTruthLeavesBaselinePath = 'out/hashes_P0_truth_leaves_baseline.txt';
 
 /// 真值数值叶比对里**唯一**的排除块（主会话 2026-09-17 裁定）。
@@ -1380,7 +1425,11 @@ class TruthDrift {
   String describe() {
     final String ex = exclusionNote();
     if (baselineEstablished) {
-      return '$path 首轮建立数值叶基线（$leafCount 个数值叶参与比对），本轮不判 FAIL。$ex';
+      // 措辞要紧：这里**不再**写"本轮不判 FAIL"。写成那样，删掉基线文件
+      // 就等于"本轮免疫"，而删文件是绕过整个真值钉最短的一条路。
+      return '**$path 的数值叶基线本轮为重建**（原基线文件不存在）：'
+          '已建立 $leafCount 个数值叶的锚点，但**本轮整轮作废、不作判决**，'
+          '不消耗实现方修复轮次。$ex';
     }
     if (numericChanges.isNotEmpty) {
       return '**$path 的数值叶相对基线改动了 ${numericChanges.length} 处**'
