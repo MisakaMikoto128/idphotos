@@ -169,6 +169,7 @@ class _CertificateCard extends StatelessWidget {
                     height: 132,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                    alignment: Alignment.topCenter, // 宽卡片下保住眼部以上
                   ),
                 ),
                 const SizedBox(height: 10),
