@@ -66,13 +66,21 @@
       "notClaimed": "本门禁不断言死区该不该调小。那是产品/阈值决定。（调小会重新触碰 crop_geometry.dart:120-124 注释所述的小角度抖动问题。）"
     },
     {
-      "id": "C4-alpha-holes-is-not-a-criterion",
+      "id": "C4-alpha-holes-IS-read-by-EVID",
       "appliesTo": ["out/P0_alpha_holes.json", "报告中一切『有洞/无洞』引用"],
-      "statement": "门禁里没有任何判据读 out/P0_alpha_holes.json。它在 tools/gate/gate_P0.dart 中只出现一处（:2776），且是 writeln 的字符串字面量，不是判据。",
-      "evidence": "grep -n 'alphaHoles|alpha_holes' tools/gate/gate_P0.dart -> 仅 :2776，位于 b.writeln(...) 的字符串拼接内。",
-      "consequence": "该产物的『洞』读数**进不了 PASS/FAIL**。它不出现在本轮的 12 条判据里，本轮判决不依赖它。",
+      "statement": "out/P0_alpha_holes.json **有判据读它** —— EVID。它的 sha256 经 test/batch/p0_finalize_v1.py 写进 out/P0_truth.json 的 gateInputs.rotationFailureBoundary.evidenceProvenance.sourceSha256，而 EVID 就是逐份比对这组摘要的判据。本轮 EVID 正是因为它对不上而 FAIL 过一次。",
+      "correction": "本文件初版写的是『门禁里没有任何判据读它……进不了 PASS/FAIL』—— **那句是错的，已撤**。错的来源：我只在 tools/gate/ 里 grep，看到 alpha_holes 只出现在 :2776 一处且是 writeln 的字符串字面量，就下了结论。**但真正的通路在生产者那一侧**：test/batch/p0_finalize_v1.py:172-180 读它、:539-540 把结论写进真值文件。同一个『搜索范围没含生产者』的错，今天第三次。",
+      "whatIsTrue": "只有『它的 eyeBandZeroFrac 数值本身不构成任何阈值判据』这半句成立 —— 没有任何判据拿 0.35 那个阈值去判 PASS/FAIL。但它作为**被钉测量产出之一的摘要**确实进了 PASS/FAIL。",
+      "correction2": "初版还写『本轮判决不依赖它』—— 也不对：EVID 是本轮 12 条之一。",
+      "consumerChain": [
+        "test/batch/p0_finalize_v1.py:172-180 读 out/P0_alpha_holes.json，取 assessable 行的 eyeBandZeroFrac",
+        "test/batch/p0_finalize_v1.py:539-540 把结论写进 out/P0_truth.json（gateInputs.alphaHoleIndependentOfRotation，file 字段指回 out/P0_alpha_holes.json）",
+        "out/P0_truth.json 的 gateInputs.rotationFailureBoundary.evidenceProvenance.sourceSha256 记下它的 sha256",
+        "tools/gate/gate_P0.dart 的 EVID 项逐份比对这组摘要 -> 进 PASS/FAIL"
+      ],
+      "operationalConsequence": "这解释了一个反直觉的耦合：**重生成 out/P0_alpha_holes.json 会让第 ⑤ 条（钉）变绿，却会让 EVID 变红** —— 因为 finalize 记的摘要还是旧的。**两份检查方向相反，必须一起重跑 finalize 才能同时成立。** 本轮 qa-batch 重跑了 finalize，EVID 才转 PASS。",
       "freshnessThisRound": "out/P0_alpha_scan/ 本轮已随 qa-batch 重跑（manifest.jsonl mtime 09:04:31，out/P0_alpha_holes.json mtime 09:06:35），故与本轮代码（cd417a4d254ec1c2）同源。",
-      "stillApplies": "但 out/GATE_P0_r2.caveats.json 的 C4（该产物的 inputProvenance 记录了历史上的同源缺口）与 C5（87 是扫描行数不是测量数；可评估仅 21 条 = Pictures 未旋转人像 14 + out/P0_anchors 7）**仍然成立**，引用时一并读。"
+      "stillApplies": "out/GATE_P0_r2.caveats.json 的 C4（该产物的 inputProvenance 记录了历史上的同源缺口）与 C5（87 是扫描行数不是测量数；可评估仅 21 条 = Pictures 未旋转人像 14 + out/P0_anchors 7）**仍然成立**，引用时一并读。C4 里『跨度约 4 小时』一句已按 qa-batch 查明的事实撤回：那 4 小时是把目录 mtime 当扫描时长读出的假象，扫描本身 43 秒，目录里 03:45–03:46 的 4 张图是别的手工对照图、不参与测量（test/batch/p0_alpha_holes.py:62,74 按 manifest 取文件）。"
     },
     {
       "id": "C5-blind-spot-c08_d-10-residual-unverifiable",
@@ -89,6 +97,32 @@
       "appliesTo": ["P0.3a", "residual provenance"],
       "statement": "本轮残余出处：gate_eyeline 88 条、gate_sift_align 11 条、derived_identity 1 条。那 1 条是用已验恒等式 残余=真值−施加角 推出来的，不是测出来的。",
       "doNotReadAs": "不要把 derived_identity 那 1 条与其余 99 条同等看待 —— 它是恒等式回填，不是独立测量。"
+    },
+    {
+      "id": "C7-truth-file-rewritten-inside-window-and-gate-cannot-prove-it-didnt",
+      "appliesTo": ["本轮有效性", "out/P0_truth.json", "out/gate_P0_r3.json"],
+      "severity": "provenance-gap",
+      "statement": "本轮 gate 窗口 09:19:12–09:24:42 之内，out/P0_truth.json 与 out/P0_input_hashes.json 于 09:22:10 被写入过（qa-batch 的 test/batch/p0_finalize_v1.py；已排除本门：gate 只 spawn p0_eyeline.py / p0_rigid_check.py / p0_overlap.py / flutter test，四者均不写这两个文件）。**而门禁无法证明它在窗口内没变过** —— 生成件 out/P0_truth.json 根本不在窗口稳定性快照里。",
+      "gateGap": "out/hashes_P0_r3_pre.txt 与 out/hashes_P0_r3.txt 共 43 条，两条快照逐条比对只有 golden_src/golden_ref 两行新增，无任何文件哈希变化。但快照集里只有 out/P0_truth_v0.json（手写件）与 out/P0_truth_leaves_baseline.txt，**没有被判据实际读取的生成件 out/P0_truth.json**。该文件在 2026-09-17 换靶（内容钉改钉手写分母）时被移出了快照集，**此后门禁读一个自己不核稳定的文件**。",
+      "whyTheRoundIsNonethelessReported": "判为有效，但证据是间接的，列在此处供复核：(a) 所有由真值派生的读数在改写的两侧完全一致 —— 改写前那轮（out/GATE_P0_r3_VOID2_truthRewrittenMidWindow.json）与本轮在 P0.1a/P0.1b/P0.2/P0.3a/P0.3b/P0.4/PIN 上逐项相同，P0.3a 同为 1.7534°；(b) 文件大小两侧同为 199403 字节；(c) 唯一翻转的是 EVID —— 改写前那轮 9/12 且 EVID 报「不相符」，本轮 10/12 且 EVID 报「相符」（逐条核对过两份 JSON），与 finalize 重跑刷新了摘要一致。**这三条都是旁证，不是证明。**",
+      "budgetNote": "本轮唯一实质失败项 P0.3a 的读数在改写两侧完全相同，**故本次窗口污染不影响该失败的成立与否**，也不影响对修复预算的判定。",
+      "followUp": "解冻后应把生成件 out/P0_truth.json 加回窗口稳定性快照（tools/gate/gate_P0.dart 的 kPinnedJudgmentInputs / 快照集）。**读一个文件，就该在窗口两端各哈希它一次** —— 否则『窗口内无人写入』这句话没有机器支撑。"
+    },
+    {
+      "id": "C8-imaging-cut-criterion-not-adopted-and-why",
+      "appliesTo": ["G4/2B.9", "成片切口"],
+      "statement": "imaging 提出替代判据『切口接触长度 >= 0.15x成片宽 且 切口深度 >= 12px』。**本门禁不采纳，且本门禁不建议由本门禁采纳。**",
+      "reasonGiven": "该阈值由**提出方自己**给出，又由**同一方**报出在其标尺下 cn_big_1inch 有 50 条可见 —— **提出者与计数者是同一个主体，阈值本身需要独立标定。** 这与『考生出考卷』同形：不是怀疑动机，而是这个组合下阈值没有独立来源。",
+      "authorityNote": "阈值只在 docs/ACCEPTANCE.md，而该文件只有主会话能改、且只在人工明确要求时改。本门禁既不采纳也不否决，只报事实：这道口子现在是敞开的，且在判据里看不见（见 C3-no-criterion-covers-visible-slicing，即 r2 旁注的 C3）。",
+      "supportingFactFromImaging": "outOfBoundsFraction 两个方向都会错：漏（oob 记 0.000 却有 130–218px 长直切口）与虚（oob=0.43 的 c05_d+5 成片里没有切痕）。故『越界比例』不只是『不等于』可见破损，是**两个方向都会错**。",
+      "mechanismConfirmedIndependently": "切口机制已由本门禁从源码独立确认：lib/core/imaging/render.dart:407 —— 源图坐标越界即写底色并 continue；源图边界是轴对齐矩形、plan.toSource 是逆旋转，故其在成片里的像必然是直线。theta=0 得水平切口、theta!=0 得斜切口是**同一机制的两种外观**，不是两种机制。（具体斜率公式与 imaging 报的 ±0.3° 拟合是其测量，本门禁未独立复现。）"
+    },
+    {
+      "id": "C9-fnv-printed-signed-vs-unsigned",
+      "appliesTo": ["out/GATE_P0_r3.md 的 :55/:168 与 :558", "一切并排展示摘要的报告行"],
+      "statement": "-32be85b2dab13e3e 与 cd417a4d254ec1c2 是同一个 64 位 FNV：0x10000000000000000 - 0xcd417a4d254ec1c2 = 0x32be85b2dab13e3e。差异来自 Dart 的 int 有符号，tools/gate/provenance.dart:385 的 h.toRadixString(16) 在高位置 1 时带出负号；Python 打无符号。",
+      "consequence": "判据本身走 blobHashes 逐条比对（正确，不受影响），但这两行**并排印在人读的报告里会被读成『代码变了』**。",
+      "followUp": "解冻后统一按无符号零填充打印。跨实现比任何摘要前，先核渲染口径（有符号/无符号、大小写、补零、字节序）。"
     }
   ]
 }
