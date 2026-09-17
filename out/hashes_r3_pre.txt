@@ -1,0 +1,25 @@
+# r3 前量具基线预检（gatekeeper）
+# 生成时间: 2026-09-17T08:24:55-10:00
+# 基线文件: out/REVIEW_r3_instrument_baseline.txt（主会话冻结，gatekeeper 无权写）
+# 基线 HEAD: bc558be4bceab691a29fa587122c9340c4b71da7
+# 用途: r3 判决前先算一次「基线 -> 当前」的差集，好在报告里逐条点名
+#
+# 结果: 基线条目 33 / 逐位相同 31 / 已变更 2 / 缺失 0
+#
+# 变更: tools/gate/p0_eyeline.py
+#   基线 9bf78e113a34a2c9e90197bc842f2fca1a8999ae3507176f95b1fa1306889be4
+#   当前 ecc8d4da98a29f4ba134228dcf66efe665ac149614f358167ed1d95948a02ec8
+# 变更: out/GATE_P0_selfchanges.txt
+#   基线 2f2b05bd5d030cc88c296fa6cbc321b0a0f38a289f89f2591b4d4d6dac752c40
+#   当前 a50dc7667725383f916340a165beffe83815270e5d2ff62fd6735c62b9a8219a
+#
+# 归属核验（每个变更条目都必须在自报清单里有对应声明，否则即命中防作弊条款 2）:
+#  · tools/gate/p0_eyeline.py —— 自报 out/GATE_P0_selfchanges.txt 第五批，
+#    该批声明的「改前 SHA256」= 9bf78e113a34a2c9e90197bc842f2fca1a8999ae3507176f95b1fa1306889be4，
+#    与基线记录的该文件哈希**逐位相同** -> 链条闭合，非篡改。
+#  · out/GATE_P0_selfchanges.txt —— 即自报清单本身。它被基线钉住，因此每次追加必然改变自身哈希。
+#    **这是设计使然，不构成篡改证据**；真正的篡改信号是「它的哈希变了，但清单里找不到对应那个量具的声明」。
+#
+# 尚未变更、必须保持不变的 31 条（节选校验：ACCEPTANCE / RUBRIC 是否被动过）:
+#  docs/ACCEPTANCE.md 88168ba872229f3af1ea3c93e3218f65a9387fb269ae46174f878b1ed98a8cf5
+#  docs/RUBRIC.md     5a894bf3ec6c312a964e1171419cc4db3d3f939f4500f4286bd50e5d83172e8a
