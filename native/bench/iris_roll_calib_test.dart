@@ -286,7 +286,11 @@ void main() {
       final double anchorTruth = (anc['trueRollDeg'] as num).toDouble();
       final List<double> deltas = <double>[0];
       final List<double> ests = <double>[];
-      final File base = File('out/P0_anchors/$id.png');
+      // 锚点基准行必须喂**原图**。`out/P0_anchors/<id>.png` 是 p0_measure.py
+      // 画的 overlay（贯穿画面的黄参考线与 4 条方法线），实测 c08.png 951KB
+      // vs 原图 158KB——拿它当输入，这一族的 slope/intercept 就掺进一个脏点。
+      // `_d±` 行走的是干净旋转件，故只有 deltas[0] 那一行受影响。
+      final File base = File(anc['path'] as String);
       if (!base.existsSync()) continue;
       final FaceInfo? bf = await engine.detectFace(base.readAsBytesSync());
       ests.add(bf?.rollSource == RollSource.pupil ? bf!.rollDeg : double.nan);
