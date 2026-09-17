@@ -90,8 +90,16 @@ class PhotoSpec {
 }
 
 /// 抠图结果。[rgba] 与 [alpha] 同分辨率，均为**引擎工作分辨率**：
-/// 原图（摆正后）等比降采样到引擎上限，原图本就不超过上限时两者相同
+/// 原图等比降采样到引擎上限，原图本就不超过上限时两者相同
 /// （G4.7 内存修复引入，ml-porting）。
+///
+/// ⚠️ 本文档出现的"摆正"一律指 **EXIF 正向烘焙**（`dart:ui` 解码时按
+/// orientation 做的 90° 转置，无损），**不是**面内摆正。
+/// **生产路径喂给抠图引擎的永远是未做面内旋转的原图**：`controller.loadImage`
+/// 把原始字节直接透传给 [IdPhotoEngine.removeBackground]，面内旋转只发生在
+/// `compose` 内、且作用在抠图**之后**（`compose_engine.dart` 的 `planRotation`）。
+/// 别据此认为"抠图看到的已经是摆正图"——这个误解会让"旋转输入上抠图崩坏"
+/// 这类**只在夹具里存在**的现象被误判成用户可见缺陷。
 class MattingResult {
   /// 原图 RGBA，长度恒为 `width * height * 4`。
   final Uint8List rgba;
@@ -103,7 +111,7 @@ class MattingResult {
   final int width;
   final int height;
 
-  /// 原图（摆正后）尺寸。null = 未降采样（与 [width]/[height] 相同）。
+  /// 原图（EXIF 正向烘焙后）尺寸。null = 未降采样（与 [width]/[height] 相同）。
   /// 与工作分辨率的比值是唯一的坐标换算系数，见 [srcWidth]/[srcHeight]。
   final int? sourceWidth;
   final int? sourceHeight;
@@ -117,10 +125,10 @@ class MattingResult {
     this.sourceHeight,
   });
 
-  /// 原图（摆正后）宽。恒 ≥ [width]。
+  /// 原图（EXIF 正向烘焙后）宽。恒 ≥ [width]。
   int get srcWidth => sourceWidth ?? width;
 
-  /// 原图（摆正后）高。恒 ≥ [height]。
+  /// 原图（EXIF 正向烘焙后）高。恒 ≥ [height]。
   int get srcHeight => sourceHeight ?? height;
 }
 
