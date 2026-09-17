@@ -16,6 +16,12 @@ out/tmp/
 out/shots/
 *.log
 
+# 大体积可再生产物（由 p0_rotate.py / p0_finalize_v1.py 等生成，不入库）
+# 注意：out/ 下的报告（GATE_*.md、REVIEW_*.md、*_report.md）仍应提交，故不整体忽略 out/
+out/P0_anchors/
+out/GATE_ort/
+out/P0_alpha_scan/
+
 # 大文件：模型权重按需决定是否提交
 # assets/models/*.onnx
 
