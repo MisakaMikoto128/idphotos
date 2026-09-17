@@ -179,6 +179,38 @@ Win32Window::MessageHandler(HWND hwnd,
                             WPARAM const wparam,
                             LPARAM const lparam) noexcept {
   switch (message) {
+    case WM_SIZING: {
+      // 品牌一致性（阶段 6）：窗口客户区锁定产品竖版比例 1080:2220，
+      // 拖拽缩放时由宽度推算高度，避免横向拉伸破坏三段式构图。
+      auto rect = reinterpret_cast<RECT*>(lparam);
+      const DWORD style = static_cast<DWORD>(GetWindowLongPtr(hwnd, GWL_STYLE));
+      RECT border{0, 0, 0, 0};
+      AdjustWindowRectExForDpi(&border, style, FALSE, WS_EX_LEFT,
+                               GetDpiForWindow(hwnd));
+      const LONG client_w = (rect->right - rect->left) -
+                            (border.right - border.left);
+      const LONG client_h = (rect->bottom - rect->top) -
+                            (border.bottom - border.top);
+      const double target = 1080.0 / 2220.0;
+      const LONG new_client_h =
+          static_cast<LONG>(client_w / target + 0.5);
+      const LONG dy = new_client_h - client_h;
+      const LONG edge = static_cast<LONG>(wparam);
+      if (edge == WMSZ_TOP || edge == WMSZ_TOPLEFT ||
+          edge == WMSZ_TOPRIGHT) {
+        rect->top -= dy;
+      } else {
+        rect->bottom += dy;
+      }
+      return TRUE;
+    }
+    case WM_GETMINMAXINFO: {
+      // 最小可用尺寸：规格抽屉与候选卡片的最小可辨识宽高。
+      auto mmi = reinterpret_cast<MINMAXINFO*>(lparam);
+      mmi->ptMinTrackSize.x = 380;
+      mmi->ptMinTrackSize.y = 810;
+      return 0;
+    }
     case WM_DESTROY:
       window_handle_ = nullptr;
       Destroy();
