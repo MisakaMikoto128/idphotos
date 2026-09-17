@@ -33,7 +33,7 @@
 
 ## 下载
 
-前往 [Releases](https://github.com/liuyuanlin/idphotos/releases) 下载最新 Android APK。
+前往 [Releases](https://github.com/MisakaMikoto128/idphotos/releases) 下载最新 Android APK。
 
 | 平台 | 状态 |
 |---|---|
