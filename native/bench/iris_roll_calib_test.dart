@@ -492,4 +492,157 @@ void main() {
     // ignore: avoid_print
     print('[F] stable=$stable/$total');
   });
+
+  // 三个对照臂共用一趟夹具扫描（91 张门禁夹具 + 33 张真实语料）：
+  //  · **先验 A/B**：同 revision、只切"组内挑代表"的规则（分数 vs 虹膜直径
+  //    先验），回答"先验到底赚还是亏"。拿两份不同 commit 的日志对照不算 A/B。
+  //  · **复现性**：同配置连跑两趟必须逐条相同。抓跨次状态泄漏（session 复用、
+  //    预热、并发路径竞态）。
+  //  · **次序不变性**：排序之后打乱候选表再跑，输出必须逐条相同。抓"选取路径
+  //    依赖遍历顺序"。**必须在排序之后打乱**——排序之前打乱没意义。
+  //    这条对照在引擎层面**检测力有限**（`debugGreedyGrouping` 那条已知依赖
+  //    次序的正向对照在这里也报 0）：引擎路径的候选太少、分组太稳定。
+  //    有检测力的对照在 `native/bench/iris_order_control_test.dart`：绕开
+  //    isolate 直接调生产函数，同一批样本上正向对照 6/113 变红、生产规则 0/113。
+  //    两者合起来才成立——开关确实跨到了 worker（已打印到达值确认），
+  //    而算法确实与次序无关（对照有检测力）。
+  //
+  // 这三条都靠 `iris_roll.dart` 里的全局开关切臂。**注意那些开关是 isolate 局部的**：
+  // 本测试跑的是真实引擎，瞳孔估计在 `Isolate.run` 里执行，宿主改变量对 worker
+  // 无效。早期版本没意识到这一点，三个臂跑的都是生产规则、全部报"零差异"，
+  // 于是"先验无效"这个结论是假的——它测的是"开关没接上"。现在开关经
+  // `setPupilProbe` 显式跨 isolate 传参。
+  test('G. 对照臂：先验 A/B / 复现性 / 次序不变性', () async {
+    final File truthFile = File('out/P0_truth.json');
+    if (!truthFile.existsSync()) {
+      // ignore: avoid_print
+      print('[G] out/P0_truth.json 不存在，跳过');
+      return;
+    }
+    final Map<String, dynamic> truth =
+        jsonDecode(truthFile.readAsStringSync()) as Map<String, dynamic>;
+    final List<dynamic> anchors =
+        (truth['anchors'] as List<dynamic>?) ?? <dynamic>[];
+    final List<dynamic> rotated =
+        (truth['rotated'] as List<dynamic>?) ?? <dynamic>[];
+
+    // 收集全部夹具路径（锚点 + 旋转件），一次收集多次复用。
+    final List<(String, String, double)> fx = <(String, String, double)>[];
+    for (final dynamic a in anchors) {
+      final Map<String, dynamic> anc = a as Map<String, dynamic>;
+      // 用 `path`（原图），**不是** `out/P0_anchors/<id>.png`——后者是报告用的
+      // evidence 缩略图（p1 的 evidence 是 888×1536，而门禁量的是原图）。
+      // 拿 evidence 当输入会把锚点全部量成另一个分辨率，覆盖率直接失真。
+      final File f = File(anc['path'] as String);
+      if (!f.existsSync()) continue;
+      fx.add((anc['id'] as String, f.path,
+          (anc['trueRollDeg'] as num).toDouble()));
+    }
+    for (final dynamic r in rotated) {
+      final Map<String, dynamic> rot = r as Map<String, dynamic>;
+      final File f = File(rot['path'] as String);
+      if (!f.existsSync()) continue;
+      fx.add(('${rot['src']}_d${rot['deltaDeg']}', f.path,
+          (rot['expectedTiltDeg'] as num).toDouble()));
+    }
+    // 真实语料也进 A/B：夹具是人工旋转件，只靠它判"先验有没有用"样本面太窄。
+    // 真值记为 NaN（语料无独立真值），只参与"两臂是否一致"的比较。
+    final Directory pics = Directory(r'C:\Users\liuyu\Pictures');
+    if (pics.existsSync()) {
+      final List<File> ps = pics
+          .listSync()
+          .whereType<File>()
+          .where((File f) {
+            final String p = f.path.toLowerCase();
+            return p.endsWith('.jpg') ||
+                p.endsWith('.jpeg') ||
+                p.endsWith('.png') ||
+                p.endsWith('.webp');
+          })
+          .toList()
+        ..sort((File a, File b) => a.path.compareTo(b.path));
+      for (final File f in ps) {
+        fx.add(('pics:${f.uri.pathSegments.last}', f.path, double.nan));
+      }
+    }
+
+    Future<Map<String, double?>> runAll() async {
+      final Map<String, double?> out = <String, double?>{};
+      for (final (String tag, String path, double _) in fx) {
+        final FaceInfo? fi = await engine.detectFace(File(path).readAsBytesSync());
+        out[tag] = (fi != null && fi.rollSource == RollSource.pupil)
+            ? fi.rollDeg
+            : null;
+      }
+      return out;
+    }
+
+    final Map<String, double?> a1 = await runAll();
+    debugUseIrisPrior = true;
+    final Map<String, double?> aP = await runAll();
+    debugUseIrisPrior = false;
+    debugShuffleCandidates = true;
+    final Map<String, double?> shuffled = await runAll();
+    final Map<String, double?> a2 = await runAll();
+
+    var nScore = 0, nPrior = 0, armDiff = 0;
+    for (final (String tag, String _, double _) in fx) {
+      if (a1[tag] != null) nScore++;
+      if (aP[tag] != null) nPrior++;
+      final double? x = a1[tag], y = aP[tag];
+      final bool same = (x == null && y == null) ||
+          (x != null && y != null && (x - y).abs() < 1e-9);
+      if (!same) {
+        armDiff++;
+        // ignore: avoid_print
+        print('[G] PRIOR-ARM-DIFF $tag 按分数=$x 按先验=$y');
+      }
+    }
+    // ignore: avoid_print
+    print('[G] 先验 A/B：覆盖 按分数 $nScore/${fx.length} → '
+        '按先验 $nPrior/${fx.length}；两臂逐条不同 $armDiff');
+
+    // 复现性：同配置连跑两趟必须逐条相同。次序不变性只是它的一个子集——
+    // 这一条还能抓到跨次的状态泄漏（ORT session 复用、预热、并发路径竞态）。
+    var repeat = 0, avail = 0, avail2 = 0;
+    for (final (String tag, String _, double _) in fx) {
+      final double? a = a1[tag], b = a2[tag];
+      if (a != null) avail++;
+      if (b != null) avail2++;
+      final bool same = (a == null && b == null) ||
+          (a != null && b != null && (a - b).abs() < 1e-9);
+      if (!same) {
+        repeat++;
+        // ignore: avoid_print
+        print('[G] REPEAT-DIFF $tag 第一趟=$a 第二趟=$b');
+      }
+    }
+    // ignore: avoid_print
+    print('[G] 复现性：覆盖 $avail/${fx.length} → $avail2/${fx.length}；'
+        '同配置连跑两趟逐条不同 $repeat ${repeat == 0 ? 'OK' : 'FAIL'}');
+
+    var shuffledDiff = 0;
+    final List<String> hardMissed = <String>[];
+    for (final (String tag, String _, double t) in fx) {
+      final double? a = a1[tag], b = shuffled[tag];
+      final bool same = (a == null && b == null) ||
+          (a != null && b != null && (a - b).abs() < 1e-9);
+      if (!same) {
+        shuffledDiff++;
+        // ignore: avoid_print
+        print('[G] SHUFFLE-DIFF $tag 正常=$a 打乱=$b');
+      }
+      // 顺带报"该摆正却没给估计"的夹具：判据 P0.1b / P0.3b 盯的就是这些。
+      if (a == null && !t.isNaN && t.abs() > 1.5) {
+        hardMissed.add('$tag(${t.toStringAsFixed(2)}°)');
+      }
+    }
+    // ignore: avoid_print
+    print('[G] 次序不变性：打乱候选后逐条不同 $shuffledDiff '
+        '${shuffledDiff == 0 ? 'OK' : 'FAIL'}');
+
+    // ignore: avoid_print
+    print('[G] |真值|>1.5° 却 unavailable ${hardMissed.length}：'
+        '${hardMissed.join(' ')}');
+  });
 }

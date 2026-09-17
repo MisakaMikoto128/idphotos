@@ -387,7 +387,10 @@ void ensureCoherentSubject(Uint8List alpha, {int size = kMattingInputSize}) {
 
 /// 完整人脸检测流程，同步执行。没检出返回 null（契约要求不抛异常）。
 FaceInfo? runFaceSync(Uint8List bytes, int sessionAddress,
-    {int? maxEdge, int? targetEdge}) {
+    {int? maxEdge, int? targetEdge, bool pupilShuffle = false,
+    bool pupilIrisPrior = false, bool pupilGreedy = false}) {
+  setPupilProbe(
+      shuffle: pupilShuffle, irisPrior: pupilIrisPrior, greedy: pupilGreedy);
   final image = decodeToRgb(bytes, maxEdge: maxEdge, targetEdge: targetEdge);
   return runFaceFromRgb(image, sessionAddress);
 }
@@ -418,8 +421,16 @@ FaceInfo? runFaceFromRgb(DecodedImage image, int sessionAddress,
 /// [gray] 是**工作分辨率**灰度平面（长度 `imgW*imgH`），用于瞳孔级眼线
 /// 估计（P0 修复）。传 null 则该次检测放弃摆正角（`rollSource =
 /// unavailable`），而不是退回 YuNet 眼睑连线。
+///
+/// [pupilShuffle] / [pupilIrisPrior] / [pupilGreedy] 是 `native/bench/` 的对照臂开关，
+/// **必须由宿主显式传进来**——本函数通常跑在 `Isolate.run` 里，worker 读不到
+/// 宿主改过的全局量（见 [setPupilProbe]）。生产调用一律用默认值 false。
 FaceInfo? faceFromYunetInput(LetterboxInput input, int sessionAddress, int imgW,
-    int imgH, {Uint8List? gray}) {
+    int imgH,
+    {Uint8List? gray, bool pupilShuffle = false, bool pupilIrisPrior = false,
+    bool pupilGreedy = false}) {
+  setPupilProbe(
+      shuffle: pupilShuffle, irisPrior: pupilIrisPrior, greedy: pupilGreedy);
   final outputs = runFloatInput(
     sessionAddress,
     input.data,

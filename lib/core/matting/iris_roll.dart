@@ -185,14 +185,6 @@ const double kPupilRivalScoreRatio = 0.5;
 /// 几何门，只是不再让一个明显不是虹膜的东西行使否决权。
 const double kPupilRivalSeedSlackInEyeDist = 0.15;
 
-/// 虹膜直径的生物常数先验（直径 / 双眼距）。
-///
-/// 人眼虹膜横径约 11–12mm，成人瞳距约 60–65mm，比值 ≈0.19，且**与个体、
-/// 性别、年龄近似无关**——这是验光/生物识别里可以直接用的硬常数。
-/// 本文件只在**同一个 dedup 组内**用它挑代表（见 [_findPupil] 的 reps），
-/// 不用它做全局重排，避免惩罚真实的大虹膜（实测真图合法上限 0.284×眼距）。
-const double kPupilIrisDiameterPrior = 0.19;
-
 /// 瞳孔眼线与 YuNet 眼点的连线角之差的上限（度），超过即判误检。
 ///
 /// **这不是回退**——YuNet 的值只用来否决，永远不出现在输出里。YuNet 眼点
@@ -207,6 +199,74 @@ const int kPupilMaxWindowEdge = 288;
 /// 二维欧氏距离。`dart:math` 没有 `hypot`，且这里的两点尺度同量级，
 /// 直接开方不会溢出。
 double _hypot(double dx, double dy) => math.sqrt(dx * dx + dy * dy);
+
+/// 候选的**全序**：分数降序，同分再按 x / y / 直径，保证任意两个候选可比出
+/// 确定的先后。下游的分组、挑代表、争鸣都建立在这个全序上，因此整个选取
+/// 过程与候选的**枚举顺序**无关（枚举顺序取决于半径档 × 分位数档的循环嵌套，
+/// 是最容易被上游重构改掉的东西）。
+int _blobOrder(_Blob a, _Blob b) {
+  final int s = b.score.compareTo(a.score);
+  if (s != 0) return s;
+  final int x = a.x.compareTo(b.x);
+  if (x != 0) return x;
+  final int y = a.y.compareTo(b.y);
+  if (y != 0) return y;
+  return a.diameter.compareTo(b.diameter);
+}
+
+
+/// 虹膜直径的生物常数先验（直径 / 双眼距）：人眼虹膜横径约 11–12mm、成人瞳距
+/// 约 60–65mm，比值 ≈0.19，与个体/性别/年龄近似无关。
+///
+/// **当前只被 [debugUseIrisPrior] 那条 A/B 臂使用**，不在生产路径上。
+const double kPupilIrisDiameterPrior = 0.19;
+
+/// 同一个 dedup 组内挑代表。
+///
+/// 默认按 [_blobOrder]（分数优先）。[debugUseIrisPrior] 打开时改按"直径最接近
+/// 生物常数 0.19×眼距"挑——**只给 `native/bench/` 的同 revision A/B 用**，
+/// 回答"这个先验到底赚不赚"。生产路径恒走分数规则。
+bool _betterRep(_Blob c, _Blob cur, double ed) {
+  if (!debugUseIrisPrior) return _blobOrder(c, cur) < 0;
+  final double prior = kPupilIrisDiameterPrior * ed;
+  return (math.log(c.diameter / prior)).abs() <
+      (math.log(cur.diameter / prior)).abs();
+}
+
+// ---------------------------------------------------------------------------
+// 仅供 dev 探针的负向对照开关
+// ---------------------------------------------------------------------------
+
+/// 只给 `native/bench/` 的负向对照用：置 true 后把候选表打乱再挑代表。
+///
+/// 选取逻辑**必须**与次序无关，所以打开它不应改变任何输出。若某天它改变了
+/// 输出，说明又有人在选取路径里引入了依赖遍历顺序的逻辑。
+/// 生产路径恒为 false（只多一次 bool 判断）。
+bool debugShuffleCandidates = false;
+
+/// 同 revision A/B 的另一个臂：置 true 后组内改按虹膜直径先验挑代表。
+bool debugUseIrisPrior = false;
+
+/// **正向对照**：置 true 后恢复改造前的贪心分组（"扫到谁就把谁当锚点、
+/// 更优就换锚点"）。
+///
+/// 留着它是为了证明 [debugShuffleCandidates] 那条负向对照**有能力变红**——
+/// 一个从来没红过的对照和一条没接线的对照，报出来是同一个"0 差异"。
+/// 打开这个再打乱候选，就应当出现分歧；不出现说明打乱根本没生效。
+bool debugGreedyGrouping = false;
+
+/// **跨 isolate 传参入口。**
+///
+/// `Isolate.run` 不继承全局量（见 `ort_runtime.dart` 头注）——宿主改了上面几个
+/// 变量，worker 里读到的仍是各自的默认值 `false`。**不显式传参的话，对照臂
+/// 跑的都是生产规则，A/B 会报"零差异"、打乱对照会报"零差异"，看起来全绿，
+/// 实际什么都没测。**worker 入口用这个函数把宿主的选择搬进本 isolate。
+void setPupilProbe(
+    {bool shuffle = false, bool irisPrior = false, bool greedy = false}) {
+  debugShuffleCandidates = shuffle;
+  debugUseIrisPrior = irisPrior;
+  debugGreedyGrouping = greedy;
+}
 
 // ---------------------------------------------------------------------------
 // 结果
@@ -553,34 +613,78 @@ PupilPoint? _findPupil(Uint8List gray, int width, int height, double sx,
     return null;
   }
 
-  cands.sort((a, b) => b.score.compareTo(a.score));
+  // 候选先按**全序**排一次（分数降序，再按 x/y/直径），使下游任何依赖次序的
+  // 步骤都与候选的**产生**顺序无关。理由见下面的并查集分组。
+  cands.sort(_blobOrder);
+  // 负向对照：**在排序之后**打乱（排序之前打乱是没意义的——全序会把结果
+  // 复原）。分组用传递闭包、挑代表用显式全序 tie-break，因此打乱不应改变输出。
+  if (debugShuffleCandidates) cands.shuffle(math.Random(20260917));
   final double dedup = kPupilDedupInEyeDist * ed;
-  final double prior = kPupilIrisDiameterPrior * ed;
 
   // 同一颗虹膜在不同半径档下会被量成**一组嵌套的域**：窗口开大就把上睑阴影
   // 连进来，测得偏大。它们在 dedup 距离内，属于同一个物体，不该按"谁面积大
   // 谁赢"挑——那会系统性偏向"虹膜+眼睑阴影"的合并域（实测 c08_d−3 左眼：
   // r=30 给 d=31、r=37 给 d=39，后者面积大所以赢，于是双眼直径比
   // 39/22=1.77 撞上 1.6 的门，把一只本来找对的眼睛判失败）。
-  // 组内改挑**直径最接近生物常数 0.19×眼距**的那个；跨组仍按分数排，
-  // 所以不同物体之间的竞争规则没变。
-  final List<_Blob> reps = <_Blob>[];
-  for (final _Blob c in cands) {
-    var host = -1;
-    for (var i = 0; i < reps.length; i++) {
-      if (_hypot(c.x - reps[i].x, c.y - reps[i].y) <= dedup) {
-        host = i;
-        break;
+  // 组内按分数挑一个代表；跨组也按分数排。
+  //
+  // 分组用**并查集做传递闭包**，不用贪心：早先那版是"扫到谁就把谁当锚点、
+  // 更优就换掉锚点"，于是"谁和谁同组"取决于**遍历到它们时的当前锚点**，
+  // 换一个候选枚举次序结果就变。那和本次 P0 是同一种病——结论依赖一个
+  // 不属于模型的细节（排序/并行化/枚举顺序）。传递闭包只由两点间距离决定，
+  // 与次序无关；再叠加候选的全序，选取过程整体次序无关。
+  final parent = List<int>.generate(cands.length, (i) => i);
+  int find(int i) {
+    while (parent[i] != i) {
+      parent[i] = parent[parent[i]];
+      i = parent[i];
+    }
+    return i;
+  }
+
+  for (var i = 0; i < cands.length; i++) {
+    for (var j = i + 1; j < cands.length; j++) {
+      if (_hypot(cands[i].x - cands[j].x, cands[i].y - cands[j].y) <= dedup) {
+        final int a = find(i), b = find(j);
+        if (a != b) parent[a] = b;
       }
     }
-    if (host < 0) {
-      reps.add(c);
-    } else if ((math.log(c.diameter / prior)).abs() <
-        (math.log(reps[host].diameter / prior)).abs()) {
-      reps[host] = c;
-    }
   }
-  reps.sort((a, b) => b.score.compareTo(a.score));
+  final List<_Blob> reps;
+  if (debugGreedyGrouping) {
+    // 改造前的贪心分组，只在正向对照里复活。分组锚点会随扫描推进而搬家，
+    // 于是"谁和谁同组"取决于遍历顺序。
+    //
+    // 并且**故意不排序**：正向对照要的就是一个"结果确实依赖遍历顺序"的实现。
+    // 只还原贪心分组是不够的——`reps` 排完序之后，全局最高分的那个候选
+    // 无论怎么分组都会浮到 `reps.first`，打乱候选照样得到同一个 `kind`，
+    // 对照于是静默失灵。留着不排序，打乱才必然改变输出。
+    final List<_Blob> g = <_Blob>[];
+    for (final _Blob c in cands) {
+      var host = -1;
+      for (var i = 0; i < g.length; i++) {
+        if (_hypot(c.x - g[i].x, c.y - g[i].y) <= dedup) {
+          host = i;
+          break;
+        }
+      }
+      if (host < 0) {
+        g.add(c);
+      } else if (_betterRep(c, g[host], ed)) {
+        g[host] = c;
+      }
+    }
+    reps = g;
+  } else {
+    final Map<int, _Blob> repOf = <int, _Blob>{};
+    for (var i = 0; i < cands.length; i++) {
+      final _Blob c = cands[i];
+      final int r = find(i);
+      final _Blob? cur = repOf[r];
+      if (cur == null || _betterRep(c, cur, ed)) repOf[r] = c;
+    }
+    reps = repOf.values.toList()..sort(_blobOrder);
+  }
 
   final _Blob kind = reps.first;
   final double rivalFloor = kind.score * kPupilRivalScoreRatio;
