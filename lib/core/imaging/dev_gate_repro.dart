@@ -14,8 +14,10 @@
 /// 的画布构造与 `tools/gate/compose_check_utils.dart` 的测量口径（只读不改
 /// 那两个文件），使我的数字与门禁的数字可比。
 ///
-/// 覆盖面比门禁更宽：溢色跑纯绿 / 纯品红 / 纯红 / 纯蓝四种极端底色，
-/// 摆正跑 ±10° / ±6° 四个角度。
+/// 覆盖面比门禁更宽：溢色跑纯绿 / 纯品红 / 纯红 / 纯蓝四种极端底色。
+/// **摆正夹具与门禁同值（±15°），两处必须同步改** —— 一旦漂开，本文件就不再是
+/// 门禁同款，而它下面没有判据，漂了不会报错。本文件是**复现工具，不是门禁项**：
+/// 它只打印，不加阈值断言；但夹具的前置条件会断言，保证"漂了会响"。
 library;
 
 import 'dart:math' as math;
@@ -29,6 +31,7 @@ import 'package:image/image.dart' as img;
 
 import '../api.dart';
 import 'compose_only_engine.dart';
+import 'crop_geometry.dart';
 import 'jpeg_dpi.dart';
 
 // ---------------------------------------------------------------------------
@@ -346,8 +349,19 @@ void main() {
     }
   }, timeout: const Timeout(Duration(minutes: 5)));
 
-  test('门禁同款：2B.8 摆正（±10° / ±6°）', () async {
-    for (final double roll in <double>[10.0, -10.0, 6.0, -6.0]) {
+  test('门禁同款：2B.8 摆正（±15°）', () async {
+    // 夹具角与 `integration_test/compose_eval_test.dart:270` 的 `[15.0, -15.0]`
+    // **必须同步**。2026-09-17 前这里写的是 ±10°/±6°，四个全落进 10° 摆正死区
+    // ⇒ 量的是恒等变换，而测试名仍在说"门禁同款"：**名字声称的口径比它实际钉住的
+    // 范围宽**，且下面没有 expect，所以它不失败，只安静地打印一组看着正常的残差。
+    //
+    // 摆正死区见 kRollDeadZoneDeg；夹具角必须落在死区**外**，否则本项量的不是摆正。
+    // 下面这条是**前置断言，不是判据** —— 它不判残差好不好，只让"夹具漂了"错得响。
+    for (final double roll in <double>[15.0, -15.0]) {
+      expect(roll.abs() > kRollDeadZoneDeg, isTrue,
+          reason: '夹具角 $roll 必须落在死区外（kRollDeadZoneDeg='
+              '$kRollDeadZoneDeg），否则本项退化成量恒等变换，'
+              '而本文件没有判据会为此报警');
       final GateSynthetic syn = buildGateSynthetic(rollDeg: roll);
       final Candidate c = await engine.compose(
         matting: syn.matting,

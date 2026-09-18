@@ -552,10 +552,16 @@ void main() {
     expect(total, 0);
   }, timeout: long);
 
-  test('2B.8 摆正（±10° 输入的残差角）', () async {
+  test('2B.8 摆正（死区外输入的残差角）', () async {
     final StringBuffer log = StringBuffer();
     double worst = 0;
-    for (final double roll in <double>[-10.0, -6.0, 6.0, 10.0]) {
+    // 夹具角必须落在死区**外**：本项量的是"给了角就转对"，钉在死区内等于
+    // 量一个恒等变换。下面的断言把"落在死区外"本身也钉住，免得产品常量一改
+    // 夹具就静默失效（2026-09-17 前这里写死 ±10°，与死区门槛恰好重合）。
+    for (final double roll in <double>[-20.0, -15.0, 15.0, 20.0]) {
+      expect(roll.abs() > kRollDeadZoneDeg, isTrue,
+          reason: '夹具角 $roll 必须落在死区外（kRollDeadZoneDeg='
+              '$kRollDeadZoneDeg），否则本项退化成量恒等变换');
       final _Synth s = _makeSynthetic(
         width: 1000,
         height: 1400,
@@ -578,8 +584,9 @@ void main() {
       log.writeln('  输入 roll=${roll.toStringAsFixed(1)}° → '
           '成片残差 ${residual.toStringAsFixed(3)}°');
     }
-    // 死区验证：小于 ±1° 不应触发旋转（P0 修复后死区从 3° 收窄到 1°），
-    // 1–3° 的真实倾斜现在必须摆正（dev_roll_probe 实验结论）。
+    // 死区验证：|roll| ≤ kRollDeadZoneDeg 一律不旋转。
+    // 这里曾写死"死区从 3° 收窄到 1°、1–3° 必须摆正"，那是一条随产品常量
+    // 过期的主张 —— 死区现在由 kRollDeadZoneDeg 给出，注释不再复述它的值。
     final _Synth small = _makeSynthetic(
       width: 1000,
       height: 1400,
@@ -597,6 +604,41 @@ void main() {
         face: small.face);
     final bool straightened = engine.lastDiagnostics!.straightened;
     log.writeln('  输入 roll=0.8°（死区内）→ 是否旋转=$straightened');
+
+    // 反向断言：死区内的倾斜必须被**原样保留**，成片残余 ≈ 输入角。
+    // 只断言"没转"不够 —— 不转却把构图裁歪、或残余在别处被抵掉，都能过得去；
+    // 这里直接量成片像素。夹具角由 kRollDeadZoneDeg 推出而不是写死，
+    // 且断言它确实落在死区内，常量一改即报错而不是静默失效。
+    final double insideRoll = kRollDeadZoneDeg * 0.6;
+    expect(insideRoll.abs() <= kRollDeadZoneDeg, isTrue,
+        reason: '反向用例的夹具角 $insideRoll 必须落在死区内'
+            '（kRollDeadZoneDeg=$kRollDeadZoneDeg）');
+    for (final double roll in <double>[-insideRoll, insideRoll]) {
+      final _Synth s = _makeSynthetic(
+        width: 1000,
+        height: 1400,
+        headCx: 500,
+        headTopY: 320,
+        chinY: 700,
+        headWidth: 320,
+        rollDeg: roll,
+        withEyeMarkers: true,
+      );
+      final Candidate c = await engine.compose(
+          matting: s.matting, spec: specCn2inch, style: kBgWhite, face: s.face);
+      final ComposeDiagnostics diag = engine.lastDiagnostics!;
+      final double? kept = _eyeLineAngleDeg(_decodeJpeg(c.jpegBytes));
+      expect(kept, isNotNull, reason: 'roll=$roll 时找不到两个标记点');
+      expect(diag.straightened, isFalse,
+          reason: 'roll=$roll 落在死区内，不该被摆正');
+      expect((kept! - roll).abs() <= 1.5, isTrue,
+          reason: 'roll=$roll 死区内应原样保留倾角，实测残余 '
+              '${kept.toStringAsFixed(3)}°');
+      log.writeln('  输入 roll=${roll.toStringAsFixed(1)}°（死区内）→ '
+          '是否旋转=${diag.straightened} '
+          '成片残余 ${kept.toStringAsFixed(3)}°（应 ≈ 输入角）');
+    }
+
     // ignore: avoid_print
     print('[2B.8]\n$log  最差残差=${worst.toStringAsFixed(3)}° (阈值 1.5°)');
     expect(worst <= 1.5, isTrue);
@@ -615,8 +657,9 @@ void main() {
     // 测法不复算裁剪公式，而是量成片像素：合成人像的头部在「设计空间」里
     // 恒为 380×320，摆正后旋转空间里的头高应恢复成 380，于是成片头高恒为
     // 380 × 413/644 = 243.7px。任何对用户框的缩放都会等比例改变这个数字。
-    // 死区内（|roll| ≤ 1°）不摆正，头是斜的，肤色区的轴对齐高度理应是
-    // 380·cosθ + 320·sinθ —— 那是倾斜本身，不是缩放，按实际角度算进理想值。
+    // 死区内（|roll| ≤ kRollDeadZoneDeg）不摆正，头是斜的，肤色区的轴对齐高度
+    // 理应是 380·cosθ + 320·sinθ —— 那是倾斜本身，不是缩放，按实际角度算进
+    // 理想值。这里不复述死区的具体度数，它由常量给出。
     const double cropW = 460.0; // 460:644 = 295:413，正好是 cn_1inch 比例
     const double cropH = 644.0;
     const double headDesignH = 380.0; // chinY(700) − headTopY(320)
@@ -690,13 +733,18 @@ void main() {
     final StringBuffer log = StringBuffer();
     int worstBlack = 0;
     double maxOob = 0.0;
-    // 用户把框拖到四个角 / 完全拖出图外，同时人脸带 10° 侧倾
+    // 用户把框拖到四个角 / 完全拖出图外，同时人脸带超出死区的侧倾
     final List<List<double>> centers = <List<double>>[
       <double>[40, 40], <double>[960, 40],
       <double>[40, 1360], <double>[960, 1360],
       <double>[500, -800],
     ];
-    for (final double roll in <double>[10.0, -10.0]) {
+    // 夹具角必须落在死区外，否则"反旋转路径"根本没被走到（2026-09-17 前这里
+    // 是 ±10°，与死区门槛重合，`plan.enabled` 断言按新定义即错）。
+    for (final double roll in <double>[15.0, -15.0]) {
+      expect(roll.abs() > kRollDeadZoneDeg, isTrue,
+          reason: '夹具角 $roll 必须落在死区外（kRollDeadZoneDeg='
+              '$kRollDeadZoneDeg），否则本项走的是恒等路径');
       final _Synth s = _makeSynthetic(
         width: 1000, height: 1400, headCx: 500, headTopY: 320,
         chinY: 700, headWidth: 320, rollDeg: roll,
