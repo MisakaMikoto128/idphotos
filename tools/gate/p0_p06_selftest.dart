@@ -39,6 +39,11 @@
 /// 结果就是门禁**永远 exit 1**，而报告读起来完全正常。用例 11 要求它有一个真能绿的
 /// 证据状态，用例 13 要求"没重跑"老老实实记 MANUAL 而**不是**当作通过。
 ///
+/// 用例 14–18 钉的是 `freshlyWritten`：`upstreamReran` 原先是
+/// `File(...).existsSync()`，而**重跑超时时旧文件照样在盘上** ⇒ 被读成"本轮实测" ⇒
+/// P0.5c 拿旧对新比 ⇒ 报"无退化"。**门禁跑满 100 分钟，然后给一个假的清白**，
+/// 且报告读起来完全正常。用例 15 就是这个洞本身。
+///
 /// `cov` 存在的理由：P0.1b 的锚点栏在本语料上**结构性为空**。若把它一律记 MANUAL，
 /// 而 `_finish` 的 `allPass = every(pass==true)` 又把 MANUAL 当不通过，整轮就**永远
 /// 不能 PASS** —— 那是把"已记录的覆盖收缩"读成"实现方永远不达标"。
@@ -51,6 +56,7 @@ library;
 import 'dart:io';
 
 import 'gate_P0.dart';
+import 'gate_common.dart' show RunResult;
 
 /// 构造一条成片台记录。只写判据真正读的字段，其余留默认。
 Map<String, dynamic> row({
@@ -403,8 +409,47 @@ void main(List<String> args) {
     stdout.writeln('');
   }
 
+  // ---- 用例 14-17：`freshlyWritten` 的四种结局 ----
+  //
+  // 这一组钉的是 team-lead 2026-09-17 在开跑前拦下的洞：`upstreamReran` 原先是
+  // `File('out/gate_G2B.json').existsSync()` —— 重跑**崩掉或超时**时，那两份旧文件
+  // 照样在盘上 ⇒ `upstreamReran = true` ⇒ P0.5c 拿**旧对新**比，`regressed` 必为空
+  // ⇒ 报"无退化"。**门禁跑完 100 分钟，然后给一个假的清白。**
+  {
+    stdout.writeln('[14-17] freshlyWritten：判"跑没跑成"，不判"过没过"');
+    final Directory dir = Directory.systemTemp.createTempSync('p0_fresh_test_');
+    final String okPath = '${dir.path}/gate_G2B.json';
+    final String missingPath = '${dir.path}/nope.json';
+    File(okPath).writeAsStringSync('{}');
+
+    final DateTime startedBefore = DateTime.now().subtract(const Duration(seconds: 5));
+    final DateTime startedAfter = DateTime.now().add(const Duration(seconds: 5));
+    RunResult run({required bool timedOut, bool ok = true}) =>
+        RunResult(ok: ok, exitCode: 0, stdout: '', stderr: '', timedOut: timedOut);
+
+    check('14 本次开跑之后写的、未超时 ⇒ true',
+        freshlyWritten(okPath, startedBefore, run(timedOut: false)) == true,
+        '本轮实测被误判为"没跑"');
+    check('15 **超时 + 盘上留着旧文件 ⇒ false**（被修的洞本尊）',
+        freshlyWritten(okPath, startedBefore, run(timedOut: true)) == false,
+        '超时被当成本轮实测 —— 正是拿旧对新、报出假清白的那条路');
+    check('16 文件早于开跑时刻（未超时）⇒ false',
+        freshlyWritten(okPath, startedAfter, run(timedOut: false)) == false,
+        '旧产物被当成本轮实测');
+    check('17 文件不存在 ⇒ false',
+        freshlyWritten(missingPath, startedBefore, run(timedOut: false)) == false,
+        '缺产物被当成本轮实测');
+    check('18 进程没起来（ok=false）⇒ false',
+        freshlyWritten(okPath, startedBefore, run(timedOut: false, ok: false)) == false,
+        '起不来的进程被当成本轮实测');
+    try {
+      dir.deleteSync(recursive: true);
+    } catch (_) {}
+    stdout.writeln('');
+  }
+
   stdout.writeln(failures == 0
-      ? 'P0 自检：全部通过（13 组用例）'
+      ? 'P0 自检：全部通过（18 组用例）'
       : 'P0 自检：$failures 项失败');
   exit(failures == 0 ? 0 : 1);
 }

@@ -443,28 +443,43 @@ Future<void> main(List<String> args) async {
   // 重跑放在 `!reuse` 里：`--reuse` 是干跑，不该顺带跑掉一次设备会话。
   // 缺文件**不塞进 `blockers`** —— 那会把 instrumentsOk 拉成 false，连带作废
   // P0.1a 等与本项无关的条目；P0.5c 自己如实记 MANUAL 即可。
+  // `out/gate_G2B.json` / `out/gate_G4.json` 是**盘上归档**，也是"重跑前通过集"的
+  // 唯一记录。重跑**必须写到别处**，否则比的是"重跑结果 vs 重跑结果"，`regressed`
+  // 恒为空 —— 又一处"拿旧的对新的"。
+  const String kG2bArchive = 'out/gate_G2B.json';
+  const String kG4Archive = 'out/gate_G4.json';
+  final String upstreamDir = '${Directory.systemTemp.path}/muzhao_p0_upstream';
+  final String g2bRunPath = '$upstreamDir/gate_G2B.json';
+  final String g4RunPath = '$upstreamDir/gate_G4.json';
+
   final List<String> prevPassingGates = <String>[
-    ...passingGateIds(_readJson('out/gate_G2B.json')),
-    ...passingGateIds(_readJson('out/gate_G4.json')),
+    ...passingGateIds(_readJson(kG2bArchive)),
+    ...passingGateIds(_readJson(kG4Archive)),
   ];
   bool upstreamReran = false;
   if (!reuse) {
+    Directory(upstreamDir).createSync(recursive: true);
+    stdout.writeln('上游重跑产物写到 $upstreamDir（不覆盖 out/ 归档）');
+    final DateTime g2bStart = DateTime.now();
     final RunResult g2bRun = await runProcess(
       'dart',
-      <String>['run', 'tools/gate/gate_G2B.dart'],
+      <String>['run', 'tools/gate/gate_G2B.dart', '--out', g2bRunPath],
       timeout: const Duration(minutes: 40),
     );
     stdout.writeln(
         '--- 上游 G2B 重跑退出码 ${g2bRun.exitCode} ---\n${g2bRun.tail(maxChars: 800)}');
+    final DateTime g4Start = DateTime.now();
     final RunResult g4Run = await runProcess(
       'dart',
-      <String>['run', 'tools/gate/gate_G4.dart'],
+      <String>['run', 'tools/gate/gate_G4.dart', '--out', g4RunPath],
       timeout: const Duration(minutes: 60),
     );
     stdout.writeln(
         '--- 上游 G4 重跑退出码 ${g4Run.exitCode} ---\n${g4Run.tail(maxChars: 800)}');
-    upstreamReran = File('out/gate_G2B.json').existsSync() &&
-        File('out/gate_G4.json').existsSync();
+    upstreamReran = freshlyWritten(g2bRunPath, g2bStart, g2bRun) &&
+        freshlyWritten(g4RunPath, g4Start, g4Run);
+    stdout.writeln('upstreamReran=$upstreamReran'
+        '（G2B timedOut=${g2bRun.timedOut} / G4 timedOut=${g4Run.timedOut}）');
   }
 
   final RunResult selfcheck = await runProcess(
@@ -486,10 +501,11 @@ Future<void> main(List<String> args) async {
       'timedOut': selfcheck.timedOut,
       'tail': selfcheck.tail(maxChars: 2500),
     },
-    'gateG2B': _readJson('out/gate_G2B.json'),
-    'gateG4': _readJson('out/gate_G4.json'),
-    // 上面两份是**重跑之后**读的（本轮实测）；下面两份记的是重跑**之前**的
-    // "原本通过集"，P0.5c 拿它当不退化比较的基线。
+    'gateG2B': _readJson(g2bRunPath),
+    'gateG4': _readJson(g4RunPath),
+    // 上面两份是**本轮重跑**写出的（在 upstreamDir，不在 out/）；下面两份记的是
+    // 重跑**之前**从盘上归档抓的"原本通过集"，P0.5c 拿它当不退化比较的基线。
+    // 两边的路径**不同**是刻意的：同路径会让"重跑"覆盖掉比较基线。
     'upstreamReran': upstreamReran,
     'prevPassingGates': prevPassingGates,
     'composeSummary': _readJson(kComposeSummaryPath),
@@ -735,6 +751,25 @@ List<String> passingGateIds(Map<String, dynamic>? gate) {
     if (m['pass'] == true) out.add('${gate['gate']}/${m['id']}');
   }
   return out;
+}
+
+/// 本轮重跑的产物**新不新** —— 判的是"跑没跑成"，不是"过没过"。
+///
+/// **不能用 `exitCode == 0`**：上游 gate 因**真实退化**而 FAIL 时退出码非 0，
+/// 而那个非 0 恰恰是 P0.5c 最该看见的证据；拿它当"没跑成"会把退化洗成 MANUAL，
+/// 方向正好反了。所以这里只问两件事：
+///   1. 进程有没有超时（超时 = 这一轮的上游会话不可信）；
+///   2. 产物文件是不是**本次开跑之后**写的（文件先于开跑就已存在 ⇒ 读的是旧结果）。
+/// 两条都过才算"本轮实测"，`upstreamReran` 才为真。
+///
+/// 公开而非私有：`p0_p06_selftest.dart` 要能拿构造输入把它的四种结局各跑一遍。
+/// **一条从未在任何输入上跑过的守卫，它的绿色与"根本没跑"长得一模一样。**
+bool freshlyWritten(String path, DateTime startedAt, RunResult r) {
+  if (r.timedOut) return false;
+  if (!r.ok) return false;
+  final File f = File(path);
+  if (!f.existsSync()) return false;
+  return f.lastModifiedSync().isAfter(startedAt);
 }
 
 List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
