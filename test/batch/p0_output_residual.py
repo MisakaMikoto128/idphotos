@@ -48,6 +48,15 @@ RESIDUAL_TOL_DEG = 1.5
 # 所以给它单独一个名字 —— 只用于产出名字里带 `v1_retired` 的沿革字段，
 # **不得**被任何 v2 判据引用。两个 1.5 混用时读起来毫无异常。
 V1_RETIRED_DIVIDER_DEG = 1.5
+# 两个"可靠性分类器"阈值。**都不是分档界**（v2 分档界是 `DEAD_ZONE_DEG` 与
+# `RESIDUAL_TOL_DEG`），但改了后果不同，所以分开命名、不许合成一个"容差"：
+#   * `TRUTH_CONSISTENCY_TOL_DEG` → `reliability_mismatch`，该状态**退出 `scored`**，
+#     门禁侧同步排除它（`gate_P0.dart:621`/`:3089`/`:3371`/`:3948`）⇒ **改它 = 换分母**。
+#   * `METHOD_SPREAD_TOL_DEG` → `low_confidence`，该状态**仍在 `scored` 内**
+#     （见下方 `scored =`，`:442` 的 byCorpus 同）⇒ 改它**只换标签，不换分母**。
+# 两个值**只许改名、不许改值**；改值一律按判据变更处理（作废当轮、重跑），不算清理。
+TRUTH_CONSISTENCY_TOL_DEG = 2.0
+METHOD_SPREAD_TOL_DEG = 1.5
 
 
 def _compose_provenance():
@@ -325,12 +334,12 @@ def main():
         if "primary_tilt_deg" not in rec:
             rec["end_to_end_status"] = "unmeasured"
         elif rec.get("truthConsistencyDeg") is not None \
-                and abs(rec["truthConsistencyDeg"]) > 2.0:
+                and abs(rec["truthConsistencyDeg"]) > TRUTH_CONSISTENCY_TOL_DEG:
             rec["end_to_end_status"] = "reliability_mismatch"
             rec["end_to_end_note"] = (
                 "成片瞳孔测量隐含的输入倾角与独立真值差 "
                 f"{rec['truthConsistencyDeg']}°，测量落到异物上，本项残余不可信")
-        elif rec["methodSpreadDeg"] is not None and rec["methodSpreadDeg"] > 1.5:
+        elif rec["methodSpreadDeg"] is not None and rec["methodSpreadDeg"] > METHOD_SPREAD_TOL_DEG:
             rec["end_to_end_status"] = "low_confidence"
         else:
             rec["end_to_end_status"] = "ok"
