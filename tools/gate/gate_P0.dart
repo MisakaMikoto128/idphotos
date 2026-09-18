@@ -232,6 +232,17 @@ const double kDeadZoneDeg = 10.0;
 /// 都真实发生过）。**拿真值去罚它就是拿噪声记账**，故只报数、不判 FAIL。
 const double kDeadZoneBandDeg = 1.0;
 
+/// 失败项的**归属**（主会话 2026-09-17 裁定，源自 r3 补记 6）：
+/// **死区与裁剪回退是 `lib/core/imaging/` 的代码**，故 `out/BLOCKED_*` 与修复预算
+/// 的记账**不许一律记在 ml-porting 头上**，要按失败项的**根因所在文件**逐项点名。
+///
+/// 这两个串是**待定的双向归属** —— 判据本身判不出根因在哪一侧，所以两边都写出来。
+/// 报告末尾按 `owner` 汇总；主会话按根因定最终归属。
+const String kOwnerEstimate =
+    'ml-porting（摆正估计器）／若根因在死区判据或裁剪回退，改记 imaging';
+const String kOwnerImaging =
+    'imaging（死区判据与 planRotation 在 lib/core/imaging/）／若根因是自报角本身，改记 ml-porting';
+
 /// 该样本的真值是否落在**死区边界带** `kDeadZoneDeg ± kDeadZoneBandDeg` 内。
 ///
 /// 带内的样本"该不该转"由一个 0.4° 量级的估计误差决定（语料实测 −0.091°…+0.477°，
@@ -733,7 +744,7 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       ),
       'pass': pass,
       'manual': !instrumentsOk || distinct == null,
-      'owner': instrumentsOk ? 'ml-porting' : 'gatekeeper（量具未通过自检，不计实现方责任）',
+      'owner': instrumentsOk ? kOwnerEstimate : 'gatekeeper（量具未通过自检，不计实现方责任）',
     });
   }
 
@@ -776,7 +787,7 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       'manual': !instrumentsOk || judged.isEmpty,
       'owner': judged.isEmpty
           ? 'gatekeeper（本语料无死区外锚点，本项对锚点栏没有读数）'
-          : 'ml-porting',
+          : kOwnerEstimate,
     });
   }
 
@@ -826,7 +837,7 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       ),
       'pass': pass,
       'manual': !instrumentsOk || upright.length < kUprightSyntheticMin,
-      'owner': 'ml-porting',
+      'owner': kOwnerImaging,
     });
   }
 
@@ -927,7 +938,7 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       ),
       'pass': pass,
       'manual': !instrumentsOk || fit.isEmpty,
-      'owner': 'ml-porting',
+      'owner': kOwnerEstimate,
     });
   }
 
@@ -970,7 +981,7 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       ),
       'pass': instrumentsOk && bad.isEmpty,
       'manual': !instrumentsOk,
-      'owner': 'ml-porting',
+      'owner': kOwnerEstimate,
     });
   }
 
@@ -1000,7 +1011,7 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       ),
       'pass': pass,
       'manual': !instrumentsOk,
-      'owner': 'ml-porting',
+      'owner': kOwnerEstimate,
     });
   }
 
@@ -1286,7 +1297,7 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       ),
       'pass': pass,
       'manual': !instrumentsOk || scope.isEmpty || meterBlind.isNotEmpty,
-      'owner': 'ml-porting',
+      'owner': kOwnerImaging,
     });
   }
 
@@ -3386,63 +3397,76 @@ String criteriaVersionMd() {
       '冻结点 `$kCriteriaFrozenCommit`。$same。';
 }
 
-/// 逐轮的「消不消耗实现方的修复预算」。**轮次号 ≠ 消耗次数。**
+/// 逐轮的**已发生**消耗。**预算按实现方分账，不是全局池；且按"消耗"算，不按"名额的名字"算。**
 ///
-/// 法典 CLAUDE.md §7 给的是 **3 次修复机会**，不是"3 轮门禁运行"。作废轮
-/// （输入不可信、判据中途被改、或超线被判为边界噪声）**不消耗**；把它们记成
-/// 同一个数，会让"还剩几次机会"这个判决性的事实在报告里失真 ——
-/// 而两种记法的报告在字面上长得一样正常。
+/// 法典 CLAUDE.md §7 给的是**每个实现方 3 次修复机会**，不是"3 轮门禁运行"。
+/// 于是有三件事必须在报告里分开，混成一个数就会让"还剩几次机会"这个判决性的事实失真：
+///  1. **轮号 ≠ 消耗次数**：作废轮、被判边界噪声的轮都不消耗；
+///  2. **消耗只在真的 FAIL 时发生，且记在失败项的归属方账上**；
+///  3. **"最后一轮" ≠ "预算用尽"** —— 余量按实现方各自算。
 ///
-/// 每轮一条：`[消耗?, 由来]`。**只追加，不改写已经发生过的轮。**
-const Map<int, List<String>> kRoundLedger = <int, List<String>>{
-  1: <String>[
-    '否',
+/// 每轮一条：`[消耗的归属方; null = 不消耗, 由来]`。**只追加，不改写已经发生过的轮。**
+/// 本轮（r4）不在表里 —— 它的消耗**由本轮自己的失败项归属决定**，事前不可写死。
+const Map<int, List<String?>> kRoundLedger = <int, List<String?>>{
+  1: <String?>[
+    null,
     '判据在门禁运行期间被连续修改 4 次（03:23 / 03:24 / 03:39 / 03:47），'
         '初判按改动前的草稿实现 —— 初判作废，不是对代码的判决',
   ],
-  2: <String>['是', '判决 FAIL —— 第 1 次修复机会'],
-  3: <String>[
-    '否',
+  2: <String?>['ml-porting', '判决 FAIL，失败项归 ml-porting —— 该实现方第 1 次'],
+  3: <String?>[
+    null,
     '本轮无效：被判的两份产物早于修复落地，判决不是来自**同一个**代码状态；'
         '且 P0.3a 的唯一超线被判为边界噪声（单支量具超线，第二支未复现）',
   ],
-  4: <String>['是', '本轮'],
 };
 
 /// 修复预算的账本。**现算**，不写死 —— 写死的"对应 r2 / r3 / r4"在 r3 被判
-/// 不消耗之后就变成了一句读起来很正常的假话。
+/// 不消耗之后就变成了一句读起来很正常的假话（`out/GATE_P0_r3.md` 的「轮次记账」
+/// 那一段正是这个形态，已由该文件补记 6 取代）。
+///
+/// **归属口径**（主会话 2026-09-17 裁定，源自 r3 补记 6）：**死区与裁剪回退是
+/// `lib/core/imaging/` 的代码**。所以本轮若在某项 FAIL，账记在该项**根因所在文件
+/// 的归属方**上，**不许一律记在 ml-porting 头上**；逐项归属由条目自己的 `owner`
+/// 给出，报告末尾按 `owner` 汇总点名。
 String kRoundLedgerMd(int round) {
   final StringBuffer b = StringBuffer();
-  b.writeln('**轮次号 ≠ 消耗次数**：法典给的是 **3 次修复机会**，不是 3 轮门禁运行。'
-      '作废轮不消耗实现方的预算 —— 把两者压成一个数，"还剩几次机会"这个'
-      '判决性的事实就会失真，而两种记法在人读的报告里长得一样正常。');
+  b.writeln('**预算按实现方分账，且按"消耗"算，不按"名额的名字"算。**'
+      '法典给的是**每个实现方 3 次修复机会**，不是 3 轮门禁运行 —— '
+      '把两者压成一个数，"还剩几次机会"这个判决性的事实就会失真，'
+      '而两种记法在人读的报告里长得一样正常。三条推论：'
+      '① **轮号 ≠ 消耗次数**（作废轮、判为边界噪声的轮都不消耗）；'
+      '② **只有真的 FAIL 才消耗，且记在失败项归属方的账上**；'
+      '③ **"最后一轮" ≠ "预算用尽"**。');
   b.writeln();
-  b.writeln('| 轮 | 消耗修复机会？ | 由来 |');
+  b.writeln('| 轮 | 消耗（归属方） | 由来 |');
   b.writeln('|---|---|---|');
   final List<int> ks = kRoundLedger.keys.toList()..sort();
   for (final int k in ks) {
-    final List<String> v = kRoundLedger[k]!;
+    final List<String?> v = kRoundLedger[k]!;
     b.writeln('| r$k${k == round ? '（本轮）' : ''} | '
-        '${v[0] == '是' ? '**是**' : '否'} | ${v[1]} |');
+        '${v[0] == null ? '否' : '**是 —— ${v[0]}**'} | ${v[1]} |');
   }
-  final int usedBefore =
-      ks.where((int k) => k < round && kRoundLedger[k]![0] == '是').length;
-  final bool consumes = (kRoundLedger[round] ?? const <String>['是'])[0] == '是';
-  final int usedAfter = usedBefore + (consumes ? 1 : 0);
+  final Map<String, int> used = <String, int>{};
+  for (final int k in ks) {
+    final String? who = kRoundLedger[k]![0];
+    if (who != null) used[who] = (used[who] ?? 0) + 1;
+  }
+  final List<String> who = used.keys.toList()..sort();
   b.writeln();
-  b.writeln('本轮 r$round 是 ml-porting 的第 **${usedBefore + 1}** 次修复机会'
-      '（此前已消耗 $usedBefore 次，上限 **3** 次）。');
-  b.writeln(consumes
-      ? '本轮仍 FAIL ⇒ 累计消耗 $usedAfter 次'
-          '${usedAfter >= 3 ? '，达到上限：写 `out/BLOCKED_G2B-P0.md`，全流程停止等人工，'
-              '**不降阈值、不删夹具、不跳门禁**' : '，尚有余量：写回派指令，由主会话排下一轮'}。'
-      : '本轮不消耗预算。');
+  b.writeln('已消耗：${who.isEmpty ? "（无）" : who.map((String w) => '$w ${used[w]} 次').join('、')}；'
+      '上限 **每实现方 3 次**。');
+  b.writeln('**本轮 r$round 消耗几次、记在谁头上，由本轮的失败项逐项归属决定** ——'
+      '事前不写死。**归属口径**：死区与裁剪回退是 `lib/core/imaging/` 的代码'
+      '（主会话裁定，源自 r3 补记 6），该项若 FAIL 记 imaging 的账，ml-porting 不受影响。'
+      '逐项归属见上方各条目的 `owner`，报告末尾按 `owner` 汇总点名。');
   b.writeln();
   b.writeln('**注**：判据在 r3 与 r4 之间被改过（见上方「判据版本声明」）。'
-      '主会话 2026-09-17 裁定：**判据文本冻结于 `$kCriteriaFrozenCommit`**，'
-      '改动全部完成于 r4 开跑之前、r3 收尾之后（**轮次之间，不是轮次之内**），'
-      '**故不作废、不重编号**；防作弊基线同样从 `$kCriteriaFrozenCommit` 起算。'
-      '若判据在 **r4 运行期间**再被改动，作废条件立即重新成立。');
+      '主会话 2026-09-17 裁定：触发条件是**「本轮内」改判据**，而 r3 判决 14:28 收尾、'
+      '四次修订 14:40–15:24 全在轮次之外，**触发条件从未成立** ⇒ 不重编号、不作废。'
+      '但要写对性质：r3 是**在旧判据（死区 1.0°）下**作的判决，v2 生效后它'
+      '**被取代（superseded）**，不是作废、不追溯翻案。'
+      '**判据变更后，r1–r3 的任何 PASS/FAIL 只能作为沿革出现，不得当作本轮的读数引用。**');
   return b.toString();
 }
 
