@@ -238,6 +238,15 @@ const double kDeadZoneBandDeg = 1.0;
 ///
 /// 分档**按真值**，不按引擎自报角：按自报角分档会让样本集变成测量的函数
 /// （引擎天然会把"真值刚出死区、估计刚进死区"的样本移出判据）。
+///
+/// **⚠ 本谓词描述的是"样本的属性"，判据要的却是"该属性 × 该判据的样本集"的交集。**
+/// 直接拿它去过滤一个大集合会**两个数都算错、而句子读起来完全正常**：
+/// P0.3a② / P0.3b 的样本集是"真值 |tilt| > 10° 的夹具"（15 条），
+/// 带内豁免是它与本谓词的**交集**（4 条 ⇒ 参与判定 11 条，即 ACCEPTANCE 的 15 / 11）。
+/// 写成 `rotated.where(inBoundaryBand)` 会得到 **9** 条（把死区内侧的 5 条也算进来），
+/// 于是"需要摆正 15 条（含带内 9 条）⇒ 判定 6 条"——**两个数都错**。
+/// 反过来，P0.6 的样本集**就是死区内**，它的边界带**正是带内侧那 5 条**。
+/// **⇒ 复用本谓词前，先问这个条目的样本集在哪一侧。**（教训已记入 `docs/PITFALLS.md`。）
 bool inBoundaryBand(Map<String, dynamic> s) {
   final double t = (s['truth'] as double).abs();
   return t >= kDeadZoneDeg - kDeadZoneBandDeg && t <= kDeadZoneDeg + kDeadZoneBandDeg;
