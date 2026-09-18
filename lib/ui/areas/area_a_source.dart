@@ -67,10 +67,10 @@ class AreaASource extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
                 child: Row(
                   children: <Widget>[
-                    // "关于"入口：长按左上角铭牌（用户 2026-09-17：不要
-                    // 长按标尺，也不要可见提示）。
+                    // "关于"入口：轻触左上角铭牌（用户 2026-09-17：长按
+                    // 没有提示用户不知道，改为短按）。
                     GestureDetector(
-                      onLongPress: () => ref
+                      onTap: () => ref
                           .read(workbenchProvider.notifier)
                           .setAboutOpen(true),
                       child: const _BrandPlate(),
