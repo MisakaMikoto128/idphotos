@@ -1,0 +1,39 @@
+r5 `out/P0_truth.json` 对 r4 冻结版逐条比对
+冻结版 sha256 = 30f96c16e3d9b74ca26aa620be92a00f5228c76cf29b77e1cd317b07865070a4（已按此值认基线）
+新产物 sha256 = f5c8c88d90d388068e4f57faa4b251701fb27505d3409dfb107103b5af1b7a5b
+============================================================================================
+
+叶子总数：冻结版 4730 / 新版 4730
+仅冻结版有：0；仅新版有：0
+
+## A 组 —— 真值域，**必须零差异**：0 条
+
+（空 = 逐条一致）
+
+## B 组 —— `evaluatedState.**` 溯源，预期变：8 条
+
+- `/evaluatedState/codeFingerprintAtFinalize/fnv1a64`: f003fdd0e73ed73a -> aca440a9bf768af6
+- `/evaluatedState/codeFingerprintAtFinalize/headCommit`: 71e273dbd95ab4257361cc652160250bd53113f4 -> 04b1ab4b051e64c35f8956b18d369d489fed64fc
+- `/evaluatedState/codeFingerprintAtMeasure/commitBindingNote`: 被测集全部文件与该提交一致：本指纹即 71e273dbd95ab4257361cc652160250bd53113f4  -> 被测集全部文件与该提交一致：本指纹即 5bf76123a499080a89761e8258f020486f28e0fc 
+- `/evaluatedState/codeFingerprintAtMeasure/fnv1a64`: f003fdd0e73ed73a -> aca440a9bf768af6
+- `/evaluatedState/codeFingerprintAtMeasure/headCommit`: 71e273dbd95ab4257361cc652160250bd53113f4 -> 5bf76123a499080a89761e8258f020486f28e0fc
+- `/evaluatedState/fingerprintVerdict`: **可归属**：测量当时的被测代码内容与现在逐文件相同，数字未被后续改动污染，可归到 71e273dbd95ab4257 -> **可归属**：测量当时的被测代码内容与现在逐文件相同，数字未被后续改动污染，可归到 5bf76123a499080a8
+- `/evaluatedState/gitHeadAtCoverageRun`: 71e273d -> 04b1ab4
+- `/evaluatedState/headAtFinalize`: 71e273d -> 04b1ab4
+
+## C 组 —— 派生块（`endToEndResidual` / `gateInputs`）：6 条
+其中**非出处类**（即数字读数）的差异单列在下面，必须逐条解释：
+
+- [出处] `/endToEndResidual/summary/provenance/codeFingerprint/blobHashes/test/batch/p0_output_residual.py`: cbb1047e0969681c8f70faba2e010e7fdf29ac75 -> d6f2aa57c73516a35cd438b061a7fe8b257d34d3
+- [出处] `/endToEndResidual/summary/provenance/codeFingerprint/commitBindingNote`: 被测集全部文件与该提交一致：本指纹即 71e273dbd95ab4257361cc652160250bd53113f4  -> 被测集全部文件与该提交一致：本指纹即 5bf76123a499080a89761e8258f020486f28e0fc 
+- [出处] `/endToEndResidual/summary/provenance/codeFingerprint/fnv1a64`: f003fdd0e73ed73a -> aca440a9bf768af6
+- [出处] `/endToEndResidual/summary/provenance/codeFingerprint/headCommit`: 71e273dbd95ab4257361cc652160250bd53113f4 -> 5bf76123a499080a89761e8258f020486f28e0fc
+- [**读数**] `/gateInputs/rotationFailureBoundary/evidenceProvenance/sourceSha256/out/P0_alpha_holes.json`: 14404c5f6288701a7d92ae757232f68294a9f9ac9f1065a9e6c66cf31b04 -> de62441c4494d312a0c624f2de68c89ae199ca4de1704800b08dd10f7b42
+- [**读数**] `/gateInputs/rotationFailureBoundary/evidenceProvenance/sourceSha256/out/P0_output_residual.json`: 7a51d2b556a2fd3afb2e6954bc0a34461626de12a991b6b68c082a04865e -> c9fd3e8838ca5caedd1cb9f0fa9cc229ff2096db9866255a2b0e93775b25
+
+C 组里读数字叶子变化的条数：**2**
+  * `/gateInputs/rotationFailureBoundary/evidenceProvenance/sourceSha256/out/P0_alpha_holes.json`: 14404c5f6288701a7d92ae757232f68294a9f9ac9f1065a9e6c66cf31b04ecd9 -> de62441c4494d312a0c624f2de68c89ae199ca4de1704800b08dd10f7b42ea06
+  * `/gateInputs/rotationFailureBoundary/evidenceProvenance/sourceSha256/out/P0_output_residual.json`: 7a51d2b556a2fd3afb2e6954bc0a34461626de12a991b6b68c082a04865e7889 -> c9fd3e8838ca5caedd1cb9f0fa9cc229ff2096db9866255a2b0e93775b253cfc
+
+============================================================================================
+判决：真值域零差异；溯源字段如预期变化；C 组读数叶子变化 2 条。

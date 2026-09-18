@@ -1,0 +1,15 @@
+0 01_resolve
+0 02_compose
+0 02b_prov_after_compose
+0 03_alpha_dump
+0 04_residual
+0 05_alpha_scan
+0 06_alpha_holes
+0 07_selfcheck
+0 08_coverage
+0 08b_prov_after_coverage
+0 09_verify_geo
+0 10_finalize
+0 10b_prov_final
+0 11_resolve_recheck
+DONE

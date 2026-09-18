@@ -1,0 +1,6161 @@
+{
+ "generatedBy": "qa-batch / test/batch/{p0_measure,p0_finalize,p0_rotate,p0_est,p0_verify_geo}.py",
+ "baselineTag": "baseline-p6p0",
+ "convention": "角度一律用 tilt 表述，不要用'顺/逆时针'口头描述。tilt = degrees(atan2(y_imgRightEye - y_imgLeftEye, x_imgRightEye - x_imgLeftEye))，图像坐标 y 向下，正值 = 图像右侧的眼更低。生产契约 FaceInfo.rollDeg **等于 tilt 本身，不取负**；实现侧恒等式 输出倾角 = tilt - rollDeg，故摆平当且仅当 rollDeg == tilt。本文件所有 *_deg 字段（truth_apply_deg / trueRollDeg / expectedEngineRollDeg）同号同值，都表示'应该施加的摆正角'，量纲与 ComposeDiagnostics.straightenDeg 一致。",
+ "anchorCount": 13,
+ "anchors": [
+  {
+   "id": "p1",
+   "path": "C:/Users/liuyu/Pictures/1 (2).jpg",
+   "trueRollDeg": -4.4,
+   "expectedEngineRollDeg": -4.4,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -4.382,
+     "evidence": "out/P0_anchors/p1.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -4.414,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -3.514,
+     "evidence": "out/P0_anchors/p1.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -3.545,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -4.082,
+     "evidence": "out/P0_anchors/p1.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -3.949,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -3.54,
+     "evidence": "out/P0_anchors/p1.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -3.54,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/p1.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -4.414,
+    "m2_radon_yunet": -3.545,
+    "m3_haar_eyeline": -3.949,
+    "m4_radon_haar": -3.54
+   },
+   "yunetEyeLineDeg": 0.432,
+   "yunetErrorDeg": 4.832,
+   "nFaces": 1,
+   "eyedistPx": 215.3,
+   "note": "主会话三方确认锚点 -4.4；本脚本 7 次旋转稳健估计 M1=-4.38 / M3=-4.08，一致",
+   "robustPerMethodDeg": {
+    "m1_pupil": -4.382,
+    "m2_radon_yunet": -3.514,
+    "m3_haar_eyeline": -4.082,
+    "m4_radon_haar": -3.54
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.3,
+   "corroborationOk": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -4.4,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -4.4,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "正视、无遮挡，瞳孔边界清晰；四条方法线肉眼重合，无异议。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -4.52988234292717,
+    "output_tilt_by_method": {
+     "m1_pupil": -4.52988234292717,
+     "m2_radon_yunet": -4.816534145594869,
+     "m1h_pupil_haarseed": -4.453699614084609,
+     "m3_haar_eyeline": -4.200622204635398,
+     "m4_radon_haar": -3.5288029479442957
+    },
+    "tilt_abs_max_deg": 4.817,
+    "method_spread_deg": 1.288,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.13,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c01",
+   "path": "C:/Users/liuyu/Pictures/20240710193717_7c99.jpg",
+   "trueRollDeg": -1.3,
+   "expectedEngineRollDeg": -1.3,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -1.296,
+     "evidence": "out/P0_anchors/c01.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -1.137,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -0.013,
+     "evidence": "out/P0_anchors/c01.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -0.013,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -1.002,
+     "evidence": "out/P0_anchors/c01.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -0.932,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -0.02,
+     "evidence": "out/P0_anchors/c01.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -0.02,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c01.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -1.137,
+    "m2_radon_yunet": -0.013,
+    "m3_haar_eyeline": -0.932,
+    "m4_radon_haar": -0.02
+   },
+   "yunetEyeLineDeg": -3.681,
+   "yunetErrorDeg": -2.381,
+   "nFaces": 1,
+   "eyedistPx": 118.8,
+   "note": "radon 族读 ~0，与眼线族差 1.29（radon 向零偏置）；目视确认右瞳孔更高",
+   "robustPerMethodDeg": {
+    "m1_pupil": -1.296,
+    "m2_radon_yunet": -0.013,
+    "m3_haar_eyeline": -1.002,
+    "m4_radon_haar": -0.02
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.294,
+   "corroborationOk": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -1.3,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -1.3,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "正视证件照，细金属镜框；瞳孔可见，M1/M3 一致。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -1.0494430717645749,
+    "output_tilt_by_method": {
+     "m1_pupil": -1.0494430717645749,
+     "m2_radon_yunet": 0.03560175086458938,
+     "m1h_pupil_haarseed": -1.0963998734375113,
+     "m3_haar_eyeline": -1.193489423982035,
+     "m4_radon_haar": 0.007555560161961065
+    },
+    "tilt_abs_max_deg": 1.193,
+    "method_spread_deg": 1.229,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.251,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c02",
+   "path": "C:/Users/liuyu/Pictures/29EDA59B982FA8339335D50B00CCD096.jpg",
+   "trueRollDeg": -0.25,
+   "expectedEngineRollDeg": -0.25,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -0.253,
+     "evidence": "out/P0_anchors/c02.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -0.253,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -0.366,
+     "evidence": "out/P0_anchors/c02.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -0.427,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -0.274,
+     "evidence": "out/P0_anchors/c02.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -0.17,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -0.264,
+     "evidence": "out/P0_anchors/c02.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -0.045,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c02.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -0.253,
+    "m2_radon_yunet": -0.427,
+    "m3_haar_eyeline": -0.17,
+    "m4_radon_haar": -0.045
+   },
+   "yunetEyeLineDeg": -6.088,
+   "yunetErrorDeg": -5.838,
+   "nFaces": 1,
+   "eyedistPx": 150.8,
+   "note": "YuNet 读 -6.09，偏差 5.8 (P0 根因样本)",
+   "robustPerMethodDeg": {
+    "m1_pupil": -0.253,
+    "m2_radon_yunet": -0.366,
+    "m3_haar_eyeline": -0.274,
+    "m4_radon_haar": -0.264
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.021,
+   "corroborationOk": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -0.25,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -0.25,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "蓝底证件照，镜框较粗；瞳孔可辨，四法基本重合。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.16144865700763544,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.16144865700763544,
+     "m2_radon_yunet": -0.012195365914092938,
+     "m1h_pupil_haarseed": -0.19420003036915695,
+     "m3_haar_eyeline": -0.561705332566547,
+     "m4_radon_haar": -0.021574464092116497
+    },
+    "tilt_abs_max_deg": 0.562,
+    "method_spread_deg": 0.55,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.089,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c03",
+   "path": "C:/Users/liuyu/Pictures/8D861A29F86CE7464865EFEB3C9B4124.jpg",
+   "trueRollDeg": -3.72,
+   "expectedEngineRollDeg": -3.72,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -3.799,
+     "evidence": "out/P0_anchors/c03.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -3.837,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -2.841,
+     "evidence": "out/P0_anchors/c03.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -2.825,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -3.215,
+     "evidence": "out/P0_anchors/c03.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -3.712,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -2.982,
+     "evidence": "out/P0_anchors/c03.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -2.982,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c03.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -3.837,
+    "m2_radon_yunet": -2.825,
+    "m3_haar_eyeline": -3.712,
+    "m4_radon_haar": -2.982
+   },
+   "yunetEyeLineDeg": 1.106,
+   "yunetErrorDeg": 4.826,
+   "nFaces": 1,
+   "eyedistPx": 218.4,
+   "note": "YuNet 读 +1.11，偏差 4.9 (P0 根因样本)",
+   "robustPerMethodDeg": {
+    "m1_pupil": -3.799,
+    "m2_radon_yunet": -2.841,
+    "m3_haar_eyeline": -3.215,
+    "m4_radon_haar": -2.982
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.584,
+   "corroborationOk": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -3.72,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -3.72,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "正视，眼镜反光轻微；瞳孔清晰。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -3.70344567107337,
+    "output_tilt_by_method": {
+     "m1_pupil": -3.70344567107337,
+     "m2_radon_yunet": -3.856007328669927,
+     "m1h_pupil_haarseed": -3.7144002685125543,
+     "m3_haar_eyeline": -3.1798301198642345,
+     "m4_radon_haar": -3.1838727976443226
+    },
+    "tilt_abs_max_deg": 3.856,
+    "method_spread_deg": 0.676,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.017,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c04",
+   "path": "C:/Users/liuyu/Pictures/8D861A29F86CE7464865EFEB3C9B4124 (自定义).jpg",
+   "trueRollDeg": -3.82,
+   "expectedEngineRollDeg": -3.82,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -3.836,
+     "evidence": "out/P0_anchors/c04.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -3.924,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -4.136,
+     "evidence": "out/P0_anchors/c04.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -4.483,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -3.208,
+     "evidence": "out/P0_anchors/c04.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -3.077,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -3.487,
+     "evidence": "out/P0_anchors/c04.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -3.487,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c04.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -3.924,
+    "m2_radon_yunet": -4.483,
+    "m3_haar_eyeline": -3.077,
+    "m4_radon_haar": -3.487
+   },
+   "yunetEyeLineDeg": -4.096,
+   "yunetErrorDeg": -0.276,
+   "nFaces": 1,
+   "eyedistPx": 135.7,
+   "note": "多人合影裁切版",
+   "robustPerMethodDeg": {
+    "m1_pupil": -3.836,
+    "m2_radon_yunet": -4.136,
+    "m3_haar_eyeline": -3.208,
+    "m4_radon_haar": -3.487
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.628,
+   "corroborationOk": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -3.82,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -3.82,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "**与 c03 是同一张照片的不同分辨率副本**（c03 1159×1920 / c04 483×800，缩放后逐像素 mean|diff|=2.74）。保留以记录不同分辨率下的行为，但统计时不得当作两张独立样本。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -3.8897636765051833,
+    "output_tilt_by_method": {
+     "m1_pupil": -3.8897636765051833,
+     "m2_radon_yunet": -4.097349921580537,
+     "m1h_pupil_haarseed": -3.8410519737301376,
+     "m3_haar_eyeline": -3.144957464698022,
+     "m4_radon_haar": -3.0930598048512223
+    },
+    "tilt_abs_max_deg": 4.097,
+    "method_spread_deg": 1.004,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.07,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c05",
+   "path": "C:/Users/liuyu/Pictures/a.jpg",
+   "trueRollDeg": -3.91,
+   "expectedEngineRollDeg": -3.91,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -3.914,
+     "evidence": "out/P0_anchors/c05.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -3.939,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -3.754,
+     "evidence": "out/P0_anchors/c05.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -3.754,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -3.731,
+     "evidence": "out/P0_anchors/c05.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -3.731,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -3.698,
+     "evidence": "out/P0_anchors/c05.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -3.698,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c05.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -3.939,
+    "m2_radon_yunet": -3.754,
+    "m3_haar_eyeline": -3.731,
+    "m4_radon_haar": -3.698
+   },
+   "yunetEyeLineDeg": -1.075,
+   "yunetErrorDeg": 2.835,
+   "nFaces": 1,
+   "eyedistPx": 129.0,
+   "note": "四法稳健估计极紧 (M1 -3.91 / M2 -3.75 / M3 -3.73 / M4 -3.70)",
+   "robustPerMethodDeg": {
+    "m1_pupil": -3.914,
+    "m2_radon_yunet": -3.754,
+    "m3_haar_eyeline": -3.731,
+    "m4_radon_haar": -3.698
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.183,
+   "corroborationOk": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -3.91,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -3.91,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "近景正视，眼镜；瞳孔清晰但画幅小。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -3.9124655859713395,
+    "output_tilt_by_method": {
+     "m1_pupil": -3.9124655859713395,
+     "m2_radon_yunet": -3.733337509509764,
+     "m1h_pupil_haarseed": -4.041803064874202,
+     "m3_haar_eyeline": -4.497151614667772,
+     "m4_radon_haar": -2.881605259253265
+    },
+    "tilt_abs_max_deg": 4.497,
+    "method_spread_deg": 1.616,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.002,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c06",
+   "path": "C:/Users/liuyu/Pictures/吴港+通信工程+532128200107160711.jpg",
+   "trueRollDeg": -1.73,
+   "expectedEngineRollDeg": -1.73,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -1.722,
+     "evidence": "out/P0_anchors/c06.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -1.718,
+     "nObservations": 6,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -1.075,
+     "evidence": "out/P0_anchors/c06.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -1.075,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -1.327,
+     "evidence": "out/P0_anchors/c06.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -1.273,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": 0.925,
+     "evidence": "out/P0_anchors/c06.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": 0.925,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c06.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -1.718,
+    "m2_radon_yunet": -1.075,
+    "m3_haar_eyeline": -1.273,
+    "m4_radon_haar": 0.925
+   },
+   "yunetEyeLineDeg": -4.131,
+   "yunetErrorDeg": -2.401,
+   "nFaces": 1,
+   "eyedistPx": 84.0,
+   "note": "YuNet 人脸框整体偏到头发上；M4 因 Haar 眼框落在眉上而系统性偏 +2.7",
+   "robustPerMethodDeg": {
+    "m1_pupil": -1.722,
+    "m2_radon_yunet": -1.075,
+    "m3_haar_eyeline": -1.327,
+    "m4_radon_haar": 0.925
+   },
+   "robustObsCount": {
+    "m1_pupil": 6,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.395,
+   "corroborationOk": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -1.73,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -1.73,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "蓝底证件照，正视；瞳孔清晰。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -1.736204221032422,
+    "output_tilt_by_method": {
+     "m1_pupil": -1.736204221032422,
+     "m2_radon_yunet": 0.021253136853420607,
+     "m1h_pupil_haarseed": -1.6928432871963066,
+     "m3_haar_eyeline": -0.8550973962667232,
+     "m4_radon_haar": 0.8075375210937401
+    },
+    "tilt_abs_max_deg": 1.736,
+    "method_spread_deg": 2.544,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.006,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c07",
+   "path": "C:/Users/liuyu/Pictures/报名照片.jpg",
+   "trueRollDeg": -0.35,
+   "expectedEngineRollDeg": -0.35,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -0.346,
+     "evidence": "out/P0_anchors/c07.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -0.273,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -0.327,
+     "evidence": "out/P0_anchors/c07.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -0.005,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -0.042,
+     "evidence": "out/P0_anchors/c07.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -0.424,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -0.392,
+     "evidence": "out/P0_anchors/c07.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -0.014,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c07.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -0.273,
+    "m2_radon_yunet": -0.005,
+    "m3_haar_eyeline": -0.424,
+    "m4_radon_haar": -0.014
+   },
+   "yunetEyeLineDeg": -6.029,
+   "yunetErrorDeg": -5.679,
+   "nFaces": 1,
+   "eyedistPx": 68.0,
+   "note": "低分辨率(295x413, 眼距 68px)，JPEG 块效应重，标记 lowConfidence",
+   "robustPerMethodDeg": {
+    "m1_pupil": -0.346,
+    "m2_radon_yunet": -0.327,
+    "m3_haar_eyeline": -0.042,
+    "m4_radon_haar": -0.392
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.304,
+   "corroborationOk": true,
+   "lowConfidence": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -0.35,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -0.35,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "蓝底证件照（报名照），正视；瞳孔清晰。M3 与 M1 差 1.2°，M1 为准。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.20212575751974918,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.20212575751974918,
+     "m2_radon_yunet": 0.002878090222038628,
+     "m1h_pupil_haarseed": -0.21465542668041407,
+     "m3_haar_eyeline": -1.231977402639728,
+     "m4_radon_haar": -0.029876258444344623
+    },
+    "tilt_abs_max_deg": 1.232,
+    "method_spread_deg": 1.235,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.148,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c08",
+   "path": "C:/Users/liuyu/Pictures/Camera Roll/WIN_20230522_00_19_11_Pro.jpg",
+   "trueRollDeg": -8.01,
+   "expectedEngineRollDeg": -8.01,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -6.805,
+     "evidence": "out/P0_anchors/c08.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -7.026,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -6.322,
+     "evidence": "out/P0_anchors/c08.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -6.277,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c08.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -7.026,
+    "m2_radon_yunet": -6.277
+   },
+   "yunetEyeLineDeg": -9.389,
+   "yunetErrorDeg": -1.379,
+   "nFaces": 1,
+   "eyedistPx": 141.2,
+   "note": "暗光摄像头；Haar 全程失败，仅 2 法可用且互差 1.69，标记 lowConfidence",
+   "robustPerMethodDeg": {
+    "m1_pupil": -6.805,
+    "m2_radon_yunet": -6.322
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7
+   },
+   "corroborationOk": false,
+   "lowConfidence": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -8.01,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -8.01,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "宿舍广角实拍，人脸在画面中很小（眼距 ~86px@工作分辨率），有床帘/梯子等杂物；瞳孔可辨但抠图在成片上把下半脸挖空（见 end_to_end）。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.7725901941770544,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.7725901941770544,
+     "m2_radon_yunet": -5.971165468409243,
+     "m1h_pupil_haarseed": null,
+     "m3_haar_eyeline": null,
+     "m4_radon_haar": null
+    },
+    "tilt_abs_max_deg": 5.971,
+    "method_spread_deg": 5.199,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 7.237,
+    "status": "reliability_mismatch",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 7.237°，测量落到异物上，本项残余不可信",
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c10",
+   "path": "C:/Users/liuyu/Pictures/1979d869c783fcc849d4e05b81eb809e.png",
+   "trueRollDeg": -3.44,
+   "expectedEngineRollDeg": -3.44,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -3.438,
+     "evidence": "out/P0_anchors/c10.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -3.584,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -3.823,
+     "evidence": "out/P0_anchors/c10.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -3.839,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -3.095,
+     "evidence": "out/P0_anchors/c10.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -3.158,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -3.763,
+     "evidence": "out/P0_anchors/c10.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -3.904,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c10.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -3.584,
+    "m2_radon_yunet": -3.839,
+    "m3_haar_eyeline": -3.158,
+    "m4_radon_haar": -3.904
+   },
+   "yunetEyeLineDeg": -6.381,
+   "yunetErrorDeg": -2.941,
+   "nFaces": 5,
+   "eyedistPx": 153.3,
+   "note": "4032x3024 多人合影原图(5 张脸)，主体为最大脸",
+   "robustPerMethodDeg": {
+    "m1_pupil": -3.438,
+    "m2_radon_yunet": -3.823,
+    "m3_haar_eyeline": -3.095,
+    "m4_radon_haar": -3.763
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.343,
+   "corroborationOk": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -3.44,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -3.44,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "**五人合影**，主体为画面中央最近者；多张脸，选中的是最大且最居中的一张。与 c11/c12 为同一场景的不同裁切（结构相关 0.68–0.84），非独立场景。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -3.175548679116811,
+    "output_tilt_by_method": {
+     "m1_pupil": -3.175548679116811,
+     "m2_radon_yunet": -3.625906143381552,
+     "m1h_pupil_haarseed": -3.155814714847457,
+     "m3_haar_eyeline": -3.6913859864512757,
+     "m4_radon_haar": -3.4104271724691437
+    },
+    "tilt_abs_max_deg": 3.691,
+    "method_spread_deg": 0.536,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.264,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c11",
+   "path": "C:/Users/liuyu/Pictures/4e84ef7b8a910c776acd0eebb8293ee9.png",
+   "trueRollDeg": -0.11,
+   "expectedEngineRollDeg": -0.11,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -0.123,
+     "evidence": "out/P0_anchors/c11.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -0.108,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -0.0,
+     "evidence": "out/P0_anchors/c11.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -0.0,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -0.135,
+     "evidence": "out/P0_anchors/c11.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": 0.198,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -0.067,
+     "evidence": "out/P0_anchors/c11.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": 0.002,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c11.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -0.108,
+    "m2_radon_yunet": -0.0,
+    "m3_haar_eyeline": 0.198,
+    "m4_radon_haar": 0.002
+   },
+   "yunetEyeLineDeg": 2.068,
+   "yunetErrorDeg": 2.178,
+   "nFaces": 5,
+   "eyedistPx": 143.2,
+   "note": "同上系列；近竖直",
+   "robustPerMethodDeg": {
+    "m1_pupil": -0.123,
+    "m2_radon_yunet": -0.0,
+    "m3_haar_eyeline": -0.135,
+    "m4_radon_haar": -0.067
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.012,
+   "corroborationOk": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -0.11,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -0.11,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "与 c10 同场景（合影），主体同一个人；本项引擎返回 unavailable（picth 近零，按 P0.1b 可接受）。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.235313709959118,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.235313709959118,
+     "m2_radon_yunet": 0.014623129094061733,
+     "m1h_pupil_haarseed": -0.20487055175948438,
+     "m3_haar_eyeline": 0.0,
+     "m4_radon_haar": 0.002497143161375703
+    },
+    "tilt_abs_max_deg": 0.235,
+    "method_spread_deg": 0.25,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.125,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c12",
+   "path": "C:/Users/liuyu/Pictures/e9168d2cfe9045d07fac74e68419d211.png",
+   "trueRollDeg": -2.09,
+   "expectedEngineRollDeg": -2.09,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -2.094,
+     "evidence": "out/P0_anchors/c12.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -2.054,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -1.866,
+     "evidence": "out/P0_anchors/c12.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -1.715,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -2.352,
+     "evidence": "out/P0_anchors/c12.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -3.202,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -1.86,
+     "evidence": "out/P0_anchors/c12.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -1.723,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/c12.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -2.054,
+    "m2_radon_yunet": -1.715,
+    "m3_haar_eyeline": -3.202,
+    "m4_radon_haar": -1.723
+   },
+   "yunetEyeLineDeg": 0.631,
+   "yunetErrorDeg": 2.721,
+   "nFaces": 5,
+   "eyedistPx": 137.8,
+   "note": "同上系列",
+   "robustPerMethodDeg": {
+    "m1_pupil": -2.094,
+    "m2_radon_yunet": -1.866,
+    "m3_haar_eyeline": -2.352,
+    "m4_radon_haar": -1.86
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.258,
+   "corroborationOk": true,
+   "kind": "portrait",
+   "corpus": "anchor",
+   "truth_apply_deg": -2.09,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -2.09,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "与 c10/c11 同场景（合影）；瞳孔在合影里偏小，M1/M3 一致。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -2.2123337237076024,
+    "output_tilt_by_method": {
+     "m1_pupil": -2.2123337237076024,
+     "m2_radon_yunet": -1.6838782401539523,
+     "m1h_pupil_haarseed": -1.8638027857233357,
+     "m3_haar_eyeline": -2.36137465817562,
+     "m4_radon_haar": -1.3998708626813747
+    },
+    "tilt_abs_max_deg": 2.361,
+    "method_spread_deg": 0.962,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.122,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p2",
+   "path": "C:/Users/liuyu/Pictures/2.jpg",
+   "trueRollDeg": -0.2,
+   "expectedEngineRollDeg": -0.2,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -0.125,
+     "evidence": "out/P0_anchors/p2.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -0.031,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -0.353,
+     "evidence": "out/P0_anchors/p2.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -0.401,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -0.353,
+     "evidence": "out/P0_anchors/p2.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -0.25,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -0.328,
+     "evidence": "out/P0_anchors/p2.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -0.368,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/p2.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -0.031,
+    "m2_radon_yunet": -0.401,
+    "m3_haar_eyeline": -0.25,
+    "m4_radon_haar": -0.368
+   },
+   "yunetEyeLineDeg": -4.311,
+   "yunetErrorDeg": -4.111,
+   "nFaces": 1,
+   "eyedistPx": 207.2,
+   "note": "主会话确认的竖直蓝底证件照；本脚本稳健估计 M1=-0.12 / M3=-0.35；当前实现转歪 +3.7 (P0.2 基准)",
+   "robustPerMethodDeg": {
+    "m1_pupil": -0.125,
+    "m2_radon_yunet": -0.353,
+    "m3_haar_eyeline": -0.353,
+    "m4_radon_haar": -0.328
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.228,
+   "corroborationOk": true,
+   "kind": "upright",
+   "corpus": "straight",
+   "truth_apply_deg": -0.2,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -0.2,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "二方确认的竖直样本（用户原图 2.jpg）。蓝底证件照，双眼水平，瞳孔清晰；四法一致。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.20985630709480996,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.20985630709480996,
+     "m2_radon_yunet": -0.012263175933313802,
+     "m1h_pupil_haarseed": -0.2227995207536327,
+     "m3_haar_eyeline": 0.31308857502065557,
+     "m4_radon_haar": -0.023772454158108663
+    },
+    "tilt_abs_max_deg": 0.313,
+    "method_spread_deg": 0.536,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.01,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2__cn_big_1inch.jpg"
+   }
+  }
+ ],
+ "straight": [
+  {
+   "id": "p2",
+   "path": "C:/Users/liuyu/Pictures/2.jpg",
+   "trueRollDeg": -0.2,
+   "expectedEngineRollDeg": -0.2,
+   "methods": [
+    {
+     "name": "m1_pupil",
+     "value_deg": -0.125,
+     "evidence": "out/P0_anchors/p2.png",
+     "doc": "YuNet 眼位开窗 → 多阈值暗色圆盘 blob（圆度≥0.60、尺寸窗 0.03–0.32×眼距）→ 左右配对",
+     "delta0Deg": -0.031,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m2_radon_yunet",
+     "value_deg": -0.353,
+     "evidence": "out/P0_anchors/p2.png",
+     "doc": "YuNet 眼带（对称带 hw=1.05 hf=0.34）→ Radon 行投影方差脊线取向",
+     "delta0Deg": -0.401,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m3_haar_eyeline",
+     "value_deg": -0.353,
+     "evidence": "out/P0_anchors/p2.png",
+     "doc": "Haar frontalface + eye_tree_eyeglasses/eye 级联（与 YuNet 完全不同的检测器）→ 双眼连线",
+     "delta0Deg": -0.25,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    },
+    {
+     "name": "m4_radon_haar",
+     "value_deg": -0.328,
+     "evidence": "out/P0_anchors/p2.png",
+     "doc": "Haar 眼带 → Radon 脊线取向",
+     "delta0Deg": -0.368,
+     "nObservations": 7,
+     "note": "7 次旋转（0/±3/±5/±10）稳健估计 median(measured-Δ)，压制单次 ±0.4° 噪声"
+    }
+   ],
+   "evidence": "out/P0_anchors/p2.png",
+   "measuredMethodsDelta0": {
+    "m1_pupil": -0.031,
+    "m2_radon_yunet": -0.401,
+    "m3_haar_eyeline": -0.25,
+    "m4_radon_haar": -0.368
+   },
+   "yunetEyeLineDeg": -4.311,
+   "yunetErrorDeg": -4.111,
+   "nFaces": 1,
+   "eyedistPx": 207.2,
+   "note": "主会话确认的竖直蓝底证件照；本脚本稳健估计 M1=-0.12 / M3=-0.35；当前实现转歪 +3.7 (P0.2 基准)",
+   "robustPerMethodDeg": {
+    "m1_pupil": -0.125,
+    "m2_radon_yunet": -0.353,
+    "m3_haar_eyeline": -0.353,
+    "m4_radon_haar": -0.328
+   },
+   "robustObsCount": {
+    "m1_pupil": 7,
+    "m2_radon_yunet": 7,
+    "m3_haar_eyeline": 7,
+    "m4_radon_haar": 7
+   },
+   "corroborationM1vsM3Deg": 0.228,
+   "corroborationOk": true,
+   "kind": "upright",
+   "corpus": "straight",
+   "truth_apply_deg": -0.2,
+   "derivedAnnotations": [
+    {
+     "name": "visual",
+     "value_deg": -0.2,
+     "derived": "trueRollDeg",
+     "independent": false,
+     "evidence": "out/P0_anchors/_sheet_anchors_review.png",
+     "doc": "人（多模态）直接看 overlay 目视判读",
+     "note": "**非独立读数**：与 trueRollDeg 逐位相同，是它的副本。不得计入方法数，也不得当作真值的佐证。"
+    }
+   ],
+   "visual_review": "二方确认的竖直样本（用户原图 2.jpg）。蓝底证件照，双眼水平，瞳孔清晰；四法一致。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.20985630709480996,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.20985630709480996,
+     "m2_radon_yunet": -0.012263175933313802,
+     "m1h_pupil_haarseed": -0.2227995207536327,
+     "m3_haar_eyeline": 0.31308857502065557,
+     "m4_radon_haar": -0.023772454158108663
+    },
+    "tilt_abs_max_deg": 0.313,
+    "method_spread_deg": 0.536,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.01,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2__cn_big_1inch.jpg"
+   }
+  }
+ ],
+ "uprightSynthetic": [
+  {
+   "id": "p1_upright",
+   "src": "p1",
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    1184,
+    2048
+   ],
+   "note": "由 p1 (真值 -4.40°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.022,
+    "m2_radon_yunet": 0.976,
+    "m3_haar_eyeline": 0.115,
+    "m4_radon_haar": -0.446,
+    "_yunet": -0.27
+   },
+   "measuredConsensus": 0.115,
+   "kind": "upright",
+   "corpus": "uprightSynthetic",
+   "truth_apply_deg": 0.0,
+   "methods": [],
+   "derivedAnnotations": [],
+   "visual_review": "由 p1 按真值反向旋转合成的竖直样本，几何为纯旋转；瞳孔清晰，M1 可测。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 0.0467097605850082,
+    "output_tilt_by_method": {
+     "m1_pupil": 0.0467097605850082,
+     "m2_radon_yunet": -0.020524921482604843,
+     "m1h_pupil_haarseed": 0.11219438707992388,
+     "m3_haar_eyeline": 0.3237015249202234,
+     "m4_radon_haar": -0.03546060432834694
+    },
+    "tilt_abs_max_deg": 0.324,
+    "method_spread_deg": 0.359,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.047,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_upright__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c01_upright",
+   "src": "c01",
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c01_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    480,
+    640
+   ],
+   "note": "由 c01 (真值 -1.30°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.146,
+    "m2_radon_yunet": 0.932,
+    "m3_haar_eyeline": 0.236,
+    "m4_radon_haar": 0.983,
+    "_yunet": -1.573
+   },
+   "measuredConsensus": 0.932,
+   "kind": "upright",
+   "corpus": "uprightSynthetic",
+   "truth_apply_deg": 0.0,
+   "methods": [],
+   "derivedAnnotations": [],
+   "visual_review": "由 c01 按真值反向旋转合成的竖直样本，几何为纯旋转；瞳孔清晰，M1 可测。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.081698706867745,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.081698706867745,
+     "m2_radon_yunet": 1.6113406074882177,
+     "m1h_pupil_haarseed": 0.025313702031281173,
+     "m3_haar_eyeline": 0.6030911943805325,
+     "m4_radon_haar": 1.0088552295159134
+    },
+    "tilt_abs_max_deg": 1.611,
+    "method_spread_deg": 1.693,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.082,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_upright__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c03_upright",
+   "src": "c03",
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c03_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    1159,
+    1920
+   ],
+   "note": "由 c03 (真值 -3.72°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 2.406,
+    "m2_radon_yunet": 0.874,
+    "m3_haar_eyeline": -0.331,
+    "m4_radon_haar": -0.861,
+    "_yunet": 1.53
+   },
+   "measuredConsensus": 0.874,
+   "kind": "upright",
+   "corpus": "uprightSynthetic",
+   "truth_apply_deg": 0.0,
+   "methods": [],
+   "derivedAnnotations": [],
+   "visual_review": "由 c03 按真值反向旋转合成的竖直样本，几何为纯旋转；瞳孔清晰，M1 可测。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.25268248140000477,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.25268248140000477,
+     "m2_radon_yunet": -0.022659798281162793,
+     "m1h_pupil_haarseed": -0.15901444175560475,
+     "m3_haar_eyeline": -0.3200848237816687,
+     "m4_radon_haar": -0.01785253204884401
+    },
+    "tilt_abs_max_deg": 0.32,
+    "method_spread_deg": 0.302,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.253,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_upright__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c04_upright",
+   "src": "c04",
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c04_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    483,
+    800
+   ],
+   "note": "由 c04 (真值 -3.82°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": -0.086,
+    "m2_radon_yunet": -0.011,
+    "m3_haar_eyeline": 0.409,
+    "m4_radon_haar": -0.026,
+    "_yunet": 1.54
+   },
+   "measuredConsensus": -0.011,
+   "kind": "upright",
+   "corpus": "uprightSynthetic",
+   "truth_apply_deg": 0.0,
+   "methods": [],
+   "derivedAnnotations": [],
+   "visual_review": "由 c04 按真值反向旋转合成的竖直样本，几何为纯旋转；瞳孔清晰，M1 可测。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.2438161458817791,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.2438161458817791,
+     "m2_radon_yunet": -0.013072482500430914,
+     "m1h_pupil_haarseed": -0.123519109081266,
+     "m3_haar_eyeline": 0.0,
+     "m4_radon_haar": -0.019985816930727016
+    },
+    "tilt_abs_max_deg": 0.244,
+    "method_spread_deg": 0.244,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.244,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_upright__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c05_upright",
+   "src": "c05",
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c05_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    483,
+    604
+   ],
+   "note": "由 c05 (真值 -3.91°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.108,
+    "m2_radon_yunet": 0.003,
+    "m3_haar_eyeline": 0.616,
+    "m4_radon_haar": -0.025,
+    "_yunet": 1.265
+   },
+   "measuredConsensus": 0.108,
+   "kind": "upright",
+   "corpus": "uprightSynthetic",
+   "truth_apply_deg": 0.0,
+   "methods": [],
+   "derivedAnnotations": [],
+   "visual_review": "由 c05 按真值反向旋转合成的竖直样本，几何为纯旋转；瞳孔清晰，M1 可测。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.04208704994486446,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.04208704994486446,
+     "m2_radon_yunet": -0.004392934369034763,
+     "m1h_pupil_haarseed": -0.03117849401169521,
+     "m3_haar_eyeline": -0.658543177563603,
+     "m4_radon_haar": -0.023342953332674297
+    },
+    "tilt_abs_max_deg": 0.659,
+    "method_spread_deg": 0.654,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.042,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_upright__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c06_upright",
+   "src": "c06",
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c06_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    480,
+    640
+   ],
+   "note": "由 c06 (真值 -1.73°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.126,
+    "m2_radon_yunet": 1.074,
+    "m3_haar_eyeline": 0.644,
+    "m4_radon_haar": 1.266,
+    "_yunet": -2.412
+   },
+   "measuredConsensus": 1.074,
+   "kind": "upright",
+   "corpus": "uprightSynthetic",
+   "truth_apply_deg": 0.0,
+   "methods": [],
+   "derivedAnnotations": [],
+   "visual_review": "由 c06 按真值反向旋转合成的竖直样本，几何为纯旋转；瞳孔清晰，M1 可测。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.05569197657435566,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.05569197657435566,
+     "m2_radon_yunet": 0.9970634902741865,
+     "m1h_pupil_haarseed": -0.05311755127036178,
+     "m3_haar_eyeline": 0.5729386976834859,
+     "m4_radon_haar": 1.6163434639027345
+    },
+    "tilt_abs_max_deg": 1.616,
+    "method_spread_deg": 1.672,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.056,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_upright__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c08_upright",
+   "src": "c08",
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    1280,
+    720
+   ],
+   "note": "由 c08 (真值 -8.01°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.696,
+    "m2_radon_yunet": 1.666,
+    "_yunet": -1.711
+   },
+   "measuredConsensus": 1.666,
+   "kind": "upright",
+   "corpus": "uprightSynthetic",
+   "truth_apply_deg": 0.0,
+   "methods": [],
+   "derivedAnnotations": [],
+   "visual_review": "由 c08 按真值反向旋转合成的竖直样本，几何为纯旋转；瞳孔清晰，M1 可测。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": null,
+    "output_tilt_by_method": {
+     "m1_pupil": null,
+     "m2_radon_yunet": 15.999999999999886,
+     "m1h_pupil_haarseed": null,
+     "m3_haar_eyeline": null,
+     "m4_radon_haar": null
+    },
+    "tilt_abs_max_deg": 16.0,
+    "method_spread_deg": null,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": null,
+    "status": "unmeasured",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_upright__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c10_upright",
+   "src": "c10",
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c10_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    2048,
+    1536
+   ],
+   "note": "由 c10 (真值 -3.44°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": 0.284,
+    "m2_radon_yunet": -0.02,
+    "m3_haar_eyeline": 0.587,
+    "m4_radon_haar": -0.029,
+    "_yunet": 4.502
+   },
+   "measuredConsensus": 0.284,
+   "kind": "upright",
+   "corpus": "uprightSynthetic",
+   "truth_apply_deg": 0.0,
+   "methods": [],
+   "derivedAnnotations": [],
+   "visual_review": "由 c10 按真值反向旋转合成的竖直样本，几何为纯旋转；瞳孔清晰，M1 可测。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 0.2898640598031652,
+    "output_tilt_by_method": {
+     "m1_pupil": 0.2898640598031652,
+     "m2_radon_yunet": -0.010182140037554778,
+     "m1h_pupil_haarseed": -0.001969093022132117,
+     "m3_haar_eyeline": 0.3063916222707099,
+     "m4_radon_haar": 0.005158077038750116
+    },
+    "tilt_abs_max_deg": 0.306,
+    "method_spread_deg": 0.317,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.29,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_upright__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c12_upright",
+   "src": "c12",
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c12_upright.png",
+   "trueRollDeg": 0.0,
+   "wh": [
+    2048,
+    1536
+   ],
+   "note": "由 c12 (真值 -2.09°) 按真值反向旋转回正合成的竖直样本",
+   "measuredTiltDeg": {
+    "m1_pupil": -0.042,
+    "m2_radon_yunet": 0.036,
+    "m3_haar_eyeline": -0.198,
+    "m4_radon_haar": 0.034,
+    "_yunet": 2.617
+   },
+   "measuredConsensus": 0.034,
+   "kind": "upright",
+   "corpus": "uprightSynthetic",
+   "truth_apply_deg": 0.0,
+   "methods": [],
+   "derivedAnnotations": [],
+   "visual_review": "由 c12 按真值反向旋转合成的竖直样本，几何为纯旋转；瞳孔清晰，M1 可测。",
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.12847881358366928,
+    "output_tilt_by_method": {
+     "m1_pupil": -0.12847881358366928,
+     "m2_radon_yunet": 0.026453796993983553,
+     "m1h_pupil_haarseed": 0.12367421861555204,
+     "m3_haar_eyeline": -0.590657214646671,
+     "m4_radon_haar": 0.03957488545729792
+    },
+    "tilt_abs_max_deg": 0.591,
+    "method_spread_deg": 0.714,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.128,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12_upright__cn_big_1inch.jpg"
+   }
+  }
+ ],
+ "nonPortrait": [
+  "C:/Users/liuyu/Pictures/)T@WU8]6Q}21RVC5RUROQ]G.jpeg",
+  "C:/Users/liuyu/Pictures/)T@WU8]6Q}21RVC5RUROQ]G.png",
+  "C:/Users/liuyu/Pictures/18.jpg",
+  "C:/Users/liuyu/Pictures/dan5njb-28279924-59e5-4094-8d16-d410efcf2acc.jpg",
+  "C:/Users/liuyu/Pictures/desktop.ini",
+  "C:/Users/liuyu/Pictures/fwebp.webp",
+  "C:/Users/liuyu/Pictures/Globe_High.png",
+  "C:/Users/liuyu/Pictures/IMG_20230115_130634.jpg",
+  "C:/Users/liuyu/Pictures/IMG_20230115_130941.jpg",
+  "C:/Users/liuyu/Pictures/IMG_20230115_132101.jpg",
+  "C:/Users/liuyu/Pictures/IMG_20230115_133511.jpg",
+  "C:/Users/liuyu/Pictures/Online Verification Report of Student Record_LIU YUANLIN_00.jpg",
+  "C:/Users/liuyu/Pictures/QQ截图20230115131411.jpg",
+  "C:/Users/liuyu/Pictures/QQ截图20230115132012.jpg",
+  "C:/Users/liuyu/Pictures/QQ截图20230528124945.jpg",
+  "C:/Users/liuyu/Pictures/W}4M@N_DCBQUON5NZ{{QZ%W.png",
+  "C:/Users/liuyu/Pictures/Y{0T[9S[]P$MV9_W)W5U{}P.png",
+  "C:/Users/liuyu/Pictures/微信图片_2025-11-11_211809_101.jpg",
+  "C:/Users/liuyu/Pictures/微信图片_20250423221504.jpg",
+  "C:/Users/liuyu/Pictures/微信图片_202504232215041.jpg",
+  "C:/Users/liuyu/Pictures/微信图片_20250423221513.jpg",
+  "C:/Users/liuyu/Pictures/拼多多128固态硬盘测试结果.jpg",
+  "C:/Users/liuyu/Pictures/新文件 27.txt",
+  "C:/Users/liuyu/Pictures/Camera Roll/desktop.ini",
+  "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog.lrcat",
+  "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Helper.lrdata/helper.db",
+  "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Previews.lrdata/previews.db",
+  "C:/Users/liuyu/Pictures/Lightroom/Lightroom Catalog Previews.lrdata/root-pixels.db",
+  "C:/Users/liuyu/Pictures/Luminar Neo Catalog/Luminar Neo Catalog.luminarneo",
+  "C:/Users/liuyu/Pictures/Luminar Neo Catalog/map.dat",
+  "C:/Users/liuyu/Pictures/Luminar Neo Catalog/vectors.dat",
+  "C:/Users/liuyu/Pictures/Luminar Neo Catalog/Sample Images/scenario.json",
+  "C:/Users/liuyu/Pictures/Saved Pictures/desktop.ini",
+  "C:/Users/liuyu/Pictures/Screenshots/desktop.ini",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-07-26 172208.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-09-07 151043.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-09-09 105351.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-10-21 203504.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-10-21 210032.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2023-11-14 113737.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-01-26 112901.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-01-26 112931.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-05-06 213407.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-05-06 213412.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-09-16 193456.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-09-16 193518.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-10-16 121748.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-11-06 142831.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2024-11-06 142855.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-03-01 112555.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-06 170927.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-10 234413.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-11 175944.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-12 222310.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-13 112721.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-15 125826.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163718.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163727.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 163733.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-20 185612.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-21 113927.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-21 134949.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-04-24 080543.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-05-24 123944.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-07-08 104838.png",
+  "C:/Users/liuyu/Pictures/Screenshots/屏幕截图 2025-08-12 154339.png"
+ ],
+ "rejected": [
+  {
+   "id": "c09",
+   "path": "C:/Users/liuyu/Pictures/Camera Roll/WIN_20230522_00_19_21_Pro.jpg",
+   "reason": "方法互相矛盾：M1=-29.46 vs M2=-12.39 (spread 17.07)。原因：暗光 + 宽镜框 + 刘海遮挡，M1 的圆形暗块落在镜框/眉弓上而非瞳孔；目视也无法可靠定位瞳孔。已排除出真值集。"
+  }
+ ],
+ "rotated": [
+  {
+   "id": "p1_d-10",
+   "src": "p1",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_d-10.png",
+   "expectedTiltDeg": -14.4,
+   "expectedEngineRollDeg": -14.4,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": -10.007,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -13.345,
+   "remeasureOk": true,
+   "truth_apply_deg": -14.4,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.1700689886898158,
+    "tilt_abs_max_deg": 0.32,
+    "method_spread_deg": 0.304,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -14.38101844876451,
+    "truth_consistency_deg": -0.151,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p1_d-5",
+   "src": "p1",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_d-5.png",
+   "expectedTiltDeg": -9.4,
+   "expectedEngineRollDeg": -9.4,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": -5.005,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -7.996,
+   "remeasureOk": true,
+   "truth_apply_deg": -9.4,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -9.227024673730023,
+    "tilt_abs_max_deg": 10.421,
+    "method_spread_deg": 6.928,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.173,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p1_d-3",
+   "src": "p1",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_d-3.png",
+   "expectedTiltDeg": -7.4,
+   "expectedEngineRollDeg": -7.4,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": -3.002,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -7.082,
+   "remeasureOk": true,
+   "truth_apply_deg": -7.4,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -7.614711025733204,
+    "tilt_abs_max_deg": 8.114,
+    "method_spread_deg": 3.118,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.215,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p1_d+3",
+   "src": "p1",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_d+3.png",
+   "expectedTiltDeg": -1.4,
+   "expectedEngineRollDeg": -1.4,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": 3.003,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -1.146,
+   "remeasureOk": true,
+   "truth_apply_deg": -1.4,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -1.5401649118300487,
+    "tilt_abs_max_deg": 1.946,
+    "method_spread_deg": 1.302,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.14,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p1_d+5",
+   "src": "p1",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_d+5.png",
+   "expectedTiltDeg": 0.6,
+   "expectedEngineRollDeg": 0.6,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": 5.005,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 0.807,
+   "remeasureOk": true,
+   "truth_apply_deg": 0.6,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 0.4243636695728286,
+    "tilt_abs_max_deg": 0.651,
+    "method_spread_deg": 0.658,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.176,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p1_d+10",
+   "src": "p1",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p1_d+10.png",
+   "expectedTiltDeg": 5.6,
+   "expectedEngineRollDeg": 5.6,
+   "wh": [
+    1184,
+    2048
+   ],
+   "geoRecoveredDeltaDeg": 10.009,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 5.671,
+   "remeasureOk": true,
+   "truth_apply_deg": 5.6,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 5.4005226511979565,
+    "tilt_abs_max_deg": 5.711,
+    "method_spread_deg": 1.769,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.199,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c01_d-10",
+   "src": "c01",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c01_d-10.png",
+   "expectedTiltDeg": -11.3,
+   "expectedEngineRollDeg": -11.3,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -10.005,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 5.01,
+   "remeasureOk": false,
+   "truth_apply_deg": -11.3,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.4681458786558503,
+    "tilt_abs_max_deg": 12.942,
+    "method_spread_deg": 13.41,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -10.98395774006162,
+    "truth_consistency_deg": -0.152,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c01_d-5",
+   "src": "c01",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c01_d-5.png",
+   "expectedTiltDeg": -6.3,
+   "expectedEngineRollDeg": -6.3,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -5.003,
+   "geoNcc": 0.9996,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.855,
+   "remeasureOk": false,
+   "truth_apply_deg": -6.3,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -6.328458763886027,
+    "tilt_abs_max_deg": 6.348,
+    "method_spread_deg": 2.763,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.028,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c01_d-3",
+   "src": "c01",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c01_d-3.png",
+   "expectedTiltDeg": -4.3,
+   "expectedEngineRollDeg": -4.3,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -3.002,
+   "geoNcc": 0.9996,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -2.354,
+   "remeasureOk": false,
+   "truth_apply_deg": -4.3,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -4.098255980218339,
+    "tilt_abs_max_deg": 4.098,
+    "method_spread_deg": 1.678,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.202,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c01_d+3",
+   "src": "c01",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c01_d+3.png",
+   "expectedTiltDeg": 1.7,
+   "expectedEngineRollDeg": 1.7,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 3.002,
+   "geoNcc": 0.9996,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 2.484,
+   "remeasureOk": true,
+   "truth_apply_deg": 1.7,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 1.538941157899232,
+    "tilt_abs_max_deg": 3.028,
+    "method_spread_deg": 1.489,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.161,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c01_d+5",
+   "src": "c01",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c01_d+5.png",
+   "expectedTiltDeg": 3.7,
+   "expectedEngineRollDeg": 3.7,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 5.003,
+   "geoNcc": 0.9996,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 4.147,
+   "remeasureOk": true,
+   "truth_apply_deg": 3.7,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 3.775474403060599,
+    "tilt_abs_max_deg": 4.952,
+    "method_spread_deg": 1.177,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.075,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c01_d+10",
+   "src": "c01",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c01_d+10.png",
+   "expectedTiltDeg": 8.7,
+   "expectedEngineRollDeg": 8.7,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 10.006,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 7.372,
+   "remeasureOk": true,
+   "truth_apply_deg": 8.7,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 8.816544825466154,
+    "tilt_abs_max_deg": 9.26,
+    "method_spread_deg": 14.973,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.117,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c01_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c02_d-10",
+   "src": "c02",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c02_d-10.png",
+   "expectedTiltDeg": -10.25,
+   "expectedEngineRollDeg": -10.25,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -9.99,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -10.336,
+   "remeasureOk": true,
+   "truth_apply_deg": -10.25,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 0.15556488470593988,
+    "tilt_abs_max_deg": 1.925,
+    "method_spread_deg": 3.502,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -10.321486193800409,
+    "truth_consistency_deg": 0.084,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c02_d-5",
+   "src": "c02",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c02_d-5.png",
+   "expectedTiltDeg": -5.25,
+   "expectedEngineRollDeg": -5.25,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -4.997,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -5.247,
+   "remeasureOk": true,
+   "truth_apply_deg": -5.25,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -5.137865315033628,
+    "tilt_abs_max_deg": 5.654,
+    "method_spread_deg": 0.517,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.112,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c02_d-3",
+   "src": "c02",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c02_d-3.png",
+   "expectedTiltDeg": -3.25,
+   "expectedEngineRollDeg": -3.25,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -2.998,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.264,
+   "remeasureOk": true,
+   "truth_apply_deg": -3.25,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -3.0439421207748887,
+    "tilt_abs_max_deg": 7.253,
+    "method_spread_deg": 7.237,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.206,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c02_d+3",
+   "src": "c02",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c02_d+3.png",
+   "expectedTiltDeg": 2.75,
+   "expectedEngineRollDeg": 2.75,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 2.998,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 2.726,
+   "remeasureOk": true,
+   "truth_apply_deg": 2.75,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 2.944065190509314,
+    "tilt_abs_max_deg": 2.944,
+    "method_spread_deg": 0.275,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.194,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c02_d+5",
+   "src": "c02",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c02_d+5.png",
+   "expectedTiltDeg": 4.75,
+   "expectedEngineRollDeg": 4.75,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 5.0,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 4.687,
+   "remeasureOk": true,
+   "truth_apply_deg": 4.75,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 4.713194504926056,
+    "tilt_abs_max_deg": 4.794,
+    "method_spread_deg": 0.859,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.037,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c02_d+10",
+   "src": "c02",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c02_d+10.png",
+   "expectedTiltDeg": 9.75,
+   "expectedEngineRollDeg": 9.75,
+   "wh": [
+    1282,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 10.0,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 9.66,
+   "remeasureOk": true,
+   "truth_apply_deg": 9.75,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 9.580533304831107,
+    "tilt_abs_max_deg": 9.745,
+    "method_spread_deg": 0.332,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.169,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c02_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c03_d-10",
+   "src": "c03",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c03_d-10.png",
+   "expectedTiltDeg": -13.72,
+   "expectedEngineRollDeg": -13.72,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -10.005,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -12.761,
+   "remeasureOk": true,
+   "truth_apply_deg": -13.72,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.19652651246415465,
+    "tilt_abs_max_deg": 0.324,
+    "method_spread_deg": 0.52,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -13.755927356452538,
+    "truth_consistency_deg": -0.232,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c03_d-5",
+   "src": "c03",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c03_d-5.png",
+   "expectedTiltDeg": -8.72,
+   "expectedEngineRollDeg": -8.72,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -5.003,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -7.824,
+   "remeasureOk": true,
+   "truth_apply_deg": -8.72,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -8.917863936371045,
+    "tilt_abs_max_deg": 8.918,
+    "method_spread_deg": 2.901,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.198,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c03_d-3",
+   "src": "c03",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c03_d-3.png",
+   "expectedTiltDeg": -6.72,
+   "expectedEngineRollDeg": -6.72,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": -3.002,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -5.841,
+   "remeasureOk": true,
+   "truth_apply_deg": -6.72,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -6.906619796775257,
+    "tilt_abs_max_deg": 7.446,
+    "method_spread_deg": 3.13,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.187,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c03_d+3",
+   "src": "c03",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c03_d+3.png",
+   "expectedTiltDeg": -0.72,
+   "expectedEngineRollDeg": -0.72,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 3.002,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -0.215,
+   "remeasureOk": true,
+   "truth_apply_deg": -0.72,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.7577455551491308,
+    "tilt_abs_max_deg": 1.255,
+    "method_spread_deg": 0.618,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.038,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c03_d+5",
+   "src": "c03",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c03_d+5.png",
+   "expectedTiltDeg": 1.28,
+   "expectedEngineRollDeg": 1.28,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 5.003,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 1.909,
+   "remeasureOk": true,
+   "truth_apply_deg": 1.28,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 1.1834471559462116,
+    "tilt_abs_max_deg": 1.273,
+    "method_spread_deg": 1.248,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.097,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c03_d+10",
+   "src": "c03",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c03_d+10.png",
+   "expectedTiltDeg": 6.28,
+   "expectedEngineRollDeg": 6.28,
+   "wh": [
+    1159,
+    1920
+   ],
+   "geoRecoveredDeltaDeg": 10.007,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 6.555,
+   "remeasureOk": true,
+   "truth_apply_deg": 6.28,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 6.122950048237159,
+    "tilt_abs_max_deg": 6.127,
+    "method_spread_deg": 1.686,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.157,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c03_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c04_d-10",
+   "src": "c04",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c04_d-10.png",
+   "expectedTiltDeg": -13.82,
+   "expectedEngineRollDeg": -13.82,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": -10.004,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -12.791,
+   "remeasureOk": true,
+   "truth_apply_deg": -13.82,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.2265255544679912,
+    "tilt_abs_max_deg": 0.637,
+    "method_spread_deg": 0.863,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -13.839766951302082,
+    "truth_consistency_deg": -0.246,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c04_d-5",
+   "src": "c04",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c04_d-5.png",
+   "expectedTiltDeg": -8.82,
+   "expectedEngineRollDeg": -8.82,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": -5.003,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -7.847,
+   "remeasureOk": true,
+   "truth_apply_deg": -8.82,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -8.830888047174069,
+    "tilt_abs_max_deg": 9.039,
+    "method_spread_deg": 1.452,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.011,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c04_d-3",
+   "src": "c04",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c04_d-3.png",
+   "expectedTiltDeg": -6.82,
+   "expectedEngineRollDeg": -6.82,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": -3.002,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -6.108,
+   "remeasureOk": true,
+   "truth_apply_deg": -6.82,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -6.851415179643235,
+    "tilt_abs_max_deg": 7.73,
+    "method_spread_deg": 2.192,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.031,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c04_d+3",
+   "src": "c04",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c04_d+3.png",
+   "expectedTiltDeg": -0.82,
+   "expectedEngineRollDeg": -0.82,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": 3.002,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -0.86,
+   "remeasureOk": true,
+   "truth_apply_deg": -0.82,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.8492991569910364,
+    "tilt_abs_max_deg": 1.6,
+    "method_spread_deg": 0.799,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.029,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c04_d+5",
+   "src": "c04",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c04_d+5.png",
+   "expectedTiltDeg": 1.18,
+   "expectedEngineRollDeg": 1.18,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": 5.003,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 1.182,
+   "remeasureOk": true,
+   "truth_apply_deg": 1.18,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 1.2047769994957083,
+    "tilt_abs_max_deg": 1.259,
+    "method_spread_deg": 1.239,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.025,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c04_d+10",
+   "src": "c04",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c04_d+10.png",
+   "expectedTiltDeg": 6.18,
+   "expectedEngineRollDeg": 6.18,
+   "wh": [
+    483,
+    800
+   ],
+   "geoRecoveredDeltaDeg": 10.006,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 6.164,
+   "remeasureOk": true,
+   "truth_apply_deg": 6.18,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 6.239520051987242,
+    "tilt_abs_max_deg": 6.34,
+    "method_spread_deg": 2.109,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.06,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c04_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c05_d-10",
+   "src": "c05",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c05_d-10.png",
+   "expectedTiltDeg": -13.91,
+   "expectedEngineRollDeg": -13.91,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": -9.991,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -12.791,
+   "remeasureOk": true,
+   "truth_apply_deg": -13.91,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 0.07093461981954088,
+    "tilt_abs_max_deg": 0.306,
+    "method_spread_deg": 0.318,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -13.904075488277183,
+    "truth_consistency_deg": 0.077,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c05_d-5",
+   "src": "c05",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c05_d-5.png",
+   "expectedTiltDeg": -8.91,
+   "expectedEngineRollDeg": -8.91,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": -4.995,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -7.766,
+   "remeasureOk": true,
+   "truth_apply_deg": -8.91,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -8.88591061685216,
+    "tilt_abs_max_deg": 8.899,
+    "method_spread_deg": 3.229,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.024,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c05_d-3",
+   "src": "c05",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c05_d-3.png",
+   "expectedTiltDeg": -6.91,
+   "expectedEngineRollDeg": -6.91,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": -2.997,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -6.031,
+   "remeasureOk": true,
+   "truth_apply_deg": -6.91,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -6.959203148470426,
+    "tilt_abs_max_deg": 7.698,
+    "method_spread_deg": 1.953,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.049,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c05_d+3",
+   "src": "c05",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c05_d+3.png",
+   "expectedTiltDeg": -0.91,
+   "expectedEngineRollDeg": -0.91,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": 2.998,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -0.809,
+   "remeasureOk": true,
+   "truth_apply_deg": -0.91,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.9380925864755755,
+    "tilt_abs_max_deg": 1.243,
+    "method_spread_deg": 0.325,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.028,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c05_d+5",
+   "src": "c05",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c05_d+5.png",
+   "expectedTiltDeg": 1.09,
+   "expectedEngineRollDeg": 1.09,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": 4.996,
+   "geoNcc": 0.9995,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 0.992,
+   "remeasureOk": true,
+   "truth_apply_deg": 1.09,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 1.2396657248381509,
+    "tilt_abs_max_deg": 1.24,
+    "method_spread_deg": 1.22,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.15,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c05_d+10",
+   "src": "c05",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c05_d+10.png",
+   "expectedTiltDeg": 6.09,
+   "expectedEngineRollDeg": 6.09,
+   "wh": [
+    483,
+    604
+   ],
+   "geoRecoveredDeltaDeg": 9.991,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 6.086,
+   "remeasureOk": true,
+   "truth_apply_deg": 6.09,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 6.075672701105975,
+    "tilt_abs_max_deg": 6.106,
+    "method_spread_deg": 1.043,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.014,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c06_d-10",
+   "src": "c06",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c06_d-10.png",
+   "expectedTiltDeg": -11.73,
+   "expectedEngineRollDeg": -11.73,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -9.995,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 5.01,
+   "remeasureOk": false,
+   "truth_apply_deg": -11.73,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 0.05089116387678281,
+    "tilt_abs_max_deg": 1.319,
+    "method_spread_deg": 1.275,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -11.685176706610463,
+    "truth_consistency_deg": 0.096,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c06_d-5",
+   "src": "c06",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c06_d-5.png",
+   "expectedTiltDeg": -6.73,
+   "expectedEngineRollDeg": -6.73,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -4.998,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.39,
+   "remeasureOk": false,
+   "truth_apply_deg": -6.73,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -6.606941180156421,
+    "tilt_abs_max_deg": 6.628,
+    "method_spread_deg": 3.472,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.123,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c06_d-3",
+   "src": "c06",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c06_d-3.png",
+   "expectedTiltDeg": -4.73,
+   "expectedEngineRollDeg": -4.73,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": -2.998,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -2.373,
+   "remeasureOk": false,
+   "truth_apply_deg": -4.73,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -4.8247130878563365,
+    "tilt_abs_max_deg": 4.911,
+    "method_spread_deg": 3.137,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.095,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c06_d+3",
+   "src": "c06",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c06_d+3.png",
+   "expectedTiltDeg": 1.27,
+   "expectedEngineRollDeg": 1.27,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 2.999,
+   "geoNcc": 0.9994,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 2.315,
+   "remeasureOk": true,
+   "truth_apply_deg": 1.27,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 1.376737810729919,
+    "tilt_abs_max_deg": 2.528,
+    "method_spread_deg": 1.206,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.107,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c06_d+5",
+   "src": "c06",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c06_d+5.png",
+   "expectedTiltDeg": 3.27,
+   "expectedEngineRollDeg": 3.27,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 4.999,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 3.814,
+   "remeasureOk": true,
+   "truth_apply_deg": 3.27,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 3.2436140741198076,
+    "tilt_abs_max_deg": 3.964,
+    "method_spread_deg": 0.743,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.026,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c06_d+10",
+   "src": "c06",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c06_d+10.png",
+   "expectedTiltDeg": 8.27,
+   "expectedEngineRollDeg": 8.27,
+   "wh": [
+    480,
+    640
+   ],
+   "geoRecoveredDeltaDeg": 9.999,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 8.462,
+   "remeasureOk": true,
+   "truth_apply_deg": 8.27,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 8.40425558270247,
+    "tilt_abs_max_deg": 8.943,
+    "method_spread_deg": 0.639,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.134,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c06_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c07_d-10",
+   "src": "c07",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c07_d-10.png",
+   "expectedTiltDeg": -10.35,
+   "expectedEngineRollDeg": -10.35,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": -9.985,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -10.008,
+   "remeasureOk": true,
+   "truth_apply_deg": -10.35,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.14629154657239396,
+    "tilt_abs_max_deg": 3.366,
+    "method_spread_deg": 5.188,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -10.30212883942154,
+    "truth_consistency_deg": -0.098,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c07_d-5",
+   "src": "c07",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c07_d-5.png",
+   "expectedTiltDeg": -5.35,
+   "expectedEngineRollDeg": -5.35,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": -4.993,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -5.298,
+   "remeasureOk": true,
+   "truth_apply_deg": -5.35,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -5.4098804152363495,
+    "tilt_abs_max_deg": 5.477,
+    "method_spread_deg": 0.175,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.06,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c07_d-3",
+   "src": "c07",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c07_d-3.png",
+   "expectedTiltDeg": -3.35,
+   "expectedEngineRollDeg": -3.35,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": -2.996,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.293,
+   "remeasureOk": true,
+   "truth_apply_deg": -3.35,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -3.374402807535828,
+    "tilt_abs_max_deg": 13.178,
+    "method_spread_deg": 13.159,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.024,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c07_d+3",
+   "src": "c07",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c07_d+3.png",
+   "expectedTiltDeg": 2.65,
+   "expectedEngineRollDeg": 2.65,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": 2.997,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 2.775,
+   "remeasureOk": true,
+   "truth_apply_deg": 2.65,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 2.723222712117407,
+    "tilt_abs_max_deg": 2.829,
+    "method_spread_deg": 0.204,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.073,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c07_d+5",
+   "src": "c07",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c07_d+5.png",
+   "expectedTiltDeg": 4.65,
+   "expectedEngineRollDeg": 4.65,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": 4.996,
+   "geoNcc": 0.9993,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 4.786,
+   "remeasureOk": true,
+   "truth_apply_deg": 4.65,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 4.7713758447877685,
+    "tilt_abs_max_deg": 4.973,
+    "method_spread_deg": 0.555,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.121,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c07_d+10",
+   "src": "c07",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c07_d+10.png",
+   "expectedTiltDeg": 9.65,
+   "expectedEngineRollDeg": 9.65,
+   "wh": [
+    295,
+    413
+   ],
+   "geoRecoveredDeltaDeg": 9.991,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 9.468,
+   "remeasureOk": true,
+   "truth_apply_deg": 9.65,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 9.656382284794486,
+    "tilt_abs_max_deg": 12.918,
+    "method_spread_deg": 5.297,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.006,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c07_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c08_d-10",
+   "src": "c08",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-10.png",
+   "expectedTiltDeg": -18.01,
+   "expectedEngineRollDeg": -18.01,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": -10.015,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -11.717,
+   "remeasureOk": false,
+   "truth_apply_deg": -18.01,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 3.3345454333972677,
+    "tilt_abs_max_deg": 16.0,
+    "method_spread_deg": 12.665,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -17.822220223380846,
+    "truth_consistency_deg": 3.522,
+    "status": "reliability_mismatch",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 3.522°，测量落到异物上，本项残余不可信",
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c08_d-5",
+   "src": "c08",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-5.png",
+   "expectedTiltDeg": -13.01,
+   "expectedEngineRollDeg": -13.01,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": -5.007,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -6.375,
+   "remeasureOk": false,
+   "truth_apply_deg": -13.01,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 2.0283804480566934,
+    "tilt_abs_max_deg": 15.904,
+    "method_spread_deg": 13.876,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -12.79207266687958,
+    "truth_consistency_deg": 2.246,
+    "status": "reliability_mismatch",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 2.246°，测量落到异物上，本项残余不可信",
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c08_d-3",
+   "src": "c08",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d-3.png",
+   "expectedTiltDeg": -11.01,
+   "expectedEngineRollDeg": -11.01,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": -3.004,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 7.405,
+   "remeasureOk": false,
+   "truth_apply_deg": -11.01,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 0.5219985212654528,
+    "tilt_abs_max_deg": 1.392,
+    "method_spread_deg": 0.87,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -10.893957623427655,
+    "truth_consistency_deg": 0.638,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c08_d+3",
+   "src": "c08",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d+3.png",
+   "expectedTiltDeg": -5.01,
+   "expectedEngineRollDeg": -5.01,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": 3.004,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -4.029,
+   "remeasureOk": true,
+   "truth_apply_deg": -5.01,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 13.657025140963478,
+    "tilt_abs_max_deg": 13.889,
+    "method_spread_deg": 0.232,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 18.667,
+    "status": "reliability_mismatch",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 18.667°，测量落到异物上，本项残余不可信",
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c08_d+5",
+   "src": "c08",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d+5.png",
+   "expectedTiltDeg": -3.01,
+   "expectedEngineRollDeg": -3.01,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": 5.006,
+   "geoNcc": 0.9992,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -1.805,
+   "remeasureOk": true,
+   "truth_apply_deg": -3.01,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 11.416380216210786,
+    "tilt_abs_max_deg": 16.0,
+    "method_spread_deg": 27.416,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 14.426,
+    "status": "reliability_mismatch",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 14.426°，测量落到异物上，本项残余不可信",
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c08_d+10",
+   "src": "c08",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c08_d+10.png",
+   "expectedTiltDeg": 1.99,
+   "expectedEngineRollDeg": 1.99,
+   "wh": [
+    1280,
+    720
+   ],
+   "geoRecoveredDeltaDeg": 10.013,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 3.209,
+   "remeasureOk": true,
+   "truth_apply_deg": 1.99,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.9249069414723742,
+    "tilt_abs_max_deg": 12.558,
+    "method_spread_deg": 13.483,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -2.915,
+    "status": "reliability_mismatch",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 -2.915°，测量落到异物上，本项残余不可信",
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c08_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c10_d-10",
+   "src": "c10",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c10_d-10.png",
+   "expectedTiltDeg": -13.44,
+   "expectedEngineRollDeg": -13.44,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -9.995,
+   "geoNcc": 0.9985,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -13.409,
+   "remeasureOk": true,
+   "truth_apply_deg": -13.44,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 0.000911471108063353,
+    "tilt_abs_max_deg": 0.61,
+    "method_spread_deg": 0.62,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -13.485572239592011,
+    "truth_consistency_deg": -0.045,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c10_d-5",
+   "src": "c10",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c10_d-5.png",
+   "expectedTiltDeg": -8.44,
+   "expectedEngineRollDeg": -8.44,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -4.997,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -8.647,
+   "remeasureOk": true,
+   "truth_apply_deg": -8.44,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -8.371485547549737,
+    "tilt_abs_max_deg": 8.646,
+    "method_spread_deg": 1.34,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.069,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c10_d-3",
+   "src": "c10",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c10_d-3.png",
+   "expectedTiltDeg": -6.44,
+   "expectedEngineRollDeg": -6.44,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -2.998,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -6.823,
+   "remeasureOk": true,
+   "truth_apply_deg": -6.44,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -6.5915398431875225,
+    "tilt_abs_max_deg": 6.592,
+    "method_spread_deg": 0.354,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.152,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c10_d+3",
+   "src": "c10",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c10_d+3.png",
+   "expectedTiltDeg": -0.44,
+   "expectedEngineRollDeg": -0.44,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 2.998,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -0.299,
+   "remeasureOk": true,
+   "truth_apply_deg": -0.44,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.5777657460854153,
+    "tilt_abs_max_deg": 0.843,
+    "method_spread_deg": 0.801,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.138,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c10_d+5",
+   "src": "c10",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c10_d+5.png",
+   "expectedTiltDeg": 1.56,
+   "expectedEngineRollDeg": 1.56,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 4.997,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 1.801,
+   "remeasureOk": true,
+   "truth_apply_deg": 1.56,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 1.356458872444945,
+    "tilt_abs_max_deg": 2.437,
+    "method_spread_deg": 1.08,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.204,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c10_d+10",
+   "src": "c10",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c10_d+10.png",
+   "expectedTiltDeg": 6.56,
+   "expectedEngineRollDeg": 6.56,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 9.994,
+   "geoNcc": 0.9986,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 6.68,
+   "remeasureOk": true,
+   "truth_apply_deg": 6.56,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 6.921799002322936,
+    "tilt_abs_max_deg": 6.952,
+    "method_spread_deg": 0.349,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.362,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c10_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c11_d-10",
+   "src": "c11",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c11_d-10.png",
+   "expectedTiltDeg": -10.11,
+   "expectedEngineRollDeg": -10.11,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -9.985,
+   "geoNcc": 0.9987,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -9.992,
+   "remeasureOk": true,
+   "truth_apply_deg": -10.11,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -10.149035718980677,
+    "tilt_abs_max_deg": 10.149,
+    "method_spread_deg": 1.358,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.039,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c11_d-5",
+   "src": "c11",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c11_d-5.png",
+   "expectedTiltDeg": -5.11,
+   "expectedEngineRollDeg": -5.11,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -4.993,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -4.976,
+   "remeasureOk": true,
+   "truth_apply_deg": -5.11,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -5.244169949481348,
+    "tilt_abs_max_deg": 5.261,
+    "method_spread_deg": 1.133,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.134,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c11_d-3",
+   "src": "c11",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c11_d-3.png",
+   "expectedTiltDeg": -3.11,
+   "expectedEngineRollDeg": -3.11,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -2.995,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.031,
+   "remeasureOk": true,
+   "truth_apply_deg": -3.11,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -3.111168813205946,
+    "tilt_abs_max_deg": 4.063,
+    "method_spread_deg": 1.095,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.001,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c11_d+3",
+   "src": "c11",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c11_d+3.png",
+   "expectedTiltDeg": 2.89,
+   "expectedEngineRollDeg": 2.89,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 2.995,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 2.912,
+   "remeasureOk": true,
+   "truth_apply_deg": 2.89,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 2.746085395139171,
+    "tilt_abs_max_deg": 3.074,
+    "method_spread_deg": 0.404,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.144,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c11_d+5",
+   "src": "c11",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c11_d+5.png",
+   "expectedTiltDeg": 4.89,
+   "expectedEngineRollDeg": 4.89,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 4.992,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 4.905,
+   "remeasureOk": true,
+   "truth_apply_deg": 4.89,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 4.851436455194022,
+    "tilt_abs_max_deg": 5.036,
+    "method_spread_deg": 0.682,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.039,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c11_d+10",
+   "src": "c11",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c11_d+10.png",
+   "expectedTiltDeg": 9.89,
+   "expectedEngineRollDeg": 9.89,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 9.985,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 9.98,
+   "remeasureOk": true,
+   "truth_apply_deg": 9.89,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -0.4168499469517184,
+    "tilt_abs_max_deg": 0.448,
+    "method_spread_deg": 0.428,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 10.282848636884268,
+    "truth_consistency_deg": -0.024,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c12_d-10",
+   "src": "c12",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c12_d-10.png",
+   "expectedTiltDeg": -12.09,
+   "expectedEngineRollDeg": -12.09,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -9.99,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -12.094,
+   "remeasureOk": true,
+   "truth_apply_deg": -12.09,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 0.004968847400003898,
+    "tilt_abs_max_deg": 1.548,
+    "method_spread_deg": 2.393,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -12.018617756514107,
+    "truth_consistency_deg": 0.076,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c12_d-5",
+   "src": "c12",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c12_d-5.png",
+   "expectedTiltDeg": -7.09,
+   "expectedEngineRollDeg": -7.09,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -4.995,
+   "geoNcc": 0.999,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -6.846,
+   "remeasureOk": true,
+   "truth_apply_deg": -7.09,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -6.846699129439212,
+    "tilt_abs_max_deg": 8.303,
+    "method_spread_deg": 1.921,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.243,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c12_d-3",
+   "src": "c12",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c12_d-3.png",
+   "expectedTiltDeg": -5.09,
+   "expectedEngineRollDeg": -5.09,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": -2.997,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -4.884,
+   "remeasureOk": true,
+   "truth_apply_deg": -5.09,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -4.811600401904119,
+    "tilt_abs_max_deg": 6.34,
+    "method_spread_deg": 2.068,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.278,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c12_d+3",
+   "src": "c12",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c12_d+3.png",
+   "expectedTiltDeg": 0.91,
+   "expectedEngineRollDeg": 0.91,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 2.996,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 1.122,
+   "remeasureOk": true,
+   "truth_apply_deg": 0.91,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 0.9966595053967439,
+    "tilt_abs_max_deg": 1.545,
+    "method_spread_deg": 1.842,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.087,
+    "status": "low_confidence",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c12_d+5",
+   "src": "c12",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c12_d+5.png",
+   "expectedTiltDeg": 2.91,
+   "expectedEngineRollDeg": 2.91,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 4.993,
+   "geoNcc": 0.9991,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 3.14,
+   "remeasureOk": true,
+   "truth_apply_deg": 2.91,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 2.914585011837133,
+    "tilt_abs_max_deg": 3.4,
+    "method_spread_deg": 0.811,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.005,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "c12_d+10",
+   "src": "c12",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/c12_d+10.png",
+   "expectedTiltDeg": 7.91,
+   "expectedEngineRollDeg": 7.91,
+   "wh": [
+    2048,
+    1536
+   ],
+   "geoRecoveredDeltaDeg": 9.987,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 8.134,
+   "remeasureOk": true,
+   "truth_apply_deg": 7.91,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 7.779239534149425,
+    "tilt_abs_max_deg": 8.869,
+    "method_spread_deg": 1.157,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.131,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c12_d+10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p2_d-10",
+   "src": "p2",
+   "deltaDeg": -10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p2_d-10.png",
+   "expectedTiltDeg": -10.2,
+   "expectedEngineRollDeg": -10.2,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": -9.987,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -10.315,
+   "remeasureOk": true,
+   "truth_apply_deg": -10.2,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -17.937498860373793,
+    "tilt_abs_max_deg": 17.937,
+    "method_spread_deg": 17.952,
+    "roll_source": "pupil",
+    "applied_straighten_deg": -10.167373079912387,
+    "truth_consistency_deg": -17.905,
+    "status": "reliability_mismatch",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 -17.905°，测量落到异物上，本项残余不可信",
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d-10__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p2_d-5",
+   "src": "p2",
+   "deltaDeg": -5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p2_d-5.png",
+   "expectedTiltDeg": -5.2,
+   "expectedEngineRollDeg": -5.2,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": -4.993,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -5.303,
+   "remeasureOk": true,
+   "truth_apply_deg": -5.2,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -5.234872501809331,
+    "tilt_abs_max_deg": 5.262,
+    "method_spread_deg": 0.088,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.035,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d-5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p2_d-3",
+   "src": "p2",
+   "deltaDeg": -3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p2_d-3.png",
+   "expectedTiltDeg": -3.2,
+   "expectedEngineRollDeg": -3.2,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": -2.996,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": -3.341,
+   "remeasureOk": true,
+   "truth_apply_deg": -3.2,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -3.3291239445065326,
+    "tilt_abs_max_deg": 3.691,
+    "method_spread_deg": 0.531,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.129,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d-3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p2_d+3",
+   "src": "p2",
+   "deltaDeg": 3.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p2_d+3.png",
+   "expectedTiltDeg": 2.8,
+   "expectedEngineRollDeg": 2.8,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": 2.998,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 3.119,
+   "remeasureOk": true,
+   "truth_apply_deg": 2.8,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 2.8149743416060504,
+    "tilt_abs_max_deg": 2.957,
+    "method_spread_deg": 0.355,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": 0.015,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d+3__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p2_d+5",
+   "src": "p2",
+   "deltaDeg": 5.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p2_d+5.png",
+   "expectedTiltDeg": 4.8,
+   "expectedEngineRollDeg": 4.8,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": 4.997,
+   "geoNcc": 0.9989,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 4.857,
+   "remeasureOk": true,
+   "truth_apply_deg": 4.8,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": -1.0521655176766318,
+    "tilt_abs_max_deg": 4.859,
+    "method_spread_deg": 5.911,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -5.852,
+    "status": "reliability_mismatch",
+    "note": "成片瞳孔测量隐含的输入倾角与独立真值差 -5.852°，测量落到异物上，本项残余不可信",
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d+5__cn_big_1inch.jpg"
+   }
+  },
+  {
+   "id": "p2_d+10",
+   "src": "p2",
+   "deltaDeg": 10.0,
+   "path": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/p2_d+10.png",
+   "expectedTiltDeg": 9.8,
+   "expectedEngineRollDeg": 9.8,
+   "wh": [
+    1080,
+    1415
+   ],
+   "geoRecoveredDeltaDeg": 9.993,
+   "geoNcc": 0.9988,
+   "geoVerified": true,
+   "remeasureConsensusDeg": 9.635,
+   "remeasureOk": true,
+   "truth_apply_deg": 9.8,
+   "end_to_end": {
+    "spec": "cn_big_1inch",
+    "output_tilt_deg": 9.769888119256615,
+    "tilt_abs_max_deg": 9.805,
+    "method_spread_deg": 0.241,
+    "roll_source": "pupil",
+    "applied_straighten_deg": 0.0,
+    "truth_consistency_deg": -0.03,
+    "status": "ok",
+    "note": null,
+    "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2_d+10__cn_big_1inch.jpg"
+   }
+  }
+ ],
+ "rotationFixtureCount": 78,
+ "fixtureGeoVerification": {
+  "method": "cv2 旋转配准（像素级，无特征点，见 test/batch/p0_verify_geo.py）",
+  "n": 78,
+  "geoVerifiedCount": 78,
+  "maxAbsErrorDeg": 0.015,
+  "minNcc": 0.9985,
+  "conclusion": "全部夹具角度经独立像素级配准确认，误差 ≤0.015°；夹具的 expectedTiltDeg 可直接作为 P0.3 的横轴真值"
+ },
+ "version": 1,
+ "conventionDetail": {
+  "trueRollDeg": "本文件的历史字段名，等价于 truth_apply_deg：实测倾角 tilt（见 convention）",
+  "expectedEngineRollDeg": "FaceInfo.rollDeg 应输出的值。**实测等于 tilt，不取负**。（旧版此处的 signTrap 注记已失效：api.dart / CONTRACTS.md §6 已改正，三处口径现已一致。）",
+  "fixtureDelta": "夹具应有 tilt = 锚点真值 + deltaDeg；生成用 PIL.rotate(-deltaDeg, BICUBIC)",
+  "outputResidual": "硬判据：成片端到端残余 = 成片眼线的实测倾角，理想 0。与符号约定无关——摆正了就是 0；符号写反会得到 2×真值，一眼可见。见 out/P0_output_residual.json，产出脚本 test/batch/p0_output_residual.py，成片由 test/batch/p0_compose_test.dart 走生产引擎生成。",
+  "measurementProvenance": "全部数值由纯 Python（PIL/OpenCV/scipy）测量，**不调用任何被测 Dart 代码**；Dart 侧只负责产出成片（被测量对象）。"
+ },
+ "endToEndResidual": {
+  "summary": {
+   "generatedBy": "qa-batch test/batch/p0_output_residual.py",
+   "note": "成片眼线残余（口径无关）：理想 0。测量只用 Python/PIL/OpenCV。",
+   "provenance": {
+    "inheritedFrom": "out/P0_compose_summary.json#provenance.codeFingerprint",
+    "codeFingerprint": {
+     "files": 103,
+     "fnv1a64": "f003fdd0e73ed73a",
+     "blobHashes": {
+      "lib/core/api.dart": "a116f65a79cc80ae9a6df23318d6b147f502e198",
+      "lib/core/controller.dart": "e93ee6397c70820604575db12ad1ebc9b8b7249c",
+      "lib/core/engine_impl.dart": "06598685727a41f010eb977ce020f937c949d4fc",
+      "lib/core/image_header.dart": "3c40b16fbb48f709bb8b4749333ea6ff4c1eebfc",
+      "lib/core/imaging/compose_engine.dart": "0bc886b7983540b8a6b9a77205e92b3617be5fcb",
+      "lib/core/imaging/compose_only_engine.dart": "8e2dbdab3960b4ab7bb12487e58f329c02a25c58",
+      "lib/core/imaging/crop_geometry.dart": "123ff1784bc23774595a6d164b5178e816c6d010",
+      "lib/core/imaging/dev_compose_memprofile.dart": "3a2bb93d100a3d5d8692101b16c393a8556c7b02",
+      "lib/core/imaging/dev_gate_repro.dart": "3d4f981bc082db7f9d3e6bda937909d57525af8d",
+      "lib/core/imaging/dev_pool_audit.dart": "855872160627a0c049cde76ceb3af9e870a32e02",
+      "lib/core/imaging/dev_pool_bitcheck.dart": "4d6b444b33c3acb210e15a9e78c8a8ef15e1ccc2",
+      "lib/core/imaging/dev_repro_g4.dart": "6fe6080b221668c0c4931f9a5eb1ad38157ba417",
+      "lib/core/imaging/dev_roll_ab.dart": "6a5612e3fbf26cc6cdb416f86b67155215517bb9",
+      "lib/core/imaging/dev_roll_markers.dart": "0554d4946c10a92db39a765e5bd571d9c120f529",
+      "lib/core/imaging/dev_roll_probe.dart": "0ffe33463e0274e80cec7c54eba3da2404f6d904",
+      "lib/core/imaging/dev_roll_probe2.dart": "d9f720ba2c02e15e9b5f92b6bedc995939a71adf",
+      "lib/core/imaging/dev_roll_repro.dart": "bb3a883a80237586ea5b88c96f1a98aa7f7bcaba",
+      "lib/core/imaging/dev_roll_scale.dart": "00268ea356d5043920d30c79d77b8b07b8621db1",
+      "lib/core/imaging/dev_selfcheck.dart": "be78e2c0e9484e92285674e6b879d9708ce68dd4",
+      "lib/core/imaging/dev_synth.dart": "5ad526c98a781c89275c7d3445b6bbc6438b3246",
+      "lib/core/imaging/jpeg_dpi.dart": "50f68da670488e7546cddaaf4e730c10d191d749",
+      "lib/core/imaging/matte_clean.dart": "9e5713c52cbe9aaf8429e5fbb1b554237559e91d",
+      "lib/core/imaging/render.dart": "270dacaf9c51d2e75f91f987c8c995011e4872f0",
+      "lib/core/matting/flutter_decode.dart": "6a312a6dae2d3840aa1e76f8175dabb789bc8280",
+      "lib/core/matting/image_header.dart": "d8123916a81dfbcfb71b9def09aead38314d9e34",
+      "lib/core/matting/image_ops.dart": "e51f4b35e6d92421120cd204c98d51a73fd89b18",
+      "lib/core/matting/iris_roll.dart": "b31748061f03b6725dbb9080fbc3c488eda16775",
+      "lib/core/matting/matting_engine.dart": "7583483a23ca673b207eff1f3934bc9498abbe91",
+      "lib/core/matting/matting_worker.dart": "46b7b58cd405fd6101a92a5826175676aafe738c",
+      "lib/core/matting/ort_runtime.dart": "c5a6090e7f213a94004f8f90292c976e02b5e61b",
+      "lib/core/matting/session_factory.dart": "e05eb06730bc685d3614241c53ccb4c90fd78def",
+      "lib/core/matting/yunet_decoder.dart": "b8be3bfa310e4c4123b4bd09e2ff0731d95455db",
+      "lib/core/specs/photo_specs.dart": "1fd3a365440627ecf366a3e0a57b240088efe617",
+      "lib/main.dart": "8fc91ae4c88ad8e61681bb717341e0a5c5b83863",
+      "lib/ui/app.dart": "7501d89cd2047820350f1549d168eba380682d1b",
+      "lib/ui/areas/area_a_source.dart": "96b6ef9d15908f53cae976116e34acb33d0d8dff",
+      "lib/ui/areas/area_b_candidates.dart": "ba55003f539793f2301c0b7ebb822185c88d1838",
+      "lib/ui/areas/area_c_save.dart": "e2c8b9bf963abb64ac67bc6769d7f7e33636ff25",
+      "lib/ui/dev/fake_controller.dart": "288d85cb68cb85e9801e862213399ba741fa477c",
+      "lib/ui/dev/fake_thumbs.dart": "c2f11bfa4b1f1ade5302a67da4cad8d3c0180657",
+      "lib/ui/dev/mouse_wheel_scroller_selftest.dart": "70bb74c60307b1286b68f35adc93cc941074eef0",
+      "lib/ui/dev/sample_photo.dart": "1bb10dd5f3833e5157ba1188fde47fb857c649be",
+      "lib/ui/dev/shot_app.dart": "43bc80a6b2f8c0826baf9f2485a28ee35919d725",
+      "lib/ui/dev/shot_harness.dart": "3f5dd69820cadf35ab8fa7c173ab1f6f46af0901",
+      "lib/ui/state/photo_source.dart": "ad25a152b43e7a206a40dc5501fcf4cb6b679e04",
+      "lib/ui/state/providers.dart": "e59b583a6baa7a377fab5aef7fe1cd979b722ba9",
+      "lib/ui/theme/brass.dart": "afd07e3ea86ba58187770980da46b5eb1622e8dc",
+      "lib/ui/theme/fonts.dart": "116c5a5a0bb5e2fd2b8589ce9367931c2bb3d812",
+      "lib/ui/theme/noise.dart": "629d141f725cc6033d7ca68bef53c202bcfd2f60",
+      "lib/ui/theme/paper_painter.dart": "b576c09e01a26a9c365bd75562ec82e644e5bc5b",
+      "lib/ui/theme/surfaces.dart": "78499d790144b475c8088464daeb68e1a94e4570",
+      "lib/ui/theme/tokens.dart": "69337b5157388ea4ae8ed917c5eee0b71f399ee2",
+      "lib/ui/theme/typography.dart": "35c6045dd30cd85a538faf988189be7a50d5fdc5",
+      "lib/ui/theme/wood_painter.dart": "5b2d46aea29bd149a0183720ecef5025fab7d633",
+      "lib/ui/util/crop_geometry.dart": "4b64f6624d0c96d7123fef3efd3810472bd74968",
+      "lib/ui/util/error_text.dart": "70aaef74ea230f7c68c1e3f34635aafc86214e87",
+      "lib/ui/util/image_size.dart": "8cc5b647da132e2e0cf023fd6ebfc4aa1baea001",
+      "lib/ui/widgets/about_sheet.dart": "94482b6cafa905e8484d5770d5c76bc4c32640ff",
+      "lib/ui/widgets/candidate_card.dart": "f7dfb5354fa15ebbbce3471d0ed13cb63db14a8c",
+      "lib/ui/widgets/crop_overlay.dart": "7a9a1d0d6877f1fa69f77dd9ac150fc0414c358f",
+      "lib/ui/widgets/developing.dart": "3b670296f9f110e5d99471e7fc95f3c0199b26e8",
+      "lib/ui/widgets/metal.dart": "ffcd63cf22d45695fbcfcccb941753067f3a1c09",
+      "lib/ui/widgets/mouse_wheel_scroller.dart": "253f0692a48080a5b9ad2a2a04beb6e7591f220a",
+      "lib/ui/widgets/press_effect.dart": "3829b81139d56680e9d9655cadebea99668c92e7",
+      "lib/ui/widgets/spec_drawer.dart": "7f2014e5773d8d282db29ee2b74be32850fc60e6",
+      "lib/ui/widgets/spec_ruler.dart": "7ad3e92933f379ad627ebaccc3594dba560bef31",
+      "lib/ui/widgets/sync_raster.dart": "23444aab4b0316898d5d7631e627b047548ecd56",
+      "test/batch/batch_runner.dart": "63d8dbd05a960de654a96e68e9863d3f4eaaf0a6",
+      "test/batch/build_golden.py": "2bedd7a0a77efebb3ab5061b8405d24b2b8d952c",
+      "test/batch/build_grid.py": "ffd96967b85b2b57ee2ba02bd894a56732f2ce12",
+      "test/batch/code_fingerprint.dart": "d2ad061f70012b3ed7937be3b8b443461801569c",
+      "test/batch/code_fingerprint.py": "a02cf485d22bdb444fb3ecd86ac4ea2920eaf479",
+      "test/batch/fingerprint_selftest.dart": "53f0678ae71fc79ecd5b556a96371864d38ae247",
+      "test/batch/freeze_dataset.py": "13883a8ba8d273cb30a661b2795469fb82589b9f",
+      "test/batch/merge_results.py": "6ddc33d324a916ac9fd285809f49a7a3ee5cb8cd",
+      "test/batch/p0_alpha_dump_test.dart": "9bb4535848f1fbc15e00ad3727219911ee7503d4",
+      "test/batch/p0_alpha_holes.py": "2cadcc9d385aed1ce7d6b285ea9164100649ce8b",
+      "test/batch/p0_alpha_scan_test.dart": "2cf359f96ec748d27c3288bf5f330f479e5d0e18",
+      "test/batch/p0_c08_sensitivity.py": "9a01c07d9667138adb4445a2322d045be8f6e788",
+      "test/batch/p0_cases.dart": "6f22480825c3c60b246790d75eb75812192ee24b",
+      "test/batch/p0_compose_test.dart": "30619848a79250c31c8a763528e1117d72fc853f",
+      "test/batch/p0_coverage_split.py": "a6e58f6d11dfb271a23a84ba1fa8e5a78741d838",
+      "test/batch/p0_coverage_test.dart": "25b5afb3901c8e68df792c68e0a477bf607403c3",
+      "test/batch/p0_diff_rounds.py": "c1c585a056b164be558661e7400e107914a0e5dd",
+      "test/batch/p0_est.py": "6a6ee72cb25af76e12031fbaf8a3fbe9e21c564c",
+      "test/batch/p0_finalize.py": "6866d065f302de1c4b6ae29ad6e4ae64128b6150",
+      "test/batch/p0_finalize_v1.py": "e472ca40dd8edb7ead5618af30bbb640ba3e19ba",
+      "test/batch/p0_independent_roll.py": "defc97151b038aba41c04ac896fd470d82b8f87f",
+      "test/batch/p0_lib.py": "a65f587964e7fb5ccf610e71377be6f6dcbbafe5",
+      "test/batch/p0_measure.py": "7fd05017d02d34c4f9df661a149368115d57bc31",
+      "test/batch/p0_output_residual.py": "cbb1047e0969681c8f70faba2e010e7fdf29ac75",
+      "test/batch/p0_provenance_check.py": "b3fea95616bdbc3758221c68bfe07c3f77424a4e",
+      "test/batch/p0_residual.py": "641335209ba38cd6061eb5c7c701b33432233197",
+      "test/batch/p0_resolve_check.dart": "b33be24e802f11cc928a8b28d28af70751a9ca0f",
+      "test/batch/p0_rotate.py": "395a5f3437547276d87b4f7e311f17beddf62136",
+      "test/batch/p0_selfcheck_run.dart": "904210ffc20b0a538f36734bc8b67dcf2d8425b2",
+      "test/batch/p0_sheet.py": "5ec5b2db6d13cbe0a6419cc0d553fb2e63fe3e8a",
+      "test/batch/p0_verify_geo.py": "761c6cbad54e637bcc2ff8b29d98a929ecf7304c",
+      "test/batch/prepare_inputs.py": "63ba5f5b18bacb30151fe08281dc5bf2f56e12e2",
+      "test/batch/run_device.py": "b6a97befaf1c3246028d538a08c3fdb66fa2cc19",
+      "test/batch/run_realdevice.py": "9036d8d418324de8168d964a1bed38be7cfa24b6",
+      "test/batch/sha256_selftest.dart": "a8f314bdcd1adbb99944d242a757d85f14603377",
+      "test/batch/sha256_util.dart": "ef91dedf3af855661102f3c5993b9536f15759fa"
+     },
+     "headCommit": "71e273dbd95ab4257361cc652160250bd53113f4",
+     "allCommitted": true,
+     "uncommittedMeasuredFiles": [],
+     "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 71e273dbd95ab4257361cc652160250bd53113f4 的代码。"
+    },
+    "roundValid": true,
+    "note": "本文件是对成片的纯 Python 测量，成片由 lib 代码产出，故**继承**成片台的指纹；刻意不在本脚本运行时刻重取 —— 那记的是本脚本的运行时刻，不是产出成片的代码状态。"
+   },
+   "primarySpec": "cn_big_1inch",
+   "composedCount": 110,
+   "primaryCount": 100,
+   "scored": 91,
+   "primaryAbsMax": 10.149,
+   "primaryAbsMedian": 3.044,
+   "primaryAbsMean": 3.511,
+   "primaryAbsNote": "以上三件是**描述量**（全部 scored 行的 |成片倾角|），**不是判据**：v2 下死区内样本合法地保留自身倾角，拿它们当越界上界会把正确行为读成缺陷。判据看 deadZone* 两栏。",
+   "deadZoneDeg": 10.0,
+   "deadZoneSource": "lib/core/imaging/crop_geometry.dart 的 kRollDeadZoneDeg（运行时现读，未硬编码数值、未硬编码行号）",
+   "residualTolDeg": 1.5,
+   "deadZoneInsideCount": 79,
+   "deadZoneOutsideCount": 12,
+   "deadZoneInsideViolations": [
+    {
+     "id": "c11_d+10",
+     "truth": 9.89,
+     "estimate": 10.282848636884268,
+     "applied": 10.282848636884268,
+     "residual": -0.4168499469517184
+    }
+   ],
+   "deadZoneInsideRule": "真值 |tilt| ≤ deadZoneDeg：量 |残余 − 真值| > 容差（引擎不该动它；**转了也违规、转错更违规**）",
+   "deadZoneOutsideViolations": [
+    {
+     "id": "c11_d-10",
+     "truth": -10.11,
+     "estimate": -9.632509194320276,
+     "applied": 0.0,
+     "residual": -10.149035718980677
+    }
+   ],
+   "deadZoneOutsideRule": "真值 |tilt| > deadZoneDeg：量 |残余| > 容差（必须摆平）",
+   "deadZoneBoundaryBand": {
+    "what": "真值落在 deadZoneDeg ± 1° 带内：按 ACCEPTANCE **只报数、不判 FAIL**",
+    "lo": 9.0,
+    "hi": 11.0,
+    "n": 9,
+    "rows": [
+     {
+      "id": "c02_d+10",
+      "truth": 9.75,
+      "estimate": 9.724377311815225,
+      "applied": 0.0,
+      "residual": 9.580533304831107
+     },
+     {
+      "id": "c02_d-10",
+      "truth": -10.25,
+      "estimate": -10.321486193800409,
+      "applied": -10.321486193800409,
+      "residual": 0.15556488470593988
+     },
+     {
+      "id": "c07_d+10",
+      "truth": 9.65,
+      "estimate": 9.558564288020603,
+      "applied": 0.0,
+      "residual": 9.656382284794486
+     },
+     {
+      "id": "c07_d-10",
+      "truth": -10.35,
+      "estimate": -10.30212883942154,
+      "applied": -10.30212883942154,
+      "residual": -0.14629154657239396
+     },
+     {
+      "id": "c11_d+10",
+      "truth": 9.89,
+      "estimate": 10.282848636884268,
+      "applied": 10.282848636884268,
+      "residual": -0.4168499469517184
+     },
+     {
+      "id": "c11_d-10",
+      "truth": -10.11,
+      "estimate": -9.632509194320276,
+      "applied": 0.0,
+      "residual": -10.149035718980677
+     },
+     {
+      "id": "p1_d-5",
+      "truth": -9.4,
+      "estimate": -9.401410669926934,
+      "applied": 0.0,
+      "residual": -9.227024673730023
+     },
+     {
+      "id": "p2_d+10",
+      "truth": 9.8,
+      "estimate": 9.899788541571638,
+      "applied": 0.0,
+      "residual": 9.769888119256615
+     },
+     {
+      "id": "p2_d-10",
+      "truth": -10.2,
+      "estimate": -10.167373079912387,
+      "applied": -10.167373079912387,
+      "residual": -17.937498860373793
+     }
+    ]
+   },
+   "primaryOver1p5_v1_retired": [
+    "c01_d+10",
+    "c01_d+3",
+    "c01_d+5",
+    "c01_d-3",
+    "c01_d-5",
+    "c02_d+10",
+    "c02_d+3",
+    "c02_d+5",
+    "c02_d-3",
+    "c02_d-5",
+    "c03",
+    "c03_d+10",
+    "c03_d-3",
+    "c03_d-5",
+    "c04",
+    "c04_d+10",
+    "c04_d-3",
+    "c04_d-5",
+    "c05",
+    "c05_d+10",
+    "c05_d-3",
+    "c05_d-5",
+    "c06",
+    "c06_d+10",
+    "c06_d+5",
+    "c06_d-3",
+    "c06_d-5",
+    "c07_d+10",
+    "c07_d+3",
+    "c07_d+5",
+    "c07_d-3",
+    "c07_d-5",
+    "c10",
+    "c10_d+10",
+    "c10_d-3",
+    "c10_d-5",
+    "c11_d+3",
+    "c11_d+5",
+    "c11_d-10",
+    "c11_d-3",
+    "c11_d-5",
+    "c12",
+    "c12_d+10",
+    "c12_d+5",
+    "c12_d-3",
+    "c12_d-5",
+    "p1",
+    "p1_d+10",
+    "p1_d+3",
+    "p1_d-3",
+    "p1_d-5",
+    "p2_d+10",
+    "p2_d+3",
+    "p2_d-3",
+    "p2_d-5"
+   ],
+   "primaryOver1p5_v1_retired_note": "**v1 口径，已作废，不得被任何判据引用。** `docs/ACCEPTANCE.md:83`：「原来的分界（|真值| > 1.5°）是旧产品行为的产物…已被本次裁定取代」。保留仅供与 r1–r3 沿革比对；v2 请读 deadZoneInsideViolations / deadZoneOutsideViolations。**名字里的 1p5 是它的真实口径，不是笔误。**",
+   "unreliableMeasurement": [
+    "c08",
+    "c08_d+10",
+    "c08_d+3",
+    "c08_d+5",
+    "c08_d-10",
+    "c08_d-5",
+    "p2_d+5",
+    "p2_d-10"
+   ],
+   "lowConfidence": [
+    "c01_d+10",
+    "c01_d-10",
+    "c01_d-3",
+    "c01_d-5",
+    "c01_upright",
+    "c02_d-10",
+    "c02_d-3",
+    "c03_d+10",
+    "c03_d-3",
+    "c03_d-5",
+    "c04_d+10",
+    "c04_d-3",
+    "c05",
+    "c05_d-3",
+    "c05_d-5",
+    "c06",
+    "c06_d-3",
+    "c06_d-5",
+    "c06_upright",
+    "c07_d+10",
+    "c07_d-10",
+    "c07_d-3",
+    "c12_d+3",
+    "c12_d-10",
+    "c12_d-3",
+    "c12_d-5",
+    "p1_d+10",
+    "p1_d-3",
+    "p1_d-5"
+   ],
+   "unmeasured": [
+    "c08_upright"
+   ],
+   "alphaHoleVisualEvidence": {
+    "c04_d-10": {
+     "magentaInHeadFrac": 0.3662,
+     "largestBlobPx": 40672,
+     "alphaHole": true,
+     "magentaOverallFrac": 0.5556,
+     "evidence": "out/P0_anchors/alpha/c04_d-10_magenta.jpg"
+    },
+    "c08_d-10": {
+     "magentaInHeadFrac": 0.5349,
+     "largestBlobPx": 31643,
+     "alphaHole": true,
+     "magentaOverallFrac": 0.7409,
+     "evidence": "out/P0_anchors/alpha/c08_d-10_magenta.jpg"
+    },
+    "c08": {
+     "magentaInHeadFrac": 0.3565,
+     "largestBlobPx": 39592,
+     "alphaHole": true,
+     "magentaOverallFrac": 0.6581,
+     "evidence": "out/P0_anchors/alpha/c08_magenta.jpg"
+    },
+    "c08_upright": {
+     "magentaInHeadFrac": 0.4107,
+     "largestBlobPx": 45432,
+     "alphaHole": true,
+     "magentaOverallFrac": 0.6851,
+     "evidence": "out/P0_anchors/alpha/c08_upright_magenta.jpg"
+    },
+    "c11_d-10": {
+     "magentaInHeadFrac": 0.3438,
+     "largestBlobPx": 38188,
+     "alphaHole": true,
+     "magentaOverallFrac": 0.4046,
+     "evidence": "out/P0_anchors/alpha/c11_d-10_magenta.jpg"
+    }
+   },
+   "byCorpusPrimarySpec": {
+    "anchor": {
+     "n": 12,
+     "scored": 11,
+     "absMax": 4.53,
+     "ids": [
+      "c01",
+      "c02",
+      "c03",
+      "c04",
+      "c05",
+      "c06",
+      "c07",
+      "c10",
+      "c11",
+      "c12",
+      "p1"
+     ],
+     "insideViolations": [],
+     "outsideViolations": [],
+     "over1p5_v1_retired": [
+      "c03",
+      "c04",
+      "c05",
+      "c06",
+      "c10",
+      "c12",
+      "p1"
+     ],
+     "unreliable": [
+      "c08"
+     ],
+     "unmeasured": []
+    },
+    "rotated": {
+     "n": 78,
+     "scored": 71,
+     "absMax": 10.149,
+     "ids": [
+      "c01_d+10",
+      "c01_d+3",
+      "c01_d+5",
+      "c01_d-10",
+      "c01_d-3",
+      "c01_d-5",
+      "c02_d+10",
+      "c02_d+3",
+      "c02_d+5",
+      "c02_d-10",
+      "c02_d-3",
+      "c02_d-5",
+      "c03_d+10",
+      "c03_d+3",
+      "c03_d+5",
+      "c03_d-10",
+      "c03_d-3",
+      "c03_d-5",
+      "c04_d+10",
+      "c04_d+3",
+      "c04_d+5",
+      "c04_d-10",
+      "c04_d-3",
+      "c04_d-5",
+      "c05_d+10",
+      "c05_d+3",
+      "c05_d+5",
+      "c05_d-10",
+      "c05_d-3",
+      "c05_d-5",
+      "c06_d+10",
+      "c06_d+3",
+      "c06_d+5",
+      "c06_d-10",
+      "c06_d-3",
+      "c06_d-5",
+      "c07_d+10",
+      "c07_d+3",
+      "c07_d+5",
+      "c07_d-10",
+      "c07_d-3",
+      "c07_d-5",
+      "c08_d-3",
+      "c10_d+10",
+      "c10_d+3",
+      "c10_d+5",
+      "c10_d-10",
+      "c10_d-3",
+      "c10_d-5",
+      "c11_d+10",
+      "c11_d+3",
+      "c11_d+5",
+      "c11_d-10",
+      "c11_d-3",
+      "c11_d-5",
+      "c12_d+10",
+      "c12_d+3",
+      "c12_d+5",
+      "c12_d-10",
+      "c12_d-3",
+      "c12_d-5",
+      "p1_d+10",
+      "p1_d+3",
+      "p1_d+5",
+      "p1_d-10",
+      "p1_d-3",
+      "p1_d-5",
+      "p2_d+10",
+      "p2_d+3",
+      "p2_d-3",
+      "p2_d-5"
+     ],
+     "insideViolations": [
+      "c11_d+10"
+     ],
+     "outsideViolations": [
+      "c11_d-10"
+     ],
+     "over1p5_v1_retired": [
+      "c01_d+10",
+      "c01_d+3",
+      "c01_d+5",
+      "c01_d-3",
+      "c01_d-5",
+      "c02_d+10",
+      "c02_d+3",
+      "c02_d+5",
+      "c02_d-3",
+      "c02_d-5",
+      "c03_d+10",
+      "c03_d-3",
+      "c03_d-5",
+      "c04_d+10",
+      "c04_d-3",
+      "c04_d-5",
+      "c05_d+10",
+      "c05_d-3",
+      "c05_d-5",
+      "c06_d+10",
+      "c06_d+5",
+      "c06_d-3",
+      "c06_d-5",
+      "c07_d+10",
+      "c07_d+3",
+      "c07_d+5",
+      "c07_d-3",
+      "c07_d-5",
+      "c10_d+10",
+      "c10_d-3",
+      "c10_d-5",
+      "c11_d+3",
+      "c11_d+5",
+      "c11_d-10",
+      "c11_d-3",
+      "c11_d-5",
+      "c12_d+10",
+      "c12_d+5",
+      "c12_d-3",
+      "c12_d-5",
+      "p1_d+10",
+      "p1_d+3",
+      "p1_d-3",
+      "p1_d-5",
+      "p2_d+10",
+      "p2_d+3",
+      "p2_d-3",
+      "p2_d-5"
+     ],
+     "unreliable": [
+      "c08_d+10",
+      "c08_d+3",
+      "c08_d+5",
+      "c08_d-10",
+      "c08_d-5",
+      "p2_d+5",
+      "p2_d-10"
+     ],
+     "unmeasured": []
+    },
+    "uprightSynthetic": {
+     "n": 9,
+     "scored": 8,
+     "absMax": 0.29,
+     "ids": [
+      "c01_upright",
+      "c03_upright",
+      "c04_upright",
+      "c05_upright",
+      "c06_upright",
+      "c10_upright",
+      "c12_upright",
+      "p1_upright"
+     ],
+     "insideViolations": [],
+     "outsideViolations": [],
+     "over1p5_v1_retired": [],
+     "unreliable": [],
+     "unmeasured": [
+      "c08_upright"
+     ]
+    },
+    "straight": {
+     "n": 1,
+     "scored": 1,
+     "absMax": 0.21,
+     "ids": [
+      "p2"
+     ],
+     "insideViolations": [],
+     "outsideViolations": [],
+     "over1p5_v1_retired": [],
+     "unreliable": [],
+     "unmeasured": []
+    }
+   },
+   "reliabilityProbeBases": [
+    "c05",
+    "p1",
+    "p2"
+   ]
+  },
+  "perItemFile": "out/P0_output_residual.json",
+  "composedDir": "out/P0_anchors/composed/",
+  "composedBy": "test/batch/p0_compose_test.dart（生产引擎，white 底）",
+  "measuredBy": "test/batch/p0_output_residual.py（纯 Python）",
+  "smallImageReliability": {
+   "p1": {
+    "base": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p1__visa_us.jpg",
+    "tag": "p1",
+    "scales": {
+     "cn_1inch_295x413": {
+      "sidePx": 284,
+      "headHeightPx": 256.1,
+      "rotations": {
+       "+0": {
+        "error": "no_haar_face"
+       },
+       "+2": {
+        "error": "no_haar_face"
+       },
+       "-2": {
+        "deg": -6.722705844633031,
+        "eyedist": 53.6,
+        "pairCost": 0.55
+       },
+       "+5": {
+        "error": "no_haar_face"
+       },
+       "-5": {
+        "error": "no_haar_face"
+       }
+      }
+     },
+     "cn_big_1inch_390x567": {
+      "sidePx": 536,
+      "headHeightPx": 351.5,
+      "rotations": {
+       "+0": {
+        "error": "no_haar_face"
+       },
+       "+2": {
+        "error": "no_haar_face"
+       },
+       "-2": {
+        "error": "no_haar_face"
+       },
+       "+5": {
+        "error": "no_haar_face"
+       },
+       "-5": {
+        "error": "no_haar_face"
+       }
+      }
+     },
+     "visa_us_600x600": {
+      "sidePx": 600,
+      "headHeightPx": 372.0,
+      "rotations": {
+       "+0": {
+        "deg": -4.700384662429029,
+        "eyedist": 119.9,
+        "pairCost": 0.368
+       },
+       "+2": {
+        "error": "no_haar_face"
+       },
+       "-2": {
+        "error": "no_haar_face"
+       },
+       "+5": {
+        "error": "no_haar_face"
+       },
+       "-5": {
+        "error": "no_haar_face"
+       }
+      }
+     }
+    }
+   },
+   "p2": {
+    "base": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/p2__visa_us.jpg",
+    "tag": "p2",
+    "scales": {
+     "cn_1inch_295x413": {
+      "sidePx": 284,
+      "headHeightPx": 256.1,
+      "rotations": {
+       "+0": {
+        "deg": 0.003708944810528129,
+        "eyedist": 48.2,
+        "pairCost": 0.239
+       },
+       "+2": {
+        "deg": 1.9133314800167822,
+        "eyedist": 46.4,
+        "pairCost": 0.158
+       },
+       "-2": {
+        "deg": -2.3126863039721144,
+        "eyedist": 46.4,
+        "pairCost": 0.231
+       },
+       "+5": {
+        "deg": 4.886701616425034,
+        "eyedist": 46.1,
+        "pairCost": 0.308
+       },
+       "-5": {
+        "deg": -5.145926456650783,
+        "eyedist": 45.4,
+        "pairCost": 0.359
+       }
+      }
+     },
+     "cn_big_1inch_390x567": {
+      "sidePx": 536,
+      "headHeightPx": 351.5,
+      "rotations": {
+       "+0": {
+        "deg": -0.006905352251420387,
+        "eyedist": 87.1,
+        "pairCost": 0.326
+       },
+       "+2": {
+        "deg": 1.7904480335390314,
+        "eyedist": 90.0,
+        "pairCost": 0.222
+       },
+       "-2": {
+        "deg": -2.3160278183915692,
+        "eyedist": 90.0,
+        "pairCost": 0.258
+       },
+       "+5": {
+        "deg": 4.697866995158344,
+        "eyedist": 88.9,
+        "pairCost": 0.257
+       },
+       "-5": {
+        "deg": -5.203308983685621,
+        "eyedist": 82.1,
+        "pairCost": 0.399
+       }
+      }
+     },
+     "visa_us_600x600": {
+      "sidePx": 600,
+      "headHeightPx": 372.0,
+      "rotations": {
+       "+0": {
+        "deg": -0.18360763821469478,
+        "eyedist": 100.4,
+        "pairCost": 0.184
+       },
+       "+2": {
+        "deg": 1.879619018527631,
+        "eyedist": 98.6,
+        "pairCost": 0.288
+       },
+       "-2": {
+        "deg": -2.2817756186525577,
+        "eyedist": 98.3,
+        "pairCost": 0.274
+       },
+       "+5": {
+        "deg": 4.714093390477493,
+        "eyedist": 100.1,
+        "pairCost": 0.185
+       },
+       "-5": {
+        "deg": -5.084553672359339,
+        "eyedist": 96.8,
+        "pairCost": 0.356
+       }
+      }
+     }
+    }
+   },
+   "c05": {
+    "base": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c05__cn_big_1inch.jpg",
+    "tag": "c05@390",
+    "scales": {
+     "cn_1inch_295x413": {
+      "sidePx": 284,
+      "headHeightPx": 256.1,
+      "rotations": {
+       "+0": {
+        "deg": -2.860889670686981,
+        "eyedist": 52.9,
+        "pairCost": 0.298
+       },
+       "+2": {
+        "deg": -0.8289741959555166,
+        "eyedist": 52.9,
+        "pairCost": 0.242
+       },
+       "-2": {
+        "deg": -4.823824120255422,
+        "eyedist": 53.3,
+        "pairCost": 0.292
+       },
+       "+5": {
+        "deg": 2.219851063422403,
+        "eyedist": 52.9,
+        "pairCost": 0.275
+       },
+       "-5": {
+        "deg": -7.760354523418677,
+        "eyedist": 53.3,
+        "pairCost": 0.365
+       }
+      }
+     },
+     "cn_big_1inch_390x567": {
+      "sidePx": 536,
+      "headHeightPx": 351.5,
+      "rotations": {
+       "+0": {
+        "deg": -2.659251992075086,
+        "eyedist": 100.1,
+        "pairCost": 0.236
+       },
+       "+2": {
+        "deg": -0.7499177244930499,
+        "eyedist": 100.1,
+        "pairCost": 0.278
+       },
+       "-2": {
+        "deg": -4.721353476627728,
+        "eyedist": 100.8,
+        "pairCost": 0.288
+       },
+       "+5": {
+        "deg": 2.3259924440937367,
+        "eyedist": 102.2,
+        "pairCost": 0.271
+       },
+       "-5": {
+        "deg": -7.729932290365199,
+        "eyedist": 97.6,
+        "pairCost": 0.294
+       }
+      }
+     },
+     "visa_us_600x600": {
+      "sidePx": 600,
+      "headHeightPx": 372.0,
+      "rotations": {
+       "+0": {
+        "deg": -2.6721935146537716,
+        "eyedist": 110.9,
+        "pairCost": 0.273
+       },
+       "+2": {
+        "deg": -0.6935110998919611,
+        "eyedist": 113.4,
+        "pairCost": 0.254
+       },
+       "-2": {
+        "deg": -4.798377574571878,
+        "eyedist": 112.3,
+        "pairCost": 0.23
+       },
+       "+5": {
+        "deg": 2.2483630747884673,
+        "eyedist": 117.0,
+        "pairCost": 0.264
+       },
+       "-5": {
+        "deg": -7.948006658740334,
+        "eyedist": 110.2,
+        "pairCost": 0.397
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "knownLimitations": [
+  "c03 与 c04 是同一张照片的不同分辨率副本（缩放后逐像素 mean|diff|≈2，缩放比 0.4165 恰为分辨率比、相对旋转 −0.024°），统计独立样本时应视为 1 张：anchor 栏 12 条实际覆盖 11 张不同照片。",
+  "c10 / c11 / c12 是**同一场景、同一群人的三张不同照片**，**不是**同一张照片的不同裁切。复核方法：ECC 对齐后只统计结构像素（Sobel 梯度 >25）的逐像素差，三对的一致度 10–11%（≤5 灰阶）；而确为同一张不同分辨率副本的 c03/c04 达到 95%——两端差一个数量级。三张均为 4032×3024 全画幅原图，可见取景与站位不同。证据图 out/P0_anchors/c10_c11_c12_sheet.png。",
+  "锚点集以东亚男性青年为主，无儿童/老人/深肤色/强逆光样本，不能据此声称普适覆盖率。",
+  "c08 的**被旋转过的**夹具（d-10/d-5/d+3/upright）抠图会在双眼区域产生大面积 alpha=0，其成片残余不可测（end_to_end.status=reliability_mismatch / unmeasured）。**未旋转的原图本身没有洞**：Pictures 全量可评估人像 14 张的 eyeBandZeroFrac 全部 = 0.0（含两张 Camera Roll 原图）。即这是**旋转诱导**的抠图失效，不是独立于摆正的既有缺陷。证据 out/P0_alpha_holes.json。"
+ ],
+ "evaluatedState": {
+  "note": "**这不是 HEAD。** 成片/覆盖率/残余三份数字产出于下表记录的工作区状态；此后主会话提交了若干 docs-only commit，按 HEAD 记账会把数字错标到与测量无关的 commit 上。",
+  "gitHeadAtCoverageRun": "71e273d",
+  "workingTreeDirtyAtCoverageRun": "",
+  "roundSelfValid": true,
+  "roundChangedFiles": [],
+  "codeFingerprintAtFinalize": {
+   "fnv1a64": "f003fdd0e73ed73a",
+   "files": 103,
+   "headCommit": "71e273dbd95ab4257361cc652160250bd53113f4",
+   "allCommitted": true
+  },
+  "codeFingerprintAtMeasure": {
+   "fnv1a64": "f003fdd0e73ed73a",
+   "files": 103,
+   "headCommit": "71e273dbd95ab4257361cc652160250bd53113f4",
+   "allCommitted": true,
+   "uncommittedMeasuredFiles": [],
+   "commitBindingNote": "被测集全部文件与该提交一致：本指纹即 71e273dbd95ab4257361cc652160250bd53113f4 的代码。"
+  },
+  "fingerprintVerdictCode": "attributable",
+  "fingerprintVerdict": "**可归属**：测量当时的被测代码内容与现在逐文件相同，数字未被后续改动污染，可归到 71e273dbd95ab4257361cc652160250bd53113f4。",
+  "headAtFinalize": "71e273d"
+ },
+ "gateInputs": {
+  "note": "qa-batch 提供的实测数字，供 gatekeeper 判定；本块不含 PASS/FAIL。硬判据按 ACCEPTANCE 计分口径第 5 条用 output_tilt（成片端到端残余）。",
+  "spec": "cn_big_1inch (390x567)",
+  "inputHashes": {
+   "algorithm": "sha256",
+   "note": "喂给引擎的**输入字节**摘要，按 id 索引。**对齐夹具时以此为准，不以文件名或尺寸为准**——本轮 c04/c05 的尺寸恰好与 gatekeeper 的源图相同，只看尺寸会误判同源。sidecar: out/P0_input_hashes.json",
+   "provenanceById": {
+    "p1": "jsonl(测量时)",
+    "c01": "jsonl(测量时)",
+    "c02": "jsonl(测量时)",
+    "c03": "jsonl(测量时)",
+    "c04": "jsonl(测量时)",
+    "c05": "jsonl(测量时)",
+    "c06": "jsonl(测量时)",
+    "c07": "jsonl(测量时)",
+    "c08": "jsonl(测量时)",
+    "c10": "jsonl(测量时)",
+    "c11": "jsonl(测量时)",
+    "c12": "jsonl(测量时)",
+    "p2": "jsonl(测量时)",
+    "p1_upright": "jsonl(测量时)",
+    "c01_upright": "jsonl(测量时)",
+    "c03_upright": "jsonl(测量时)",
+    "c04_upright": "jsonl(测量时)",
+    "c05_upright": "jsonl(测量时)",
+    "c06_upright": "jsonl(测量时)",
+    "c08_upright": "jsonl(测量时)",
+    "c10_upright": "jsonl(测量时)",
+    "c12_upright": "jsonl(测量时)",
+    "p1_d-10": "jsonl(测量时)",
+    "p1_d-5": "jsonl(测量时)",
+    "p1_d-3": "jsonl(测量时)",
+    "p1_d+3": "jsonl(测量时)",
+    "p1_d+5": "jsonl(测量时)",
+    "p1_d+10": "jsonl(测量时)",
+    "c01_d-10": "jsonl(测量时)",
+    "c01_d-5": "jsonl(测量时)",
+    "c01_d-3": "jsonl(测量时)",
+    "c01_d+3": "jsonl(测量时)",
+    "c01_d+5": "jsonl(测量时)",
+    "c01_d+10": "jsonl(测量时)",
+    "c02_d-10": "jsonl(测量时)",
+    "c02_d-5": "jsonl(测量时)",
+    "c02_d-3": "jsonl(测量时)",
+    "c02_d+3": "jsonl(测量时)",
+    "c02_d+5": "jsonl(测量时)",
+    "c02_d+10": "jsonl(测量时)",
+    "c03_d-10": "jsonl(测量时)",
+    "c03_d-5": "jsonl(测量时)",
+    "c03_d-3": "jsonl(测量时)",
+    "c03_d+3": "jsonl(测量时)",
+    "c03_d+5": "jsonl(测量时)",
+    "c03_d+10": "jsonl(测量时)",
+    "c04_d-10": "jsonl(测量时)",
+    "c04_d-5": "jsonl(测量时)",
+    "c04_d-3": "jsonl(测量时)",
+    "c04_d+3": "jsonl(测量时)",
+    "c04_d+5": "jsonl(测量时)",
+    "c04_d+10": "jsonl(测量时)",
+    "c05_d-10": "jsonl(测量时)",
+    "c05_d-5": "jsonl(测量时)",
+    "c05_d-3": "jsonl(测量时)",
+    "c05_d+3": "jsonl(测量时)",
+    "c05_d+5": "jsonl(测量时)",
+    "c05_d+10": "jsonl(测量时)",
+    "c06_d-10": "jsonl(测量时)",
+    "c06_d-5": "jsonl(测量时)",
+    "c06_d-3": "jsonl(测量时)",
+    "c06_d+3": "jsonl(测量时)",
+    "c06_d+5": "jsonl(测量时)",
+    "c06_d+10": "jsonl(测量时)",
+    "c07_d-10": "jsonl(测量时)",
+    "c07_d-5": "jsonl(测量时)",
+    "c07_d-3": "jsonl(测量时)",
+    "c07_d+3": "jsonl(测量时)",
+    "c07_d+5": "jsonl(测量时)",
+    "c07_d+10": "jsonl(测量时)",
+    "c08_d-10": "jsonl(测量时)",
+    "c08_d-5": "jsonl(测量时)",
+    "c08_d-3": "jsonl(测量时)",
+    "c08_d+3": "jsonl(测量时)",
+    "c08_d+5": "jsonl(测量时)",
+    "c08_d+10": "jsonl(测量时)",
+    "c10_d-10": "jsonl(测量时)",
+    "c10_d-5": "jsonl(测量时)",
+    "c10_d-3": "jsonl(测量时)",
+    "c10_d+3": "jsonl(测量时)",
+    "c10_d+5": "jsonl(测量时)",
+    "c10_d+10": "jsonl(测量时)",
+    "c11_d-10": "jsonl(测量时)",
+    "c11_d-5": "jsonl(测量时)",
+    "c11_d-3": "jsonl(测量时)",
+    "c11_d+3": "jsonl(测量时)",
+    "c11_d+5": "jsonl(测量时)",
+    "c11_d+10": "jsonl(测量时)",
+    "c12_d-10": "jsonl(测量时)",
+    "c12_d-5": "jsonl(测量时)",
+    "c12_d-3": "jsonl(测量时)",
+    "c12_d+3": "jsonl(测量时)",
+    "c12_d+5": "jsonl(测量时)",
+    "c12_d+10": "jsonl(测量时)",
+    "p2_d-10": "jsonl(测量时)",
+    "p2_d-5": "jsonl(测量时)",
+    "p2_d-3": "jsonl(测量时)",
+    "p2_d+3": "jsonl(测量时)",
+    "p2_d+5": "jsonl(测量时)",
+    "p2_d+10": "jsonl(测量时)"
+   },
+   "byId": {
+    "p1": "6c89a01cb9b07476c9dc3c58126c71cb2d9c77a25c47030d3e6d4bd533e5cc8c",
+    "c01": "8a92802d870c7f76ab250ef8c93e081351b3653a1f211edac206ae4247f715ad",
+    "c02": "c53da2c612d659beb0af88305b81d2c63c9001df5dacca9aae0ab886d2731d3a",
+    "c03": "d938d9ec168290932c11f82bb4fa1acd9a0fe230a848341a76b419da7ac02562",
+    "c04": "09b525e3db3b4c76ae3e01efe514975a36313a10f2b8397b476545bbb5097a1f",
+    "c05": "2256c8b892f068c0e192e6aa884afb5f6e0da8198673811675a7677f01411483",
+    "c06": "4247c404d0642a682db49d2bbcb91d58c97b33fe0302134bf798960dcf02ea3b",
+    "c07": "c53b38eab3aaa4556fc6aa7c27bf76a2004f0d58c9f986ed77506b37983bc83d",
+    "c08": "f99d2fb4c309c96422d038fec27c38e727c920e33e396c2f201865794a3840ff",
+    "c10": "4132eea2fad12ee054e6d5cc34234642a14d1518f0b891b3cb30085fcc5fccc5",
+    "c11": "c8a456d00f3682085d7be2db1f2e852c06fdf5a62de568fcfe24bda4644863d5",
+    "c12": "01d88e595856b55e4bcb7bbb7c9eaf735cb14c4532c800bb680d5a909ab0ed37",
+    "p2": "1cacf7d022913bdd8abb9371b8f02a2fbfbe77fa15883d7b98c970a7bcf06ec8",
+    "p1_upright": "8a39060d8480dd90f74f8295c5f28d24f878d52c5e706cee62fba0b4a47faa2c",
+    "c01_upright": "50eb1b407e7554f05547622dfdfa86a0ec615831f65424a8d25d25a2d921dda0",
+    "c03_upright": "5bf6ffb402bb0a75ce709bc0adfff07995c5211aa2887d7e598298258903e1a3",
+    "c04_upright": "201ca397e14286ce7104a2fcea185e3a2e12c0a7f1c79a140054631711a8e617",
+    "c05_upright": "ca562b8f32d784390391e24b4ad5950f77feee0ae635fcda8f0ba68d49bf333f",
+    "c06_upright": "a904076cfaa2ce9c4d67e7956a1cd0d4f543745074f055ef2f2209b865b0c9c3",
+    "c08_upright": "13d3f2048f99c10aa894430ef7c9a18995695262cc948a3d44daad065d76f8c8",
+    "c10_upright": "7dbaa629b85d4da65c6082f198d4cda7c4d07a96453dc29ce923a512d8b77e59",
+    "c12_upright": "132981b99302f49252b9c5f09735f27e217e6995425b5b059ba463d588628621",
+    "p1_d-10": "576e7dc35c8a8ca823e9b29d273f833dbec6b640f56cf668fee011927fc0fdcc",
+    "p1_d-5": "26945c19bc802e1924fcfb39a31d8b74973a0798627aa692b5f5ae0d1a5436d7",
+    "p1_d-3": "5b42f8ddc52e41e4ba5bf8d1d54611469d07c56623fa0e7fd8057486fa7454d4",
+    "p1_d+3": "ed0fdd330765d07a3a38dce1d613df4b53c6d7f4f8d8773050e4d3affcffaed7",
+    "p1_d+5": "bb910bee16e1ab0e6db16eb96e5c0413485e38d399fb92a25f82dfb940f6f4f2",
+    "p1_d+10": "8300dd54965c0c0a01a8e4405831d3e56fd8825cfcd85b5b56fa413ff65f2d62",
+    "c01_d-10": "c65deba8f7a8820f460d037130a9e68aa07590f8d107798237bbce4d36b33097",
+    "c01_d-5": "bf7edd07d4b1c7376c5333bd278b6383f96f894c12960047f1c2db9d8e581344",
+    "c01_d-3": "271077fe13c882e4b8e8962583a9835e812bfaf42bf5228b0ef916720cb4a6d0",
+    "c01_d+3": "58057b0d433c0bf1e119953b6d099da2918482be300fbd3e2cc7b8708c190f35",
+    "c01_d+5": "8a6547c7cc5acdcd252a1318c6804e6e012841a27ab7afe74ee684892c5c4ab1",
+    "c01_d+10": "170107ccfeba8e7848503de44a12b77035dee13254c3c0288220463ce9476e3a",
+    "c02_d-10": "267709c821dfee7bdde5e803f2ec1e65055b4260892ce083fc2576c0ca4a25a0",
+    "c02_d-5": "e55aff0dbd864d12553a6fe13d5cf63bfc734a96ed2c247141b2ef2b1e692dfa",
+    "c02_d-3": "ee5cd8810bdf8c136ee2bfbb353b6547c5e29c7dee008887c4e2b55cfc39f4bf",
+    "c02_d+3": "203c006216907714a19c197531b7dd6fdde9229461fd5b692f6a83bc3c4aedf4",
+    "c02_d+5": "5a1ac8a544a6b086bbef20f2ffe62f82eb3e997ab2cde4c3f4fcb08fc39c40df",
+    "c02_d+10": "bfd72effa3b027186d00ab7d7b6f38cc1b9baa165c3ba10291861cad6334aeaa",
+    "c03_d-10": "3404f74dd0ffc83847ffaa49a96128a1eecea783399d1a5ec01c97d302a41189",
+    "c03_d-5": "7e1040130a8d618902a472c3ecc42f950f7c894a6631deb9fb635ce949ff97d8",
+    "c03_d-3": "4937c53eab586b7376fa512214e2490d92b1aafc62ecb88b27ee2e2b89c66cf9",
+    "c03_d+3": "515f280a1e413771e37a927b100c1b9853ddea4a7aaac113f0e2f6521cb5da9d",
+    "c03_d+5": "6e453cb2af9a1447466e5096a0ffbdc63b2e6c80233669cbd0f5736e656ade50",
+    "c03_d+10": "26368395d29724f958c2dc323fa113e9b2ba99145bec9aaf5ef6ac7c77f3838d",
+    "c04_d-10": "da5c1490df183bc832335d732ccad7f5456649089b185f68be31609b4880945c",
+    "c04_d-5": "5d810271dc4465763dc1e5533900d8a0bb8daf893d6341ca38680d21a2238cf7",
+    "c04_d-3": "682203daa7078f43c5f002dfe583df6f31d7b8b16e17ad8be4a965e0eca16f5b",
+    "c04_d+3": "9260c245998f382aaead0bfd2c2b11a7a3d03fbef09cc70e30e956354c8210bb",
+    "c04_d+5": "0ba3a69d685bdf5f78c2bea9bc0fb62cb519bf01f2879e08e81d1f0b69c32d2f",
+    "c04_d+10": "e87a885ead1dd7731dc22748e50d23257543beab908ca94b32c1283c4577fb76",
+    "c05_d-10": "5feeafbf6bfdb6def97babd295f2e2d3ab7328eefdecf3d72f1558549a3223b3",
+    "c05_d-5": "f1920f43ceedb1e3c4fd517e2ee130a6a7ebedc56363d16a0ca6c82b948e066d",
+    "c05_d-3": "174c43231966592fce2d5e77b266ea6102d5b2ac8bc955f1c80245f9a77a4188",
+    "c05_d+3": "a0e6a8c63caac8be4f566ed98e69517e8751f6a091769f397e12f98f34044bba",
+    "c05_d+5": "cdc88b306d68de85bc3b7b278b7cf6f7fe3202191f776595dbd9e31e0a546bc3",
+    "c05_d+10": "177206f94e51d2e66e48c2cc653da18e1dae6e434e22bc1075697ad61bccad3b",
+    "c06_d-10": "262da1a72c38c38dfa4bee53c035cd84eeaa380622a57725e703b126cef189b0",
+    "c06_d-5": "3fa401de263db3f7830e75e1545e9330a8b68c9e61cf65bb90acebe65d339174",
+    "c06_d-3": "3fa56d4ac27135315a2f7ce9ab24b10ed63f32fa469128c4894b5681995e6507",
+    "c06_d+3": "8a64cf2eeb7613dbccc4dd810e382d12de20f539654427fda7a9ddc4ffbfadbf",
+    "c06_d+5": "f396f6d38ead8e75e5e07ad80e246fd947a22d0aa7e974afe2a979c702bbed04",
+    "c06_d+10": "27d5d6d68f94237f736fa262b0787c5106ae5f0c5a18726ff8e3b4428c7b3068",
+    "c07_d-10": "5001c10963369fa7f0d4e4186812d5b74b5105b628aea49c86d7291088f31dd4",
+    "c07_d-5": "c9f8834d83455217980e183ce9261f07ebb94dbaa9e21c7999a843d0cd27106b",
+    "c07_d-3": "cbb1776c9bd9b07d2775e3ea8f27042a760c1b9eb8566751c383894070d53b20",
+    "c07_d+3": "1b4581b6b70ae4a6dd4b366375c6772bc93391abb90afe2dbcd8d5b65413d921",
+    "c07_d+5": "f714dff16683284590bef3a46bece0620c19f261ad9b9ea16fffac9bfb05f77f",
+    "c07_d+10": "8898e6daa3ba937d3fc2c2a9ef5597249b08636d00dfe9a6a0663e31b20752f7",
+    "c08_d-10": "4d0eebaf897ee37b2773cacf5c61b050689645db8d254dcb70680af21c072178",
+    "c08_d-5": "3c43ae026de0e4c2b671c3add05516f66879de5f4952fd945dde24fb18c025aa",
+    "c08_d-3": "cdfcfdda55603421b42cdfd9b5cd9c124c84ad582081b2442f1fc7b0bf35f508",
+    "c08_d+3": "d376ac9400b02137079cca99fa703cf9a1210ee6d3e2d9f48373e8f2cf95483b",
+    "c08_d+5": "d58a83d91e9bb46a50322603a05b35421ca5471460d23d763e540edf087e63c8",
+    "c08_d+10": "33f08aec699603f3bedebc4232809548b298413185709a37d751570b207c644a",
+    "c10_d-10": "16175cc40487d726afbb512b4cfb9c4de56c3454c09c6eaa1079ebbfdc394d00",
+    "c10_d-5": "ecd001be7ed4d364540f437e8054ae4ccc1da730de96a3e617902f9804087b02",
+    "c10_d-3": "07fbdd2df581e812c57d02f3f515d87496cdeee5b0bf38ee12d2ff21482efaa0",
+    "c10_d+3": "c11a4731f16cdcbe9734a2e3a33217891aab8c31db8ddbb2e37caed16f456a70",
+    "c10_d+5": "e988b30dddb99deff13886e28eaf913ad2e4191e5277a1f3a119eb87e196b3e3",
+    "c10_d+10": "d709e089ebfcab0e5e2c396bc5a63d4fabdd56df24e426f4f395a1e797e07f55",
+    "c11_d-10": "403d2f7cee15d7fed2e0319eeed0825c593db7230bd46707d7e6079e718fcc66",
+    "c11_d-5": "3c8b7f9f55a44f7779b46b44c89f7cbc76106d202ff66bd7179fad8a9a3600a2",
+    "c11_d-3": "141778ab8ff94937c076dda6e435062eca2cba3e0bd24b760aaa562eab639a51",
+    "c11_d+3": "7e3269fbe0579b583b07425d5043ee211e1deffddfb52abf4870ae108c8f4827",
+    "c11_d+5": "63ed3ab57bf867c7a1bcb185564ebc2c9e7a95037ddba1e0e79ad3129ae21312",
+    "c11_d+10": "874ae09dc942a9271fd99542816ce5e63e23e33a7dec6d0c759b68386c55ff31",
+    "c12_d-10": "2f77a58ff7c96763c08b816a69bc723fe1d13055d93128c6e28626671fea367e",
+    "c12_d-5": "5b2ace7d5f79e8a8e21031fd3351c2c77e237472a4e363d32045d531a6390a99",
+    "c12_d-3": "e3ff910fc9c73c05135fb9a94113f175f5f7ffe699d12a93b8bbf79d16057927",
+    "c12_d+3": "d6ae4506d4c61a1565ee0c324f353ee8937e7b4371eb038312bac26a1fb43773",
+    "c12_d+5": "64dca052f27da27a8eeb50fd427a250e342af4666c5ecaed9e8f0fe43588d1e2",
+    "c12_d+10": "24e0e2a717d47e6831b5eb312d07e5b3bacdc0398cf0cbf6feb74b5ec56e37c6",
+    "p2_d-10": "81ffc13770776f7b249042866348e144342f77a6b1e97c6924ce9a6c9a15a832",
+    "p2_d-5": "77409ef9bbd9528326cdc85c8b824abe3c21afd9272ec3fbcccfd37d773b4058",
+    "p2_d-3": "473abb0c3c99fa5b08bb7e9f5433a5a1e50c18fa2306f90ec22fe3ce1d7073a5",
+    "p2_d+3": "eaa4100b5c9cfcced95990111a4e4e2d7354b2ce214b1603cecd73dd232a0402",
+    "p2_d+5": "0a12b60d3f811fd43eddafb4177227eb54745f082b1476df61b285161dc64159",
+    "p2_d+10": "42707d85787b0d017c9c76e64a27f64b2e11a90ddc8b4f4b52dfe8dbf98bcc6e"
+   }
+  },
+  "c05SlopeRecheck": {
+   "criterionB_outputResidual_vs_truth": {
+    "n": 8,
+    "slope": 0.4802
+   },
+   "criterionA_estimate_vs_truth": {
+    "n": 8,
+    "slope": 0.5183
+   },
+   "note": "**斜率脆弱性是本项要暴露的东西**：c05_d-10 在本路径上是 pupil，在 gatekeeper 的字节上是 unavailable，两种判决都离门限很近。它一旦翻，c05 的斜率就随之翻——所以 c05 的 slope 不能作为独立证据使用。",
+   "rows": [
+    {
+     "id": "c05",
+     "fixtureDeltaDeg": 0.0,
+     "truthTiltDeg": -3.91,
+     "rollSource": "pupil",
+     "appliedStraightenDeg": 0.0,
+     "outputTiltDeg": -3.912,
+     "methodSpreadDeg": 1.616,
+     "status": "low_confidence",
+     "inputSha256": "2256c8b892f068c0e192e6aa884afb5f6e0da8198673811675a7677f01411483",
+     "hashSource": "jsonl(测量时)"
+    },
+    {
+     "id": "c05_d+10",
+     "fixtureDeltaDeg": 10.0,
+     "truthTiltDeg": 6.09,
+     "rollSource": "pupil",
+     "appliedStraightenDeg": 0.0,
+     "outputTiltDeg": 6.076,
+     "methodSpreadDeg": 1.043,
+     "status": "ok",
+     "inputSha256": "177206f94e51d2e66e48c2cc653da18e1dae6e434e22bc1075697ad61bccad3b",
+     "hashSource": "jsonl(测量时)"
+    },
+    {
+     "id": "c05_d+3",
+     "fixtureDeltaDeg": 3.0,
+     "truthTiltDeg": -0.91,
+     "rollSource": "pupil",
+     "appliedStraightenDeg": 0.0,
+     "outputTiltDeg": -0.938,
+     "methodSpreadDeg": 0.325,
+     "status": "ok",
+     "inputSha256": "a0e6a8c63caac8be4f566ed98e69517e8751f6a091769f397e12f98f34044bba",
+     "hashSource": "jsonl(测量时)"
+    },
+    {
+     "id": "c05_d+5",
+     "fixtureDeltaDeg": 5.0,
+     "truthTiltDeg": 1.09,
+     "rollSource": "pupil",
+     "appliedStraightenDeg": 0.0,
+     "outputTiltDeg": 1.24,
+     "methodSpreadDeg": 1.22,
+     "status": "ok",
+     "inputSha256": "cdc88b306d68de85bc3b7b278b7cf6f7fe3202191f776595dbd9e31e0a546bc3",
+     "hashSource": "jsonl(测量时)"
+    },
+    {
+     "id": "c05_d-10",
+     "fixtureDeltaDeg": -10.0,
+     "truthTiltDeg": -13.91,
+     "rollSource": "pupil",
+     "appliedStraightenDeg": -13.904,
+     "outputTiltDeg": 0.071,
+     "methodSpreadDeg": 0.318,
+     "status": "ok",
+     "inputSha256": "5feeafbf6bfdb6def97babd295f2e2d3ab7328eefdecf3d72f1558549a3223b3",
+     "hashSource": "jsonl(测量时)"
+    },
+    {
+     "id": "c05_d-3",
+     "fixtureDeltaDeg": -3.0,
+     "truthTiltDeg": -6.91,
+     "rollSource": "pupil",
+     "appliedStraightenDeg": 0.0,
+     "outputTiltDeg": -6.959,
+     "methodSpreadDeg": 1.953,
+     "status": "low_confidence",
+     "inputSha256": "174c43231966592fce2d5e77b266ea6102d5b2ac8bc955f1c80245f9a77a4188",
+     "hashSource": "jsonl(测量时)"
+    },
+    {
+     "id": "c05_d-5",
+     "fixtureDeltaDeg": -5.0,
+     "truthTiltDeg": -8.91,
+     "rollSource": "pupil",
+     "appliedStraightenDeg": 0.0,
+     "outputTiltDeg": -8.886,
+     "methodSpreadDeg": 3.229,
+     "status": "low_confidence",
+     "inputSha256": "f1920f43ceedb1e3c4fd517e2ee130a6a7ebedc56363d16a0ca6c82b948e066d",
+     "hashSource": "jsonl(测量时)"
+    },
+    {
+     "id": "c05_upright",
+     "fixtureDeltaDeg": "upright",
+     "truthTiltDeg": 0.0,
+     "rollSource": "pupil",
+     "appliedStraightenDeg": 0.0,
+     "outputTiltDeg": -0.042,
+     "methodSpreadDeg": 0.654,
+     "status": "ok",
+     "inputSha256": "ca562b8f32d784390391e24b4ad5950f77feee0ae635fcda8f0ba68d49bf333f",
+     "hashSource": "jsonl(测量时)"
+    }
+   ]
+  },
+  "deadZone": {
+   "const": "kRollDeadZoneDeg = 10.0",
+   "constSource": "lib/core/imaging/crop_geometry.dart 的 kRollDeadZoneDeg，**运行时现读**（`p0_lib.dead_zone_deg()`）；不写数值、不写行号 —— 常量一改，这里跟着改，不会留下一个读起来正常但口径是旧的字符串。",
+   "note": "**`rollSource == 'pupil'` 不蕴含「施加角非零」。** `|rollDeg| ≤ 10.0` 时 compose 把角钳到 0、不旋转；`pupil` 只说明估计成功，不说明转了多少。判据里不得写 「pupil ⟹ applied ≠ 0」——那是错的。",
+   "samplesWithAbsTruthWithinDeadZone": [
+    "c01",
+    "c01_d+10",
+    "c01_d+3",
+    "c01_d+5",
+    "c01_d-3",
+    "c01_d-5",
+    "c01_upright",
+    "c02",
+    "c02_d+10",
+    "c02_d+3",
+    "c02_d+5",
+    "c02_d-3",
+    "c02_d-5",
+    "c03",
+    "c03_d+10",
+    "c03_d+3",
+    "c03_d+5",
+    "c03_d-3",
+    "c03_d-5",
+    "c03_upright",
+    "c04",
+    "c04_d+10",
+    "c04_d+3",
+    "c04_d+5",
+    "c04_d-3",
+    "c04_d-5",
+    "c04_upright",
+    "c05",
+    "c05_d+10",
+    "c05_d+3",
+    "c05_d+5",
+    "c05_d-3",
+    "c05_d-5",
+    "c05_upright",
+    "c06",
+    "c06_d+10",
+    "c06_d+3",
+    "c06_d+5",
+    "c06_d-3",
+    "c06_d-5",
+    "c06_upright",
+    "c07",
+    "c07_d+10",
+    "c07_d+3",
+    "c07_d+5",
+    "c07_d-3",
+    "c07_d-5",
+    "c08",
+    "c08_d+10",
+    "c08_d+3",
+    "c08_d+5",
+    "c08_upright",
+    "c10",
+    "c10_d+10",
+    "c10_d+3",
+    "c10_d+5",
+    "c10_d-3",
+    "c10_d-5",
+    "c10_upright",
+    "c11",
+    "c11_d+10",
+    "c11_d+3",
+    "c11_d+5",
+    "c11_d-3",
+    "c11_d-5",
+    "c12",
+    "c12_d+10",
+    "c12_d+3",
+    "c12_d+5",
+    "c12_d-3",
+    "c12_d-5",
+    "c12_upright",
+    "p1",
+    "p1_d+10",
+    "p1_d+3",
+    "p1_d+5",
+    "p1_d-3",
+    "p1_d-5",
+    "p1_upright",
+    "p2",
+    "p2_d+10",
+    "p2_d+3",
+    "p2_d+5",
+    "p2_d-3",
+    "p2_d-5"
+   ],
+   "forwardCheck": {
+    "what": "|truth| ≤ 10.0 的样本里，有多少条 `straightenDeg != 0`。",
+    "caveat": "**这是本轮的观察，不是死区的推论。** 死区判的是**估计值**，所以「真值在死区内 ⇒ 施加角 0」并不成立——真值 5° 而估角器给 15° 的样本会被**真的旋转 15°**。不要把「真值小」当成「估计小」的代理。",
+    "n": 85,
+    "byRollSource": {
+     "pupil": 85
+    },
+    "clampedButNotUnavailable": [
+     "c01",
+     "c01_d+10",
+     "c01_d+3",
+     "c01_d+5",
+     "c01_d-3",
+     "c01_d-5",
+     "c01_upright",
+     "c02",
+     "c02_d+10",
+     "c02_d+3",
+     "c02_d+5",
+     "c02_d-3",
+     "c02_d-5",
+     "c03",
+     "c03_d+10",
+     "c03_d+3",
+     "c03_d+5",
+     "c03_d-3",
+     "c03_d-5",
+     "c03_upright",
+     "c04",
+     "c04_d+10",
+     "c04_d+3",
+     "c04_d+5",
+     "c04_d-3",
+     "c04_d-5",
+     "c04_upright",
+     "c05",
+     "c05_d+10",
+     "c05_d+3",
+     "c05_d+5",
+     "c05_d-3",
+     "c05_d-5",
+     "c05_upright",
+     "c06",
+     "c06_d+10",
+     "c06_d+3",
+     "c06_d+5",
+     "c06_d-3",
+     "c06_d-5",
+     "c06_upright",
+     "c07",
+     "c07_d+10",
+     "c07_d+3",
+     "c07_d+5",
+     "c07_d-3",
+     "c07_d-5",
+     "c08",
+     "c08_d+10",
+     "c08_d+3",
+     "c08_d+5",
+     "c08_upright",
+     "c10",
+     "c10_d+10",
+     "c10_d+3",
+     "c10_d+5",
+     "c10_d-3",
+     "c10_d-5",
+     "c10_upright",
+     "c11",
+     "c11_d+10",
+     "c11_d+3",
+     "c11_d+5",
+     "c11_d-3",
+     "c11_d-5",
+     "c12",
+     "c12_d+10",
+     "c12_d+3",
+     "c12_d+5",
+     "c12_d-3",
+     "c12_d-5",
+     "c12_upright",
+     "p1",
+     "p1_d+10",
+     "p1_d+3",
+     "p1_d+5",
+     "p1_d-3",
+     "p1_d-5",
+     "p1_upright",
+     "p2",
+     "p2_d+10",
+     "p2_d+3",
+     "p2_d+5",
+     "p2_d-3",
+     "p2_d-5"
+    ],
+    "appliedNotZero": [
+     "c11_d+10"
+    ],
+    "appliedNotZeroNote": "空表 = `what` 那句在本轮成立；非空则 `what` 为假，**以本表为准**（真值在死区内但估计不在，引擎照转）。",
+    "whyItMatters": "「pupil 不蕴含施加角非零」**不是边角情形**：它在 100 条里覆盖 85 条（死区内，占比现算）。这条若被写反，受影响的样本量是两位数。"
+   },
+   "reverseCheck": {
+    "what": "反向：|truth| > 10.0 却 `straightenDeg == 0.0` 的样本，其 `rollSource` 是什么？",
+    "n": 1,
+    "byRollSource": {
+     "pupil": 1
+    },
+    "ids": [
+     "c11_d-10"
+    ],
+    "pupilClampedOutsideDeadZone": [
+     "c11_d-10"
+    ],
+    "conclusion": "**非空（1 条）**：这些样本真值在死区外、引擎返回 `pupil` 却没施加摆正。严格的含义是：对 `pupil` 样本，`applied == 0` ⟺ `|估计| ≤ 10.0`，所以本集合非空 ⟺ **存在「真值大、而估计小」的样本**。这正是本次事故的形态（真值 −4.4° 被读成 +0.84°）。逐条见本表。**注意：本检查按真值分档，而死区判的是估计值** —— 真值出界而估计在界内时，硬转反而是错的；此处只报数，是否算违规由 P0.1a 的成片残余定。",
+    "conclusionNote": "结论按上面的名单**现算**（v1 时该句是写死的字面量，换到 10° 死区后桶变大，写死的「空集」会静默变假）。"
+   },
+   "whyHarmless": "**本条订正（2026-09-17）。原文写「死区 1.0 ≤ P0.1a 容差 1.5，被钳到 0 的样本其残余天然过线，因此死区本身不制造 P0.1a 违规」——该推导**不成立**。死区判的是**估计值**（`crop_geometry.dart` `roll.abs() <= deadZoneDeg`，入参来自 `compose_engine.dart` 的 `face?.rollDeg`），**不是真值**。被钳到 0 的样本其残余 = **它自己的真值**，≤1.5° 当且仅当真值本来就小，「被钳下」不保证这一点。反例：真值 3.0°、估角器错给 5.0° → 钳零 → 残余 3.0° → P0.1a 违规，且它返回 `pupil` 而非 `unavailable`，**P0.1b 不拦**。**死区不衰减误差，它把小的估计误差透传成满量级残余。** 死区从 1.0 放大到 10.0 之后，这个透传面**随死区同比放大**。",
+   "whyThisRunIsStillClean": "本轮不出违规，靠的是**数据事实**而非死区性质：`reverseCheck` 实测，凡 |truth| > 10.0 且 `straightenDeg == 0.0` 的样本，其 `rollSource` 与上述名单一致（pupil 钳零 1 条，总 1 条）。**这是本轮的经验观察，不是不变量**——换个数据集或估角器失准，死区照样能制造 P0.1a 违规。",
+   "example": "c05_d+3：truth = -0.91，实际 applied = 0.0，成片残余 -0.938 —— 行为正确。"
+  },
+  "scoringDenominators": {
+   "note": "ACCEPTANCE 计分口径第 1/6/7 条。分母一律用**扣除后可见样本数**，并同时给原始总数；`unavailable` 不计通过（剔除，非作 0 观测）；不可计分样本逐条列出归类、在总数与通过数里显式扣除。",
+   "rawAnchorList": 13,
+   "distinctAnchorPhotos": 11,
+   "distinctAnchorNote": "第 6 条：锚点栏 12 条 − `c03`/`c04` 这一对真重复 = **11 张不同照片**。**订正（2026-09-17）**：原文另称 `c10`/`c11`/`c12` 是「同合影三裁切」——**该理由不成立，已删除**。三者是同一场景的**三张不同照片**，不去重、各自计数（ECC 欧氏对齐后只统计结构像素：`c10`/`c11` 一致度 11.3%、`c10`/`c12` 10.6%，而已知同图对 `c03`/`c04` 为 95.2%，差一个数量级）。数字 11 不变，只订正理由。报告与判据一律按 11 张表述。",
+   "P0.1a": {
+    "rawTotal": 12,
+    "excluded_unavailable": [],
+    "notScorableDeducted": 1,
+    "visibleDenominator": 11
+   },
+   "P0.2_uprightSynthetic": {
+    "rawTotal": 9,
+    "notScorableDeducted": 1,
+    "visibleDenominator": 8
+   },
+   "P0.3a_rotated": {
+    "rawFixtures": 78,
+    "notScorableDeducted": 7,
+    "visibleDenominator": 71,
+    "note": "`c08_upright` 的语料标签是 uprightSynthetic 而非 rotated，其不可计分计入 P0.2 一项；两条合计 6 条。"
+   }
+  },
+  "notScorableClassification": {
+   "note": "第 7 条：逐条列出并归类，**总数 8**（rotated 7 + uprightSynthetic 1；其中量测失效 4）。**归类为'量测失效'的每一条必须由 gatekeeper 用与 qa-batch 不同的独立路径复核并写明结论**——把真实缺陷归成'量不出来'是这套判据里最容易藏东西的地方。",
+   "thresholds": {
+    "eyeBandZeroFrac": 0.35
+   },
+   "items": [
+    {
+     "id": "c08_d+10",
+     "class": "量测失效",
+     "eyeBandZeroFrac": 0.0018,
+     "reason": "双眼区 alpha 干净（eyeBandZeroFrac=0.0018），残余却自证不可信——**不能用'量不出来'兜过去**，须由 gatekeeper 用独立路径（刚体残留配准）复核，其归类会改变违规计数"
+    },
+    {
+     "id": "c08_d+3",
+     "class": "抠图失效",
+     "eyeBandZeroFrac": 0.5277,
+     "reason": "双眼区 alpha=0 占比 0.528 > 0.35，瞳孔被挖掉，成片眼线不可测"
+    },
+    {
+     "id": "c08_d+5",
+     "class": "量测失效",
+     "eyeBandZeroFrac": 0.1966,
+     "reason": "双眼区 alpha 干净（eyeBandZeroFrac=0.1966），残余却自证不可信——**不能用'量不出来'兜过去**，须由 gatekeeper 用独立路径（刚体残留配准）复核，其归类会改变违规计数"
+    },
+    {
+     "id": "c08_d-10",
+     "class": "抠图失效",
+     "eyeBandZeroFrac": 0.9677,
+     "reason": "双眼区 alpha=0 占比 0.968 > 0.35，瞳孔被挖掉，成片眼线不可测"
+    },
+    {
+     "id": "c08_d-5",
+     "class": "抠图失效",
+     "eyeBandZeroFrac": 0.7549,
+     "reason": "双眼区 alpha=0 占比 0.755 > 0.35，瞳孔被挖掉，成片眼线不可测"
+    },
+    {
+     "id": "p2_d+5",
+     "class": "量测失效",
+     "eyeBandZeroFrac": null,
+     "reason": "无 alpha 记录，须由 gatekeeper 用独立路径复核"
+    },
+    {
+     "id": "p2_d-10",
+     "class": "量测失效",
+     "eyeBandZeroFrac": null,
+     "reason": "无 alpha 记录，须由 gatekeeper 用独立路径复核"
+    },
+    {
+     "id": "c08_upright",
+     "class": "抠图失效",
+     "eyeBandZeroFrac": 0.6193,
+     "reason": "双眼区 alpha=0 占比 0.619 > 0.35，瞳孔被挖掉，成片眼线不可测"
+    }
+   ],
+   "affectsWhichCriterion": "只影响残差类（P0.1a/P0.2/P0.3a②）的分母；覆盖率类（P0.1b/P0.3b）读的是 rollSource，这几条仍全部计分、不扣除。"
+  },
+  "P0.1a_anchorOutputResidual": {
+   "spec": "cn_big_1inch (390x567)",
+   "rawTotal": 12,
+   "measured": 11,
+   "notScorableDeducted": 1,
+   "notScorable": [
+    "c08"
+   ],
+   "visibleDenominator": 11,
+   "excluded_unavailable": [],
+   "n": 11,
+   "absMax": 4.53,
+   "absMedian": 2.212
+  },
+  "P0.1b_anchorConditionalCoverage": {
+   "n": 0,
+   "unavailable": 0,
+   "culprits": [],
+   "deadZoneDeg": 10.0,
+   "deadZoneExempt": []
+  },
+  "P0.2_straightOutputResidual": {
+   "spec": "cn_big_1inch (390x567)",
+   "rawTotal": 1,
+   "measured": 1,
+   "notScorableDeducted": 0,
+   "notScorable": [],
+   "visibleDenominator": 1,
+   "excluded_unavailable": [],
+   "n": 1,
+   "absMax": 0.21,
+   "absMedian": 0.21
+  },
+  "P0.2_uprightSyntheticOutputResidual": {
+   "spec": "cn_big_1inch (390x567)",
+   "rawTotal": 9,
+   "measured": 8,
+   "notScorableDeducted": 1,
+   "notScorable": [
+    "c08_upright"
+   ],
+   "visibleDenominator": 8,
+   "excluded_unavailable": [],
+   "n": 8,
+   "absMax": 0.29,
+   "absMedian": 0.105
+  },
+  "P0.2_uprightSyntheticCoverage": {
+   "n": 0,
+   "unavailable": 0,
+   "culprits": [],
+   "deadZoneDeg": 10.0,
+   "deadZoneExempt": []
+  },
+  "P0.2_allSamplesReturnedPupil": {
+   "note": "P0.2 要求竖直样本（p2 + 9 张 uprightSynthetic）必须返回 pupil，不接受 unavailable。",
+   "straight": {
+    "n": 1,
+    "pupil": 1
+   },
+   "uprightSynthetic": {
+    "n": 9,
+    "pupil": 9
+   }
+  },
+  "P0.3a_pupilFixtureRegression": {
+   "n": 71,
+   "nOutOfDeadZone": 12,
+   "deadZoneDeg": 10.0,
+   "criterionA_estimate_vs_truth": {
+    "note": "ACCEPTANCE P0.3a ①：估计值 rollDeg vs 真值，斜率 ∈[0.85,1.15]。**只作诊断**；**量程不受死区限制**，用全部返回 pupil 的夹具（死区内只是不施加，估计器照常工作）。",
+    "n": 71,
+    "slope": 0.453,
+    "intercept": -0.76
+   },
+   "criterionB_outputResidual": {
+    "note": "ACCEPTANCE P0.3a ②（口径无关硬判据）：成片残余 vs 真值，|斜率| ≤ 0.15 且 |截距| ≤ 0.5° 且 max|残余| ≤ 1.5°。**v2：只在死区外（真值 |tilt| > deadZoneDeg）的夹具上算**，死区内归 P0.6 —— 用全部 pupil 夹具会把几十条「合法保留自身倾角」的样本拉进来，斜率趋近 1 是死区的定义，不是回归。",
+    "n": 12,
+    "slope": -0.7,
+    "intercept": -9.404,
+    "max_abs_residual_deg": 10.149,
+    "absMaxExcludingGrossOutlier": 0.522,
+    "absMaxExcludingGrossOutlierNote": "剔除的是**全部**按 v2 判越界的样本（见 grossOutliers），不是写死某个 id —— 写死 id 会在该样本不再是离群点时静默剔除错行。**v2 的越界量按分档取**：死区内 |残余 − 真值|、死区外 |残余|。"
+   },
+   "grossOutliers": [
+    {
+     "id": "c11_d+10",
+     "truth": 9.89,
+     "inDeadZone": true,
+     "quantity": "|residual - truth|",
+     "value": 10.307,
+     "applied": 10.283,
+     "output_tilt": -0.417,
+     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d+10__cn_big_1inch.jpg"
+    },
+    {
+     "id": "c11_d-10",
+     "truth": -10.11,
+     "inDeadZone": false,
+     "quantity": "|residual|",
+     "value": 10.149,
+     "applied": 0.0,
+     "output_tilt": -10.149,
+     "evidence": "C:/Users/liuyu/Desktop/WorkPlace/idPhotos/out/P0_anchors/composed/c11_d-10__cn_big_1inch.jpg"
+    }
+   ]
+  },
+  "P0.3b_fixtureConditionalCoverage": {
+   "n": 15,
+   "unavailable": 0,
+   "culprits": [],
+   "deadZoneDeg": 10.0,
+   "deadZoneExempt": []
+  },
+  "P0.3b_culpritBreakdown": {
+   "note": "0 条违规按源图归并（逐族条数见 bySource，**本句不写死**）。**不得用'真难样本'标签把某一族的违规兜过去**——只有 `c11`(Δ=0, 真值 −0.11) 那一条是死区豁免。",
+   "bySource": {},
+   "c11AllSix": {
+    "keyNameIsHistorical": "键名里的 Six 是历史名；条数以 total 为准。",
+    "total": 6,
+    "violations": 0,
+    "harmless": [
+     "c11_d0(Δ=0,truth=-0.11) 死区豁免"
+    ],
+    "nonMonotonicNote": "逐条 rollSource 见 c11FamilyRows（现算）。**原此处写死「c11_d+3(真值 2.89) 反而是 pupil，与 d-3/-5 不同向」，是某一轮估角器状态下的观察；估角器改动后该结论会整体失效，故不再写死，改为由产物现算。**",
+    "c11FamilyRows": [
+     {
+      "id": "c11",
+      "corpus": "anchor",
+      "truthTiltDeg": -0.11,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d+10",
+      "corpus": "rotated",
+      "truthTiltDeg": 9.89,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d+3",
+      "corpus": "rotated",
+      "truthTiltDeg": 2.89,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d+5",
+      "corpus": "rotated",
+      "truthTiltDeg": 4.89,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d-10",
+      "corpus": "rotated",
+      "truthTiltDeg": -10.11,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d-3",
+      "corpus": "rotated",
+      "truthTiltDeg": -3.11,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c11_d-5",
+      "corpus": "rotated",
+      "truthTiltDeg": -5.11,
+      "rollSource": "pupil"
+     }
+    ]
+   },
+   "c09Note": "暗光图 Camera Roll/WIN_20230522_00_19_21_Pro.jpg（我 rejected 的 c09，两法矛盾 17.07° 未定真值）**不在 P0 语料内、无夹具**，在 P0.1b/P0.3b 上既不算通过也不算违规，不占分母。"
+  },
+  "P0.4_rollSourceDistribution": {
+   "byCorpus": {
+    "pictures": {
+     "none": 66,
+     "pupil": 13,
+     "unavailable": 1
+    },
+    "golden": {
+     "pupil": 8
+    },
+    "anchor": {
+     "pupil": 22
+    },
+    "rotated": {
+     "pupil": 78
+    }
+   },
+   "unavailableCount": 1,
+   "unavailableWithNonZeroRollDeg": [],
+   "coverageRun": "out/P0_coverage_post.json (test/batch/p0_coverage_test.dart, 修后)"
+  },
+  "notScorable_measurementUnreliable": [
+   "c08",
+   "c08_d+10",
+   "c08_d+3",
+   "c08_d+5",
+   "c08_d-10",
+   "c08_d-5",
+   "c08_upright",
+   "p2_d+5",
+   "p2_d-10"
+  ],
+  "alphaHoleIndependentOfRotation": {
+   "file": "out/P0_alpha_holes.json",
+   "answer": "未旋转真实照片无洞（14/14 人像 eyeBandZeroFrac=0.0）；洞只在被旋转过的 c08 夹具上（4/7）。",
+   "consequence": "不是独立于摆正的既有缺陷；但会让 c08 夹具的 P0.3 无法计分。",
+   "userImpact": "**无用户影响**（生产绝不会把面内旋转过的图喂给抠图引擎）。",
+   "codeEvidence": [
+    "lib/core/controller.dart:137 —— `_engine.removeBackground(bytes)`，用户**原始字节**直传，无预处理。",
+    "lib/core/matting/ 无任何对像素的面内旋转算子（无 copyRotate / `.rotate(`）。",
+    "lib/core/imaging/compose_engine.dart:232 的 `planRotation` 跑在抠图**之后**（文件头注第 13 行亦说明），只对已有 alpha 做采样旋转。",
+    "lib/core/matting/image_ops.dart:203 `img.bakeOrientation` —— EXIF 方向烘焙，是 90° 整数倍的**无损转置**，不是面内旋转。"
+   ],
+   "correctionsToUpstreamClaim": [
+    "**路径更正**：EXIF 那处在 `lib/core/matting/image_ops.dart`（不是 `lib/core/imaging/image_ops.dart` —— 该文件不存在）。",
+    "**论据措辞更正（范围问题，不是关键词问题）**：原论据的关键词 grep 是**只对 `matting_engine.dart` 单文件**跑的，**该文件内 0 命中准确**；但结论被表述为「matting 没有旋转/摆正代码」，读成整个目录完全合理。按 `lib/core/matting/` 目录复核为 **19 处命中**。那 19 处全是 `rollDeg` 这个**估计结果字段/标识符**与 `kPupilMaxRollDeg` 常量，**没有一处是对像素做旋转的算子**。结论不变，但论据不能写成「关键词 0 命中」——**证据必须连范围一起说**，范围一放大，真的 0 命中也会变成假证明。真正的证据是「没有旋转**算子**」+「EXIF 烘焙只是 90° 转置」。"
+   ]
+  },
+  "rotationFailureBoundary": {
+   "what": "**不得把「旋转夹具上的失败」一概推广成「夹具伪影」。** c08 的空洞是伪影（生产碰不到面内旋转输入），但 P0.3 的 2 条硬违规 + 0 条覆盖率违规是**估角器真不稳**，必须修。（两条数都由下方产物现算，不写死；估角器一改就整块重测。）",
+   "evidenceProvenance": {
+    "hardAndCoverageSource": "out/P0_output_residual.json（硬违规）+ out/P0_compose_items.jsonl（覆盖率）",
+    "evidenceRowSource": "out/P0_output_residual.json",
+    "alphaFractionSource": "out/P0_alpha_holes.json",
+    "sourceSha256": {
+     "out/P0_output_residual.json": "7a51d2b556a2fd3afb2e6954bc0a34461626de12a991b6b68c082a04865e7889",
+     "out/P0_compose_items.jsonl": "4b5af69580a59f87a13b2ddf618d217a75776e7fc812e78210626394c8e4b501",
+     "out/P0_alpha_holes.json": "14404c5f6288701a7d92ae757232f68294a9f9ac9f1065a9e6c66cf31b04ecd9"
+    },
+    "codeFingerprintOfSources": null,
+    "note": "⚠ 上面每一行、以及 what 里的两个条数，都是 finalize 时从这些产物**现算**的；而这些产物**没有记录自己的代码指纹**（无 `provenance` 字段）。所以本块只证明「数字与产物一致」，**不证明产物出自当前被测代码**。估角器（`iris_roll.dart`）在 03:34 的残差产物之后已改过 3 次，本块的行值因此可能描述一个已不存在的代码状态 —— **跨轮比较前必须先重测产物**。"
+   },
+   "evidenceNonMonotonic": {
+    "note": "c06 家族在**同一张图**上：|Δ| 最小的一档炸，更大的一档反而干净——均匀的伪影不会这样跳。",
+    "rows": [
+     {
+      "id": "c06",
+      "deltaDeg": 0.0,
+      "truthTiltDeg": -1.73,
+      "appliedStraightenDeg": 0.0,
+      "outputTiltDeg": -1.736,
+      "absResidualDeg": 1.736
+     },
+     {
+      "id": "c06_d+10",
+      "deltaDeg": 10.0,
+      "truthTiltDeg": 8.27,
+      "appliedStraightenDeg": 0.0,
+      "outputTiltDeg": 8.404,
+      "absResidualDeg": 8.404
+     },
+     {
+      "id": "c06_d+3",
+      "deltaDeg": 3.0,
+      "truthTiltDeg": 1.27,
+      "appliedStraightenDeg": 0.0,
+      "outputTiltDeg": 1.377,
+      "absResidualDeg": 1.377
+     },
+     {
+      "id": "c06_d+5",
+      "deltaDeg": 5.0,
+      "truthTiltDeg": 3.27,
+      "appliedStraightenDeg": 0.0,
+      "outputTiltDeg": 3.244,
+      "absResidualDeg": 3.244
+     },
+     {
+      "id": "c06_d-10",
+      "deltaDeg": -10.0,
+      "truthTiltDeg": -11.73,
+      "appliedStraightenDeg": -11.685,
+      "outputTiltDeg": 0.051,
+      "absResidualDeg": 0.051
+     },
+     {
+      "id": "c06_d-3",
+      "deltaDeg": -3.0,
+      "truthTiltDeg": -4.73,
+      "appliedStraightenDeg": 0.0,
+      "outputTiltDeg": -4.825,
+      "absResidualDeg": 4.825
+     },
+     {
+      "id": "c06_d-5",
+      "deltaDeg": -5.0,
+      "truthTiltDeg": -6.73,
+      "appliedStraightenDeg": 0.0,
+      "outputTiltDeg": -6.607,
+      "absResidualDeg": 6.607
+     },
+     {
+      "id": "c06_upright",
+      "deltaDeg": "upright",
+      "truthTiltDeg": 0.0,
+      "appliedStraightenDeg": 0.0,
+      "outputTiltDeg": -0.056,
+      "absResidualDeg": 0.056
+     }
+    ]
+   },
+   "evidenceRealTiltHandled": {
+    "note": "真实照片锚点本身带真倾角，P0.1a 全过 —— **真倾角能处理，合成旋转才炸**。",
+    "selectorNote": "下表按 **|truth| > 1.5°** 挑「有实际倾角的真实照片」，这只是一个**取证据的选择器**，**不是死区分界**（v2 的死区分界是 |truth| ≤ 10.0°）。两条不要混：选择器决定表里有谁，分档决定按什么量判。",
+    "criterionNote": "这些锚点真值全部落在死区内，故 v2 下 P0.1a 判的是**|残余 − 真值| ≤ 1.5°**（「引擎没有动它」），**不是 |残余| ≤ 1.5°**。下表同时给这两个量，判据读 outOfDeadZoneResidual，absoluteResidual 仅作对照。",
+    "rows": [
+     {
+      "id": "c03",
+      "truthTiltDeg": -3.72,
+      "outputTiltDeg": -3.703,
+      "outOfDeadZoneResidual": 0.017,
+      "absoluteResidual": 3.703,
+      "inDeadZone": true,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c04",
+      "truthTiltDeg": -3.82,
+      "outputTiltDeg": -3.89,
+      "outOfDeadZoneResidual": 0.07,
+      "absoluteResidual": 3.89,
+      "inDeadZone": true,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c05",
+      "truthTiltDeg": -3.91,
+      "outputTiltDeg": -3.912,
+      "outOfDeadZoneResidual": 0.002,
+      "absoluteResidual": 3.912,
+      "inDeadZone": true,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c06",
+      "truthTiltDeg": -1.73,
+      "outputTiltDeg": -1.736,
+      "outOfDeadZoneResidual": 0.006,
+      "absoluteResidual": 1.736,
+      "inDeadZone": true,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c08",
+      "truthTiltDeg": -8.01,
+      "outputTiltDeg": -0.773,
+      "outOfDeadZoneResidual": 7.237,
+      "absoluteResidual": 0.773,
+      "inDeadZone": true,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c10",
+      "truthTiltDeg": -3.44,
+      "outputTiltDeg": -3.176,
+      "outOfDeadZoneResidual": 0.264,
+      "absoluteResidual": 3.176,
+      "inDeadZone": true,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "c12",
+      "truthTiltDeg": -2.09,
+      "outputTiltDeg": -2.212,
+      "outOfDeadZoneResidual": 0.122,
+      "absoluteResidual": 2.212,
+      "inDeadZone": true,
+      "rollSource": "pupil"
+     },
+     {
+      "id": "p1",
+      "truthTiltDeg": -4.4,
+      "outputTiltDeg": -4.53,
+      "outOfDeadZoneResidual": 0.13,
+      "absoluteResidual": 4.53,
+      "inDeadZone": true,
+      "rollSource": "pupil"
+     }
+    ],
+    "allPassUnderV2": false
+   }
+  }
+ }
+}

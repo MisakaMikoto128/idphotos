@@ -1,0 +1,18 @@
+r5 产物来源绑定核对（口径抄自 tools/gate/provenance.dart，工作树为准）
+============================================================================================
+
+## 门禁实际绑定的三份
+
+- `out/P0_compose_summary.json`: **OK**（103 条，错 0 条）；fnv=aca440a9bf768af6 allCommitted=True
+- `out/P0_output_residual.json`: **OK**（103 条，错 0 条）；fnv=aca440a9bf768af6 allCommitted=True
+- `out/P0_alpha_holes.json`: **OK**（103 条，错 0 条）；fnv=aca440a9bf768af6 allCommitted=True
+
+## 同批其余（只核一致性）
+
+- `out/P0_coverage_post.json`: **OK**（103 条，错 0 条）；fnv=aca440a9bf768af6 allCommitted=True
+- `out/P0_selfcheck_provenance.json`: **OK**（103 条，错 0 条）；fnv=aca440a9bf768af6 allCommitted=True
+
+当前树指纹：`aca440a9bf768af6`，103 文件，allCommitted=True，head=5535bf83
+（与上面各产物自报的 fnv 对照；门禁比的是 blobHashes，不是这个数。）
+
+判决：绑定不合的产物 **0** 份（0 = 全绑上）
