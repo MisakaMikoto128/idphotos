@@ -113,7 +113,8 @@ p2_d+5   straighten  5.0025 -> 0.0000   primary -0.2603 -> -1.0522   （并转�
 |---|---|---|
 | `p0_output_residual.py:45` / `p0_finalize_v1.py:39` | `RESIDUAL_TOL_DEG = 1.5` | **判据容差**，与死区无关（死区内量 `\|残余−真值\|`、死区外量 `\|残余\|`，共用这一个容差） |
 | `p0_output_residual.py:50` | `V1_RETIRED_DIVIDER_DEG = 1.5` | **已退役**的 v1 分界。数值巧合与容差相同、含义完全不同，故单独命名；**只**喂名字带 `_v1_retired` 的沿革字段（`:416`、`:452`），**不得被任何 v2 判据引用** |
-| `p0_output_residual.py:333` | `methodSpreadDeg > 1.5` → `low_confidence` | 量的是**方法之间的分歧**，不是残余。**但它决定 `scored` 成员**（故影响分母）—— 属"可靠性分类器"，与分档无关，本轮未动它，**改动它会动分母，需单独裁定** |
+| `p0_output_residual.py:333` | `methodSpreadDeg > 1.5` → `low_confidence` | 量的是**方法之间的分歧**，不是残余。属"可靠性分类器"，与分档无关，本轮未动它。**更正（2026-09-17）**：它**只换标签、不换分母** —— `:341`/`:442` 的 `scored` 含 `low_confidence`，门禁侧也只排除 `reliability_mismatch`/`unmeasured`（`gate_P0.dart:621`、`:3089`、`:3371`、`:3948`，`low_confidence` 零命中）。真正换分母的是紧邻的 `:328`（`> 2.0`），详见 §7 队列 6 |
+| `p0_output_residual.py:328` | `abs(truthConsistencyDeg) > 2.0` → `reliability_mismatch` | **不在 §5.1 的 `1.5` 口径内**（主会话点名的同类），但它是链里**唯一真会改分母**的裸字面量：本批 8 行由此退出 `scored`。详见 §7 队列 6 |
 | `p0_output_residual.py:419` | 字符串：引用 `ACCEPTANCE.md:83` 的"原来的分界（\|真值\| > 1.5°）" | 纯叙述，转述被取代的旧口径，不参与计算 |
 | `p0_finalize_v1.py:706`、`:713` | `abs(truthTiltDeg) > 1.5` 挑"有实际倾角的真实照片" | **取证据选择器**，不是分界。同一块的 `selectorNote` 自陈这一点，且同块的 `allPassUnderV2` 用 `RESIDUAL_TOL_DEG`、`inDeadZone` 用 `DEAD_ZONE_DEG` —— **分类路径没被污染** |
 | `p0_finalize_v1.py:433/438/534/681/686/687` | 字符串里的 `≤1.5°` | 全是叙述文字，描述容差或引用旧口径 |
@@ -168,6 +169,16 @@ p2_d+5   straighten  5.0025 -> 0.0000   primary -0.2603 -> -1.0522   （并转�
    剔掉 2 条越界样本后 `max|残余| = 0.522`。
 5. `docs/PITFALLS.md:1705` 把 `if (roll.abs() <= deadZoneDeg)` 锚到 `crop_geometry.dart:143`，实际在 `:153`；
    同文件 `:973` 记的"死区 1.0"是历史值。锚点是会腐烂的——但 PITFALLS 只追加，留给主会话定是否补注。
-6. `p0_output_residual.py:333` 的 `methodSpreadDeg > 1.5` 是**唯一**还带旧字面量、且**真的决定 `scored` 成员**
-   （⇒ 决定分母）的站点。它不是分界，故本轮未动；但它是"下一个会腐烂的数字"：
-   要么给它名字并写明口径，要么让它在报告里显式挂牌。**改它 = 改分母，须单独裁定。**
+6. `p0_output_residual.py` 里**两个裸字面量都不是分档界**（v2 的分档界是 `deadZoneDeg` 与
+   `residualTolDeg`），但**后果不同，必须分开写**：
+   - `:333` `methodSpreadDeg > 1.5` → `low_confidence`：**只换标签，不换分母**。
+     `:341` / `:442` 的 `scored` 口径是 `status in ("ok","low_confidence")`，二者都在内；
+     门禁侧全仓只排除 `reliability_mismatch` / `unmeasured`（`gate_P0.dart:621`、
+     `:3089`、`:3371`、`:3948`），**`low_confidence` 一次都没被排除**。
+     ⇒ 本批 100 行 primary 中 29 行因此拿到该标签（`ok` 62 + `low_confidence` 29 = 91 = `scored`）。
+   - `:328` `abs(truthConsistencyDeg) > 2.0` → `reliability_mismatch`：**真换分母**。
+     本批 8 行由此退出 `scored`（91 = 100 − 8 − 1 `unmeasured`），门禁在上述四处同步排除它。
+   **主会话裁定（2026-09-17）**：下轮**只改名、不改值**（`METHOD_SPREAD_TOL_DEG` /
+   `TRUTH_CONSISTENCY_TOL_DEG`），把裸字面量消掉；**任何改值的动作按判据变更走**
+   （作废当轮、重跑），不许当作清理。`p0_lib.dead_zone_deg()` 那种"从生产代码读"的做法，
+   这两个没有对应常量可读——生产侧根本不存在这两个阈值，它们是我方口径，须自带名字与注释。
