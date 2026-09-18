@@ -10,7 +10,8 @@
 /// MattingResult(rgba + alpha)
 ///   ├─ estimateBackground()  推挽外推出原背景色（低分辨率网格）
 ///   ├─ decontaminate()       反解真前景色，得到预乘 RGBA          ← 缓存
-///   ├─ planRotation()        |rollDeg| > kRollDeadZoneDeg 时建立摆正变换
+///   ├─ planRotation()        自动分量 |rollDeg| > kAutoRotateMinAbsDeg 时摆正，
+///   │                        再加上用户手动微调角（manualRollDeg），合计为面内角
 ///   ├─ solveAutoCrop()       由头顶/下巴反推裁剪框
 ///   ├─ renderComposite()     摆正+裁剪+缩放+alpha 二值化+换底
 ///   └─ encodeJpg + writeJpegDpi
@@ -60,11 +61,21 @@ class ComposeDiagnostics {
   /// 最终裁剪框（旋转空间坐标）。
   final RectD cropRect;
 
-  /// 是否执行了摆正。
+  /// 是否执行了摆正（自动或手动，只要最终面内角非零即 true）。
   final bool straightened;
 
-  /// 摆正角度（度）。未摆正时为 0。
+  /// 最终施加的面内角（度）= 自动分量 + 手动分量，恒等时为 0。
+  ///
+  /// **无手动角（[manualRollDeg] = 0）时与 [FaceInfo.rollDeg] 同号同值**
+  /// （门禁读这一条）；一旦用户动了滑块，这里就是两者之和：
+  /// `自动分量 = straightenDeg − manualRollDeg`。
   final double straightenDeg;
+
+  /// 其中属于用户手动微调的那一份（度）。未调整时为 0。
+  ///
+  /// 用户显式要求的角度**不受自动门槛约束** —— 滑块拉到 20° 就真转 20°，
+  /// 哪怕这张照片的倾角被判定为「不用动」。
+  final double manualRollDeg;
 
   /// 裁剪框越界比例（这部分填底色，不是黑边）。
   final double outOfBoundsFraction;
@@ -83,6 +94,7 @@ class ComposeDiagnostics {
     required this.cropRect,
     required this.straightened,
     required this.straightenDeg,
+    required this.manualRollDeg,
     required this.outOfBoundsFraction,
     required this.shrunk,
     required this.achievedHeadHeightRatio,
@@ -211,6 +223,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     required BackgroundStyle style,
     FaceInfo? face,
     Rect? cropOverride,
+    double manualRollDeg = 0.0,
   }) async {
     _validate(matting);
     // **按调用方给的 spec 原样执行**，不在这里替换成 photo_specs.dart 里调校过的
@@ -229,10 +242,16 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     // 一层「眼线为主 + 嘴线共识门」的多线融合覆盖（roll_fusion.dart），实测
     // 三条线同源于同一组 YuNet 眼睑关键点、强相关，104 组系列对照差 ±0.02°
     // （噪声级），救不回任何一张真实照片 —— 已删除，见 PITFALLS。
+    //
+    // 自动分量只处理"方向明显不对"的照片（|roll| > kAutoRotateMinAbsDeg）；
+    // 手动分量是用户滑块的显式要求，不受那个门槛约束，两者相加再钳上限。
+    final double manualDeg = _clampManualRoll(manualRollDeg);
+    final double autoDeg = face?.rollDeg ?? 0.0;
     final RotationPlan plan = planRotation(
       srcWidth: matting.width,
       srcHeight: matting.height,
-      rollDeg: face?.rollDeg ?? 0.0,
+      rollDeg: autoDeg,
+      manualRollDeg: manualDeg,
     );
 
     final CropSolution solution = _solveCrop(
@@ -247,6 +266,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
       cropRect: solution.rect,
       straightened: plan.enabled,
       straightenDeg: plan.angleDeg,
+      manualRollDeg: manualDeg,
       outOfBoundsFraction: solution.outOfBoundsFraction,
       shrunk: solution.shrunk,
       achievedHeadHeightRatio: solution.achievedHeadHeightRatio,
@@ -294,9 +314,9 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
   /// 自动推算的裁剪框，**源图像素坐标**，用作 `AppState.suggestedCrop`。
   ///
   /// 注意：这里刻意不含摆正——UI 上的裁剪框是画在原图上的，必须是轴对齐矩形。
-  /// [compose] 内部若判定需要摆正（`|rollDeg| > kRollDeadZoneDeg`，见
-  /// `crop_geometry.dart`：10.0°，用户 2026-09-17 的产品决定），
-  /// 成片会比这个框略微转正，属于预期行为。
+  /// [compose] 内部若判定需要摆正（自动分量 `|rollDeg| > kAutoRotateMinAbsDeg`，
+  /// 或用户手动微调角非零，见 `crop_geometry.dart`），成片会比这个框略微转正，
+  /// 属于预期行为。
   @override
   Rect suggestedCropInSourcePx({
     required int imageWidth,
@@ -329,6 +349,17 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
   }
 
   // -------------------------------------------------------------------------
+
+  /// 手动微调角钳到 [kManualAngleMinDeg] ~ [kManualAngleMaxDeg]，非有限值归 0。
+  ///
+  /// 越界即钳制（契约明文，`api.dart` 的 [IdPhotoController.setManualAngle]）：
+  /// UI 滑块本来就越不过这两端，这里兜的是「绕过 UI 直接调引擎」的调用方。
+  double _clampManualRoll(double deg) {
+    if (!deg.isFinite) {
+      return 0.0;
+    }
+    return deg.clamp(kManualAngleMinDeg, kManualAngleMaxDeg).toDouble();
+  }
 
   void _validate(MattingResult m) {
     if (m.width <= 0 || m.height <= 0) {
@@ -470,13 +501,31 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
       headTopYr = face.headTopY;
       chinYr = face.chinY;
       faceCxr = face.box.center.dx;
+    } else if (math.cos(plan.angleRad).abs() <
+        math.cos(kHeadAxisMaxAbsDeg * math.pi / 180.0)) {
+      // ---- |θ| 逼近 90° 的退化分支（kMaxRollDeg 放开到 90° 的配套闸门）----
+      // 下面每一步都在除 cosθ：头高 Δy/cosθ、头顶行 Yt 的求解。θ → 90° 时
+      // cosθ → 6e-17，两条都是除零，喂给 solveAutoCrop 的是 inf/NaN 或一个
+      // 天文数字的裁剪框。更根本的是此时 headTopY 已经失去意义 —— 它是一条
+      // **水平扫描线**的 y，转到 90° 后成了竖直线，不再是"头顶"的极值。
+      // 所以这里不硬算，也不假装知道头在哪：退回居中最大内接框。
+      // 仍有成片、越界策略照样走 alpha=0 填底色，只是构图不再按头身比精确。
+      return CropSolution(
+        rect: centeredMaxRect(cw, ch, spec.aspectRatio),
+        outOfBoundsFraction: 0.0,
+        shrunk: false,
+        achievedHeadHeightRatio: 0.0,
+        achievedHeadTopRatio: 0.0,
+        note: '面内角 ${plan.angleDeg.toStringAsFixed(1)}° 超过头轴反推上限 '
+            '${kHeadAxisMaxAbsDeg.toStringAsFixed(0)}°（cosθ 趋零，反推发散），'
+            '退化为居中最大内接框',
+      );
     } else {
       // 摆正：`headTopY` 是**投影到竖直方向**的量，摆正后头轴转正，
       // 真实头高恢复为 headTopY→chin 的斜边长度，需除以 cosθ。
+      // cosθ 不会趋零：|θ| ≥ kHeadAxisMaxAbsDeg 的情形已在上面提前返回。
       final double cosA = math.cos(plan.angleRad).abs();
-      if (cosA > 1e-3) {
-        headH = headH / cosA;
-      }
+      headH = headH / cosA;
 
       // 人脸框的 x 不可靠（见 refineHeadFromMask 的文档）：先把人脸框中心
       // 映进旋转空间当锚点，掩膜精化（下面）会在锚点附近量出头部真实
@@ -550,7 +599,11 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
   /// 那部分按 alpha=0 填底色，与自动取景路径的越界策略一致（见 [solveAutoCrop]），
   /// 不会出现黑边（G2B.9）。这部分占比据实写进 [CropSolution.outOfBoundsFraction]。
   ///
-  /// 摆正角受 [kMaxRollDeg]=30° 钳制，不会出现宽高需要互换的情况。
+  /// **宽高互换（|θ| > 45°）在这里不构成问题**：旋转画布在 45° 以上会比高更宽
+  /// （[RotationPlan.rotWidth]/[rotHeight] 就是源图四角的包围盒，|θ| > 45° 时
+  /// 两者互换），但本函数只搬中心、不搬尺寸，[normalizeToAspect] 与
+  /// [outOfBoundsFraction] 也都只读画布的两条边、不假设谁大谁小。
+  /// 真正随角度失效的是**头轴反推**（除 cosθ），闸门见 [kHeadAxisMaxAbsDeg]。
   RectD _mapCropToRotated(Rect r, RotationPlan plan) {
     if (!plan.enabled) {
       return RectD(r.left, r.top, r.width, r.height);

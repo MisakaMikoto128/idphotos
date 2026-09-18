@@ -24,6 +24,7 @@ import '../theme/wood_painter.dart';
 import '../util/crop_geometry.dart';
 import '../util/error_text.dart';
 import '../util/image_size.dart';
+import '../widgets/angle_gauge.dart';
 import '../widgets/crop_overlay.dart';
 import '../widgets/metal.dart';
 import '../widgets/press_effect.dart';
@@ -93,11 +94,27 @@ class AreaASource extends ConsumerWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
-                  child: _PhotoFrame(
-                    app: app,
-                    wb: wb,
-                    onPick: () => _pick(ref),
+                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Expanded(
+                        child: _PhotoFrame(
+                          app: app,
+                          wb: wb,
+                          onPick: () => _pick(ref),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      // 角度微调尺。紧贴画布下沿，因为它调的就是框里这张图；
+                      // 仍在区域 A 之内，不新增第四个主区域（CLAUDE.md §2）。
+                      // 冲洗中禁拖，与裁剪框同一条规矩。
+                      AngleGauge(
+                        key: const Key('angle_gauge'),
+                        angleDeg: app.manualAngleDeg,
+                        enabled: app.stage == Stage.ready,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -282,6 +299,23 @@ class _PhotoFrame extends ConsumerWidget {
         onDragStart: (String h) =>
             ref.read(workbenchProvider.notifier).beginDrag(h),
         onDragEnd: () => ref.read(workbenchProvider.notifier).endDrag(),
+      );
+    }
+
+    // 手动微调角度：预览必须跟着转，否则用户在调一个看不见的东西。
+    //
+    // 整体旋转（照片 + 裁剪框 + 把手）与引擎的做法一致：`_mapCropToRotated`
+    // 把用户的框**刚体**搬到旋转空间（中心映射、宽高原样带走），所以框在
+    // 成片里就是跟着图一起转的。`Transform` 默认 transformHitTests，
+    // CropOverlay 的 `globalToLocal` 会反解旋转，把手在斜着的框上照样拖得准。
+    //
+    // angle == 0 时**不套 Transform**：默认态（含全部截图场景与门禁）的
+    // widget 树与加本功能之前逐节点一致，不给既有裁决引入任何变量。
+    final double angle = app.manualAngleDeg;
+    if (angle != 0) {
+      inner = Transform.rotate(
+        angle: canvasRotationRad(angle),
+        child: inner,
       );
     }
 

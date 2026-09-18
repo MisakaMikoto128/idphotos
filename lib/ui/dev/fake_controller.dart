@@ -53,6 +53,9 @@ class FakeController implements IdPhotoController {
       sourceImage: bytes,
       stage: Stage.matting,
       candidates: const <Candidate>[],
+      // 换图归零（AppState.manualAngleDeg 的约定）：新照片的倾角与上一张无关，
+      // 留着旧角度会让用户拿到一张莫名其妙歪着的成片。
+      manualAngleDeg: 0.0,
       clearError: true,
     ));
     await _pause();
@@ -68,6 +71,18 @@ class FakeController implements IdPhotoController {
   @override
   void setCrop(Rect rectInSourcePx) {
     _emit(_state.copyWith(suggestedCrop: rectInSourcePx));
+  }
+
+  @override
+  void setManualAngle(double deg) {
+    if (_state.sourceImage == null) return; // 无图：忽略，与真 controller 一致
+    if (!deg.isFinite) return;
+    final double v =
+        deg.clamp(kManualAngleMinDeg, kManualAngleMaxDeg).toDouble();
+    if (v == _state.manualAngleDeg) return;
+    // 真 controller 会去抖后重跑合成；假引擎没有可重算的东西，直接广播状态，
+    // 让画布与读数在截图/自测里跟手。
+    _emit(_state.copyWith(manualAngleDeg: v));
   }
 
   @override

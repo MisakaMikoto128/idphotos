@@ -450,6 +450,15 @@ class ImageTooLargeException extends IdPhotoException {
 /// 长边像素上限，超过即抛 [ImageTooLargeException]。
 const int kMaxImageEdgePx = 8000;
 
+/// 用户手动微调角度的下限（度，负值 = 逆时针）。
+///
+/// 与自动摆正的适用域**互不重叠也不留缺口**：自动只在 |倾角| > 30° 时介入
+/// （见 `kAutoRotateMinAbsDeg`），30° 以内全部由用户自己调。
+const double kManualAngleMinDeg = -30.0;
+
+/// 用户手动微调角度的上限（度，正值 = 顺时针）。
+const double kManualAngleMaxDeg = 30.0;
+
 // ---------------------------------------------------------------------------
 // 5. 引擎接口（CONTRACTS 第 2 节）
 // ---------------------------------------------------------------------------
@@ -473,12 +482,20 @@ abstract class IdPhotoEngine {
   /// **坐标系**：[face] 与 [cropOverride] 与 [matting] 同一坐标系
   /// （引擎工作分辨率）。controller 负责把原图坐标的用户框选换算进来
   /// （G4.7 降采样后；未降采样时即原图坐标）。
+  ///
+  /// [manualRollDeg] 是用户在界面上手动微调的面内角度（度）。**与
+  /// [FaceInfo.rollDeg] 同一口径**，不另立一套"顺/逆"措辞——实现侧的恒等式
+  /// 是 `输出倾角 = φ − rollDeg`，手动分量与自动分量在 `planRotation` 里
+  /// **相加**后再统一钳制。正值即表示与同值 `rollDeg` 相同的方向。
+  /// **自动只处理方向明显不对的照片**（|倾角| > 30°），细微倾角一律由
+  /// 用户自己调。0.0 = 用户未调整。
   Future<Candidate> compose({
     required MattingResult matting,
     required PhotoSpec spec,
     required BackgroundStyle style,
     FaceInfo? face,
     Rect? cropOverride,
+    double manualRollDeg = 0.0,
   });
 
   /// 自动推算的裁剪框，用作 [AppState.suggestedCrop]。
@@ -525,6 +542,14 @@ class AppState {
   /// 当前规格。
   final PhotoSpec spec;
 
+  /// 用户手动微调的面内角度（度）。0.0 = 未调整。
+  ///
+  /// 口径与 [IdPhotoEngine.compose] 的 `manualRollDeg` 完全相同；屏幕上的
+  /// 顺/逆由 UI 按该口径换算（不要在这里另写方向措辞，见 CONTRACTS 的同源事故）。
+  ///
+  /// UI 的画布预览、裁剪框与成片都必须按它旋转；重新载入图片时归零。
+  final double manualAngleDeg;
+
   final Stage stage;
 
   /// **已本地化的中文文案**。UI 直接显示，不做任何加工。
@@ -535,6 +560,7 @@ class AppState {
     this.suggestedCrop,
     this.candidates = const <Candidate>[],
     this.spec = kDefaultSpec,
+    this.manualAngleDeg = 0.0,
     this.stage = Stage.idle,
     this.errorMessage,
   });
@@ -547,6 +573,7 @@ class AppState {
     Rect? suggestedCrop,
     List<Candidate>? candidates,
     PhotoSpec? spec,
+    double? manualAngleDeg,
     Stage? stage,
     String? errorMessage,
     bool clearError = false,
@@ -558,6 +585,7 @@ class AppState {
           clearSuggestedCrop ? null : (suggestedCrop ?? this.suggestedCrop),
       candidates: candidates ?? this.candidates,
       spec: spec ?? this.spec,
+      manualAngleDeg: manualAngleDeg ?? this.manualAngleDeg,
       stage: stage ?? this.stage,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
@@ -574,6 +602,12 @@ abstract class IdPhotoController {
 
   /// 切换规格，会重新推算裁剪框并重新生成候选。
   void setSpec(PhotoSpec spec);
+
+  /// 用户手动微调面内角度（度，正值顺时针），随后重新生成候选。
+  ///
+  /// 取值范围 [kManualAngleMinDeg] ~ [kManualAngleMaxDeg]，越界即钳制；
+  /// **自动摆正不受影响**，两者叠加。
+  void setManualAngle(double deg);
 
   /// 状态流。Riverpod `StateNotifier` 暴露。
   Stream<AppState> get state;

@@ -349,18 +349,46 @@ void main() {
     }
   }, timeout: const Timeout(Duration(minutes: 5)));
 
-  test('门禁同款：2B.8 摆正（±15°）', () async {
-    // 夹具角与 `integration_test/compose_eval_test.dart:270` 的 `[15.0, -15.0]`
-    // **必须同步**。2026-09-17 前这里写的是 ±10°/±6°，四个全落进 10° 摆正死区
-    // ⇒ 量的是恒等变换，而测试名仍在说"门禁同款"：**名字声称的口径比它实际钉住的
-    // 范围宽**，且下面没有 expect，所以它不失败，只安静地打印一组看着正常的残差。
+  test('门禁同款：2B.8 摆正（门槛外 1.5 倍角）', () async {
+    // ⚠️ **本项与门禁的夹具角已经不一致，必须在同一轮里一起挪**（2026-09-17）。
     //
-    // 摆正死区见 kRollDeadZoneDeg；夹具角必须落在死区**外**，否则本项量的不是摆正。
-    // 下面这条是**前置断言，不是判据** —— 它不判残差好不好，只让"夹具漂了"错得响。
-    for (final double roll in <double>[15.0, -15.0]) {
-      expect(roll.abs() > kRollDeadZoneDeg, isTrue,
-          reason: '夹具角 $roll 必须落在死区外（kRollDeadZoneDeg='
-              '$kRollDeadZoneDeg），否则本项退化成量恒等变换，'
+    // 门禁侧的夹具是 `integration_test/compose_eval_test.dart` 的 `[15.0, -15.0]`
+    // 与 `tools/gate/gate_G2B.dart` 的 `kDeadZoneDeg = 10.0`（后者独立抄一份、
+    // 不读 lib）。自动门槛 10° → 30° 之后，±15° **落进了自动摆正的门槛内**：
+    // `planRotation` 不再转动它们，门禁量到的"残余"会等于输入角本身（±15°），
+    // 而不是摆正后的残差。那两个文件属 gatekeeper，imaging 不能改 ——
+    // 已在报告里请主会话派给 gatekeeper，把夹具角挪到门槛外并同步 kDeadZoneDeg。
+    //
+    // 本文件按**新常量**取角（1.5 倍门槛），先把引擎侧的行为测出来；门禁侧一旦
+    // 采用同样的推导，两边就重新对齐。夹具角必须落在门槛**外**，否则本项量的不是
+    // 摆正 —— 下面这条是**前置断言，不是判据**，只让"夹具漂了"错得响。
+    //
+    // ⚠️⚠️ **但本夹具在 |θ| > 30° 时自身失效，下面打印的残差不是引擎判决**：
+    // `buildGateSynthetic` 把 `FaceInfo.box` 写成 `Rect.fromLTWH(kRectX0, headTopY,
+    // kRectX1−kRectX0, …)` —— 用的是**未旋转的设计坐标**，而画布已经被
+    // `copyRotate` 转过并撑大了。契约规定 box 与抠图同坐标系，引擎据
+    // `box.center.dx` 定水平锚点，于是锚点偏量随角度线性增长：
+    //
+    // | 输入角 | 画布 | face.box.x | 青条真实质心 x | 青条落在裁剪框的归一化 x |
+    // |---|---|---|---|---|
+    // | +15° | 1328×1611 | 350–650 | 766.8 | 0.886（勉强在框内）|
+    // | −15° | 1328×1611 | 350–650 | 560.7 | 0.352 |
+    // | +45° | 1697×1697 | 350–650 | 1129.8 | **1.916（头已出画幅）** |
+    // | −45° | 1697×1697 | 350–650 | 566.2 | **−1.825（头已出画幅）** |
+    //
+    // ±15 时代这个错就已经存在（偏心 267px / 61px），只是画幅还兜得住；角度一大
+    // 就兜不住了。**这是夹具缺陷，不是引擎缺陷** —— 引擎侧自建夹具
+    // （`dev_selfcheck.dart` 的 `_makeSynthetic`，box 严格等于旋转后的头中心）
+    // 在 ±45°/±60° 上的残差是 0.000°/0.076°。门禁要测门槛外的角，必须先让
+    // `buildGateSynthetic` 从**旋转后的内容**反推 box（例如取匹配像素的外接框），
+    // 否则测出来的是夹具自己的偏心。已在报告里回派。
+    for (final double roll in <double>[
+      kAutoRotateMinAbsDeg * 1.5,
+      -kAutoRotateMinAbsDeg * 1.5
+    ]) {
+      expect(roll.abs() > kAutoRotateMinAbsDeg, isTrue,
+          reason: '夹具角 $roll 必须落在门槛外（kAutoRotateMinAbsDeg='
+              '$kAutoRotateMinAbsDeg），否则本项退化成量恒等变换，'
               '而本文件没有判据会为此报警');
       final GateSynthetic syn = buildGateSynthetic(rollDeg: roll);
       final Candidate c = await engine.compose(
@@ -376,7 +404,9 @@ void main() {
           findMatches(d, kMagentaR, kMagentaG, kMagentaB, tolerance: 60);
       final PxCentroid? hc = centroid(head);
       // ignore: avoid_print
-      print('[2B.8] roll=$roll 输入画布=${syn.matting.width}x${syn.matting.height} '
+      print('[2B.8] ⚠️本夹具在 |θ|>30° 时 box 未随旋转更新（见上表），'
+          '下列残差不是引擎判决，只作对照。roll=$roll 输入画布='
+          '${syn.matting.width}x${syn.matting.height} '
           'faceHeadTopY=${syn.face.headTopY.toStringAsFixed(1)} '
           'chinY=${syn.face.chinY.toStringAsFixed(1)} '
           '→ 青色像素=${head.length} 品红像素=${chin.length} '

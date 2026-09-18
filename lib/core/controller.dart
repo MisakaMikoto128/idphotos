@@ -61,6 +61,9 @@ class MuZhaoController implements IdPhotoController {
   Rect? _cropOverride;
   Timer? _debounce;
 
+  /// 用户手动微调的面内角度。**不随规格/裁剪重置**，只在换图时归零。
+  double _manualAngleDeg = 0.0;
+
   /// 拖拽停止多久后触发重新合成。
   static const Duration kCropDebounce = Duration(milliseconds: 300);
 
@@ -125,11 +128,13 @@ class MuZhaoController implements IdPhotoController {
     _matting = null;
     _face = null;
     _cropOverride = null;
+    _manualAngleDeg = 0.0;
     final int gen = ++_gen;
     _emit(_state.copyWith(
       sourceImage: bytes,
       stage: Stage.matting,
       candidates: const <Candidate>[],
+      manualAngleDeg: 0.0,
       clearSuggestedCrop: true,
       clearError: true,
     ));
@@ -173,6 +178,7 @@ class MuZhaoController implements IdPhotoController {
         suggestedCrop: _state.suggestedCrop,
         candidates: candidates,
         spec: _state.spec,
+        manualAngleDeg: _manualAngleDeg,
         stage: Stage.ready,
         errorMessage:
             face == null ? const NoFaceException().messageZh : null,
@@ -239,6 +245,7 @@ class MuZhaoController implements IdPhotoController {
     // cropOverride 是原图坐标，换算到工作分辨率。
     final FaceInfo? face = _face;
     final Rect? cropOverride = _cropInWorkingSpace(_cropOverride, mat);
+    final double manualAngleDeg = _manualAngleDeg;
     final List<Candidate> out = <Candidate>[];
     for (final BackgroundStyle style in kBuiltInBackgrounds) {
       out.add(await _engine.compose(
@@ -247,6 +254,7 @@ class MuZhaoController implements IdPhotoController {
         style: style,
         face: face,
         cropOverride: cropOverride,
+        manualRollDeg: manualAngleDeg,
       ));
     }
     return out;
@@ -268,6 +276,7 @@ class MuZhaoController implements IdPhotoController {
         suggestedCrop: _state.suggestedCrop,
         candidates: candidates,
         spec: _state.spec,
+        manualAngleDeg: _manualAngleDeg,
         stage: Stage.ready,
         errorMessage:
             _face == null ? const NoFaceException().messageZh : null,
@@ -280,6 +289,24 @@ class MuZhaoController implements IdPhotoController {
     if (_matting == null) return; // 无图或在加载中：忽略
     _cropOverride = rectInSourcePx;
     // 拖拽是高频事件：去抖后合成，用户停手 300ms 出候选。
+    _debounce?.cancel();
+    _debounce = Timer(kCropDebounce, () {
+      _recompose(showProgress: false);
+    });
+  }
+
+  @override
+  void setManualAngle(double deg) {
+    if (_matting == null) return; // 无图或在加载中：忽略
+    if (!deg.isFinite) return;
+    final double v =
+        deg.clamp(kManualAngleMinDeg, kManualAngleMaxDeg).toDouble();
+    if (v == _state.manualAngleDeg) return;
+    // 角度**立刻**广播：UI 的度数读数与画布要跟手。
+    // 重新合成则与拖拽一样去抖 —— 一次拖动会经过几十个角度，
+    // 逐个合成会把主 isolate 压死。
+    _manualAngleDeg = v;
+    _emit(_state.copyWith(manualAngleDeg: v));
     _debounce?.cancel();
     _debounce = Timer(kCropDebounce, () {
       _recompose(showProgress: false);

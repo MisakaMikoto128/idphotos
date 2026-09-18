@@ -552,16 +552,40 @@ void main() {
     expect(total, 0);
   }, timeout: long);
 
-  test('2B.8 摆正（死区外输入的残差角）', () async {
+  test('2B.8 摆正（门槛外输入的残差角）', () async {
     final StringBuffer log = StringBuffer();
     double worst = 0;
-    // 夹具角必须落在死区**外**：本项量的是"给了角就转对"，钉在死区内等于
-    // 量一个恒等变换。下面的断言把"落在死区外"本身也钉住，免得产品常量一改
-    // 夹具就静默失效（2026-09-17 前这里写死 ±10°，与死区门槛恰好重合）。
-    for (final double roll in <double>[-20.0, -15.0, 15.0, 20.0]) {
-      expect(roll.abs() > kRollDeadZoneDeg, isTrue,
-          reason: '夹具角 $roll 必须落在死区外（kRollDeadZoneDeg='
-              '$kRollDeadZoneDeg），否则本项退化成量恒等变换');
+    // 夹具角**由产品常量推出**，不写死：本项量的是"给了角就转对"，钉在门槛内
+    // 等于量一个恒等变换。下面的断言把"落在门槛外"本身也钉住，免得产品常量
+    // 一改夹具就静默失效。
+    //
+    // 2026-09-17：门槛 10° → 30°（自动只处理"方向明显不对"的照片）。
+    // 原来的 ±15/±20 全部掉进新门槛内，本项会退化成量恒等变换 —— 所以夹具角
+    // 改成从 kAutoRotateMinAbsDeg 推，且同时钉住上界 kMaxRollDeg 之内。
+    final List<double> outsideRolls = <double>[
+      -kAutoRotateMinAbsDeg * 2.0,
+      -kAutoRotateMinAbsDeg * 1.5,
+      -kAutoRotateMinAbsDeg * 1.2,
+      kAutoRotateMinAbsDeg * 1.2,
+      kAutoRotateMinAbsDeg * 1.5,
+      kAutoRotateMinAbsDeg * 2.0,
+    ];
+    // ×2.0（=60°）一组是**刻意**加的：|θ| > 45° 时旋转画布的宽高相对源图互换，
+    // 上限从 30° 放开后这是新进入的可达区间，必须有像素级证据而不只是推理。
+    // 门槛取等号归用户（`planRotation` 用 `<=` 判不转）：30.0 不转，30.5 要转。
+    // 这是纯几何判定，不必过像素。
+    expect(planRotation(srcWidth: 100, srcHeight: 140, rollDeg: 30.0).enabled,
+        isFalse,
+        reason: '|roll| == 门槛时必须归用户（不转）');
+    expect(planRotation(srcWidth: 100, srcHeight: 140, rollDeg: 30.5).enabled,
+        isTrue,
+        reason: '|roll| 超过门槛（哪怕 0.5°）时必须走自动摆正');
+    for (final double roll in outsideRolls) {
+      expect(roll.abs() > kAutoRotateMinAbsDeg, isTrue,
+          reason: '夹具角 $roll 必须落在门槛外（kAutoRotateMinAbsDeg='
+              '$kAutoRotateMinAbsDeg），否则本项退化成量恒等变换');
+      expect(roll.abs() <= kMaxRollDeg, isTrue,
+          reason: '夹具角 $roll 超过上限 kMaxRollDeg=$kMaxRollDeg，会被钳制');
       final _Synth s = _makeSynthetic(
         width: 1000,
         height: 1400,
@@ -584,9 +608,9 @@ void main() {
       log.writeln('  输入 roll=${roll.toStringAsFixed(1)}° → '
           '成片残差 ${residual.toStringAsFixed(3)}°');
     }
-    // 死区验证：|roll| ≤ kRollDeadZoneDeg 一律不旋转。
+    // 门槛验证：|roll| ≤ kAutoRotateMinAbsDeg 一律不旋转。
     // 这里曾写死"死区从 3° 收窄到 1°、1–3° 必须摆正"，那是一条随产品常量
-    // 过期的主张 —— 死区现在由 kRollDeadZoneDeg 给出，注释不再复述它的值。
+    // 过期的主张 —— 门槛现在由 kAutoRotateMinAbsDeg 给出，注释不再复述它的值。
     final _Synth small = _makeSynthetic(
       width: 1000,
       height: 1400,
@@ -603,16 +627,16 @@ void main() {
         style: kBgWhite,
         face: small.face);
     final bool straightened = engine.lastDiagnostics!.straightened;
-    log.writeln('  输入 roll=0.8°（死区内）→ 是否旋转=$straightened');
+    log.writeln('  输入 roll=0.8°（门槛内）→ 是否旋转=$straightened');
 
-    // 反向断言：死区内的倾斜必须被**原样保留**，成片残余 ≈ 输入角。
+    // 反向断言：门槛内的倾斜必须被**原样保留**，成片残余 ≈ 输入角。
     // 只断言"没转"不够 —— 不转却把构图裁歪、或残余在别处被抵掉，都能过得去；
-    // 这里直接量成片像素。夹具角由 kRollDeadZoneDeg 推出而不是写死，
-    // 且断言它确实落在死区内，常量一改即报错而不是静默失效。
-    final double insideRoll = kRollDeadZoneDeg * 0.6;
-    expect(insideRoll.abs() <= kRollDeadZoneDeg, isTrue,
-        reason: '反向用例的夹具角 $insideRoll 必须落在死区内'
-            '（kRollDeadZoneDeg=$kRollDeadZoneDeg）');
+    // 这里直接量成片像素。夹具角由 kAutoRotateMinAbsDeg 推出而不是写死，
+    // 且断言它确实落在门槛内，常量一改即报错而不是静默失效。
+    final double insideRoll = kAutoRotateMinAbsDeg * 0.6;
+    expect(insideRoll.abs() <= kAutoRotateMinAbsDeg, isTrue,
+        reason: '反向用例的夹具角 $insideRoll 必须落在门槛内'
+            '（kAutoRotateMinAbsDeg=$kAutoRotateMinAbsDeg）');
     for (final double roll in <double>[-insideRoll, insideRoll]) {
       final _Synth s = _makeSynthetic(
         width: 1000,
@@ -630,11 +654,11 @@ void main() {
       final double? kept = _eyeLineAngleDeg(_decodeJpeg(c.jpegBytes));
       expect(kept, isNotNull, reason: 'roll=$roll 时找不到两个标记点');
       expect(diag.straightened, isFalse,
-          reason: 'roll=$roll 落在死区内，不该被摆正');
+          reason: 'roll=$roll 落在门槛内，不该被摆正');
       expect((kept! - roll).abs() <= 1.5, isTrue,
-          reason: 'roll=$roll 死区内应原样保留倾角，实测残余 '
+          reason: 'roll=$roll 门槛内应原样保留倾角，实测残余 '
               '${kept.toStringAsFixed(3)}°');
-      log.writeln('  输入 roll=${roll.toStringAsFixed(1)}°（死区内）→ '
+      log.writeln('  输入 roll=${roll.toStringAsFixed(1)}°（门槛内）→ '
           '是否旋转=${diag.straightened} '
           '成片残余 ${kept.toStringAsFixed(3)}°（应 ≈ 输入角）');
     }
@@ -643,6 +667,142 @@ void main() {
     print('[2B.8]\n$log  最差残差=${worst.toStringAsFixed(3)}° (阈值 1.5°)');
     expect(worst <= 1.5, isTrue);
     expect(straightened, isFalse);
+  }, timeout: long);
+
+  test('摆正角逼近 90°：头轴反推闸门（不出 NaN / 天文数字裁剪框）', () async {
+    // kMaxRollDeg 从 30° 放到 90° 是配套改动：头高由 Δy/cosθ 反推、头顶行也要
+    // 除 cosθ，|θ| → 90° 时两者都在除零（cos90° ≈ 6e-17）。kHeadAxisMaxAbsDeg
+    // 是闸门：超过它必须退回**居中最大内接框**，而不是把 inf/NaN 喂进 solveAutoCrop。
+    final StringBuffer log = StringBuffer();
+    for (final double roll in <double>[81.0, 88.0, 90.0, -90.0]) {
+      expect(roll.abs() > kHeadAxisMaxAbsDeg, isTrue,
+          reason: '本项的夹具角 $roll 必须在闸门（$kHeadAxisMaxAbsDeg°）之外');
+      final _Synth s = _makeSynthetic(
+        width: 1000,
+        height: 1400,
+        headCx: 500,
+        headTopY: 320,
+        chinY: 700,
+        headWidth: 320,
+        rollDeg: roll,
+        withEyeMarkers: true,
+      );
+      final Candidate c = await engine.compose(
+          matting: s.matting, spec: specCn2inch, style: kBgWhite, face: s.face);
+      final ComposeDiagnostics d = engine.lastDiagnostics!;
+      expect(d.cropRect.width.isFinite &&
+          d.cropRect.height.isFinite &&
+          d.cropRect.left.isFinite &&
+          d.cropRect.top.isFinite, isTrue,
+          reason: 'roll=$roll 裁剪框出现非有限值：${d.cropRect}');
+      // 期望值按同一套策略复算：旋转画布（此时宽高已互换）的居中最大内接框。
+      final RotationPlan plan = planRotation(
+          srcWidth: s.matting.width,
+          srcHeight: s.matting.height,
+          rollDeg: s.face.rollDeg);
+      final RectD expectRect = centeredMaxRect(
+          plan.rotWidth, plan.rotHeight, specCn2inch.aspectRatio);
+      expect((d.cropRect.left - expectRect.left).abs() < 0.5 &&
+          (d.cropRect.top - expectRect.top).abs() < 0.5 &&
+          (d.cropRect.width - expectRect.width).abs() < 0.5 &&
+          (d.cropRect.height - expectRect.height).abs() < 0.5, isTrue,
+          reason: 'roll=$roll 应退回居中最大内接框 $expectRect，'
+              '实为 ${d.cropRect}');
+      expect(c.jpegBytes.isNotEmpty, isTrue, reason: 'roll=$roll 没产出成片');
+      log.writeln('  roll=${roll.toStringAsFixed(1)}° → 画布='
+          '${plan.rotWidth.toStringAsFixed(0)}×${plan.rotHeight.toStringAsFixed(0)}'
+          '（源图 ${s.matting.width}×${s.matting.height}）'
+          ' 裁剪框=${d.cropRect} 缩小=${d.shrunk}');
+    }
+    // ignore: avoid_print
+    print('[90° 闸门]\n$log');
+  }, timeout: long);
+
+  test('手动微调角：叠加在自动摆正之上，门槛内也照转', () async {
+    // 口径（`api.dart` 的 kManualAngleMinDeg/MaxDeg 与 compose 的 manualRollDeg）：
+    // 用户滑块的角是**显式要求**，不适用自动门槛的裁决 —— 照片被判"不用动"，
+    // 用户把滑块拉到 20° 也必须真转 20°；自动分量在门槛外时两者相加。
+    //
+    // 量法同 2B.8：设计空间的眼线是水平的，源图里它的倾角 φ = roll，
+    // 契约恒等式「输出倾角 = φ − 施加角」⇒ 成片眼线角应 ≈ roll − 施加角。
+    final StringBuffer log = StringBuffer();
+    double worst = 0;
+    // [源图倾角 roll, 滑块 manual, 期望施加角 auto+manual]
+    final List<List<double>> cases = <List<double>>[
+      <double>[5.0, 20.0, 20.0], // 门槛内：自动 0，用户 20 → 施加 20
+      <double>[5.0, -12.0, -12.0],
+      <double>[-27.0, 9.0, 9.0],
+      <double>[45.0, -10.0, 35.0], // 门槛外：自动 45 叠加 −10
+      <double>[-45.0, 8.0, -37.0],
+      <double>[0.0, 0.0, 0.0], // 全零 → 恒等，成片不重采样
+    ];
+    for (final List<double> cs in cases) {
+      final double roll = cs[0];
+      final double manual = cs[1];
+      final double applied = cs[2];
+      final _Synth s = _makeSynthetic(
+        width: 1000,
+        height: 1400,
+        headCx: 500,
+        headTopY: 320,
+        chinY: 700,
+        headWidth: 320,
+        rollDeg: roll,
+        withEyeMarkers: true,
+      );
+      final Candidate c = await engine.compose(
+        matting: s.matting,
+        spec: specCn2inch,
+        style: kBgWhite,
+        face: s.face,
+        manualRollDeg: manual,
+      );
+      final ComposeDiagnostics diag = engine.lastDiagnostics!;
+      expect(diag.manualRollDeg, manual, reason: '手动分量应原样落到诊断里');
+      expect((diag.straightenDeg - applied).abs() <= 1e-9, isTrue,
+          reason: 'roll=$roll 手调=$manual 的施加角应为 $applied，'
+              '实为 ${diag.straightenDeg}');
+      final double? line = _eyeLineAngleDeg(_decodeJpeg(c.jpegBytes));
+      expect(line, isNotNull, reason: 'roll=$roll 手调=$manual 找不到标记点');
+      worst = math.max(worst, (line! - (roll - applied)).abs());
+      log.writeln('  roll=${roll.toStringAsFixed(1)}° 手调='
+          '${manual.toStringAsFixed(1)}° → 施加='
+          '${diag.straightenDeg.toStringAsFixed(1)}° 成片眼线='
+          '${line.toStringAsFixed(2)}°（应 ≈ '
+          '${(roll - applied).toStringAsFixed(2)}°）');
+    }
+
+    // 越界钳制：UI 滑块越不过两端，但绕过 UI 直接调引擎的调用方必须被钳住。
+    final _Synth flat = _makeSynthetic(
+      width: 1000,
+      height: 1400,
+      headCx: 500,
+      headTopY: 320,
+      chinY: 700,
+      headWidth: 320,
+      withEyeMarkers: true,
+    );
+    for (final List<double> cs in <List<double>>[
+      <double>[400.0, kManualAngleMaxDeg],
+      <double>[-400.0, kManualAngleMinDeg],
+      <double>[double.nan, 0.0],
+      <double>[double.infinity, 0.0],
+    ]) {
+      await engine.compose(
+        matting: flat.matting,
+        spec: specCn2inch,
+        style: kBgWhite,
+        face: flat.face,
+        manualRollDeg: cs[0],
+      );
+      expect(engine.lastDiagnostics!.manualRollDeg, cs[1],
+          reason: '手调角 ${cs[0]} 应被钳到 ${cs[1]}');
+      log.writeln('  手调=${cs[0]} → 实际 ${engine.lastDiagnostics!.manualRollDeg}');
+    }
+
+    // ignore: avoid_print
+    print('[手动微调角]\n$log  最差偏离=${worst.toStringAsFixed(3)}° (阈值 1.5°)');
+    expect(worst <= 1.5, isTrue);
   }, timeout: long);
 
   test('用户框选 × 摆正：主体尺度守恒（REVIEW_G2 #3 回归）', () async {
@@ -657,16 +817,29 @@ void main() {
     // 测法不复算裁剪公式，而是量成片像素：合成人像的头部在「设计空间」里
     // 恒为 380×320，摆正后旋转空间里的头高应恢复成 380，于是成片头高恒为
     // 380 × 413/644 = 243.7px。任何对用户框的缩放都会等比例改变这个数字。
-    // 死区内（|roll| ≤ kRollDeadZoneDeg）不摆正，头是斜的，肤色区的轴对齐高度
-    // 理应是 380·cosθ + 320·sinθ —— 那是倾斜本身，不是缩放，按实际角度算进
-    // 理想值。这里不复述死区的具体度数，它由常量给出。
+    // 门槛内（|roll| ≤ kAutoRotateMinAbsDeg）不摆正，头是斜的，肤色区的轴对齐
+    // 高度理应是 380·cosθ + 320·sinθ —— 那是倾斜本身，不是缩放，按实际角度算进
+    // 理想值。这里不复述门槛的具体度数，它由常量给出。
+    //
+    // 夹具角**两种路径都要覆盖**：2026-09-17 门槛升到 30° 后，原来的
+    // [0, 2, 6, 10, −10, 20] 全落进门槛内，本项（量"摆正生效时用户框不被放大"
+    // 的回归）会静默丢掉 `straightened` 那一支，所以角从常量推、并带上门槛外的。
     const double cropW = 460.0; // 460:644 = 295:413，正好是 cn_1inch 比例
     const double cropH = 644.0;
     const double headDesignH = 380.0; // chinY(700) − headTopY(320)
     const double headDesignW = 320.0;
+    final List<double> rollCases = <double>[
+      0.0,
+      2.0,
+      kAutoRotateMinAbsDeg * 0.33,
+      kAutoRotateMinAbsDeg * 0.9,
+      -kAutoRotateMinAbsDeg * 0.9,
+      kAutoRotateMinAbsDeg * 1.5,
+      -kAutoRotateMinAbsDeg * 1.5,
+    ];
     final StringBuffer log = StringBuffer();
     double worstErr = 0.0;
-    for (final double roll in <double>[0.0, 2.0, 6.0, 10.0, -10.0, 20.0]) {
+    for (final double roll in rollCases) {
       final _Synth s = _makeSynthetic(
         width: 1000,
         height: 1400,
@@ -739,12 +912,16 @@ void main() {
       <double>[40, 1360], <double>[960, 1360],
       <double>[500, -800],
     ];
-    // 夹具角必须落在死区外，否则"反旋转路径"根本没被走到（2026-09-17 前这里
-    // 是 ±10°，与死区门槛重合，`plan.enabled` 断言按新定义即错）。
-    for (final double roll in <double>[15.0, -15.0]) {
-      expect(roll.abs() > kRollDeadZoneDeg, isTrue,
-          reason: '夹具角 $roll 必须落在死区外（kRollDeadZoneDeg='
-              '$kRollDeadZoneDeg），否则本项走的是恒等路径');
+    // 夹具角必须落在门槛外，否则"反旋转路径"根本没被走到。角由常量推出：
+    // 2026-09-17 门槛 10° → 30° 后，原来的 ±15° 掉进门槛内，
+    // `plan.enabled` 断言会立刻响（这正是它该做的事）。
+    for (final double roll in <double>[
+      kAutoRotateMinAbsDeg * 1.5,
+      -kAutoRotateMinAbsDeg * 1.5
+    ]) {
+      expect(roll.abs() > kAutoRotateMinAbsDeg, isTrue,
+          reason: '夹具角 $roll 必须落在门槛外（kAutoRotateMinAbsDeg='
+              '$kAutoRotateMinAbsDeg），否则本项走的是恒等路径');
       final _Synth s = _makeSynthetic(
         width: 1000, height: 1400, headCx: 500, headTopY: 320,
         chinY: 700, headWidth: 320, rollDeg: roll,

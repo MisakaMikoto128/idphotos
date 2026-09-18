@@ -48,7 +48,7 @@ class RectD {
 /// 取 θ = rollDeg 时，源图中沿头部倾斜轴的方向在旋转空间里变成竖直方向，
 /// 即完成摆正。
 class RotationPlan {
-  /// 是否真的要旋转。`|rollDeg| <= deadZoneDeg` 时为 false（恒等变换）。
+  /// 是否真的要旋转。最终面内角恰好为 0 时为 false（恒等变换）。
   final bool enabled;
 
   /// θ，弧度。enabled 为 false 时恒为 0。
@@ -110,47 +110,85 @@ class RotationPlan {
   }
 }
 
-/// 摆正死区：面内旋转角绝对值不超过这个度数就不旋转。
+/// 自动摆正的**适用下限**：面内倾角绝对值不超过这个度数时，自动摆正**绝不介入**。
 ///
-/// **10° 是用户 2026-09-17 的产品决定**，不是测量结论：普通拍摄的轻微倾斜
-/// 不值得为它重采样，更不值得为它把裁剪框转出原图（越界部分只能填底色，
-/// 成片底部会多出一道切口）；只有明显拍歪的照片、以及拍倒的照片才需要摆正。
-/// 上限仍是 [kMaxRollDeg] = 30°，故实际摆正只发生在 (10°, 30°] 这一段。
+/// **30° 是用户 2026-09-17 的产品决定**（口径变更：自动旋转只负责"用户上传的
+/// 照片方向明显不对"，精细角度交给 UI 滑块），不是测量结论。于是适用域一分为二：
 ///
-/// **代价是明确的，写在这里免得以后有人当它是 bug**：真值在 10° 以内、
-/// 但超过旧判据阈值的照片**成片保留原倾角**。例：`Pictures/1 (2).jpg` 真值
-/// −4.4°（人脸左右对称性独立实测 −3.4°~−4.4°，与四个估计器一致），在本门槛
-/// 下不再被摆正，成片保持 4.4° 倾斜。
+/// - `|θ| ≤ 30`：**归用户**。成片保留原倾角，用户用滑块自己调
+///   （`kManualAngleMinDeg` / `kManualAngleMaxDeg`，见 `../api.dart`）；
+/// - `|θ| > 30`：**归自动**。这才建立摆正变换，上限 [kMaxRollDeg]。
 ///
-/// **2026-09-17 已裁定：门槛保持 10°，改判据的适用域。** `docs/ACCEPTANCE.md`
-/// 的 G2B-P0 现按死区分两档：死区内（|真值| ≤ 10°）判「引擎不得转动它」
-/// （|残余 − 真值| ≤ 1.5°，转正与转歪都算 FAIL），死区外才要求 |残余| ≤ 1.5°；
-/// 2B.8 的夹具角从 ±10° 挪到 ±15°（原角度与门槛重合，转不转取决于估角噪声的符号）。
-/// **不要靠在这里调数值来让判据好过** —— 10° 是用户的产品决定，不是拟合结果。
+/// 两段互不重叠也不留缺口（`planRotation` 用 `<=` 判不转，取等号归用户）。
 ///
-/// 历史（保留，因为它解释了为什么曾经更窄）：曾是 3°；P0 用户反馈成片可见
-/// 歪斜后，用黄金集 g01/g03/g07 人工旋转 ±1–4° 实测收窄到 1°——当时小角度
-/// 的真实倾斜完全不修正，是成片可见歪斜的最大单项来源。那条论证在**当时的
-/// 产品目标下**成立；现在的目标是"普通照片不要动它"，前提变了，故不再适用。
-const double kRollDeadZoneDeg = 10.0;
+/// **保留原倾角是故意的，不是 bug**：真值 −4.4° 的照片在本门槛下不再被摆正，
+/// 成片保持 4.4° 倾斜 —— 这正是"普通照片不要动它"这条产品口径的代价，
+/// 由滑块补上。旧口径（10° 死区、判据按死区分档）随本次变更作废。
+///
+/// 历史（保留，因为它解释了为什么曾经更窄）：曾是 3°；P0 用户反馈成片可见歪斜后
+/// 一度收窄到 1°，再放宽到 10°。那些论证的前提是"自动应当修掉小角倾斜"，
+/// 本次口径把这件事交给用户，前提不再成立，故不再适用。
+const double kAutoRotateMinAbsDeg = 30.0;
 
-/// 摆正角上限。超过这个角度多半是人脸检测抽风（或者本来就不是正脸），
-/// 强行摆正会把画面转得面目全非，因此钳制。
-const double kMaxRollDeg = 30.0;
+/// 摆正角上限。
+///
+/// 2026-09-17 从 30° 提到 90°：自动门槛升到 [kAutoRotateMinAbsDeg] = 30° 后，
+/// 上限若留在 30° 就等于把功能删掉（`|roll| > 30` 与 `|roll| ≤ 30` 的补集
+/// 在 30° 这一点上撞死）。超过 90° 谈不上"倾斜"而是方向翻转（180° 的范畴），
+/// 而 [FaceInfo.rollDeg] 只表达面内倾斜，故钳到 ±90°。
+///
+/// ⚠️ 放开上限**不等于**全角度都能反推人头几何：|θ| 逼近 90° 时 `cosθ → 0`，
+/// 头高反推公式发散，见 [kHeadAxisMaxAbsDeg]。
+const double kMaxRollDeg = 90.0;
+
+/// 头轴反推的可用上限（度）。**[kMaxRollDeg] 放到 90° 的配套闸门**。
+///
+/// 裁剪推算里的"头高"由源图竖直跨度 Δy 除以 cosθ 反推（见
+/// `compose_engine._solveCrop`）：头轴相对竖直方向转了 θ，竖直跨度只是轴长的
+/// cosθ 倍。误差放大倍率就是 1/cosθ ——
+///
+/// - 30°：1.15 倍，2px 测量误差 → 2.3px 头高误差，无害；
+/// - 45°：1.41 倍；
+/// - 80°：5.76 倍（本常量取值，此时 Δy 只剩轴长的 0.17 倍）；
+/// - 89°：57 倍，再用 Δy 反推就是拿噪声当头高。
+///
+/// 90° 整时 `cos(π/2) ≈ 6e-17`，不设这道闸就是除零（得到 ±inf/NaN，
+/// 或者一个天文数字的裁剪框）。故超过本角就**放弃人脸推算**，
+/// 退回 [centeredMaxRect]：仍有成片、构图不再精确，但不崩、不喂 NaN。
+const double kHeadAxisMaxAbsDeg = 80.0;
 
 /// 生成旋转计划。
+///
+/// 最终面内角 = **自动分量（受 [autoRotateMinAbsDeg] 门槛裁决 + [kMaxRollDeg] 钳制）
+/// + 手动分量（用户显式要求，不受门槛约束）**，合计再钳一次 [kMaxRollDeg]。
+///
+/// [manualRollDeg] 为 0 时行为与不传它完全一致（逐字节）：自动没触发就恒等。
 RotationPlan planRotation({
   required int srcWidth,
   required int srcHeight,
   required double rollDeg,
-  double deadZoneDeg = kRollDeadZoneDeg,
+  double manualRollDeg = 0.0,
+  double autoRotateMinAbsDeg = kAutoRotateMinAbsDeg,
 }) {
+  // ---- 自动分量：先钳上限，再按门槛裁决（取等号归用户） ----
   double roll = rollDeg;
   if (!roll.isFinite) {
     roll = 0.0;
   }
   roll = roll.clamp(-kMaxRollDeg, kMaxRollDeg).toDouble();
-  if (roll.abs() <= deadZoneDeg) {
+  if (roll.abs() <= autoRotateMinAbsDeg) {
+    roll = 0.0;
+  }
+  // ---- 手动分量：滑块是用户显式要求，20° 就得真的转 20°，不适用上面的门槛 ----
+  double manual = manualRollDeg;
+  if (!manual.isFinite) {
+    manual = 0.0;
+  }
+  // 合计仍受上限钳制：|θ| ≥ 90° 时 cosθ ≤ 0，头轴反推失效（见 kHeadAxisMaxAbsDeg）。
+  // 1e-9° 比任何可测角度小 7 个数量级，按恒等处理，省掉一次毫无意义的仿射重采样。
+  final double total =
+      (roll + manual).clamp(-kMaxRollDeg, kMaxRollDeg).toDouble();
+  if (total.abs() <= 1e-9) {
     return RotationPlan(
       enabled: false,
       angleRad: 0.0,
@@ -160,9 +198,12 @@ RotationPlan planRotation({
       rotHeight: srcHeight.toDouble(),
     );
   }
-  final double rad = roll * math.pi / 180.0;
+  final double rad = total * math.pi / 180.0;
   final double c = math.cos(rad).abs();
   final double s = math.sin(rad).abs();
+  // |θ| > 45° 时旋转画布的宽高相对源图**互换**（竖图变成横的包围盒）。
+  // 这里只是包围盒公式，对任意 θ 都成立；下游（裁剪推算 / 渲染 / 掩膜精化）
+  // 一律只读 rotWidth/rotHeight，不假设谁大谁小。
   final double rw = srcWidth * c + srcHeight * s;
   final double rh = srcWidth * s + srcHeight * c;
   return RotationPlan(
