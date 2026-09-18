@@ -144,9 +144,21 @@ Map<String, dynamic> upstream({
   required List<String> prev,
   required bool g2bPass,
   required bool g4Pass,
+  bool timedOut = false,
 }) =>
     <String, dynamic>{
       'upstreamReran': reran,
+      // 主会话要求报告本身能看出上游跑没跑成 —— 这里连"发起过但超时"也一并记上，
+      // 于是 `reran=false` 但 `reran 发起过 = true` + `timedOut=true` 是可表达的。
+      'upstreamRunInfo': <String, dynamic>{
+        'reran': true,
+        'g2bExit': timedOut ? -1 : (g2bPass ? 0 : 1),
+        'g2bTimedOut': timedOut,
+        'g2bFresh': reran,
+        'g4Exit': timedOut ? -1 : (g4Pass ? 0 : 1),
+        'g4TimedOut': timedOut,
+        'g4Fresh': reran,
+      },
       'prevPassingGates': prev,
       'gateG2B': <String, dynamic>{
         'gate': 'G2B',
@@ -448,8 +460,60 @@ void main(List<String> args) {
     stdout.writeln('');
   }
 
+  // ---- 用例 19-20：报告本身必须能看出上游跑没跑成（主会话 2026-09-17 要求）----
+  //
+  // "跑成了" 与 "退化了" 必须能在**报告正文里**分开读到，不必去翻日志。
+  // 用例 20 是关键：**上游超时时 P0.5c 记 MANUAL，但正文必须写明 timedOut=true** ——
+  // 否则读报告的人只会看到"无读数"，看不出那是超时，也就没法判断该重跑还是该修。
+  {
+    stdout.writeln('[19] upstream-runinfo：跑成了，报告里带退出码与 timedOut');
+    final Map<String, dynamic> it = pick(
+      'P0.5c',
+      <Map<String, dynamic>>[],
+      <Map<String, dynamic>>[],
+      <Map<String, dynamic>>[],
+      extra: upstream(
+        reran: true,
+        prev: <String>['G2B/2B.1'],
+        g2bPass: true,
+        g4Pass: true,
+      ),
+    );
+    final String a = it['actual'] as String;
+    check('正文含 timedOut', a.contains('timedOut='), '正文没有 timedOut');
+    check('正文含 exit', a.contains('exit='), '正文没有 exit');
+    check('正文含 upstreamReran=true', a.contains('upstreamReran=true'),
+        '正文没写 upstreamReran');
+    check('PASS', it['pass'] == true, '实际 pass=${it['pass']}');
+    stdout.writeln('');
+  }
+  {
+    stdout.writeln('[20] upstream-timeout：发起了但超时 ⇒ MANUAL，且正文点明超时');
+    final Map<String, dynamic> it = pick(
+      'P0.5c',
+      <Map<String, dynamic>>[],
+      <Map<String, dynamic>>[],
+      <Map<String, dynamic>>[],
+      extra: upstream(
+        reran: false, // 超时 ⇒ freshlyWritten=false ⇒ 不是本轮实测
+        prev: <String>['G2B/2B.1'],
+        g2bPass: false,
+        g4Pass: false,
+        timedOut: true,
+      ),
+    );
+    final String a = it['actual'] as String;
+    check('P0.5c FAIL', it['pass'] == false, '实际 pass=${it['pass']}');
+    check('P0.5c 标 MANUAL', it['manual'] == true, '实际 manual=${it['manual']}');
+    check('**正文点明 timedOut=true**', a.contains('timedOut=true'),
+        '超时被写成"无读数"，读报告的人看不出是超时');
+    check('正文写明未重跑（产物不是本轮的）', a.contains('产物不是本轮的'),
+        '正文没说明为什么无读数');
+    stdout.writeln('');
+  }
+
   stdout.writeln(failures == 0
-      ? 'P0 自检：全部通过（18 组用例）'
+      ? 'P0 自检：全部通过（20 组用例）'
       : 'P0 自检：$failures 项失败');
   exit(failures == 0 ? 0 : 1);
 }

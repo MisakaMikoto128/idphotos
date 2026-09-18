@@ -457,6 +457,9 @@ Future<void> main(List<String> args) async {
     ...passingGateIds(_readJson(kG4Archive)),
   ];
   bool upstreamReran = false;
+  // 主会话 2026-09-17 要求：**从报告本身就要能看出上游到底跑没跑成**，不必去翻日志。
+  // 所以把退出码 / 超时 / 产物新鲜度一并记进 inputs，由 P0.5c 的正文打出来。
+  Map<String, dynamic> upstreamRunInfo = <String, dynamic>{'reran': false};
   if (!reuse) {
     Directory(upstreamDir).createSync(recursive: true);
     stdout.writeln('上游重跑产物写到 $upstreamDir（不覆盖 out/ 归档）');
@@ -476,10 +479,23 @@ Future<void> main(List<String> args) async {
     );
     stdout.writeln(
         '--- 上游 G4 重跑退出码 ${g4Run.exitCode} ---\n${g4Run.tail(maxChars: 800)}');
-    upstreamReran = freshlyWritten(g2bRunPath, g2bStart, g2bRun) &&
-        freshlyWritten(g4RunPath, g4Start, g4Run);
+    final bool g2bFresh = freshlyWritten(g2bRunPath, g2bStart, g2bRun);
+    final bool g4Fresh = freshlyWritten(g4RunPath, g4Start, g4Run);
+    upstreamReran = g2bFresh && g4Fresh;
+    upstreamRunInfo = <String, dynamic>{
+      'reran': true,
+      'g2bExit': g2bRun.exitCode,
+      'g2bTimedOut': g2bRun.timedOut,
+      'g2bFresh': g2bFresh,
+      'g4Exit': g4Run.exitCode,
+      'g4TimedOut': g4Run.timedOut,
+      'g4Fresh': g4Fresh,
+      'g2bPath': g2bRunPath,
+      'g4Path': g4RunPath,
+    };
     stdout.writeln('upstreamReran=$upstreamReran'
-        '（G2B timedOut=${g2bRun.timedOut} / G4 timedOut=${g4Run.timedOut}）');
+        '（G2B exit=${g2bRun.exitCode} timedOut=${g2bRun.timedOut} fresh=$g2bFresh'
+        ' / G4 exit=${g4Run.exitCode} timedOut=${g4Run.timedOut} fresh=$g4Fresh）');
   }
 
   final RunResult selfcheck = await runProcess(
@@ -507,6 +523,7 @@ Future<void> main(List<String> args) async {
     // 重跑**之前**从盘上归档抓的"原本通过集"，P0.5c 拿它当不退化比较的基线。
     // 两边的路径**不同**是刻意的：同路径会让"重跑"覆盖掉比较基线。
     'upstreamReran': upstreamReran,
+    'upstreamRunInfo': upstreamRunInfo,
     'prevPassingGates': prevPassingGates,
     'composeSummary': _readJson(kComposeSummaryPath),
     'blockers': blockers,
@@ -1295,6 +1312,16 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       final List<String> prevPassing =
           (inputs['prevPassingGates'] as List<dynamic>? ?? <dynamic>[]).cast<String>();
       final bool reran = inputs['upstreamReran'] == true;
+      // 主会话 2026-09-17 要求：**报告本身要能看出上游跑没跑成**，不必去翻日志。
+      final Map<String, dynamic> runInfo =
+          inputs['upstreamRunInfo'] as Map<String, dynamic>? ?? <String, dynamic>{};
+      final String runLine = runInfo['reran'] != true
+          ? '本轮**没有发起**上游重跑（`--reuse` 干跑）。'
+          : '本轮重跑实测：G2B exit=${runInfo['g2bExit']} '
+              'timedOut=${runInfo['g2bTimedOut']} 产物新鲜=${runInfo['g2bFresh']}；'
+              'G4 exit=${runInfo['g4Exit']} '
+              'timedOut=${runInfo['g4TimedOut']} 产物新鲜=${runInfo['g4Fresh']}。'
+              '⇒ upstreamReran=$reran。';
       final List<String> nowPassing = <String>[
         ...passingGateIds(g2b),
         ...passingGateIds(g4),
@@ -1314,9 +1341,10 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         'expected': '原本通过的 ${prevPassing.length} 项在本轮重跑后仍 PASS',
         'actual': _text(
           <String>[
+            runLine,
             if (!reran)
-              '**本轮未重跑上游 gate**（`--reuse` 干跑，或重跑后缺 '
-                  '`out/gate_G2B.json` / `out/gate_G4.json`）⇒ 本项无读数，记 MANUAL。'
+              '**本轮未重跑上游 gate**（`--reuse` 干跑，或上游重跑超时/崩溃 ⇒ '
+                  '产物不是本轮的）⇒ 本项无读数，记 MANUAL。'
             else
               '本轮已重跑上游 G2B 与 G4（设备会话）；基线通过集 ${prevPassing.length} 项，'
                   '重跑后通过集 ${nowPassing.length} 项。',
