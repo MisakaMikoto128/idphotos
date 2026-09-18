@@ -4235,3 +4235,27 @@ P0.3b 空集 ⇒ MANUAL / P0.4 空集 ⇒ MANUAL），**用 `dart run` 直调 `e
 - 处理：**未在本轮动手**。改 `waitForAdbDeviceOnline` 的调用点是改量具，须先经主会话确认并重建
   `out/REVIEW_*_instrument_baseline.txt`（见 [[p0-gate-round-accounting]] 与
   [[frozen-round-no-instrument-edits]]）。本轮只取证、只报告。
+
+## [gatekeeper] 改判定实现没改它的测试夹具：`test/gate/` 红了两处，而报告一直是"自证全绿"
+
+- 现象（2026-09-17，做设备过滤改动时顺手跑全量 `test/gate/` 才发现）：`flutter test test/gate/`
+  **5 个用例失败**，且**先于本轮改动就存在**：
+  - `test/gate/p0_gate_judgment_test.dart` 3 个（A/B/C）—— 回归到 **`f856430`**
+    （"P0 判据按 10 度死区分档，新增 P0.6"）。它加了 P0.6，却没同步"合格实现必须全 PASS"
+    那份夹具，于是夹具里 **P0.6 / P0.1a 恒 FAIL**。
+  - `test/gate/provenance_test.dart` 2 个 —— 回归到 **`4e33340`**（"修两处输入完整性缺陷
+    （porcelain 豁免切片 / roundValid 层级）"）。它给 `provenance.dart` 加了
+    `roundValid`/`codeStableDuringRun` 要求，却没给夹具补这两个字段，于是三份产出全判"不可判"。
+  - 两处都用 `git show <commit>:<file> > <file>` 换版本二分**实证**过（不是靠提交信息猜）：
+    `4e33340` 全绿 / `f856430` 3 红；`d873577` 全绿 / `4e33340` 2 红。
+- **危险在哪**：这两个提交都是 gatekeeper 自己的，且**两次报告里都写了"自证全绿"**。原因是
+  这道门禁有**两个自证面**：
+  1. `dart run tools/gate/p0_p06_selftest.dart`（构造输入喂 `evaluateP0`）；
+  2. `flutter test test/gate/`（夹具 + 真仓库两条路径）。
+  **两个都跑才叫全绿。我只跑了 ①，却按 ① 的绿报了全局的绿** —— 与
+  `p0_p06_selftest.dart` 开头自己写的警告（"一条从未在任何输入上跑过的判据脚本，
+  它的绿色与'根本没跑'长得一模一样"）是同一个形态，只是这次"没跑"的是**另一整个 harness**。
+- 判据：**改了判定实现，就要同时问"它的夹具在哪、我还跑不跑得动它"**。夹具没同步 = 把一个
+  恒红的用例留在仓库里，下一个人分不清"它红是因为我改坏了"还是"它本来就红"——**红久了就没人看了**。
+- 处理：本轮**只报告，未修**（`test/gate/` 的两个夹具属于门禁量具，改动须与基线重建一起走，
+  避免在 r5 开跑前再动量具）。回派对象是 gatekeeper 自己，排在 r5 之后。
