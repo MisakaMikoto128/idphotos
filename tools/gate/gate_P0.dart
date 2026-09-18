@@ -432,6 +432,41 @@ Future<void> main(List<String> args) async {
     );
   }
 
+  // ---- P0.5c 的上游 gate 重跑：不退化只能由**本轮实测**回答 ----
+  //
+  // 读旧的 `out/gate_G2B.json` / `out/gate_G4.json` 判"有没有退化"，是拿一份
+  // **来自另一个代码状态**的结果充当本轮判决的一半 —— 与 `_applyRoundValidity`
+  // 记的 r1 缺陷同源（那一轮就是把两半拼起来的判决）。所以这里**先抓旧的
+  // "原本通过集"当基线，再重跑，然后比**。没有这一步，P0.5c 只能永远停在 MANUAL，
+  // 而 `_finish` 的 `allPass = every(pass==true)` 会把"恒 MANUAL"变成"永远不能 PASS"。
+  //
+  // 重跑放在 `!reuse` 里：`--reuse` 是干跑，不该顺带跑掉一次设备会话。
+  // 缺文件**不塞进 `blockers`** —— 那会把 instrumentsOk 拉成 false，连带作废
+  // P0.1a 等与本项无关的条目；P0.5c 自己如实记 MANUAL 即可。
+  final List<String> prevPassingGates = <String>[
+    ...passingGateIds(_readJson('out/gate_G2B.json')),
+    ...passingGateIds(_readJson('out/gate_G4.json')),
+  ];
+  bool upstreamReran = false;
+  if (!reuse) {
+    final RunResult g2bRun = await runProcess(
+      'dart',
+      <String>['run', 'tools/gate/gate_G2B.dart'],
+      timeout: const Duration(minutes: 40),
+    );
+    stdout.writeln(
+        '--- 上游 G2B 重跑退出码 ${g2bRun.exitCode} ---\n${g2bRun.tail(maxChars: 800)}');
+    final RunResult g4Run = await runProcess(
+      'dart',
+      <String>['run', 'tools/gate/gate_G4.dart'],
+      timeout: const Duration(minutes: 60),
+    );
+    stdout.writeln(
+        '--- 上游 G4 重跑退出码 ${g4Run.exitCode} ---\n${g4Run.tail(maxChars: 800)}');
+    upstreamReran = File('out/gate_G2B.json').existsSync() &&
+        File('out/gate_G4.json').existsSync();
+  }
+
   final RunResult selfcheck = await runProcess(
     'flutter',
     <String>['test', 'lib/core/imaging/dev_selfcheck.dart'],
@@ -453,6 +488,10 @@ Future<void> main(List<String> args) async {
     },
     'gateG2B': _readJson('out/gate_G2B.json'),
     'gateG4': _readJson('out/gate_G4.json'),
+    // 上面两份是**重跑之后**读的（本轮实测）；下面两份记的是重跑**之前**的
+    // "原本通过集"，P0.5c 拿它当不退化比较的基线。
+    'upstreamReran': upstreamReran,
+    'prevPassingGates': prevPassingGates,
     'composeSummary': _readJson(kComposeSummaryPath),
     'blockers': blockers,
     'spec': kSpec,
@@ -683,6 +722,21 @@ Map<String, dynamic>? _siftOf(Map<String, dynamic> inputs, String id) {
 }
 
 /// G2B-P0 判定。纯函数：输入是测量结果，输出是条目表。
+/// 从一份既有 gate 结果里取出「原本通过的项」，形如 `G4/4.6`。
+///
+/// P0.5c 判的是**不退化**，所以比的必须是"之前通过的项现在还在不在通过集里"，
+/// 而不是"这个 gate 整体过没过"——后者会凭空多出一条法典没有的要求
+/// （现成反例：G4/4.7 真机内存本就是既有未过项，算成 P0 的账是冤枉实现方）。
+List<String> passingGateIds(Map<String, dynamic>? gate) {
+  if (gate == null) return <String>[];
+  final List<String> out = <String>[];
+  for (final dynamic it in (gate['items'] as List<dynamic>? ?? <dynamic>[])) {
+    final Map<String, dynamic> m = it as Map<String, dynamic>;
+    if (m['pass'] == true) out.add('${gate['gate']}/${m['id']}');
+  }
+  return out;
+}
+
 List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
   final List<Map<String, dynamic>> items = <Map<String, dynamic>>[];
   final List<Map<String, dynamic>> samples = buildSamples(inputs);
@@ -719,11 +773,11 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
   // 之所以提到函数级共用：P0.1b 的样本集（锚点栏）在本语料上是**结构性空集**
   // （12 条锚点真值全在死区内，最高 `c08` 的 −8.01°，见 ACCEPTANCE「口径后果」），
   // 它要靠**夹具栏的判定集非空**来证明"本项覆盖由夹具承担"。两处各算一遍就会漂。
-  final List<Map<String, dynamic>> fxNeed = rotated
+  final List<Map<String, dynamic>> fixtureNeed = rotated
       .where((Map<String, dynamic> s) => (s['truth'] as double).abs() > kDeadZoneDeg)
       .toList();
-  final List<Map<String, dynamic>> fxJudged =
-      fxNeed.where((Map<String, dynamic> s) => !inBoundaryBand(s)).toList();
+  final List<Map<String, dynamic>> fixtureJudged =
+      fixtureNeed.where((Map<String, dynamic> s) => !inBoundaryBand(s)).toList();
 
   final List<Map<String, dynamic>> pupils =
       samples.where((Map<String, dynamic> s) => s['source'] == 'pupil').toList();
@@ -805,26 +859,27 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         anchors.where((Map<String, dynamic> s) => (s['truth'] as double).abs() > kDeadZoneDeg).toList();
     final List<Map<String, dynamic>> band = anchors.where(inBoundaryBand).toList();
     // 边界带内的样本"该不该转"由估计误差决定，只报数、不判 FAIL（ACCEPTANCE）。
-    final List<Map<String, dynamic>> judged =
+    final List<Map<String, dynamic>> anchorJudged =
         need.where((Map<String, dynamic> s) => !inBoundaryBand(s)).toList();
     final List<Map<String, dynamic>> bad =
-        judged.where((Map<String, dynamic> s) => s['source'] == 'unavailable').toList();
+        anchorJudged.where((Map<String, dynamic> s) => s['source'] == 'unavailable').toList();
     final List<Map<String, dynamic>> exempt =
         anchors.where((Map<String, dynamic> s) => (s['truth'] as double).abs() <= kDeadZoneDeg &&
             s['source'] == 'unavailable').toList();
     items.add(<String, dynamic>{
       'id': 'P0.1b',
       'description': '条件覆盖率：真值 |tilt| > $kDeadZoneDeg°（死区外）的锚点必须给出 pupil 估计，unavailable 必须 = 0',
-      'expected': '需要摆正的 ${judged.length} 条锚点（已扣除边界带）上 unavailable = 0',
+      'expected': '需要摆正的 ${anchorJudged.length} 条锚点（已扣除边界带）上 unavailable = 0；'
+          '锚点栏为空时本项覆盖由夹具栏承担（P0.3b 判定集 ${fixtureJudged.length} 条）',
       'actual': _text(
         <String>[
           '需要摆正（|truth| > $kDeadZoneDeg°）的锚点 ${need.length} 条，'
-              '其中边界带内 ${band.length} 条只报数 ⇒ **实际参与判定 ${judged.length} 条**，'
+              '其中边界带内 ${band.length} 条只报数 ⇒ **实际参与判定 ${anchorJudged.length} 条**，'
               '其上 unavailable ${bad.length} 条'
               '${bad.isEmpty ? "" : "：" + bad.map((Map<String, dynamic> s) => "${s['id']}(truth ${_f(s['truth'] as double)})").join("、")}',
-          if (judged.isEmpty && fxJudged.isNotEmpty)
-            '**锚点栏无死区外样本（0 条），本项在锚点栏没有读数；覆盖由 P0.3b 夹具栏承担'
-                '（夹具判定集 ${fxJudged.length} 条）** —— 这是 ACCEPTANCE「口径后果」'
+          if (anchorJudged.isEmpty && fixtureJudged.isNotEmpty)
+            '**锚点栏无死区外样本（0 条）；本项覆盖由 P0.3b 夹具栏承担'
+                '（夹具判定集 ${fixtureJudged.length} 条）** —— 这是 ACCEPTANCE「口径后果」'
                 '（死区外那半边只由夹具承担、真实照片不再参与）的**预期结果，不是缺陷**。'
                 '故本条的 PASS 依据是**夹具栏**的条件覆盖率，不是锚点栏；'
                 '读这一行时不得把它当成"锚点栏也达标了"。',
@@ -836,19 +891,18 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         ],
         blockers,
       ),
-      // 判定集为空时**不许白拿 PASS**，但也不许把"已记录的覆盖收缩"当成"永久停机"：
-      // 锚点栏在本语料上**结构性为空**（ACCEPTANCE「口径后果」：死区外那半边只由夹具
-      // 承担、真实照片不再参与）。故分三种情形，只有**两栏都空**才是真的没人判它：
-      //   ① 锚点栏非空          → 照旧判 `bad.isEmpty`；
-      //   ② 锚点栏空、夹具栏非空 → PASS，但 actual 必须写明覆盖由夹具栏承担；
-      //   ③ 两栏都空            → pass=false + manual=true。
-      // 之所以把②写成 PASS 而不是 MANUAL：一个**恒 MANUAL** 的项会让整轮永远不能 PASS
-      // （`_finish` 里 `allPass = every(pass==true)`），那是把"已记录的覆盖收缩"读成
-      // "实现方永远不达标"——两者在人读的报告里长得一样正常。
+      // 判定集为空时**不许白拿 PASS**，但也不许把"已记录的覆盖收缩"当成"永久停机"。
+      // P0.3b 与本项是**同一条判据**（"真值 >10° 的样本上 unavailable 必须 = 0"）
+      // 在不同样本总体上的两次实例：空集但别处有非空实例 ⇒ 要求确实被判过，
+      // 只是不在这一栏；**两栏都空 ⇒ 真的没人判它 ⇒ MANUAL**，这是对的行为。
+      // 之所以不让锚点栏空就直接判 MANUAL：一个**恒 MANUAL** 的项会让整轮永远不能 PASS
+      // （`_finish` 里 `allPass = every(pass==true)`），那是把"已记录的覆盖收缩"
+      // 读成"实现方永远不达标"——两者在人读的报告里长得一样正常。
       'pass': instrumentsOk &&
-          (judged.isNotEmpty ? bad.isEmpty : fxJudged.isNotEmpty),
-      'manual': !instrumentsOk || (judged.isEmpty && fxJudged.isEmpty),
-      'owner': (judged.isEmpty && fxJudged.isEmpty)
+          bad.isEmpty &&
+          (anchorJudged.isNotEmpty || fixtureJudged.isNotEmpty),
+      'manual': !instrumentsOk || (anchorJudged.isEmpty && fixtureJudged.isEmpty),
+      'owner': (anchorJudged.isEmpty && fixtureJudged.isEmpty)
           ? 'gatekeeper（锚点栏与夹具栏均无死区外样本，本项无读数）'
           : kOwnerEstimate,
     });
@@ -1007,11 +1061,11 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
 
   // ---------------- P0.3b：旋转等变（覆盖率） ----------------
   {
-    // 判定集与边界带口径**不在这里重算**：`fxNeed` / `fxJudged` 在函数顶部定义，
-    // 与 P0.1b 共用同一份。两处各算一遍就会漂，而漂出来的两个数各自都读得通。
-    final List<Map<String, dynamic>> need = fxNeed;
+    // 判定集与边界带口径**不在这里重算**：`fixtureNeed` / `fixtureJudged` 在函数顶部
+    // 定义，与 P0.1b 共用同一份。两处各算一遍就会漂，而漂出来的两个数各自都读得通。
+    final List<Map<String, dynamic>> need = fixtureNeed;
     final List<Map<String, dynamic>> band = need.where(inBoundaryBand).toList();
-    final List<Map<String, dynamic>> judged = fxJudged;
+    final List<Map<String, dynamic>> judged = fixtureJudged;
     final List<Map<String, dynamic>> bad =
         judged.where((Map<String, dynamic> s) => s['source'] == 'unavailable').toList();
     final List<Map<String, dynamic>> exempt =
@@ -1201,9 +1255,17 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
     } else {
       // 法典 P0.5 的原话是"G4 **已过项**全部不退化"——只有原本通过的项才谈得上退化。
       // 直接要求"两个 gate 全 PASS"会凭空多出一条法典没有的要求（现成的反例：
-      // G4/4.7 真机内存本就是既有未过项，把它算成 P0 的账是冤枉 ml-porting）。
-      // 而"有没有退化"只能靠重跑才知道，本轮上游没修好、不重跑，故标 MANUAL，
-      // 并把既有的未过项如实列出来，不许藏。
+      // G4/4.7 真机内存本就是既有未过项，把它算成 P0 的账是冤枉实现方）。
+      // 基线 = 重跑**之前**的通过集；本轮 = 重跑**之后**的通过集；退化 = 基线 − 本轮。
+      final List<String> prevPassing =
+          (inputs['prevPassingGates'] as List<dynamic>? ?? <dynamic>[]).cast<String>();
+      final bool reran = inputs['upstreamReran'] == true;
+      final List<String> nowPassing = <String>[
+        ...passingGateIds(g2b),
+        ...passingGateIds(g4),
+      ];
+      final List<String> regressed =
+          prevPassing.where((String id) => !nowPassing.contains(id)).toList();
       final List<String> failing = <String>[];
       for (final Map<String, dynamic> g in <Map<String, dynamic>>[g2b, g4]) {
         for (final dynamic it in (g['items'] as List<dynamic>? ?? <dynamic>[])) {
@@ -1214,21 +1276,34 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       items.add(<String, dynamic>{
         'id': 'P0.5c',
         'description': '不回归：2B.8 之外的 G2B 项 / G4 已过项不退化（判据只覆盖"原本通过的项"）',
-        'expected': '原本通过的项重跑后仍 PASS；本项需重跑才能判定',
+        'expected': '原本通过的 ${prevPassing.length} 项在本轮重跑后仍 PASS',
         'actual': _text(
           <String>[
-            '本轮未重跑设备端（上游 P0.3a/P0.3b 未修好时重跑不产生新信息，一轮约 40 分钟）。',
-            '既有 gate 结果里的未过项：${failing.isEmpty ? "无" : failing.join("、")}',
+            if (!reran)
+              '**本轮未重跑上游 gate**（`--reuse` 干跑，或重跑后缺 '
+                  '`out/gate_G2B.json` / `out/gate_G4.json`）⇒ 本项无读数，记 MANUAL。'
+            else
+              '本轮已重跑上游 G2B 与 G4（设备会话）；基线通过集 ${prevPassing.length} 项，'
+                  '重跑后通过集 ${nowPassing.length} 项。',
+            '原本通过、本轮不再通过的项 ${regressed.length} 条：'
+                '${regressed.isEmpty ? "（无）" : regressed.join("、")}',
+            '既有 gate 结果里的未过项：${failing.isEmpty ? "（无）" : failing.join("、")}',
             failing.isEmpty
                 ? ''
                 : '注意：这些是**本轮之前就存在的**未过项，不是 P0 引入的退化；'
-                    '逐条原因见各自的 out/GATE_*_r*.md，不计在 ml-porting 账上。',
+                    '逐条原因见各自的 out/GATE_*_r*.md，不计在实现方账上。',
+            if (regressed.isNotEmpty)
+              '**退化项按根因逐条归属，不许一律记账**：4.6/4.7 是设备端计时/内存，'
+                  '受宿主负载影响，判为退化前必须先复核是否环境噪声；'
+                  '本条只报事实，是否记在实现方账上由主会话裁定。',
           ],
           blockers,
         ),
-        'pass': false,
-        'manual': true,
-        'owner': 'gatekeeper（本轮未重跑，无法判定是否退化；留待上游修好后补跑）',
+        'pass': instrumentsOk && reran && prevPassing.isNotEmpty && regressed.isEmpty,
+        'manual': !instrumentsOk || !reran || prevPassing.isEmpty,
+        'owner': (reran && prevPassing.isNotEmpty)
+            ? '按退化项逐条归属（4.6/4.7 等设备项须先复核环境噪声）'
+            : 'gatekeeper（本轮未重跑上游 gate，或其原本通过集为空，本项无读数）',
       });
     }
   }

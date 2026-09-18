@@ -28,6 +28,16 @@
 /// | `allEmpty` | 锚点栏与夹具栏都空 | P0.1b **FAIL + MANUAL**（这时才真的没读数） |
 /// | `covEmpty` | 夹具栏无死区外样本 | P0.3b **FAIL + MANUAL**（不许空真通过） |
 /// | `noSample` | 一条可合成样本都没有 | P0.4 **FAIL + MANUAL**（同上） |
+/// | `upstream-ok` | 重跑过上游、原本通过项无退化 | P0.5c **PASS**（可达） |
+/// | `upstream-regress` | 原本通过的项本轮不再通过 | P0.5c **FAIL** 且**点名**退化项 |
+/// | `upstream-norerun` | 本轮未重跑上游 | P0.5c **FAIL + MANUAL** |
+///
+/// 用例 11–13 钉的是**"门禁结构上能不能 PASS"**：`_finish` 的
+/// `allPass = every(pass == true)` 把 MANUAL 一律当不通过，所以**一条恒 MANUAL 的项
+/// 会把整轮钉死**。P0.5c 原先两个分支都硬编码 `pass:false, manual:true`（它读旧的
+/// 上游 gate JSON 判"有没有退化"，而读旧结果是拼判决，于是干脆不判）——
+/// 结果就是门禁**永远 exit 1**，而报告读起来完全正常。用例 11 要求它有一个真能绿的
+/// 证据状态，用例 13 要求"没重跑"老老实实记 MANUAL 而**不是**当作通过。
 ///
 /// `cov` 存在的理由：P0.1b 的锚点栏在本语料上**结构性为空**。若把它一律记 MANUAL，
 /// 而 `_finish` 的 `allPass = every(pass==true)` 又把 MANUAL 当不通过，整轮就**永远
@@ -81,8 +91,9 @@ Map<String, dynamic> pick(
   String id,
   List<Map<String, dynamic>> compose,
   List<Map<String, dynamic>> eyeline,
-  List<Map<String, dynamic>> sift,
-) {
+  List<Map<String, dynamic>> sift, {
+  Map<String, dynamic> extra = const <String, dynamic>{},
+}) {
   final Map<String, dynamic> inputs = <String, dynamic>{
     'spec': kSpec,
     'compose': compose,
@@ -103,6 +114,7 @@ Map<String, dynamic> pick(
     'provenance': <String, dynamic>{'reasons': <dynamic>[]},
     'denominatorAgreement': <String, dynamic>{'readable': true},
     'evidenceProvenance': <String, dynamic>{'readable': true},
+    ...extra,
   };
   for (final Map<String, dynamic> i in evaluateP0(inputs)) {
     if (i['id'] == id) return i;
@@ -116,6 +128,33 @@ Map<String, dynamic> p06(
   List<Map<String, dynamic>> sift,
 ) =>
     pick('P0.6', compose, eyeline, sift);
+
+/// 构造 P0.5c 需要的上游 gate 输入（`extra:` 用）。
+///
+/// `prev` 是重跑**之前**的通过集（不退化比较的基线），两个 `pass` 是本轮重跑**之后**
+/// 的结果——`g4Pass: false` 配 `prev` 含 `G4/4.1` 就是"原本通过、本轮不再通过"。
+Map<String, dynamic> upstream({
+  required bool reran,
+  required List<String> prev,
+  required bool g2bPass,
+  required bool g4Pass,
+}) =>
+    <String, dynamic>{
+      'upstreamReran': reran,
+      'prevPassingGates': prev,
+      'gateG2B': <String, dynamic>{
+        'gate': 'G2B',
+        'items': <dynamic>[
+          <String, dynamic>{'id': '2B.1', 'pass': g2bPass},
+        ],
+      },
+      'gateG4': <String, dynamic>{
+        'gate': 'G4',
+        'items': <dynamic>[
+          <String, dynamic>{'id': '4.1', 'pass': g4Pass},
+        ],
+      },
+    };
 
 int failures = 0;
 
@@ -297,8 +336,75 @@ void main(List<String> args) {
     stdout.writeln('');
   }
 
+  // ---- 用例 11：P0.5c 必须存在能到 pass=true 的状态 ----
+  //
+  // 这一条钉的是"门禁结构上能不能 PASS"。P0.5c 原先两个分支都硬编码
+  // `pass:false, manual:true`，而 `_finish` 的 `allPass = every(pass==true)`
+  // 把 MANUAL 当不通过 ⇒ **门禁永远 exit 1**。**一条恒 MANUAL 的项不能充当
+  // PASS 的门**，所以这里要求它有一个真的能绿的证据状态。
+  {
+    stdout.writeln('[11] upstream-ok：重跑过且原本通过项无退化');
+    final Map<String, dynamic> it = pick(
+      'P0.5c',
+      <Map<String, dynamic>>[],
+      <Map<String, dynamic>>[],
+      <Map<String, dynamic>>[],
+      extra: upstream(
+        reran: true,
+        prev: <String>['G2B/2B.1', 'G4/4.1'],
+        g2bPass: true,
+        g4Pass: true,
+      ),
+    );
+    check('P0.5c PASS（可达，不再是恒 MANUAL）', it['pass'] == true,
+        '实际 pass=${it['pass']}');
+    check('P0.5c 不标 MANUAL', it['manual'] == false, '实际 manual=${it['manual']}');
+    stdout.writeln('');
+  }
+
+  // ---- 用例 12：退化必须逐条点名 ----
+  {
+    stdout.writeln('[12] upstream-regress：原本通过的项本轮不再通过');
+    final Map<String, dynamic> it = pick(
+      'P0.5c',
+      <Map<String, dynamic>>[],
+      <Map<String, dynamic>>[],
+      <Map<String, dynamic>>[],
+      extra: upstream(
+        reran: true,
+        prev: <String>['G2B/2B.1', 'G4/4.1'],
+        g2bPass: true,
+        g4Pass: false,
+      ),
+    );
+    check('P0.5c FAIL', it['pass'] == false, '实际 pass=${it['pass']}');
+    check('点名退化项 G4/4.1', (it['actual'] as String).contains('G4/4.1'),
+        '正文没点名退化项');
+    stdout.writeln('');
+  }
+
+  // ---- 用例 13：本轮没重跑 ⇒ MANUAL，不许当作通过 ----
+  {
+    stdout.writeln('[13] upstream-norerun：本轮未重跑上游 gate');
+    final Map<String, dynamic> it = pick(
+      'P0.5c',
+      <Map<String, dynamic>>[],
+      <Map<String, dynamic>>[],
+      <Map<String, dynamic>>[],
+      extra: upstream(
+        reran: false,
+        prev: <String>['G2B/2B.1'],
+        g2bPass: true,
+        g4Pass: true,
+      ),
+    );
+    check('P0.5c FAIL', it['pass'] == false, '实际 pass=${it['pass']}');
+    check('P0.5c 标 MANUAL', it['manual'] == true, '实际 manual=${it['manual']}');
+    stdout.writeln('');
+  }
+
   stdout.writeln(failures == 0
-      ? 'P0 自检：全部通过（10 组用例）'
+      ? 'P0 自检：全部通过（13 组用例）'
       : 'P0 自检：$failures 项失败');
   exit(failures == 0 ? 0 : 1);
 }
