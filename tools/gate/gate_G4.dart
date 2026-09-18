@@ -111,7 +111,7 @@ const String kDefaultMetrics = 'out/metrics_r1.json';
 const String kDefaultMetricsRealDevice = 'out/metrics_r1_realdevice.json';
 const String kDefaultAdversarialGlob = 'out/ADVERSARIAL_*.json';
 const String kDefaultVisualGlob = 'out/VISUAL_G4_r*.md';
-const String kMainAvd = 'Pixel_3a_API_34_extension_level_7_x86_64';
+// kMainAvd 已移到 gate_common（唯一定义处）。
 const String kDeviceGateDir = '/data/local/tmp/muzhao_gate_tmp';
 const String kResponseDataPath = 'build/integration_response_data.json';
 const String kGoldenCountsSnapshot = 'out/gate_G4_golden_counts.json';
@@ -1196,7 +1196,10 @@ Future<DevicePhaseResult> _runDevicePhase({
     onMissing: () async {
       log.writeln('无在线模拟器，按本机安全参数启动模拟器 $kMainAvd');
       launchedByGate = true;
-      return _spawnEmulator(log);
+      return launchMainAvd(
+        consoleLogPath: 'out/GATE_G4_emu_console.log',
+        log: log.writeln,
+      );
     },
   );
   log.writeln('设备已上线: $deviceId');
@@ -1564,37 +1567,6 @@ Future<Map<String, dynamic>?> _drive(
     log.writeln('解析 $kResponseDataPath 失败: $e');
     return null;
   }
-}
-
-/// 拉起模拟器进程（打开控制台日志），**不等它上线** —— 等待与断言统一由
-/// `gate_common.requireEmulatorDevice` 负责，本函数只回"我发起了吗"。
-Future<bool> _spawnEmulator(StringBuffer log) async {
-  // 先释放 Gradle daemon 内存（host 内存紧张曾挤崩 AVD）。
-  final gradleStop = await runProcess('gradlew', ['--stop'],
-      workingDirectory: 'android', timeout: const Duration(minutes: 2));
-  log.writeln('gradlew --stop 退出码=${gradleStop.exitCode}');
-  try {
-    final consoleSink = File('out/GATE_G4_emu_console.log').openWrite();
-    final proc = await Process.start(
-      'emulator',
-      [
-        '-avd', kMainAvd,
-        '-no-snapshot', // 全量冷启动，避开旧快照状态
-        '-no-boot-anim',
-        '-no-window',
-        '-gpu', 'guest', // 宿主 GPU 驱动栈损坏，必须软渲染（docs/PITFALLS.md）
-        '-feature', '-Vulkan',
-      ],
-      runInShell: true,
-    );
-    proc.stdout.transform(utf8.decoder).listen(consoleSink.write);
-    proc.stderr.transform(utf8.decoder).listen(consoleSink.write);
-    unawaited(proc.exitCode.then((_) => consoleSink.close()));
-  } catch (e) {
-    log.writeln('emulator 启动失败: $e');
-    return false;
-  }
-  return true;
 }
 
 // ---- memcheck：drive 跑 20 张 churn 的同时，host 侧并行采样 dumpsys meminfo ----

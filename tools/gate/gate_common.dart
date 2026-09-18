@@ -6,6 +6,7 @@
 // 设计原则：任何外部命令找不到 / 超时 / 非零退出，一律如实记录，
 // 绝不 catch 后当成"跳过=通过"。调用方负责把 ok=false 映射为 gate 项 FAIL。
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -287,6 +288,48 @@ Future<String> requireEmulatorDevice({
     '${others.isEmpty ? '当前也没有其它在线设备。' : '当前在线但被拒绝使用的真机：'
         '${others.join(', ')} —— 用户铁律「真机不要碰」，任何 gate 不得在其上安装或运行。'}',
   );
+}
+
+/// 主 AVD 名。**唯一定义处**，不要再在别处复制这个字面量
+/// （2026-09-17 清查：它曾在 `capture_shots.dart`、`gate_G3.dart`、`gate_G4.dart`
+/// 各有一份，另有 G2A/G2B 里两次裸字面量 —— 同一个名字，五处实现）。
+const String kMainAvd = 'Pixel_3a_API_34_extension_level_7_x86_64';
+
+/// 拉起主 AVD：只负责"发起"，**不等它上线** —— 等待与断言统一归
+/// [requireEmulatorDevice]。返回 false = 进程没能起来。
+///
+/// 旗标是与本机实测绑定的（见 `docs/PITFALLS.md`）：`-gpu guest` 是因为宿主 GPU
+/// 驱动栈损坏、必须软渲染；`-feature -Vulkan` 同理。改这里之前先读那条记录。
+Future<bool> launchMainAvd({
+  required String consoleLogPath,
+  void Function(String)? log,
+}) async {
+  // 先释放 Gradle daemon 内存（host 内存紧张曾把 AVD 挤崩过）。
+  final RunResult gradleStop = await runProcess('gradlew', <String>['--stop'],
+      workingDirectory: 'android', timeout: const Duration(minutes: 2));
+  log?.call('gradlew --stop 退出码=${gradleStop.exitCode}');
+  try {
+    final IOSink sink = File(consoleLogPath).openWrite();
+    final Process proc = await Process.start(
+      'emulator',
+      <String>[
+        '-avd', kMainAvd,
+        '-no-snapshot', // 全量冷启动，避开旧快照状态
+        '-no-boot-anim',
+        '-no-window',
+        '-gpu', 'guest',
+        '-feature', '-Vulkan',
+      ],
+      runInShell: true,
+    );
+    proc.stdout.transform(utf8.decoder).listen(sink.write);
+    proc.stderr.transform(utf8.decoder).listen(sink.write);
+    unawaited(proc.exitCode.then((_) => sink.close()));
+  } catch (e) {
+    log?.call('emulator 启动失败: $e');
+    return false;
+  }
+  return true;
 }
 
 /// 从 android/app/build.gradle(.kts) 里解析 applicationId，用于 adb 操作目标包。
