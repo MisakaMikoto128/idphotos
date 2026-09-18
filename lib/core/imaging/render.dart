@@ -109,39 +109,27 @@ class WorkBufferPool {
 }
 
 // ---------------------------------------------------------------------------
-// alpha 硬化
+// alpha 判定曲线
 // ---------------------------------------------------------------------------
 
-/// alpha 二值化阈值：盒式滤波后的 alpha 达到这个值即判为前景，否则判为背景。
+/// 应用 alpha 判定曲线。
 ///
-/// ## 为什么成片必须是硬边（不做半透明过渡）
+/// 旧口径是**二值化**（窗口平均 ≥0.5 → 1，外加窗口内 alpha 最大值 ≥0.75
+/// 强制不透明）：发丝边缘带在半透明区里要么被整根吃掉、要么带着反解噪声
+/// 整根变硬边（用户 2026-09-19「头发很不和谐」的根因）。旧口径服务的验收
+/// 判据（换纯绿底后溢色像素计数必须为 0）已随人工验收取代——肉眼验收下
+/// 自然的软过渡优于硬边。现在返回**平滑值**，配合上游 `matte_clean.dart`
+/// 的去色边（decontaminate），半透明像素用干净前景色与新底色按真实覆盖率
+/// 合成。
 ///
-/// 验收判据是「换纯绿底后，画面里不属于底色的像素不得满足 `G − max(R,B) > 40`，
-/// 计数必须为 0」。而常规软边合成 `out = F·a + BG·(1−a)`，只要 a 落在中间段，
-/// 结果就是前景色和纯绿的混色 —— 以中性灰前景为例，a′ ∈ (0.44, 0.87) 的像素
-/// 算出来的绿色过量在 40–140 之间，全部超线。**任何保留半透明过渡的实现，
-/// 这一项都不可能为 0**，与去色边做得多好完全无关。
-///
-/// 所以成片一律输出硬边：每个像素要么是纯前景色，要么是纯底色。
-/// 轮廓位置的精度并没有因此丢失 —— 阈值是作用在**盒式平均后**的 alpha 上的，
-/// 平均值本身是连续量，阈值穿越点具有亚像素精度，边缘位置仍然准确，
-/// 只是不再有渐变带。证件照本来就要求人像与底色干净分离，硬边是这一场景的
-/// 常规做法（打印店成片、各家证件照工具的输出都是硬边）。
-const double kAlphaBinaryThreshold = 0.5;
-
-/// 「强制不透明」阈值，作用在**降采样窗口内的 alpha 最大值**上。
-///
-/// 二值化用的是盒式平均后的 alpha。而验收脚本可能改用**点采样**把原始 alpha
-/// 搬到成片坐标系再判 `alpha > 200`：轮廓线上点采样取到 207、同一位置窗口平均
-/// 只有 0.4 是常事，于是「脚本认为是前景」而「渲染判成背景」，底色照样漏进去。
-///
-/// 所以再算一份**窗口内 alpha 最大值**（窗口向外扩 1 像素，吸收点采样取整方式的
-/// 差异）：窗口里只要存在 alpha ≥ 0.75 的源像素，该输出像素一律判为前景。
-/// 0.75 < 200/255 ≈ 0.784，留了安全余量。代价是轮廓最多「涨」不到 1 个源像素。
-const double kAlphaForceOpaque = 0.75;
-
-/// 应用 alpha 判定曲线：返回 0 或 1。
-double hardenAlpha(double a) => a >= kAlphaBinaryThreshold ? 1.0 : 0.0;
+/// 曲线：α ≤ 0.08 全透明（吃掉模型噪声尾巴），α ≥ 0.92 全不透明（实心区不受
+/// 影响），中间线性。两端的取舍是为发丝准备的：宁可让末端发丝略薄，也不要
+/// 灰雾边。
+double softenAlpha(double a) {
+  if (a <= 0.08) return 0.0;
+  if (a >= 0.92) return 1.0;
+  return (a - 0.08) / 0.84;
+}
 
 // ---------------------------------------------------------------------------
 // 色相保护重采样
@@ -189,10 +177,6 @@ double _lumaOf(double r, double g, double b) =>
 class MipLevel {
   final Uint8List premul;
 
-  /// 每个格子对应源窗口（再向外扩 1 像素）内的 alpha 最大值。见
-  /// [kAlphaForceOpaque]。
-  final Uint8List alphaMax;
-
   final int width;
   final int height;
 
@@ -201,7 +185,6 @@ class MipLevel {
 
   const MipLevel({
     required this.premul,
-    required this.alphaMax,
     required this.width,
     required this.height,
     required this.factor,
@@ -213,13 +196,10 @@ MipLevel boxDownsample(Uint8List premul, int width, int height, int factor) {
   final int dw = f == 1 ? width : math.max(1, width ~/ f);
   final int dh = f == 1 ? height : math.max(1, height ~/ f);
   final Uint8List out = f == 1 ? premul : Uint8List(dw * dh * 4);
-  final Uint8List amax = Uint8List(dw * dh);
 
   for (int y = 0; y < dh; y++) {
     final int sy0 = y * f;
     final int sy1 = math.min(height, sy0 + f);
-    final int my0 = math.max(0, sy0 - 1);
-    final int my1 = math.min(height, sy1 + 1);
     for (int x = 0; x < dw; x++) {
       final int sx0 = x * f;
       final int sx1 = math.min(width, sx0 + f);
@@ -242,22 +222,9 @@ MipLevel boxDownsample(Uint8List premul, int width, int height, int factor) {
         out[o + 2] = sb ~/ n;
         out[o + 3] = sa ~/ n;
       }
-      final int mx0 = math.max(0, sx0 - 1);
-      final int mx1 = math.min(width, sx1 + 1);
-      int mx = 0;
-      for (int sy = my0; sy < my1; sy++) {
-        int p = (sy * width + mx0) * 4 + 3;
-        for (int sx = mx0; sx < mx1; sx++) {
-          final int v = premul[p];
-          if (v > mx) mx = v;
-          p += 4;
-        }
-      }
-      amax[y * dw + x] = mx;
     }
   }
-  return MipLevel(
-      premul: out, alphaMax: amax, width: dw, height: dh, factor: f);
+  return MipLevel(premul: out, width: dw, height: dh, factor: f);
 }
 
 // ---------------------------------------------------------------------------
@@ -379,9 +346,7 @@ RenderedImage renderComposite({
   final int mw = mip.width;
   final int mh = mip.height;
   final Uint8List mp = mip.premul;
-  final Uint8List ma = mip.alphaMax;
   final double f = mip.factor.toDouble();
-  const int forceOpaque = 191; // kAlphaForceOpaque * 255，取整偏保守
   int solid = 0;
 
   // 色相保护用的四角缓冲，循环外分配一次，避免逐像素 new。
@@ -430,11 +395,6 @@ RenderedImage renderComposite({
       final int i01 = (y0c * mw + x1c) * 4;
       final int i10 = (y1c * mw + x0c) * 4;
       final int i11 = (y1c * mw + x1c) * 4;
-
-      // 落点所在的 mip 格（其窗口已向外扩过 1 个源像素）里的 alpha 最大值。
-      final int cellX = (xs / f).floor().clamp(0, mw - 1);
-      final int cellY = (ys / f).floor().clamp(0, mh - 1);
-      final int amx = ma[cellY * mw + cellX];
 
       final double pa = mp[i00 + 3] * w00 +
           mp[i01 + 3] * w01 +
@@ -535,7 +495,7 @@ RenderedImage renderComposite({
         }
       }
 
-      final double ah = amx >= forceOpaque ? 1.0 : hardenAlpha(a);
+      final double ah = softenAlpha(a);
       if (ah >= 1.0) {
         solid++;
         out[o] = (fr + 0.5).toInt();
