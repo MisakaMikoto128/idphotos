@@ -319,6 +319,11 @@ Float32List rotateMask(Float32List a, int w, int h, double deg) {
 /// 尺度会差几个百分点。只搜旋转的话，尺度差会把最优角拽偏 —— 实测 p2 注入
 /// ±10° 只读回 ∓8.1°，IoU 掉到 0.895，看着像"转少了 2°"，其实是量具的问题。
 /// 带上缩放后同一条数据读回 9.9–10.1°，IoU 上到 0.96。
+///
+/// **上面这组数字是在注入 ±10° 时测的**（2026-09-17 之前）。注入角已随 2B.8
+/// 挪到 ±15°，尺度差会更大，重跑时读到的偏差量级会不同 —— 结论（必须带缩放）
+/// 不变，但**不要把 8.1 / 0.895 / 9.9–10.1 当成 ±15 下的预期值**。
+/// 另：±10 在 10° 死区下已不再产生旋转，该组数字在现配置下**不可复现**。
 ({double deg, double iou, double scale}) registerResidual(
   Float32List a,
   Float32List b,
@@ -768,10 +773,16 @@ Future<Map<String, dynamic>> _measureAnchor(
 
   // ---- P0.5b：compose 侧「给了角就转对」（ACCEPTANCE 2B.8 的 host 版） ----
   //
-  // 夹具：同一张源图、同一份抠图，只把注入的 FaceInfo.rollDeg 从 0 改成 ±10，
+  // 夹具：同一张源图、同一份抠图，只把注入的 FaceInfo.rollDeg 从 0 改成 ±15，
   // 其余全同。若 compose 侧几何正确，成片相对注入 0 的那张应当只差一个刚体
-  // 旋转 ±10°。用掩膜配准直接量这个旋转角——不重检人脸（尺度偏差）、
+  // 旋转 ±15°。用掩膜配准直接量这个旋转角——不重检人脸（尺度偏差）、
   // 不复制裁剪策略（复制阈值会测出"改前=改后"的假对照）。
+  //
+  // **角度必须落在摆正死区（`kRollDeadZoneDeg`）之外**：`planRotation` 用
+  // `roll.abs() <= deadZoneDeg` 判不转，取等号即不转。原用 ±10 是在死区为 1°/3°
+  // 时选的；2026-09-17 死区定为 **10°** 后，±10 与门槛恰好重合 ⇒ 注入角不再
+  // 产生任何旋转，量到的"刚体转角"变成噪声 —— 那正是 ACCEPTANCE 2B.8 记的
+  // 夹具设计缺陷，host 版同样中招。故与 2B.8 一起挪到 ±15。
   //
   // 只对 P0.3 cohort（真实锚点）跑：回正合成样本是派生的，几何性质和源图一样。
   if (anchor['sweep'] == true && matting0 != null && face0 != null) {
@@ -801,7 +812,7 @@ Future<Map<String, dynamic>> _measureRigid(
     final Map<double, Float32List> masks = <double, Float32List>{};
     int mw = 0;
     int mh = 0;
-    for (final double r in <double>[0, 10, -10]) {
+    for (final double r in <double>[0, 15, -15]) {
       final FaceInfo injected = FaceInfo(
         box: f.box,
         chinY: f.chinY,

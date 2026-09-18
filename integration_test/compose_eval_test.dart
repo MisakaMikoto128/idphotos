@@ -15,8 +15,9 @@
 //   - compose() 之后，在**输出** JPEG 里找青色条/品红条的像素质心，反推
 //     头顶/下巴在输出图里的位置，从而算头高比、头顶留白比、水平居中偏差
 //     （2B.3/2B.4/2B.5），不依赖真实人脸检测。
-//   - 2B.8 摆正：把整块合成画布（含标记条）用 `img.copyRotate` 转 ±10°再喂进去，
-//     测输出里标记条的残余倾角。
+//   - 2B.8 摆正：把整块合成画布（含标记条）用 `img.copyRotate` 转 ±15°再喂进去，
+//     测输出里标记条的残余倾角。**角度必须落在摆正死区（`kRollDeadZoneDeg` = 10°）
+//     之外** —— 否则夹具角与门槛重合，转不转只取决于估角噪声落在门槛哪一侧。
 //   - 2B.6/2B.7 溢色：换纯绿/纯品红底（这两个测试专用底色，不是 CONTRACTS 第 5 节
 //     的内置底色），在“非背景色”像素里查是否有偏色。
 //   - 2B.9 边界安全：把 FaceInfo 摆在画布边缘附近，只检查不抛异常、且输出四边
@@ -264,9 +265,9 @@ void main() {
     }
     result['spill'] = spillResults;
 
-    // ---- 2B.8：摆正残差（±10°） ----
+    // ---- 2B.8：摆正残差（±15°，须在 10° 死区外） ----
     final rollResults = <String, dynamic>{};
-    for (final rollDeg in [10.0, -10.0]) {
+    for (final rollDeg in [15.0, -15.0]) {
       try {
         final rotatedSynthetic = buildSynthetic(rollDeg: rollDeg);
         final candidate = await harness.compose(

@@ -273,9 +273,21 @@ List<Map<String, dynamic>> _applyThresholds(Map<String, dynamic> data) {
   });
 
   // 2B.8 摆正
+  //
+  // 夹具角必须落在摆正死区**之外**。`planRotation` 用 `roll.abs() <= deadZoneDeg`
+  // 判不转，取等号即不转 —— 夹具角与门槛重合时，转不转只取决于估角噪声落在门槛
+  // 哪一侧。那不是"结构上必 FAIL"，是**掷硬币**，比确定失败更糟（ACCEPTANCE 2B.8
+  // 2026-09-17 修订，原夹具角 ±10.0 与 10° 死区恰好重合）。
+  //
+  // 死区值在这里**独立抄一份**，不读 lib（同 2B.1 抄 CONTRACTS 的做法，见文件头）：
+  // 目的是 imaging 改死区时，本项能测出"夹具角掉进了死区"，而不是继续自证。
+  const double kDeadZoneDeg = 10.0;
   final roll = (data['roll'] as Map<String, dynamic>?) ?? {};
   final rollFails = <String>[];
+  final rollInDeadZone = <String>[];
   roll.forEach((k, v) {
+    final double? ang = double.tryParse(k);
+    if (ang == null || ang.abs() <= kDeadZoneDeg) rollInDeadZone.add(k);
     final m = v as Map<String, dynamic>;
     final residual = (m['residualDeg'] as num?)?.toDouble();
     if (residual == null || residual.abs() > 1.5) {
@@ -284,11 +296,18 @@ List<Map<String, dynamic>> _applyThresholds(Map<String, dynamic> data) {
   });
   items.add({
     'id': '2B.8',
-    'description': '构造±10°旋转输入，输出 rollDeg 残差 <=1.5°',
+    'description': '构造±15°旋转输入（须在 $kDeadZoneDeg° 摆正死区之外），输出 rollDeg 残差 <=1.5°',
     'expected': '<=1.5°',
-    'actual': roll.isEmpty ? '没有数据' : (rollFails.isEmpty ? '全部达标' : '不达标: ${rollFails.join(', ')}'),
-    'pass': roll.length == 2 && rollFails.isEmpty,
-    'manual': false,
+    'actual': roll.isEmpty
+        ? '没有数据'
+        : <String>[
+            rollFails.isEmpty ? '全部达标' : '不达标: ${rollFails.join(', ')}',
+            if (rollInDeadZone.isNotEmpty)
+              '**夹具角落在死区内：${rollInDeadZone.join(', ')} —— 本项不可判**'
+                  '（转不转由估角噪声决定，不是夹具给出的确定输入）',
+          ].join('；'),
+    'pass': roll.length == 2 && rollFails.isEmpty && rollInDeadZone.isEmpty,
+    'manual': rollInDeadZone.isNotEmpty,
   });
 
   // 2B.9 边界安全
