@@ -145,10 +145,13 @@ const Map<int, List<String>> kRoundErrata = <int, List<String>>{
     '2. **为什么这是"判据变更"而不是"阈值变更"**：变的是**判据的适用域**（哪些样本由哪条判据管、'
         '以及"合格"的定义是 |残余| ≤ 1.5° 还是 |残余 − 真值| ≤ 1.5°），'
         '阈值数字（1.5° / 0.15 / 0.5°）一个都没动。',
-    '3. **轮次影响**：法典「判据冻结声明」末句——判据确需修改时**改完必须作废当轮、'
-        '从第 1 轮重跑**。r3 于 14:28 收尾，判据修订落在 14:40，**在轮次之间而非轮次之内**；'
-        '但冻结点 `6f01e6e` 已被越过是事实。**轮次怎么记由主会话裁定**，'
-        '本门禁不自行重编号，只把这件事连同「判据版本声明」一起摆在页面上。',
+    '3. **轮次影响：不触发作废重跑（主会话 2026-09-17 裁定）。** 法典「判据冻结声明」末句是'
+        '判据确需修改时**作废当轮、从第 1 轮重跑**。但**判据文本冻结于 `d4fb782`**，'
+        '四次 ACCEPTANCE 改动（`65be91b` / `562abea` / `992bccd` / `d4fb782`）'
+        '**全部由主会话按用户裁定执行、全部完成于 r4 开跑之前**，r3 也已在 14:28 收尾'
+        '（改动落在轮次之间而非轮次之内）。故 **r4 是对冻结版 `d4fb782` 的第一轮判决**，'
+        '不作废、不重编号；防作弊基线同样从 `d4fb782` 起算。'
+        '若判据在 **r4 运行期间**再被改动，则作废条件重新成立。',
     '4. **口径后果（必须写进每轮报告，不得当成通过率上升来讲）**：'
         '`out/P0_truth.json` 的 12 条锚点、1 条 `straight`、9 条 `uprightSynthetic` '
         '**真值全部落在死区内**（最高是 `c08` 的 −8.01°），故"必须摆平"这半边在本语料上'
@@ -1235,7 +1238,7 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
           '|FaceInfo.rollDeg| ≤ $kDeadZoneDeg° ⇒ straightenDeg = 0 且 straightened = false；'
           '> $kDeadZoneDeg° ⇒ 必须施加摆正。次判据用真值核成片：真值 |tilt| ≤ $kDeadZoneDeg° 的样本上 '
           '|成片残余 − 真值| ≤ ${kResidualMaxDeg}°（转正与转歪都算 FAIL），'
-          '真值落在 9°–11° 边界带内的只报数',
+          '真值落在 9°–11° 边界带内的只报数（带宽与依据见 ACCEPTANCE「边界带」，**只此一处定义**）',
       'expected': '主判据 0 条不一致；次判据 ${judged6.length} 条（已扣边界带）中 0 条违规'
           '（分母再扣「量测失效」${meterBad.length} 条 ⇒ $denom6 条可见）',
       'actual': _text(
@@ -1272,8 +1275,9 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
                   '也不许判失败，按「量测失效」挂牌）${meterBlind.length} 条：'
                   '${meterBlind.map((Map<String, dynamic> s) => _meterRow(s, null)).join("、")}',
           '真值落在 9°–11° 边界带内**只报数、不判 FAIL** 的 ${band6.length} 条'
-              '（那里的"该不该转"由一个 ${_f(0.4)}° 量级的估计误差决定，拿真值去罚它就是**把噪声记成实现方的错**；'
-              '两个方向都真实发生过）：${band6.isEmpty ? "（无）" : band6.map(bandRow).join("、")}',
+              '（边界带的定义与依据在 ACCEPTANCE「边界带」节，**只此一处**；'
+              '这里是它在本条目样本集上的应用，不是第二份定义）：'
+              '${band6.isEmpty ? "（无）" : band6.map(bandRow).join("、")}',
           '判据分母：原始 ${judged6.length} 条 → 扣「量测失效」${meterBad.length} 条 → 可见 $denom6 条。'
               '**两个数一起报，不得只报其一**（口径 7）。',
           _provenance(scope),
@@ -3343,7 +3347,13 @@ String _meterRow(Map<String, dynamic> s, List<Object>? second) {
 }
 
 /// P0 判据的冻结点（ACCEPTANCE「判据冻结声明」）。
-const String kCriteriaFrozenCommit = '6f01e6e';
+///
+/// 历史：`6f01e6e`（首冻结点）→ **`d4fb782`**（主会话 2026-09-17 裁定：
+/// 10° 死区分档 + 新增 P0.6 + 口径 5 限定 全部落地后的判据文本冻结点）。
+/// 主会话明示：`65be91b` / `562abea` / `992bccd` / `d4fb782` 这四次 ACCEPTANCE
+/// 改动**全部由主会话按用户裁定执行、全部发生在 r4 开跑之前，不是违规**，
+/// 防作弊基线与判据版本一律**从 `d4fb782` 起算**。
+const String kCriteriaFrozenCommit = 'd4fb782';
 
 /// 本轮判决依据的判据版本。
 ///
@@ -3429,9 +3439,10 @@ String kRoundLedgerMd(int round) {
       : '本轮不消耗预算。');
   b.writeln();
   b.writeln('**注**：判据在 r3 与 r4 之间被改过（见上方「判据版本声明」）。'
-      '法典「判据冻结声明」要求判据变更时**作废当轮、从第 1 轮重跑**；'
-      '这条是否触发、以及届时的轮次记法，**由主会话裁定** —— '
-      '本表只记已经发生的事，不自行重编号。');
+      '主会话 2026-09-17 裁定：**判据文本冻结于 `$kCriteriaFrozenCommit`**，'
+      '改动全部完成于 r4 开跑之前、r3 收尾之后（**轮次之间，不是轮次之内**），'
+      '**故不作废、不重编号**；防作弊基线同样从 `$kCriteriaFrozenCommit` 起算。'
+      '若判据在 **r4 运行期间**再被改动，作废条件立即重新成立。');
   return b.toString();
 }
 
