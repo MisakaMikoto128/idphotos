@@ -80,6 +80,14 @@ Map<String, String> _current() =>
     currentBlobHashes(requiredFingerprintPaths(root: kSandbox), root: kSandbox)!;
 
 /// 写一份成片台摘要，`blobHashes` 按传入的地图；`roundValid` 可控。
+///
+/// **`roundValid` 写在 `provenance` 层，不是写在 `codeFingerprint` 里。**
+/// 两者是**两张表**：`codeFingerprint()` 产出 `files/fnv1a64/blobHashes`，
+/// `roundVerdict()` 产出 `roundValid/codeStableDuringRun/changedFiles`，
+/// 生产侧把两张表**并排铺在同一层**。塞深一层的后果是 `_verifyOne` 读不到它
+/// （`verdict` 取的是 `pointer` 去掉末段那层）⇒ 三份产出**每一轮都判
+/// "无法自证来源" ⇒ 整轮无条件作废**，且报告读起来完全正常。
+/// 本行原先正是塞深了一层 —— 夹具跟着缺陷走，于是这条缺陷在自证面上是绿的。
 void _writeSummary({
   required Map<String, String> blobHashes,
   Object? roundValid = true,
@@ -90,11 +98,11 @@ void _writeSummary({
     const JsonEncoder.withIndent(' ').convert(<String, dynamic>{
       'generatedBy': 'sandbox',
       'provenance': <String, dynamic>{
+        'roundValid': roundValid,
         'codeFingerprint': <String, dynamic>{
           'files': files ?? blobHashes.length,
           'fnv1a64': 'deadbeefdeadbeef',
           'blobHashes': blobHashes,
-          'roundValid': roundValid,
         },
       },
     }),
@@ -107,9 +115,9 @@ void _writeResidual(Map<String, String> blobHashes) {
     const JsonEncoder.withIndent(' ').convert(<String, dynamic>{
       'summary': <String, dynamic>{
         'provenance': <String, dynamic>{
+          'roundValid': true,
           'codeFingerprint': <String, dynamic>{
             'blobHashes': blobHashes,
-            'roundValid': true,
           },
         },
       },
@@ -122,9 +130,9 @@ void _writeAlphaHoles(Map<String, String> blobHashes) {
     'out/P0_alpha_holes.json',
     const JsonEncoder.withIndent(' ').convert(<String, dynamic>{
       'provenance': <String, dynamic>{
+        'roundValid': true,
         'codeFingerprint': <String, dynamic>{
           'blobHashes': blobHashes,
-          'roundValid': true,
         },
       },
     }),
@@ -240,6 +248,34 @@ void main() {
       ).first;
       expect(b.ok, isFalse);
       expect(b.reasons.join(), contains('不是 true'));
+    });
+
+    test('正例：旗标只写 `codeStableDuringRun`（同一张表的另一个键）→ 同样认', () {
+      // `_verifyOne` 取的是 `verdict['roundValid'] ?? verdict['codeStableDuringRun']`。
+      // 这条 `??` **此前没有任何用例**，而它是"整轮作废"的总开关：认不出它，
+      // 每一轮的产出都会被判无法自证来源、整轮无条件作废，报告却读起来正常。
+      final Map<String, String> h = _current();
+      _write(
+        'out/P0_compose_summary.json',
+        const JsonEncoder.withIndent(' ').convert(<String, dynamic>{
+          'provenance': <String, dynamic>{
+            'codeStableDuringRun': true,
+            'codeFingerprint': <String, dynamic>{
+              'files': h.length,
+              'fnv1a64': 'deadbeefdeadbeef',
+              'blobHashes': h,
+            },
+          },
+        }),
+      );
+      _writeResidual(h);
+      _writeAlphaHoles(h);
+      final OutputBinding b = verifyMeasurementOutputs(
+        required: requiredFingerprintPaths(root: kSandbox),
+        current: h,
+        root: kSandbox,
+      ).first;
+      expect(b.ok, isTrue, reason: b.describe());
     });
 
     test('反例：占位值 unknown / 空串 → 不可判（两侧都失败时不许"看起来一致"）', () {

@@ -39,12 +39,18 @@ import '../../tools/gate/sha256.dart' as sha;
 const String kSpec = 'cn_big_1inch';
 
 /// 一条"生产记录 + 独立测量"的组合。字段名与 out/P0_compose_items.jsonl 一致。
+///
+/// [est] 是引擎**自报**的倾角估计（`FaceInfo.rollDeg` → compose 记录的 `faceRollDeg`）。
+/// 它是**独立于 [applied] 的一个输入**，不能由 [applied] 反推 —— P0.6 的主判据问的
+/// 正是"引擎有没有照它**自己报的角**行事"，反推的话那条判据就退化成恒真。
+/// 缺省 = 真值（合格实现下自报 ≈ 真值）；`unavailable` 的样本可以不给（＝读不到自报角）。
 Map<String, dynamic> item({
   required String id,
   required String corpus,
   required double truth,
   required String source,
   required double applied,
+  double? est,
 }) =>
     <String, dynamic>{
       'id': id,
@@ -53,6 +59,7 @@ Map<String, dynamic> item({
       'rollSource': source,
       'straightenDeg': applied,
       'specId': kSpec,
+      'faceRollDeg': est ?? truth,
     };
 
 /// 一个"可判"的轮次状态：工作树冻结、样本条数对得上、成片文件都在。
@@ -171,13 +178,21 @@ Map<String, dynamic> row(List<Map<String, dynamic>> items, String id) =>
     items.firstWhere((Map<String, dynamic> i) => i['id'] == id);
 
 /// 造一整套"合格实现"的记录：12 条倾斜锚点 + p2 竖直 + 9 张合成竖直 + 旋转夹具。
+///
+/// **"合格"的口径必须跟着判据走，而判据在 v2（冻结于 `d4fb782`）里改过**：
+/// 死区从 1° 放到 **10°**（`kDeadZoneDeg`），并新增 P0.6「死区内不得被转动」。
+/// 本夹具原先按 1° 死区写（`|真值| > 1°` 就施加旋转），于是：
+///   · P0.1a 的 `|残余 − 真值|` 在 p1/c04/c07 上读到 4.4 / 8.01 度 → 假 FAIL；
+///   · P0.6 的次判据把 16 条"在死区内老老实实转过的"样本全判违规。
+/// **那不是门禁宁枉勿纵，是夹具比判据旧了一版。** 这里把它对齐到 v2：
+/// 施加与否一律按 `kDeadZoneDeg` 分档，自报角（`est`）＝ 真值。
 List<Map<String, dynamic>> goodCorpus() {
   final List<Map<String, dynamic>> c = <Map<String, dynamic>>[];
   const List<double> truth = <double>[4.4, -1.3, 0.25, 3.72, 8.01, 1.73, 0.35, 8.01, 3.44, 0.11, 2.09, 3.91];
   for (int i = 0; i < truth.length; i++) {
     final String id = i == 0 ? 'p1' : 'c${i.toString().padLeft(2, '0')}';
-    // 合格实现：估计值 ≈ 真值，死区内不转（0.25/0.35/0.11 落进 1° 死区）。
-    final double applied = truth[i].abs() > 1.0 ? truth[i] : 0.0;
+    // 合格实现：真值全落在 10° 死区内 ⇒ 一律不施加旋转（"没被乱动"）。
+    final double applied = truth[i].abs() > gate.kDeadZoneDeg ? truth[i] : 0.0;
     c.add(item(id: id, corpus: 'anchor', truth: truth[i], source: 'pupil', applied: applied));
   }
   c.add(item(id: 'p2', corpus: 'straight', truth: -0.2, source: 'pupil', applied: 0.0));
@@ -192,7 +207,7 @@ List<Map<String, dynamic>> goodCorpus() {
         corpus: 'rotated',
         truth: t,
         source: 'pupil',
-        applied: t.abs() > 1.0 ? t : 0.0,
+        applied: t.abs() > gate.kDeadZoneDeg ? t : 0.0,
       ));
     }
   }
@@ -210,11 +225,22 @@ Map<String, double> goodMeasured(List<Map<String, dynamic>> compose) {
 
 void main() {
   test('A 修前事故态必须 FAIL（门禁抓得住已知坏状态）', () {
+    // 记录**原样保留**（这三行就是 2026-09-17 的现场），但断言按 v2 口径重新对位。
+    //
+    // v2 把死区从 1° 放到 10°，于是这场事故分成两半，两半的账不一样：
+    //   · **仍然违规的一半**：p2 真值 −0.2°（本来就竖直）被转歪 3.65°。
+    //     死区内被转动，v1/v2 都违规 —— 这是本用例真正要钉的那一条。
+    //   · **被 v2 明文豁免的一半**：p1/c03 真值 −4.4°/−3.72°，`unavailable` 没转，
+    //     成片仍歪着真值那个角。它们在 v1（死区 1°）下是"该摆正却说测不出"的违规，
+    //     在 v2 下**落在死区内 ⇒ 按 ACCEPTANCE 口径 2 可接受**。
+    //     ⇒ 本用例断言 P0.1b **在**这里给出"豁免"，而不是断言它 FAIL。
+    //     这一条是有意加的：豁免生效与"这条判据根本没跑"在报告里长得一模一样，
+    //     不写死一条断言，就没法把它俩分开。（这也是本文件存在的理由本身。）
     final List<Map<String, dynamic>> compose = <Map<String, dynamic>>[
       // p1：旧估角器给出 +0.84（落进死区）→ 不转；真值 −4.4，成片仍歪 −4.4
       item(id: 'p1', corpus: 'anchor', truth: -4.4, source: 'unavailable', applied: 0.0),
       // p2：旧估角器给出 −3.85 → 转歪；真值 −0.2 → 成片残余 +3.65
-      item(id: 'p2', corpus: 'straight', truth: -0.2, source: 'pupil', applied: -3.85),
+      item(id: 'p2', corpus: 'straight', truth: -0.2, source: 'pupil', applied: -3.85, est: -3.85),
       item(id: 'c03', corpus: 'anchor', truth: -3.72, source: 'unavailable', applied: 0.0),
     ];
     final Map<String, double> m = <String, double>{
@@ -225,11 +251,20 @@ void main() {
     final List<Map<String, dynamic>> items =
         gate.evaluateP0(inputs(compose: compose, measured: m));
 
-    // p1/c03 真值 |tilt| > 1.5 却 unavailable —— 这正是事故的机制。
-    expect(row(items, 'P0.1b')['pass'], false, reason: '该摆正却说测不出，必须 FAIL');
     // p2 被转歪 3.65°。
     expect(row(items, 'P0.2')['pass'], false, reason: '转歪了竖直样本，必须 FAIL');
-    expect(row(items, 'P0.3b')['pass'], true, reason: '这条夹具都把角给出了，覆盖率本身没问题');
+    // 同一件事在 P0.6 上必须也被抓住：自报 −3.85°（死区内）却施加了 −3.85°。
+    final Map<String, dynamic> p06 = row(items, 'P0.6');
+    expect(p06['pass'], false, reason: '死区内被转动，必须 FAIL');
+    expect((p06['actual'] as String).contains('p2'), true,
+        reason: '违规必须点名到样本，否则读者不知道该看哪一张');
+    // p1/c03 的豁免必须**写明**，不许与"这条判据没跑"同形。
+    final String p01b = row(items, 'P0.1b')['actual'] as String;
+    expect(p01b.contains('按口径 2 可接受'), true,
+        reason: '死区内的 unavailable 是 ACCEPTANCE 明文豁免；报告不写这一句，'
+            '读者分不清"豁免生效"与"这一栏根本没判"');
+    expect(p01b.contains('p1') && p01b.contains('c03'), true,
+        reason: '豁免要逐条点名，不是给一个数');
   });
 
   test('B 合格实现必须全 PASS（门禁不能宁枉勿纵到谁都过不了）', () {
@@ -253,11 +288,17 @@ void main() {
   test('C 该摆正却返回 unavailable → P0.3b FAIL（堵住"永远返回测不出"的免费通道）', () {
     final List<Map<String, dynamic>> compose = goodCorpus();
     final Map<String, double> m = goodMeasured(compose);
-    // 把一条真值 6.28° 的夹具改成"测不出"：成片就会歪着 6.28°。
-    final int i = compose.indexWhere((Map<String, dynamic> c) => c['id'] == 'f-4.4_d10.0');
+    // 挑一条**死区外**（|真值| > 10°）的夹具。死区内的样本本来就不该转，
+    // 把它们改成 unavailable 是豁免项、不进 P0.3b 的判定集 —— 原先这里挑的
+    // 是真值 5.6° 的那条，在 v1（死区 1°）下在判定集里，在 v2 下不在。
+    const String kVictim = 'f-4.4_d-10.0'; // 真值 −14.4°
+    final int i = compose.indexWhere((Map<String, dynamic> c) => c['id'] == kVictim);
+    expect(i >= 0, true, reason: '夹具里必须有这条，否则本用例测的是空气');
+    expect((compose[i]['truthTiltDeg'] as double).abs() > gate.kDeadZoneDeg, true,
+        reason: '必须挑死区外的夹具，否则它根本不进 P0.3b 的判定集');
     compose[i]['rollSource'] = 'unavailable';
     compose[i]['straightenDeg'] = 0.0;
-    m['f-4.4_d10.0'] = 5.6; // 成片实测仍歪 5.6°
+    m[kVictim] = -14.4; // 成片实测仍歪 14.4°
     final List<Map<String, dynamic>> items =
         gate.evaluateP0(inputs(compose: compose, measured: m));
     expect(row(items, 'P0.3b')['pass'], false);
