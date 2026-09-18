@@ -10,7 +10,7 @@
 /// MattingResult(rgba + alpha)
 ///   ├─ estimateBackground()  推挽外推出原背景色（低分辨率网格）
 ///   ├─ decontaminate()       反解真前景色，得到预乘 RGBA          ← 缓存
-///   ├─ planRotation()        |rollDeg| > 1° 时建立摆正变换
+///   ├─ planRotation()        |rollDeg| > kRollDeadZoneDeg 时建立摆正变换
 ///   ├─ solveAutoCrop()       由头顶/下巴反推裁剪框
 ///   ├─ renderComposite()     摆正+裁剪+缩放+alpha 二值化+换底
 ///   └─ encodeJpg + writeJpegDpi
@@ -294,7 +294,8 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
   /// 自动推算的裁剪框，**源图像素坐标**，用作 `AppState.suggestedCrop`。
   ///
   /// 注意：这里刻意不含摆正——UI 上的裁剪框是画在原图上的，必须是轴对齐矩形。
-  /// [compose] 内部若判定需要摆正（`|rollDeg| > kRollDeadZoneDeg`，现为 1°），
+  /// [compose] 内部若判定需要摆正（`|rollDeg| > kRollDeadZoneDeg`，见
+  /// `crop_geometry.dart`：10.0°，用户 2026-09-17 的产品决定），
   /// 成片会比这个框略微转正，属于预期行为。
   @override
   Rect suggestedCropInSourcePx({
