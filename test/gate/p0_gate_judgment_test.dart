@@ -268,6 +268,18 @@ void main() {
   });
 
   test('B 合格实现必须全 PASS（门禁不能宁枉勿纵到谁都过不了）', () {
+    // **这条用例守的是什么，以及它守不到什么。**
+    // 守：判定的**逻辑** —— 一份"按当前判据算合格"的语料必须让每一项都能到
+    // pass=true，且 MANUAL 项**恰好**只有 P0.5c（它必须重跑上游才有读数）。
+    // 一个恒 MANUAL 的项会让整轮永远不能 PASS（`_finish` 的
+    // `allPass = every(pass == true)`），本文件历史上已经栽过两次
+    // （P0.1b 恒 MANUAL、P0.5c 恒 exit 1）——这条用例就是防它第三次。
+    //
+    // **守不到**：`kDeadZoneDeg`（10°）这个**值本身**。语料是从生产常量取的
+    // （`goodCorpus()` 里 `applied = |真值| > gate.kDeadZoneDeg ? … : 0`），
+    // 常量改了语料跟着改，这条用例照样绿。**它不保护 10° 这个数** ——
+    // 那个数由 ACCEPTANCE 的冻结文本与用户的产品决定守着。
+    // 写在这里，免得下一个人以为"B 是绿的"等于"死区是 10° 被验过了"。
     final List<Map<String, dynamic>> compose = goodCorpus();
     final List<Map<String, dynamic>> items =
         gate.evaluateP0(inputs(compose: compose, measured: goodMeasured(compose)));

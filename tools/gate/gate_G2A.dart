@@ -156,12 +156,14 @@ List<Map<String, dynamic>> _waitingItems() {
 Future<List<Map<String, dynamic>>> _runDeviceEval() async {
   // 只认 emulator-*；拿不到就抛（不返回 null、不退回真机）。
   final deviceId = await requireEmulatorDevice(
-    onMissing: () async {
-      await runProcess(
-          'flutter', ['emulators', '--launch', kMainAvd],
-          timeout: const Duration(seconds: 30));
-      return true;
-    },
+    // 启动走 `launchMainAvd`（与 G3/G4/预检同一条路），不再用
+    // `flutter emulators --launch`：那条路走默认硬件 GPU，而本机 GPU 驱动栈
+    // GL/Vulkan 全废（见 `capture_shots.dart` 的说明与 `out/tmp/emu_verbose.log`），
+    // 拉起来的模拟器会卡死或直接退出。旗标是与本机实测绑定的，见 gate_common。
+    onMissing: () => launchMainAvd(
+      consoleLogPath: 'out/GATE_G2A_emu_console.log',
+      log: (String s) => stderr.writeln('[G2A emu] $s'),
+    ),
   );
 
   final prep = await prepareDeviceGateDir(deviceId, kDeviceGateDir);

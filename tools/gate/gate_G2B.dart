@@ -91,12 +91,12 @@ Future<List<Map<String, dynamic>>> _runDeviceEval() async {
   // 只认 emulator-*；拿不到就抛（不返回 null、不退回真机）。见 gate_common 的
   // requireEmulatorDevice 注释：2026-09-17 这台用户真机 vivo X21A 就是在这里被抓的。
   final deviceId = await requireEmulatorDevice(
-    onMissing: () async {
-      await runProcess(
-          'flutter', ['emulators', '--launch', kMainAvd],
-          timeout: const Duration(seconds: 30));
-      return true;
-    },
+    // 同 G2A：启动走 `launchMainAvd`，不用 `flutter emulators --launch`
+    // （后者走默认硬件 GPU，本机 GPU 栈全废，拉起来会卡死/退出）。
+    onMissing: () => launchMainAvd(
+      consoleLogPath: 'out/GATE_G2B_emu_console.log',
+      log: (String s) => stderr.writeln('[G2B emu] $s'),
+    ),
   );
 
   final prep = await prepareDeviceGateDir(deviceId, kDeviceGateDir);
