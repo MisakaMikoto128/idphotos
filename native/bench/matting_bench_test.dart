@@ -151,7 +151,7 @@ void main() {
   tearDownAll(() => engine.disposeMattingEngine());
 
   test('G2A.1/2A.2 model sizes', () {
-    final matting = File('$repo/assets/models/modnet_portrait_int8.onnx');
+    final matting = File('$repo/assets/models/modnet_portrait_1024_int8.onnx');
     final face = File('$repo/assets/models/face_yunet_2023mar.onnx');
     final mb = matting.lengthSync() / 1024 / 1024;
     final fb = face.lengthSync() / 1024 / 1024;

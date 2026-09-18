@@ -99,7 +99,7 @@ List<Uint8List> _runLoad(String tag) {
   final m0 = _rss();
   final mat = ort.createSession(
       '${ort.debugModelDirectory}${Platform.pathSeparator}'
-      'modnet_portrait_int8.onnx');
+      'modnet_portrait_1024_int8.onnx');
   final face = ort.createSession(
       '${ort.debugModelDirectory}${Platform.pathSeparator}'
       'face_yunet_2023mar.onnx');

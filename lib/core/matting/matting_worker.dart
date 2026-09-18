@@ -35,9 +35,14 @@ const double kMinForegroundRatio = 0.01;
 /// 的兜底（比人脸门槛便宜且与人脸检测的召回无关）。
 const double kMinLargestComponentShare = 0.35;
 
-/// 碎片化判据的膨胀轮数。4 轮 3×3 = 半径 4，512 尺度下足以把发丝/睫毛
-/// 归并进主体（黄金集最碎的 g08 在 d4 下 lg_fg=0.836），又不至于把画面
-/// 里真正互不相连的物体粘成一块。
+/// 碎片化判据的膨胀轮数，**以 512 模型尺度为基准**：4 轮 3×3 = 半径 4，
+/// 512 尺度下足以把发丝/睫毛归并进主体（黄金集最碎的 g08 在 d4 下
+/// lg_fg=0.836），又不至于把画面里真正互不相连的物体粘成一块。
+///
+/// 实际轮数随模型输入尺寸等比放大（见 [ensureCoherentSubject]）：发丝的
+/// 物理宽度不随输入尺寸变，1024 尺度要粘住同样物理宽度的缝隙需要半径 8。
+/// 注意阈值 [kMinLargestComponentShare] 是按 512 口径校准的，膨胀半径
+/// 换算保持物理一致后，占比统计的物理口径也随之保持一致。
 const int kFragDilateRadius = 4;
 
 /// 膨胀面积低于该值的连通域视为噪声，不参与碎片统计。
@@ -48,40 +53,39 @@ const double kMinFeatherSigma = 0.6;
 
 /// 模型输出 alpha 在**模型尺度**上的去斑 + 平滑参数。
 ///
-/// 为什么必须在 512 尺度上做、而不是放大回工作分辨率之后再做：
-/// 模型输出是一张 512 网格上的场，轮廓的过渡带只有约一个 512 像素宽。
-/// 直接面积放大到工作分辨率，只是把这个一像素宽的台阶拉成坡——台阶的
-/// **拐角仍然钉在 512 网格上**。下游 `render.dart` 会把 alpha **二值化**
-/// （`hardenAlpha` 恒返回 0/1）并按 `alphaMax ≥ 191` 强制不透明，于是
-/// 轮廓呈现为一堆轴对齐的直角缺口/凸块（实测 p_1x2「1 (2).jpg」的头顶
-/// 轮廓、p_2 的左侧发际线，3× 放大后肉眼可见）。
+/// 为什么必须在模型尺度上做、而不是放大回工作分辨率之后再做：
+/// 模型输出是一张 N×N（N = kMattingInputSize）网格上的场，轮廓的过渡带
+/// 只有约一个模型像素宽。直接面积放大到工作分辨率，只是把这个一像素宽的
+/// 台阶拉成坡——台阶的**拐角仍然钉在模型网格上**。下游 `render.dart` 会把
+/// alpha **二值化**（`hardenAlpha` 恒返回 0/1）并按 `alphaMax ≥ 191` 强制
+/// 不透明，于是轮廓呈现为一堆轴对齐的直角缺口/凸块（实测 p_1x2「1 (2).jpg」
+/// 的头顶轮廓、p_2 的左侧发际线，512 输入 3× 放大后肉眼可见）。
 ///
-/// 先在 512 尺度上抹掉这个台阶，再放大，轮廓才是连续曲线。
+/// 先在模型尺度上抹掉这个台阶，再放大，轮廓才是连续曲线。
 ///
 /// - [kMatteMedianPasses] 轮 3×3 中值：吃掉孤立的高 alpha 噪点。这些噪点
-///   正是下游 `alphaMax ≥ 191` 强制不透明的触发源——一个 512 像素上的
-///   孤立亮点会被放大成 2×2 输出像素的方块凸起。
-/// - [kMatteSmoothSigma] 高斯 sigma（512 像素为单位）：把一像素宽的台阶
-///   展宽成几像素的坡，使 0.5 阈值穿越点连续变化。
+///   正是下游 `alphaMax ≥ 191` 强制不透明的触发源——一个模型像素上的孤立
+///   亮点会被放大成一块输出像素的方块凸起。
+/// - [kMatteSmoothSigma] 高斯 sigma（**以模型像素为单位**）：把一像素宽的
+///   台阶展宽成几像素的坡，使 0.5 阈值穿越点连续变化。
 ///
-/// **sigma 的取值是被 2A.5 卡死的，不是拍脑袋**。参考 alpha 是
-/// `cv2.INTER_AREA` 直接放大出来的、**没有**任何清理，所以本步做得越重，
-/// 与参考的边缘带 MAE 越高。实测（native/bench/matting_bench_test.dart，
-/// 8 张黄金集，阈值「每张 ≤ 0.12」，卡死在最碎的 g08）：
+/// sigma 取 0.4 的依据（512 时代的实测，native/bench/matting_bench_test.dart）：
 ///
 /// | 中值 | sigma | g08 edgeMAE |
 /// |---|---|---|
 /// | 0 | 0（= 改前基线） | 0.1085 |
 /// | 1 | 0.3 | 0.1109 |
 /// | 1 | **0.4** | **0.1131** |
-/// | 1 | 0.6 | 0.1228 ← 超线，FAIL |
+/// | 1 | 0.6 | 0.1228 ← 超旧 2A.5 线 |
 ///
-/// 取 0.4：视觉上轮廓台阶已经消掉（native/bench/out/up_p_2.png 的对比），
-/// 而 g08 仍留 0.007 余量。**再往上就过不了 2A.5**——想继续加强必须由
-/// 主会话先决定「要不要动 2A.5 的口径」，不要在这里偷偷加码。
+/// **1024 下的换算**：过渡带在模型网格上仍约 1 像素宽，而 1024 的 1 模型
+/// 像素只有 512 的一半物理宽度——sigma 保持 0.4（模型像素）即把同样的
+/// 网格台阶抹成坡，物理模糊量自动减半，这正是换 1024 想要的效果。旧 2A.5
+/// 的 0.12 edgeMAE 上限随 512 口径作废（主会话重校准中），不再是约束；
+/// 但也不要因此加码——更重的平滑会把发丝细节糊掉，与提分辨率的目的相悖。
 ///
 /// 另一条试过并被否决的路：把上采样从 INTER_AREA 换成双线性/双三次。
-/// 台阶确实少了一半，但 512 网格上那条一像素宽的坡线性插值后仍是折线
+/// 台阶确实少了一半，但网格上那条一像素宽的坡线性插值后仍是折线
 /// （native/bench/out/up_p_2.png 中间那张），消不干净；而 guided filter
 /// 反而更差——它会把轮廓吸到头发内部的强纹理上，重新长出直角
 /// （native/bench/out/zg_p_2.png）。两者都没采纳。
@@ -93,12 +97,14 @@ const double kHardEdgeUpscale = 1.5;
 
 /// 选羽化半径。
 ///
-/// alpha 从 512×512 放回原图用的是面积重采样（与生成黄金集参考的
-/// `cv2.INTER_AREA` 同一套公式，G2A.3–2A.5 才对得上）。面积法在放大时
-/// 会把一个源像素摊成 `upscale × upscale` 的方块，边缘出现与放大倍率同宽的
-/// 阶梯。取 sigma = upscale / 4（约半个阶梯）刚好把台阶抹平又不糊掉发丝；
+/// alpha 从模型尺寸放回原图用的是面积重采样（历史上与生成黄金集参考的
+/// `cv2.INTER_AREA` 同一套公式）。面积法在放大时会把一个源像素摊成
+/// `upscale × upscale` 的方块，边缘出现与放大倍率同宽的阶梯。
+/// 取 sigma = upscale / 4（约半个阶梯，**以输出像素为单位**）刚好把台阶
+/// 抹平又不糊掉发丝——阶梯宽度随放大倍率变化，所以这个公式天然适配
+/// 任何模型输入尺寸：1024 输入下 upscale 减半，羽化量自动减半。
 /// 阶梯本身不到一个像素（sigma < 0.6）时就不必再模糊了。
-/// 反过来，图比 512 还小的时候没有阶梯但边缘发硬，固定给 [kMinFeatherSigma]。
+/// 反过来，图比模型输入还小的时候没有阶梯但边缘发硬，固定给 [kMinFeatherSigma]。
 double featherSigmaFor(double upscale) {
   if (upscale < kHardEdgeUpscale) return kMinFeatherSigma;
   final sigma = upscale / 4;
@@ -234,10 +240,10 @@ _MattingCore _mattingCore(DecodedImage image, int sessionAddress,
   return _MattingCore(alpha, subjectFace);
 }
 
-/// 模型输出的 512 尺度 alpha → 交给下游的 alpha：去斑 + 平滑。
+/// 模型输出的模型尺度 alpha → 交给下游的 alpha：去斑 + 平滑。
 ///
-/// 参数依据见 [kMatteSmoothSigma]。两步都作用在模型尺度（512）上，
-/// 必须在放大回工作分辨率**之前**做，否则网格台阶已经烙进数据里了。
+/// 参数依据见 [kMatteSmoothSigma]。两步都作用在模型尺度（[size]×[size]）
+/// 上，必须在放大回工作分辨率**之前**做，否则网格台阶已经烙进数据里了。
 Uint8List cleanMatte(Uint8List alpha, int size) {
   var out = alpha;
   for (var i = 0; i < kMatteMedianPasses; i++) {
@@ -251,9 +257,9 @@ Uint8List cleanMatte(Uint8List alpha, int size) {
 
 /// MODNet 推理 + alpha 后处理（前景占比/碎片门槛、放大回工作分辨率、羽化）。
 ///
-/// 输入是已按 [modnetInput]/[modnetInputFromRgba] 备好的 512×512 NCHW——
-/// rgb 路径（黄金集口径）与 RGBA 预计算路径（G4 r3）共用同一套实现，
-/// 喂进模型的字节逐位一致，产出也逐位一致。
+/// 输入是已按 [modnetInput]/[modnetInputFromRgba] 备好的 NCHW（边长 =
+/// [kMattingInputSize]）——rgb 路径（黄金集口径）与 RGBA 预计算路径
+/// （G4 r3）共用同一套实现，喂进模型的字节逐位一致，产出也逐位一致。
 Uint8List _matteFromModnetInput(
     Float32List input, int sessionAddress, int dstW, int dstH) {
   final outputs = runFloatInput(
@@ -281,8 +287,8 @@ Uint8List _matteFromModnetInput(
   if (foreground < small.length * kMinForegroundRatio) {
     throw const MattingException();
   }
-  // 碎片化兜底门槛：在 512×512 上做（便宜、分辨率无关），在分配大图
-  // 缓冲之前就把碎片状 alpha 拒掉。
+  // 碎片化兜底门槛：在模型尺度上做（便宜、与成片分辨率无关），在分配
+  // 大图缓冲之前就把碎片状 alpha 拒掉。
   ensureCoherentSubject(small);
 
   var alpha = areaResampleGray(
@@ -321,11 +327,12 @@ MattingPayload runMattingAlphaOnly(DecodedImage image, int sessionAddress,
 /// 预计算输入版抠图（G4 r3 dart:ui 降采样路径专用）。
 ///
 /// 与 [runMattingAlphaOnly] 的差别只在**输入缓冲从哪来**：模型输入
-/// （YuNet letterbox + MODNet 512²）由调用方在宿主 isolate 直接从 RGBA
-/// 算好带进来，worker 里不再持有 rgba、不再转紧凑 rgb——Isolate.run 的
-/// 闭包拷贝从 w*h*4 降到固定的 8MB（4.9+3.1），worker 峰值少掉 ~22MB
-/// （rgba 12.6 + rgb 9.4，2048 工作分辨率口径）。喂进模型的字节与旧路径
-/// **逐位一致**（见 [modnetInputFromRgba] 的等价论证），输出不变。
+/// （YuNet letterbox + MODNet N²，N = kMattingInputSize）由调用方在宿主
+/// isolate 直接从 RGBA 算好带进来，worker 里不再持有 rgba、不再转紧凑
+/// rgb——Isolate.run 的闭包拷贝从 w*h*4 降到固定两张 Float32 输入
+/// （1024 口径下 4.9+12.6 ≈ 17.5MB；512 时代是 8MB），worker 峰值少掉
+/// ~22MB（rgba 12.6 + rgb 9.4，2048 工作分辨率口径）。喂进模型的字节与
+/// 旧路径**逐位一致**（见 [modnetInputFromRgba] 的等价论证），输出不变。
 ///
 /// [faceSessionAddress] 非 null 时先跑人像门槛（同 [runFaceFromRgb] 口径：
 /// YuNet + pickSubjectFace + kMinFaceAreaRatio），检不到抛
@@ -371,6 +378,11 @@ MattingPayload runMattingPrecomputed({
 /// 碎片化门槛：膨胀后连通域，最大连通域的原前景像素占比必须达到
 /// [kMinLargestComponentShare]（判据与校准依据见常量注释）。
 void ensureCoherentSubject(Uint8List alpha, {int size = kMattingInputSize}) {
+  // [kFragDilateRadius] 是 512 尺度的轮数；膨胀半径的物理含义是"把相距
+  // 多远的发丝粘回主体"，发丝物理宽度不随模型输入尺寸变，故按边长等比
+  // 换算（512→4 轮，1024→8 轮）。
+  final dilateRounds = size * kFragDilateRadius ~/ 512;
+  assert(dilateRounds >= 1, 'matting input size too small for frag gate');
   final n = size * size;
   final fg = Uint8List(n);
   var fgCount = 0;
@@ -382,7 +394,7 @@ void ensureCoherentSubject(Uint8List alpha, {int size = kMattingInputSize}) {
   }
   if (fgCount == 0) return; // 全零由前景占比门槛处理
   var dil = fg;
-  for (var it = 0; it < kFragDilateRadius; it++) {
+  for (var it = 0; it < dilateRounds; it++) {
     final next = Uint8List(n);
     for (var y = 0; y < size; y++) {
       final y0 = y > 0 ? y - 1 : 0;
@@ -529,7 +541,7 @@ FaceInfo? faceFromYunetInput(LetterboxInput input, int sessionAddress, int imgW,
   return toFaceInfo(face, input.scale, imgW, imgH, pupil: pupil);
 }
 
-/// `[1,1,512,512]` 的嵌套输出 → 512*512 的 uint8。
+/// `[1,1,N,N]` 的嵌套输出 → N*N 的 uint8（N = 模型输入边长）。
 ///
 /// 取整方式刻意与参考实现的 `(matte * 255).astype("uint8")` 一致：向零截断，
 /// 不是四舍五入。差一个 LSB 在 g08 这类发丝图上会实打实地影响 IoU。

@@ -16,11 +16,11 @@ import 'image_header.dart';
 
 /// 引擎工作分辨率的长边上限（"要不要降采样"的门槛）。
 ///
-/// 模型输入本来就是 512×512，alpha 再放大回去；合成出片最大也就二寸
-/// （413×579@300dpi ≈ 1745px）。长边 2048 对成片质量零损失，但把
-/// 4958×7017 这类扫描件的工作缓冲从 ~140MB/份 压到 ~12MB/份——这是
-/// G4.7 峰值内存达标的根本手段。黄金集长边全部 ≤2048，严格大于才降采样，
-/// 所以对黄金集逐字节零影响。
+/// 模型输入是 kMattingInputSize²（ort_runtime.dart，1024），alpha 再放大
+/// 回去；合成出片最大也就二寸（413×579@300dpi ≈ 1745px）。长边 2048 对
+/// 成片质量零损失，但把 4958×7017 这类扫描件的工作缓冲从 ~140MB/份 压到
+/// ~12MB/份——这是 G4.7 峰值内存达标的根本手段。黄金集长边全部 ≤2048，
+/// 严格大于才降采样，所以对黄金集逐字节零影响。
 const int kEngineMaxEdge = 2048;
 
 /// 长边**超过** [kEngineMaxEdge] 的图实际降采样到的工作分辨率长边。
@@ -32,6 +32,12 @@ const int kEngineMaxEdge = 2048;
 /// ~2.4×，视觉无损失；黄金集长边 ≤2048 不进这条分支，逐位零影响。
 /// 注意 ≤2048 的图**不**再降——黄金集 2048 长边的参考 alpha 就是原生
 /// 尺寸产出的，动了就是黄金集回归 FAIL。
+///
+/// 1024 输入后复核（2026-09-19）：**维持 1536 不动**。抠图细节上限由模型
+/// 输入分辨率决定而非工作分辨率，1024 输入下 1536 工作长边对 alpha 的
+/// 放大倍率仅 1.5×（512 时代是 3×），大图的发丝收益已经拿到；而把这条
+/// 线抬回 2048 会把单份 rgba 从 7.1MB 拉回 12.6MB——G4.7 压峰的根基，
+/// 与"抠图质量"无关的内存硬约束，不随本次换档松动。
 const int kBigImageWorkEdge = 1536;
 
 /// 引擎工作分辨率的规划结果。
@@ -281,7 +287,7 @@ int _roundToByte(double v) {
 /// 内存口径（G4.7）：纵向不落地整块 `srcH*dstW` 的中间缓冲，而是按源行
 /// 流式累加进 `dstH*dstW*3` 的累加器——每个目标元素的加法次序与旧实现
 /// 逐项一致（都按源行升序），结果**逐位相同**，但峰值中间量从
-/// `srcH*dstW*3*4` 降到 `dstH*dstW*3*4`（2048×1536→512 时 9.4MB→3.1MB）。
+/// `srcH*dstW*3*4` 降到 `dstH*dstW*3*4`（2048×1536→1024 时 18.9MB→12.6MB）。
 Uint8List areaResampleRgb(
   Uint8List src,
   int srcW,
@@ -431,7 +437,7 @@ Uint8List areaResampleGray(
 
 /// 3×3 中值滤波（可分离近似：先横向 3 元素中值，再纵向 3 元素中值）。
 ///
-/// 用于抠图 alpha 的**去斑**：512 尺度上孤立的高 alpha 噪点会被下游
+/// 用于抠图 alpha 的**去斑**：模型尺度上孤立的高 alpha 噪点会被下游
 /// （`render.dart` 的 `alphaMax ≥ 191 强制不透明`）放大成一块方形的
 /// "凸块/缺角"，在成片轮廓上表现为锯齿。中值能吃掉这类孤立噪点而不
 /// 移动轮廓本身的位置（均值滤波会把轮廓整体拖软）。
@@ -533,10 +539,11 @@ Uint8List featherGray(Uint8List src, int w, int h, double sigma) {
   return out;
 }
 
-/// MODNet 前处理：RGB → 512×512 → BGR、NCHW、`(x/255 - 0.5) / 0.5`。
+/// MODNet 前处理：RGB → [size]×[size] → BGR、NCHW、`(x/255 - 0.5) / 0.5`。
 ///
 /// 通道顺序是 **BGR**：参考实现用 `cv2.imread` 读图后直接喂给模型，
 /// 黄金集参考 alpha 就是在 BGR 下产生的，换成 RGB 会得到不同的 mask。
+/// [size] 的生产口径 = `kMattingInputSize`（ort_runtime.dart，1024）。
 Float32List modnetInput(Uint8List rgb, int w, int h, int size) {
   final resized = areaResampleRgb(rgb, w, h, size, size);
   return _modnetInputFromResampled(resized, size);

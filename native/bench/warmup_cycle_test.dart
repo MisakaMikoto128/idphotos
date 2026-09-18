@@ -98,7 +98,7 @@ void main() {
         'muzhao_bad_models';
     Directory(badDir).createSync(recursive: true);
     for (final name in const <String>[
-      'modnet_portrait_int8.onnx',
+      'modnet_portrait_1024_int8.onnx',
       'face_yunet_2023mar.onnx',
     ]) {
       File('$badDir${Platform.pathSeparator}$name')

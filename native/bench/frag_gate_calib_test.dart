@@ -304,7 +304,7 @@ void main() {
   final matting = ort
       .createSession(
           '${ort.debugModelDirectory}${Platform.pathSeparator}'
-          'modnet_portrait_int8.onnx')
+          'modnet_portrait_1024_int8.onnx')
       .address;
   final face = ort
       .createSession(

@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""从 HivisionIDPhotos 的 MODNet fp32 权重生成 assets/models/modnet_portrait_int8.onnx。
+"""从 HivisionIDPhotos 的 MODNet fp32 权重生成 assets/models/modnet_portrait_1024_int8.onnx。
 
 这是模型的**唯一生成脚本**，跑一次就能从 25.9MB 的原始权重复现出仓库里那份
-7.19MB 的模型。谁要重新量化、换阈值、换保留层，改这里，不要手工改 .onnx。
+模型。谁要重新量化、换阈值、换保留层、换输入边长，改这里，不要手工改 .onnx。
 
-依赖（都在 `.venv_ref` 里，`onnx` / `ml_dtypes` 需要另外装到一个 --target 目录）：
+依赖（在 `.venv_ref` 里：`pip install onnx`，其余随参考环境）：
     onnx>=1.16, onnxruntime, numpy
 用法（仓库根目录）：
-    PYTHONPATH=<装了 onnx 的目录> .venv_ref/Scripts/python.exe \
-        native/quantize/build_matting_model.py
+    .venv_ref/Scripts/python.exe native/quantize/build_matting_model.py
+    # 生成历史 512 变体（仅供 before/after 对照 bench，不进 assets）：
+    .venv_ref/Scripts/python.exe native/quantize/build_matting_model.py \
+        --size 512 --out out/tmp/modnet_portrait_512_int8.onnx
 
 --------------------------------------------------------------------------
 量化策略：**逐通道 int8 weight-only（权重量化，激活保持 fp32）**
@@ -28,8 +30,22 @@
 最难的 g08 掉多少），发现 MobileNetV2 stem 那几个很小的卷积最敏感
 （Conv_0/4/8/9 单独量化就能让 g08 从 1.00 掉到 0.94），而占了一半体积的
 Conv_191（12MB）几乎无损。所以把节点序号 < KEEP_FP32_BELOW 的卷积留在 fp32：
-多花 0.8MB，换回 g08 从 0.912 到 0.993。
+多花 0.8MB，换回 g08 从 0.912 到 0.993。（节点序号是图结构属性，与
+输入边长无关，1024 下同一阈值同样适用。）
+
+--------------------------------------------------------------------------
+输入边长：512 → 1024（2026-09-19，质量优先，用户批准不计速度）
+
+512 时代的发丝锯齿不是量化损失（int8 与 fp32 IoU 差 0.08），而是**分辨率
+损失**：全图压到 512² 后 alpha 放大 4–8 倍，下游二值化把网格台阶烙进成片。
+fp32 源模型的输入/输出是全动态 ['batch_size',3,'height','width']，MODNet
+的细节分支工作在输入分辨率上，1024 直接给出更细的发丝边缘。
+
+仍然**钉死固定边长**而不用动态维度：管线永远喂正方形固定尺寸输入
+（kMattingInputSize），钉死能让 ORT 在建会话时常量折叠/图优化到底；
+动态维度只服务于"按图变尺寸"，这条路径不存在。
 """
+import argparse
 import os
 import sys
 
@@ -40,22 +56,23 @@ from onnx import helper, numpy_helper
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SRC = os.path.join(REPO, ".ref_hivision", "hivision", "creator", "weights",
                    "modnet_photographic_portrait_matting.onnx")
-DST = os.path.join(REPO, "assets", "models", "modnet_portrait_int8.onnx")
+DST = os.path.join(REPO, "assets", "models", "modnet_portrait_1024_int8.onnx")
 
-#: MODNet 的固定推理边长，与 HivisionIDPhotos 参考实现一致（黄金集据此生成）。
-REF_SIZE = 512
+#: MODNet 的固定推理边长。1024 为当前生产口径（发丝质量）；512 是历史口径
+#: （黄金集参考 alpha 据此生成），仅在 before/after 对照时用 --size 512 复现。
+REF_SIZE = 1024
 
 #: 节点序号小于此值的 Conv/MatMul 保持 fp32（见文件头的敏感度分析）。
 KEEP_FP32_BELOW = 105
 
 
-def freeze_input_shape(model):
-    """把动态的 NCHW 维度钉成 1x3x512x512，并升到 opset 13。
+def freeze_input_shape(model, size):
+    """把动态的 NCHW 维度钉成 1x3x{size}x{size}，并升到 opset 13。
 
     opset 11 的 DequantizeLinear 没有 axis 属性，做不了逐通道反量化，必须升到 13。
     """
-    for tensor, dims in ((model.graph.input[0], [1, 3, REF_SIZE, REF_SIZE]),
-                         (model.graph.output[0], [1, 1, REF_SIZE, REF_SIZE])):
+    for tensor, dims in ((model.graph.input[0], [1, 3, size, size]),
+                         (model.graph.output[0], [1, 1, size, size])):
         for dim, value in zip(tensor.type.tensor_type.shape.dim, dims):
             dim.ClearField("dim_param")
             dim.dim_value = value
@@ -110,14 +127,21 @@ def quantize_weight_only(model, keep_fp32_below):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--size", type=int, default=REF_SIZE,
+                        help="固定输入边长（默认 %(default)s）")
+    parser.add_argument("--out", default=DST,
+                        help="输出 .onnx 路径（默认 %(default)s）")
+    args = parser.parse_args()
     if not os.path.exists(SRC):
         print(f"缺少参考权重: {SRC}", file=sys.stderr)
         return 2
-    model = freeze_input_shape(onnx.load(SRC))
+    model = freeze_input_shape(onnx.load(SRC), args.size)
     n = quantize_weight_only(model, KEEP_FP32_BELOW)
-    onnx.save(model, DST)
-    print(f"量化 {n} 个权重张量 -> {DST} "
-          f"({os.path.getsize(DST) / 1024 / 1024:.2f} MB)")
+    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+    onnx.save(model, args.out)
+    print(f"量化 {n} 个权重张量（输入 {args.size}x{args.size}）-> {args.out} "
+          f"({os.path.getsize(args.out) / 1024 / 1024:.2f} MB)")
     return 0
 
 

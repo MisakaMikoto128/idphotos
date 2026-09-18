@@ -34,14 +34,24 @@ import 'package:onnxruntime/src/bindings/onnxruntime_bindings_generated.dart'
 // ignore: implementation_imports
 import 'package:path_provider/path_provider.dart';
 
-/// 抠图模型（MODNet photographic portrait matting，权重 int8 混合量化）。
-const String kMattingModelAsset = 'assets/models/modnet_portrait_int8.onnx';
+/// 抠图模型（MODNet photographic portrait matting，权重 int8 混合量化，
+/// 输入钉死 1024×1024；生成脚本 native/quantize/build_matting_model.py）。
+const String kMattingModelAsset = 'assets/models/modnet_portrait_1024_int8.onnx';
 
 /// 人脸模型（YuNet 2023mar）。
 const String kFaceModelAsset = 'assets/models/face_yunet_2023mar.onnx';
 
-/// MODNet 的固定输入边长。参考实现用的就是 512，黄金集据此生成。
-const int kMattingInputSize = 512;
+/// MODNet 的固定输入边长。
+///
+/// 2026-09-19 从 512 提到 1024（质量优先，用户批准不计速度）：512 时代
+/// 发丝锯齿的根源是分辨率而不是量化——全图压到 512² 后 alpha 要放大
+/// 4–8 倍，下游二值化把网格台阶烙进成片。fp32 源模型输入/输出是全动态
+/// 维度，量化脚本（native/quantize/build_matting_model.py，REF_SIZE）
+/// 钉成 1024；仍然钉死而不用动态维度，因为管线永远喂正方形固定尺寸。
+///
+/// 所有以"模型像素"为单位的下游参数（去斑/平滑/碎片判据/羽化）都以
+/// 本常量为基准换算，改这里即可整体换档，不要散落硬编码。
+const int kMattingInputSize = 1024;
 
 /// YuNet 的固定输入边长。
 const int kFaceInputSize = 640;

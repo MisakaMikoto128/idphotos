@@ -154,12 +154,13 @@ mixin MattingEngineMixin {
       // 无谓拷贝，G4.7 瞬时滞留的直接来源之一）。
       //
       // G4 r3：降采样路径改为**宿主就地从 rgba 备好模型输入**，worker 只收
-      // 固定 8MB 的两张 Float32 输入（YuNet letterbox 4.9MB + MODNet 512²
-      // 3.1MB），不再拷 rgba（w*h*4）、不再在 worker 里转 rgb（w*h*3）——
-      // 模型输入与旧路径逐位一致（见 modnetInputFromRgba / yunetInputFromRgba），
-      // 输出不变，isolate 拷贝与 worker 峰值各少 ~12.6/9.4MB（2048 口径）。
+      // 固定两张 Float32 输入（YuNet letterbox 4.9MB + MODNet 1024² 12.6MB；
+      // 512 时代合计 8MB，1024 换档后 17.5MB），不再拷 rgba（w*h*4）、不再
+      // 在 worker 里转 rgb（w*h*3）——模型输入与旧路径逐位一致
+      // （见 modnetInputFromRgba / yunetInputFromRgba），输出不变，
+      // isolate 拷贝与 worker 峰值各少 ~12.6/9.4MB（2048 口径）。
       // 输入构建（面积重采样 ~20-40ms）留在宿主是为了不拷大缓冲；代价是
-      // NoFace 图也付一次 MODNet 输入构建（门槛没过时白备 3.1MB），与
+      // NoFace 图也付一次 MODNet 输入构建（门槛没过时白备 12.6MB），与
       // "门槛在 MODNet 之前省整次推理"的大头相比可忽略。
       final MattingPayload payload;
       if (rgba != null && plan != null) {

@@ -120,7 +120,7 @@ void main() {
     // 旧路径的独立会话（与引擎互不干扰）。
     final legacySession = ort
         .createSession('${ort.debugModelDirectory}'
-            '${Platform.pathSeparator}modnet_portrait_int8.onnx')
+            '${Platform.pathSeparator}modnet_portrait_1024_int8.onnx')
         .address;
 
     // 预热一轮。
