@@ -18,6 +18,21 @@
 /// | `blind` | 同 `meter` 但第二支量具也拿不到 | **MANUAL**（对该样本没有读数，不靠主判据通过） |
 /// | `ext` | 死区外夹具 | 不得进入 P0.6 的范围 |
 ///
+/// 2026-09-17 追加：**"判定集为空时本项声称什么"** 是同一天另一条真实缺陷的形态
+/// —— 空集上的 `every(...)` 恒真，于是"没有任何样本"会被读成"没有任何违规"。
+/// 故用例 7–10 把三处空集结局各钉一遍：
+///
+/// | 用例 | 构造 | 期望 |
+/// |---|---|---|
+/// | `cov` | 锚点栏空、夹具栏非空 | P0.1b **PASS** 且正文写明「覆盖由 P0.3b 夹具栏承担」 |
+/// | `allEmpty` | 锚点栏与夹具栏都空 | P0.1b **FAIL + MANUAL**（这时才真的没读数） |
+/// | `covEmpty` | 夹具栏无死区外样本 | P0.3b **FAIL + MANUAL**（不许空真通过） |
+/// | `noSample` | 一条可合成样本都没有 | P0.4 **FAIL + MANUAL**（同上） |
+///
+/// `cov` 存在的理由：P0.1b 的锚点栏在本语料上**结构性为空**。若把它一律记 MANUAL，
+/// 而 `_finish` 的 `allPass = every(pass==true)` 又把 MANUAL 当不通过，整轮就**永远
+/// 不能 PASS** —— 那是把"已记录的覆盖收缩"读成"实现方永远不达标"。
+///
 /// 运行：`dart run tools/gate/p0_p06_selftest.dart`
 /// **不要**用 `flutter test` 跑（`main(List<String>)` 与 harness 的 `main()` 不兼容，
 /// 会报 `Connection closed before test suite loaded` —— 见 docs/PITFALLS.md）。
@@ -35,6 +50,7 @@ Map<String, dynamic> row({
   double applied = 0.0,
   bool? straightened,
   String corpus = 'rotated',
+  String source = 'pupil',
 }) {
   return <String, dynamic>{
     'id': id,
@@ -43,7 +59,7 @@ Map<String, dynamic> row({
     'truthTiltDeg': truth,
     'straightenDeg': applied,
     'straightened': straightened ?? applied.abs() > 1e-9,
-    'rollSource': 'pupil',
+    'rollSource': source,
     'faceRollDeg': est,
   };
 }
@@ -60,8 +76,9 @@ Map<String, dynamic> siftRow(String id, double residual, {bool ok = true}) =>
       'applied_delta_vs_record': 0.0,
     };
 
-/// 把一批构造样本喂给 `evaluateP0`，取回 P0.6 那一条。
-Map<String, dynamic> p06(
+/// 把一批构造样本喂给 `evaluateP0`，取回指定 id 的那一条。
+Map<String, dynamic> pick(
+  String id,
   List<Map<String, dynamic>> compose,
   List<Map<String, dynamic>> eyeline,
   List<Map<String, dynamic>> sift,
@@ -88,10 +105,17 @@ Map<String, dynamic> p06(
     'evidenceProvenance': <String, dynamic>{'readable': true},
   };
   for (final Map<String, dynamic> i in evaluateP0(inputs)) {
-    if (i['id'] == 'P0.6') return i;
+    if (i['id'] == id) return i;
   }
-  throw StateError('evaluateP0 没有产出 P0.6 条目');
+  throw StateError('evaluateP0 没有产出 $id 条目');
 }
+
+Map<String, dynamic> p06(
+  List<Map<String, dynamic>> compose,
+  List<Map<String, dynamic>> eyeline,
+  List<Map<String, dynamic>> sift,
+) =>
+    pick('P0.6', compose, eyeline, sift);
 
 int failures = 0;
 
@@ -207,8 +231,74 @@ void main(List<String> args) {
     stdout.writeln('');
   }
 
+  // ---- 用例 7：锚点栏空、夹具栏非空 → P0.1b 必须 PASS，且写明覆盖由夹具栏承担 ----
+  {
+    stdout.writeln('[7] cov：锚点栏结构性空，覆盖由夹具栏承担');
+    final List<Map<String, dynamic>> compose = <Map<String, dynamic>>[
+      row(id: 'a1', truth: 5.0, est: 5.05, corpus: 'anchor'),
+      row(id: 'f1', truth: -18.0, est: -17.9, applied: -17.9),
+    ];
+    final List<Map<String, dynamic>> eye = <Map<String, dynamic>>[
+      eyeRow('a1', 5.02),
+      eyeRow('f1', -0.1),
+    ];
+    final List<Map<String, dynamic>> sft = <Map<String, dynamic>>[
+      siftRow('a1', 5.02),
+      siftRow('f1', -0.1),
+    ];
+    final Map<String, dynamic> b = pick('P0.1b', compose, eye, sft);
+    check('P0.1b PASS（不因锚点栏空而永久停机）', b['pass'] == true,
+        '实际 pass=${b['pass']}');
+    check('P0.1b 不标 MANUAL', b['manual'] == false, '实际 manual=${b['manual']}');
+    check('P0.1b 写明覆盖由夹具栏承担',
+        (b['actual'] as String).contains('覆盖由 P0.3b 夹具栏承担'), '正文没写明');
+    final Map<String, dynamic> c3 = pick('P0.3b', compose, eye, sft);
+    check('P0.3b PASS（夹具判定集 1 条）', c3['pass'] == true,
+        '实际 pass=${c3['pass']}');
+    stdout.writeln('');
+  }
+
+  // ---- 用例 8：两栏都空 → P0.1b 不许白拿 PASS ----
+  {
+    stdout.writeln('[8] allEmpty：锚点栏与夹具栏都空');
+    final List<Map<String, dynamic>> compose = <Map<String, dynamic>>[
+      row(id: 'a1', truth: 5.0, est: 5.05, corpus: 'anchor'),
+    ];
+    final List<Map<String, dynamic>> eye = <Map<String, dynamic>>[eyeRow('a1', 5.02)];
+    final List<Map<String, dynamic>> sft = <Map<String, dynamic>>[siftRow('a1', 5.02)];
+    final Map<String, dynamic> b = pick('P0.1b', compose, eye, sft);
+    check('P0.1b FAIL', b['pass'] == false, '实际 pass=${b['pass']}');
+    check('P0.1b 标 MANUAL', b['manual'] == true, '实际 manual=${b['manual']}');
+    stdout.writeln('');
+  }
+
+  // ---- 用例 9：P0.3b 判定集为空不许静默 PASS（空真是最危险的那种通过）----
+  {
+    stdout.writeln('[9] covEmpty：夹具栏无死区外样本');
+    final List<Map<String, dynamic>> compose = <Map<String, dynamic>>[
+      row(id: 'f1', truth: 5.0, est: 5.05),
+    ];
+    final List<Map<String, dynamic>> eye = <Map<String, dynamic>>[eyeRow('f1', 5.02)];
+    final List<Map<String, dynamic>> sft = <Map<String, dynamic>>[siftRow('f1', 5.02)];
+    final Map<String, dynamic> c3 = pick('P0.3b', compose, eye, sft);
+    check('P0.3b FAIL（空真不许当通过）', c3['pass'] == false,
+        '实际 pass=${c3['pass']}');
+    check('P0.3b 标 MANUAL', c3['manual'] == true, '实际 manual=${c3['manual']}');
+    stdout.writeln('');
+  }
+
+  // ---- 用例 10：P0.4 无样本不许静默 PASS ----
+  {
+    stdout.writeln('[10] noSample：一条可合成样本都没有');
+    final Map<String, dynamic> p = pick('P0.4', <Map<String, dynamic>>[],
+        <Map<String, dynamic>>[], <Map<String, dynamic>>[]);
+    check('P0.4 FAIL（空真不许当通过）', p['pass'] == false, '实际 pass=${p['pass']}');
+    check('P0.4 标 MANUAL', p['manual'] == true, '实际 manual=${p['manual']}');
+    stdout.writeln('');
+  }
+
   stdout.writeln(failures == 0
-      ? 'P0.6 自检：全部通过（6 组用例）'
-      : 'P0.6 自检：$failures 项失败');
+      ? 'P0 自检：全部通过（10 组用例）'
+      : 'P0 自检：$failures 项失败');
   exit(failures == 0 ? 0 : 1);
 }

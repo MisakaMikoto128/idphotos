@@ -709,6 +709,22 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
       samples.where((Map<String, dynamic> s) => s['corpus'] == 'uprightSynthetic').toList();
   final List<Map<String, dynamic>> rotated =
       samples.where((Map<String, dynamic> s) => s['corpus'] == 'rotated').toList();
+
+  // 夹具栏的条件覆盖率判定集，**P0.1b 与 P0.3b 共用同一个定义**。
+  // 边界带取**与 need 的交集**（|真值| ∈ (10°, 11°]），不是"所有 9°–11° 的夹具"。
+  // 取后者会把死区内侧（9°–10°）的 5 条也算进来，于是"需要摆正 15 条（含带内 9 条）"
+  // 这句话**两个数都是错的** —— 而它读起来完全正常。ACCEPTANCE 要的 15 / 11
+  // 就是这条算术：15 条去重夹具 − 4 条带内 = 11 条参与判定。
+  //
+  // 之所以提到函数级共用：P0.1b 的样本集（锚点栏）在本语料上是**结构性空集**
+  // （12 条锚点真值全在死区内，最高 `c08` 的 −8.01°，见 ACCEPTANCE「口径后果」），
+  // 它要靠**夹具栏的判定集非空**来证明"本项覆盖由夹具承担"。两处各算一遍就会漂。
+  final List<Map<String, dynamic>> fxNeed = rotated
+      .where((Map<String, dynamic> s) => (s['truth'] as double).abs() > kDeadZoneDeg)
+      .toList();
+  final List<Map<String, dynamic>> fxJudged =
+      fxNeed.where((Map<String, dynamic> s) => !inBoundaryBand(s)).toList();
+
   final List<Map<String, dynamic>> pupils =
       samples.where((Map<String, dynamic> s) => s['source'] == 'pupil').toList();
 
@@ -806,6 +822,12 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
               '其中边界带内 ${band.length} 条只报数 ⇒ **实际参与判定 ${judged.length} 条**，'
               '其上 unavailable ${bad.length} 条'
               '${bad.isEmpty ? "" : "：" + bad.map((Map<String, dynamic> s) => "${s['id']}(truth ${_f(s['truth'] as double)})").join("、")}',
+          if (judged.isEmpty && fxJudged.isNotEmpty)
+            '**锚点栏无死区外样本（0 条），本项在锚点栏没有读数；覆盖由 P0.3b 夹具栏承担'
+                '（夹具判定集 ${fxJudged.length} 条）** —— 这是 ACCEPTANCE「口径后果」'
+                '（死区外那半边只由夹具承担、真实照片不再参与）的**预期结果，不是缺陷**。'
+                '故本条的 PASS 依据是**夹具栏**的条件覆盖率，不是锚点栏；'
+                '读这一行时不得把它当成"锚点栏也达标了"。',
           '|truth| ≤ $kDeadZoneDeg° 而返回 unavailable 的 ${exempt.length} 条，按口径 2 可接受：'
               '${exempt.map((Map<String, dynamic> s) => "${s['id']}(${_f(s['truth'] as double)})").join("、")}',
           if (band.isNotEmpty)
@@ -814,14 +836,20 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         ],
         blockers,
       ),
-      'pass': instrumentsOk && bad.isEmpty,
-      // `judged` 为空时**不判 PASS**：那是"本语料对本项没有读数"，不是"本项达标"。
-      // 空集通过正是 P0.2 注释里点名的那种假证据（拿一个不存在的集合证明"没有违规"）。
-      // ACCEPTANCE :101 明写"必须摆平"这半边在本语料上只由**死区外的夹具**承担、
-      // 真实照片不再参与 —— 故这里如实记 MANUAL，把覆盖缺口摆出来，不当通过。
-      'manual': !instrumentsOk || judged.isEmpty,
-      'owner': judged.isEmpty
-          ? 'gatekeeper（本语料无死区外锚点，本项对锚点栏没有读数）'
+      // 判定集为空时**不许白拿 PASS**，但也不许把"已记录的覆盖收缩"当成"永久停机"：
+      // 锚点栏在本语料上**结构性为空**（ACCEPTANCE「口径后果」：死区外那半边只由夹具
+      // 承担、真实照片不再参与）。故分三种情形，只有**两栏都空**才是真的没人判它：
+      //   ① 锚点栏非空          → 照旧判 `bad.isEmpty`；
+      //   ② 锚点栏空、夹具栏非空 → PASS，但 actual 必须写明覆盖由夹具栏承担；
+      //   ③ 两栏都空            → pass=false + manual=true。
+      // 之所以把②写成 PASS 而不是 MANUAL：一个**恒 MANUAL** 的项会让整轮永远不能 PASS
+      // （`_finish` 里 `allPass = every(pass==true)`），那是把"已记录的覆盖收缩"读成
+      // "实现方永远不达标"——两者在人读的报告里长得一样正常。
+      'pass': instrumentsOk &&
+          (judged.isNotEmpty ? bad.isEmpty : fxJudged.isNotEmpty),
+      'manual': !instrumentsOk || (judged.isEmpty && fxJudged.isEmpty),
+      'owner': (judged.isEmpty && fxJudged.isEmpty)
+          ? 'gatekeeper（锚点栏与夹具栏均无死区外样本，本项无读数）'
           : kOwnerEstimate,
     });
   }
@@ -979,15 +1007,11 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
 
   // ---------------- P0.3b：旋转等变（覆盖率） ----------------
   {
-    final List<Map<String, dynamic>> need =
-        rotated.where((Map<String, dynamic> s) => (s['truth'] as double).abs() > kDeadZoneDeg).toList();
-    // 边界带取**与 need 的交集**（|真值| ∈ (10°, 11°]），不是"所有 9°–11° 的夹具"。
-    // 取后者会把死区内侧（9°–10°）的 5 条也算进来，于是"需要摆正 15 条（含带内 9 条）"
-    // 这句话**两个数都是错的** —— 而它读起来完全正常。ACCEPTANCE 要的 15 / 11
-    // 就是这条算术：15 条去重夹具 − 4 条带内 = 11 条参与判定。
+    // 判定集与边界带口径**不在这里重算**：`fxNeed` / `fxJudged` 在函数顶部定义，
+    // 与 P0.1b 共用同一份。两处各算一遍就会漂，而漂出来的两个数各自都读得通。
+    final List<Map<String, dynamic>> need = fxNeed;
     final List<Map<String, dynamic>> band = need.where(inBoundaryBand).toList();
-    final List<Map<String, dynamic>> judged =
-        need.where((Map<String, dynamic> s) => !inBoundaryBand(s)).toList();
+    final List<Map<String, dynamic>> judged = fxJudged;
     final List<Map<String, dynamic>> bad =
         judged.where((Map<String, dynamic> s) => s['source'] == 'unavailable').toList();
     final List<Map<String, dynamic>> exempt =
@@ -1014,9 +1038,13 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         ],
         blockers,
       ),
-      'pass': instrumentsOk && bad.isEmpty,
-      'manual': !instrumentsOk,
-      'owner': kOwnerEstimate,
+      // 判定集为空 ⇒ `bad.isEmpty` 是**空真**，会静默报 PASS。夹具栏本来就该承担
+      // "死区外必须摆平"这半边（ACCEPTANCE 口径后果），它一旦空了就是真的没读数。
+      'pass': instrumentsOk && judged.isNotEmpty && bad.isEmpty,
+      'manual': !instrumentsOk || judged.isEmpty,
+      'owner': judged.isEmpty
+          ? 'gatekeeper（夹具栏无死区外样本，本项无读数）'
+          : kOwnerEstimate,
     });
   }
 
@@ -1030,7 +1058,10 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         unavail.where((Map<String, dynamic> s) => (s['applied'] as double).abs() > 1e-9).toList();
     final List<Map<String, dynamic>> given =
         samples.where((Map<String, dynamic> s) => s['source'] == 'given').toList();
-    final bool pass = instrumentsOk && dishonest.isEmpty && given.isEmpty;
+    // `samples` 为空 ⇒ 两条违规统计（dishonest / given）都是**空真**，本项会静默报 PASS。
+    // "诚实性"在一条样本都没有时无从谈起，分布报告同样需要样本才有意义。
+    final bool pass =
+        instrumentsOk && samples.isNotEmpty && dishonest.isEmpty && given.isEmpty;
     items.add(<String, dynamic>{
       'id': 'P0.4',
       'description': '诚实性与分布：报告 RollSource 分布；unavailable 的施加角必须 = 0.0；'
@@ -1045,8 +1076,10 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         blockers,
       ),
       'pass': pass,
-      'manual': !instrumentsOk,
-      'owner': kOwnerEstimate,
+      'manual': !instrumentsOk || samples.isEmpty,
+      'owner': samples.isEmpty
+          ? 'gatekeeper（无可合成样本，本项无读数）'
+          : kOwnerEstimate,
     });
   }
 
