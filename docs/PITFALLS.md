@@ -4206,3 +4206,32 @@ P0.3b 空集 ⇒ MANUAL / P0.4 空集 ⇒ MANUAL），**用 `dart run` 直调 `e
   尤其当这个数**恰好支持自己**的时候。
 - 同族：上面那条「VOID 干跑对有效轮分支零覆盖」——**都是"绿/正常"掩盖了
   "根本没在测那件事"**。
+
+## [gatekeeper] 真机再次被抓进编排：G2A/G2B 到现在仍未"钉死 emulator-*"（本文件 :421 的规则没有落到它们身上）
+
+- 现象（2026-09-17，r5 开跑前的三项取证）：当前主机上 `adb devices -l` **只有一台**设备
+  `5bc6e093 product:PD1728 model:vivo_X21A`，`ro.build.characteristics=default`、Android 9/API 28、
+  qcom —— 是**用户真机 vivo X21A**，**没有任何 `emulator-*` 在线**。
+- 后果链（逐环可复现，不是推断）：
+  1. `waitForAdbDeviceOnline()`（`tools/gate/gate_common.dart:154`）只返回 `adb devices` 里
+     **第一个** `device` 态设备，**不过滤 `emulator-` 前缀** ⇒ 返回 `5bc6e093`。
+  2. `gate_G2B.dart:91` / `gate_G2A.dart:157` 都是
+     `await waitForAdbDeviceOnline(timeout: 5s) ?? await _launchAndWait()`。
+     既然**已经有设备在线**，`??` 右侧**短路** ⇒ **模拟器根本不会被启动**，
+     直接对真机 `flutter drive -d 5bc6e093`。
+  3. 真机（vivo）拒绝无人值守安装：`Installing … 191.6s/191.9s/191.7s` →
+     `adb: failed to install … Failure [-200]` → `Application failed to start on attempt: 1/2/3`
+     → `Will not run test. Quitting.`。三轮 ~191s 正好超过 `gate_G2B.dart:116` 的 10 分钟预算。
+  4. 结果写成 **9/9 `pass=false, manual=false, timedOut=true`** —— 在产物里与"真的 9 项退化"
+     **完全同形**。P0.5c 拿 `out/gate_G2B.json` 的 9 条旧通过项一比，就会报出
+     **9 条不存在的退化**，并顺手覆盖掉 2026-09-08 的归档（该文件被 git 跟踪，可 `git checkout` 还原）。
+- **已知性**：本文件 :421 已写明「任何 adb 编排必须钉死 `emulator-*` serial 前缀，非 emulator
+  设备在线时只告警不使用」，`gate_G4.dart:1192/:1632` 也已按它打了 `_pickPreferredDevice` /
+  `_waitForEmulatorOnline` 补丁（并且注释里引了用户铁律"真机不要碰"）。**但 G2A/G2B 从未打这个补丁** ——
+  规则写在文件里，没有落到调用点上。`Failure [-200]` 是本文件 :487 小米
+  `INSTALL_FAILED_USER_RESTRICTED` 的**同族**（OEM "USB 安装"安全开关要求屏幕确认），换了个厂商、换了个错误串。
+- 判据：**"已记录"不等于"已修复"**。一条写在 PITFALLS 里的协作规则，若没有变成**调用点的代码**，
+  它挡不住下一次。查这类问题时按"这条规则在哪些调用点上落地了"扫，而不是按"这条规则写没写过"扫。
+- 处理：**未在本轮动手**。改 `waitForAdbDeviceOnline` 的调用点是改量具，须先经主会话确认并重建
+  `out/REVIEW_*_instrument_baseline.txt`（见 [[p0-gate-round-accounting]] 与
+  [[frozen-round-no-instrument-edits]]）。本轮只取证、只报告。
