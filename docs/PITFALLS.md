@@ -4289,3 +4289,23 @@ P0.3b 空集 ⇒ MANUAL / P0.4 空集 ⇒ MANUAL），**用 `dart run` 直调 `e
 - 处理：本轮已修（`test/gate/p0_gate_judgment_test.dart`、`test/gate/provenance_test.dart`），
   两面同时绿：① 20/20 组用例、exit 0；② 101 个用例全过。`dart analyze tools/gate test/gate`
   error/warning = 0（56 条 info 级风格 lint，均为既有）。
+
+## [gatekeeper] 反引号在**双引号**里会被 Git Bash 当命令替换：提交信息被换成了一条命令的输出，句子仍然读得通
+
+- 现象（2026-09-17，本仓库）：`git commit -m "... 原来用 \`flutter emulators --launch\`，走默认硬件 GPU ..."`
+  —— 双引号内的反引号被 **Git Bash** 当命令替换执行，那一段被替换成它的**输出**。
+  该命令无参数、报 `Missing argument for "--launch"`，输出为空 ⇒ 落进 commit message 的是
+  「原来用 **，走默认硬件 GPU**」。**句子少了一截，读起来仍然通顺** ——
+  与本项目那句「仪表失败时报告更少，而不是看不到」是同一个形态，只是这次仪表是我自己。
+- 顺带**真的执行了一条我没打算跑的命令**（所幸是无参的 `flutter emulators --launch`，
+  只报错、没启动任何东西）。换成别的命令，代价就不是一条错别字了。
+- **不要因此去动 `gate_common.kShellSyntaxChars`（`| & > < ^ %`）。**
+  那张表是 **cmd.exe** 的语法字符 —— `runProcess(runInShell: true)` 在 Windows 上把参数拼给
+  `cmd.exe /c`。**cmd.exe 不把反引号当语法**，往表里加它等于拒绝一个本来合法的参数。
+  两者是**不同 shell 的不同的表**：那张表管"子进程参数会被 cmd 解释掉"，
+  本条管"我自己在 Git Bash 里写的字符串会被 sh 解释掉"。混在一起会同时弄错两边。
+- 判据：**往命令行里塞带反引号 / `$` / `!` 的文本时，一律用引号化的 heredoc**，不要用双引号 `-m`：
+  `git commit -F - <<'MSG' … MSG`（`<<'MSG'` 的引号是关键，它关掉替换）。
+- 处理：message 已 `--amend` 改正（`eaf7c19` → `995b74d`，当时未推送、未被任何人引用）。
+  本次 amend 改的是**本仓库历史尚未冻结的最后一个提交**；一旦某个提交已被基线/指纹引用，
+  就**不许**再 amend，只能新开一条更正提交 —— 见 [[feedback_head_moves_forward_only_during_judgment]]。
