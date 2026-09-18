@@ -83,10 +83,15 @@ Future<void> generateHarnessFile({
     }
     if (!providedMethods.contains('compose')) {
       needsRect = true;
+      // 这段是**手抄一遍契约签名**，契约一动它就会静默地不再满足 `IdPhotoEngine`
+      // （2026-09-17：`manualRollDeg` 加进契约后，生成的 harness 少一个命名参数）。
+      // 生成的文件只在 `integration_test/` 里用，`flutter build` 不编译它，
+      // 所以坏掉不会挡住出包 —— 只会让设备端 gate 起不来。改契约时顺手对一遍这里。
       stubs.writeln('  @override');
       stubs.writeln('  Future<Candidate> compose({required MattingResult matting, '
           'required PhotoSpec spec, required BackgroundStyle style, FaceInfo? face, '
-          "Rect? cropOverride}) => throw UnimplementedError('gate harness 占位，本轮评测不需要');");
+          'Rect? cropOverride, double manualRollDeg = 0.0}) => '
+          "throw UnimplementedError('gate harness 占位，本轮评测不需要');");
     }
     if (!providedMethods.contains('dispose')) {
       stubs.writeln('  @override');
