@@ -3,8 +3,9 @@
 /// ## 为什么要有这个文件
 ///
 /// 2026-09-17，主机上唯一的 adb 设备是**用户真机 vivo X21A**（`5bc6e093`）。
-/// `gate_G2B.dart:91` 的 `waitForAdbDeviceOnline(...) ?? await _launchAndWait()`
-/// 因为"已经有设备在线"而**短路**，模拟器压根没启动，`flutter drive` 直接把 APK
+/// `gate_G2B.dart:91` 当时写的是"取 `adb devices` 里第一台在线设备，取不到才
+/// 启动模拟器"（那个入口现已整个删除），因为"已经有设备在线"而**短路**，
+/// 模拟器压根没启动，`flutter drive` 直接把 APK
 /// 装向真机；真机拒绝无人值守安装，三轮各 ~191s 撞穿 10 分钟预算，产出
 /// 9/9 `pass=false, manual=false` —— 与"真的 9 项退化"**完全同形**。
 ///

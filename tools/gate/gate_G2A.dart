@@ -158,7 +158,7 @@ Future<List<Map<String, dynamic>>> _runDeviceEval() async {
   final deviceId = await requireEmulatorDevice(
     onMissing: () async {
       await runProcess(
-          'flutter', ['emulators', '--launch', 'Pixel_3a_API_34_extension_level_7_x86_64'],
+          'flutter', ['emulators', '--launch', kMainAvd],
           timeout: const Duration(seconds: 30));
       return true;
     },

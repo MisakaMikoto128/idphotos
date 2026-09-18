@@ -50,7 +50,7 @@ import 'device_harness_common.dart';
 import 'gate_G2B.dart' show kContractSpecsPx;
 import 'png_utils.dart';
 
-const String kMainAvd = 'Pixel_3a_API_34_extension_level_7_x86_64';
+// 主 AVD 名来自 `gate_common.dart`（**唯一定义处**），这里不再复制字面量。
 const String kDeviceGateDir = '/data/local/tmp/muzhao_gate_tmp';
 const String kResponseDataPath = 'build/integration_response_data.json';
 
@@ -143,58 +143,27 @@ void _addAllFail(List<Map<String, dynamic>> items, String reason) {
 // ---------------------------------------------------------------------------
 
 Future<String?> _ensureDeviceOnline(StringBuffer log) async {
-  var deviceId = await waitForAdbDeviceOnline(timeout: const Duration(seconds: 5));
-  if (deviceId != null) return deviceId;
-
-  // 先释放 Gradle daemon 内存（host 内存紧张曾挤崩 AVD）。
-  final gradleStop = await runProcess('gradlew', ['--stop'],
-      workingDirectory: 'android', timeout: const Duration(minutes: 2));
-  log.writeln('gradlew --stop 退出码=${gradleStop.exitCode}');
-
-  log.writeln('没有在线设备，按本机 GPU 驱动现状用安全参数启动模拟器 $kMainAvd ...');
+  // **只认 emulator-***，拿不到就是拿不到（不退回真机）。启动参数、Gradle daemon 释放、
+  // boot_completed 等待统一由 gate_common 负责 —— 这里原先自己抄了一份 `adb devices`
+  // 解析与一套启动旗标，正是"一份规则、多处实现"的又一处。
   try {
-    // 控制台输出捕获到文件：上一轮执行 qemu 无 crash dump 消失，死因无从查起。
-    // 不用 detached（detach 后 stdout 丢失），改由本进程托管 stdout/stderr 落盘；
-    // gate 结束前会 adb emu kill 收尾。
-    final consoleSink =
-        File('out/GATE_emu_console.log').openWrite(mode: FileMode.write);
-    final proc = await Process.start(
-      'emulator',
-      [
-        '-avd', kMainAvd,
-        '-no-snapshot', // 全量冷启动，避开旧快照状态（前几轮用过 -no-snapshot-save 会加载旧快照）
-        '-no-boot-anim',
-        '-no-window',
-        '-gpu', 'guest',
-        '-feature', '-Vulkan',
-      ],
-      runInShell: true,
+    return await requireEmulatorDevice(
+      wait: const Duration(seconds: 5),
+      // 原实现是"5 分钟等设备 + 再 4 分钟等 boot_completed"，合计 9 分钟，这里等价保留。
+      bootTimeout: const Duration(minutes: 9),
+      onMissing: () async {
+        log.writeln('没有在线设备，按本机 GPU 驱动现状用安全参数启动模拟器 $kMainAvd ...');
+        // 控制台输出捕获到文件：上一轮执行 qemu 无 crash dump 消失，死因无从查起。
+        return launchMainAvd(
+          consoleLogPath: 'out/GATE_emu_console.log',
+          log: log.writeln,
+        );
+      },
     );
-    proc.stdout.transform(utf8.decoder).listen(consoleSink.write);
-    proc.stderr.transform(utf8.decoder).listen(consoleSink.write);
-    unawaited(proc.exitCode.then((_) => consoleSink.close()));
-    log.writeln('emulator 已启动（控制台输出 → out/GATE_emu_console.log）');
-  } catch (e) {
-    log.writeln('emulator 启动失败: $e');
+  } on StateError catch (e) {
+    log.writeln('拿不到模拟器：${e.message}');
     return null;
   }
-  deviceId = await waitForAdbDeviceOnline(timeout: const Duration(minutes: 5));
-  if (deviceId == null) return null;
-
-  // 等 Android 侧 boot_completed，避免 drive 撞上半开机状态。
-  final bootDeadline = DateTime.now().add(const Duration(minutes: 4));
-  while (DateTime.now().isBefore(bootDeadline)) {
-    final r = await runProcess(
-        'adb', ['-s', deviceId, 'shell', 'getprop', 'sys.boot_completed'],
-        timeout: const Duration(seconds: 15));
-    if (r.ok && r.stdout.trim() == '1') {
-      log.writeln('sys.boot_completed=1');
-      return deviceId;
-    }
-    await Future<void>.delayed(const Duration(seconds: 5));
-  }
-  log.writeln('警告: boot_completed 4 分钟内未置 1，继续尝试');
-  return deviceId;
 }
 
 Future<void> _killEmulator(String serial, StringBuffer log) async {

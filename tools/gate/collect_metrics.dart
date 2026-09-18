@@ -50,13 +50,17 @@ Future<MetricsResult> runCollectMetrics({String projectRoot = '.'}) async {
   }
   log.writeln('applicationId=$packageId');
 
-  final deviceId = await waitForAdbDeviceOnline(timeout: const Duration(minutes: 3));
-  if (deviceId == null) {
+  // **只认 emulator-***：本函数随后要 `adb install` 并 `am start` ——
+  // 真机在线时，那是在**用户的手机上装东西**（见 docs/PITFALLS.md「真机再次被抓进编排」）。
+  final String deviceId;
+  try {
+    deviceId = await requireEmulatorDevice(wait: const Duration(minutes: 3));
+  } on StateError catch (e) {
     return MetricsResult(
       success: false,
       log: log.toString(),
       packageId: packageId,
-      error: '没有在线的 adb 设备（模拟器未启动或启动超时）',
+      error: '没有可用模拟器（只认 emulator-*，真机一律不碰）：${e.message}',
     );
   }
   log.writeln('设备已上线: $deviceId');

@@ -150,34 +150,6 @@ Future<RunResult> runProcess(
   );
 }
 
-/// 等待至少一台 adb 设备进入 `device`（在线可用）状态。
-/// 不负责启动模拟器，只负责轮询；启动逻辑由调用方决定（可能已经在跑，或需要 flutter emulators --launch）。
-///
-/// **警告：它会返回真机。** 只做设备编排时不要用它，用 [requireEmulatorDevice]。
-/// 现存调用点（截至 2026-09-17 未改，见 docs/PITFALLS.md「真机再次被抓进编排」）：
-/// `capture_shots.dart`、`collect_metrics.dart`。它们同样可能在真机在线时抓走用户设备。
-Future<String?> waitForAdbDeviceOnline({
-  Duration timeout = const Duration(minutes: 3),
-  Duration pollInterval = const Duration(seconds: 5),
-}) async {
-  final deadline = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(deadline)) {
-    final r = await runProcess('adb', ['devices'], timeout: const Duration(seconds: 15));
-    if (r.ok) {
-      for (final line in r.stdout.split('\n')) {
-        final trimmed = line.trim();
-        if (trimmed.isEmpty || trimmed.startsWith('List of devices')) continue;
-        final parts = trimmed.split(RegExp(r'\s+'));
-        if (parts.length >= 2 && parts[1] == 'device') {
-          return parts[0];
-        }
-      }
-    }
-    await Future.delayed(pollInterval);
-  }
-  return null;
-}
-
 /// 一行 `adb devices` 输出里，若是在线的**模拟器**就返回它的 serial，否则 null。
 ///
 /// **只认 `emulator-` 前缀。** 真机哪怕状态是 `device`、哪怕调试授权正常、哪怕它挂着
@@ -249,6 +221,13 @@ Future<List<String>> _onlineNonEmulators() async {
 
 /// 设备编排的**唯一入口**：要一台模拟器，拿不到就**抛**。
 ///
+/// **这是"只认 emulator-*"这条规则唯一的一份实现。** 2026-09-17 之前它是三份
+/// （G4 的自有挑选器 + G2A/G2B 各一份），而旧的"取 `adb devices` 里第一台在线设备"
+/// 那个**公开且返回 null** 的入口，被**七个调用点**踩过：它返回 null 时调用方要么静默跳过、
+/// 要么退回真机。**那个入口已整个删除** —— 删掉之后"退回真机"在类型上就不存在了，
+/// 第七个调用点写不出来；留着它只能靠"下一个人记得别用"，而 `docs/PITFALLS.md:421`
+/// 那条规则已经证明"写下来"不等于"挡得住"。
+///
 /// **不返回 null，也不退回真机**，两者都是刻意的：
 /// - 返回 null 会给调用方留一个"顺手继续"的口子 —— 静默跳过、或退回真机；
 /// - 退回真机曾经真的发生过：2026-09-17 G2A/G2B 把用户真机 `5bc6e093`（vivo X21A）
@@ -286,7 +265,10 @@ Future<String> requireEmulatorDevice({
   throw StateError(
     '拿不到模拟器：没有 emulator-* 在线（只认 emulator-*，真机一律不碰）。'
     '${others.isEmpty ? '当前也没有其它在线设备。' : '当前在线但被拒绝使用的真机：'
-        '${others.join(', ')} —— 用户铁律「真机不要碰」，任何 gate 不得在其上安装或运行。'}',
+        '${others.join(', ')} —— 用户铁律「真机不要碰」，任何 gate 不得在其上安装或运行。'}\n'
+    '**本轮未产生判决**：这不是"不达标"，是"没跑成"。上游读到本异常应记 MANUAL/作废，'
+    '不得读成 FAIL —— 把它读成 FAIL 正是 2026-09-17 那 9 条（G2B）与 6 条（G4）'
+    '假退化的来源。',
   );
 }
 

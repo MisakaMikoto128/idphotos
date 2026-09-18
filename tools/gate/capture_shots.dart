@@ -27,7 +27,8 @@ import 'dart:io';
 import 'gate_common.dart';
 import 'png_utils.dart';
 
-const String kMainAvd = 'Pixel_3a_API_34_extension_level_7_x86_64';
+// 主 AVD 名来自 `gate_common.dart`（**唯一定义处**）。这里原先自己又写了一遍字面量，
+// 同一个名字散在五处 —— 正是它让"只认 emulator-*"这条规则漏掉了 G2A/G2B。
 const String kSmallAvd = 'MuZhao_Small';
 const String kShotsDir = 'out/shots';
 const String kResponseDataPath = 'build/integration_response_data.json';
@@ -57,36 +58,47 @@ Future<void> _clearShotsDir() async {
 }
 
 Future<String?> _ensureDeviceOnline(String avdId, Duration bootTimeout, StringBuffer log) async {
-  var deviceId = await waitForAdbDeviceOnline(timeout: const Duration(seconds: 5));
-  if (deviceId != null) return deviceId;
-  log.writeln('没有在线设备，尝试启动模拟器 $avdId ...');
-  // 不再用 `flutter emulators --launch`：host 的 GPU 驱动栈当前 GL/Vulkan 初始化
-  // 全部失败（GLES context 创建不了、vkGetDeviceQueue 报 Invalid device，
-  // 见 out/tmp/emu_verbose.log），flutter emulators --launch 走默认硬件 GPU，
-  // 模拟器会卡死/退出。必须 -no-window + swiftshader 软渲染 + 禁用 Vulkan 宿主仿真。
-  // 用 detached 方式启动：emulator 是常驻进程，不能被 runProcess 的超时 kill 掉，
-  // 由调用方跑完后 adb emu kill 收尾。
+  // **只认 emulator-*。** 这条曾经走的是"取 `adb devices` 里第一台在线设备"
+  // 那个已删除的入口（返回值含真机），而 `capture_shots` 会去录屏 ——
+  // 真机在线时那就是在录**用户的手机屏**。
   try {
-    await Process.start(
-      'emulator',
-      [
-        '-avd', avdId,
-        '-no-snapshot-save',
-        '-no-boot-anim',
-        '-no-window',
-        '-gpu', 'guest',
-        '-feature', '-Vulkan',
-      ],
-      mode: ProcessStartMode.detached,
-      runInShell: true,
+    return await requireEmulatorDevice(
+      wait: const Duration(seconds: 5),
+      bootTimeout: bootTimeout,
+      onMissing: () async {
+        log.writeln('没有在线设备，尝试启动模拟器 $avdId ...');
+        // 不再用 `flutter emulators --launch`：host 的 GPU 驱动栈当前 GL/Vulkan 初始化
+        // 全部失败（GLES context 创建不了、vkGetDeviceQueue 报 Invalid device，
+        // 见 out/tmp/emu_verbose.log），flutter emulators --launch 走默认硬件 GPU，
+        // 模拟器会卡死/退出。必须 -no-window + swiftshader 软渲染 + 禁用 Vulkan 宿主仿真。
+        // 用 detached 方式启动：emulator 是常驻进程，不能被 runProcess 的超时 kill 掉，
+        // 由调用方跑完后 adb emu kill 收尾。
+        try {
+          await Process.start(
+            'emulator',
+            [
+              '-avd', avdId,
+              '-no-snapshot-save',
+              '-no-boot-anim',
+              '-no-window',
+              '-gpu', 'guest',
+              '-feature', '-Vulkan',
+            ],
+            mode: ProcessStartMode.detached,
+            runInShell: true,
+          );
+          log.writeln('emulator -avd $avdId 已 detached 启动');
+        } catch (e) {
+          log.writeln('emulator -avd $avdId 启动失败: $e');
+          return false;
+        }
+        return true;
+      },
     );
-    log.writeln('emulator -avd $avdId 已 detached 启动');
-  } catch (e) {
-    log.writeln('emulator -avd $avdId 启动失败: $e');
+  } on StateError catch (e) {
+    log.writeln('拿不到模拟器：${e.message}');
     return null;
   }
-  deviceId = await waitForAdbDeviceOnline(timeout: bootTimeout);
-  return deviceId;
 }
 
 /// G1.6 用：只需要证明流水线能跑通、能落盘至少 1 张非纯黑 PNG。跑主 AVD 一次。
@@ -257,11 +269,15 @@ Future<void> _mergeResponseRects(Map<String, dynamic> merged, StringBuffer log) 
 
 Future<CaptureResult> _fallback(StringBuffer log, {required String error}) async {
   log.writeln('--- 兜底流程 ---');
-  final deviceId = await waitForAdbDeviceOnline(timeout: const Duration(seconds: 10));
-  if (deviceId == null) {
+  // 同上：**只认 emulator-***。兜底走的是 `adb screencap` ——
+  // 真机在线时抓真机，就是在录**用户的手机屏**。
+  final String deviceId;
+  try {
+    deviceId = await requireEmulatorDevice(wait: const Duration(seconds: 10));
+  } on StateError catch (e) {
     return CaptureResult(
         success: false, degraded: true, shotFiles: const [], log: log.toString(),
-        error: '$error；且兜底时设备也不在线');
+        error: '$error；且兜底时没有可用模拟器：${e.message}');
   }
 
   final dir = Directory(kShotsDir);

@@ -3,9 +3,10 @@
 // **"只认 emulator-*"这条规则的守卫。**
 //
 // 存在理由：2026-09-17，主机上唯一的 adb 设备是**用户真机 vivo X21A**（`5bc6e093`）。
-// `waitForAdbDeviceOnline` 返回 `adb devices` 里第一个 `device` 态设备、**不看前缀**，
-// 于是 `gate_G2B.dart:91` / `gate_G2A.dart:157` 的
-// `await waitForAdbDeviceOnline(...) ?? await _launchAndWait()` 里 **`??` 右侧短路** ——
+// 当时 `gate_common.dart` 里有一个公开入口，它返回 `adb devices` 里第一个 `device`
+// 态设备、**不看前缀**，取不到就返回 null（该入口现已**整个删除**）。于是
+// `gate_G2B.dart:91` / `gate_G2A.dart:157` 的"先问它要设备，要不到再启动模拟器"
+// 里那个空值合并 **`??` 右侧被短路** ——
 // 模拟器**根本不会启动**，`flutter drive` 直接把 APK 装向真机。
 // 真机拒绝无人值守安装（`Failure [-200]`），三轮各 ~191s 撞穿 G2B 的 10 分钟预算，
 // 产出 9/9 `pass=false, manual=false, timedOut=true` ——
