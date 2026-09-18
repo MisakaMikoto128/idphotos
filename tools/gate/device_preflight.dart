@@ -17,11 +17,16 @@
 /// ## 判据（三条都过才 exit 0）
 /// 1. 真机在线时，被选中的必须是 `emulator-*`，**不是**真机；
 /// 2. 选中的模拟器 `sys.boot_completed == 1`（出现在 `adb devices` 里 ≠ 能用）；
-/// 3. 拿不到模拟器时**抛** `StateError`，不静默返回（此路径由 `requireEmulatorDevice` 保证，
-///    本工具只在失败时如实记 exit 1）。
+/// 3. 运行时 `MemTotal ≥ 3.6GB` —— CLAUDE.md 把 AVD 内存 4096 写死了：内存不对
+///    **不会报错**，但会让 G4.6/G4.7 测出假数字，导致误判并白烧 3 轮预算。
+///    所以验的是运行时 `MemTotal`，不是 `config.ini` 里那行配置。
+///
+/// 拿不到模拟器时 `requireEmulatorDevice` 会**抛** `StateError`（不静默返回），
+/// 本工具把它如实转成 exit 1。
 ///
 /// 运行：`dart run tools/gate/device_preflight.dart`
-/// 日志：`out/GATE_device_preflight.log`（含模拟器控制台日志路径）
+/// 证据：`out/GATE_device_preflight.md`（**入库的非忽略件** —— `.gitignore` 全局忽略
+/// `*.log`，所以证据不能写成 .log，否则它不会进版本库、也就无法被复核）
 library;
 
 import 'dart:io';
@@ -41,9 +46,13 @@ class _Tee {
 }
 
 Future<void> main(List<String> args) async {
-  final _Tee out = _Tee(File('out/GATE_device_preflight.log'));
-  out('设备预检 —— ${DateTime.now().toIso8601String()}');
+  final _Tee out =
+      _Tee(File('out/GATE_device_preflight.md'));
+  out('# 设备预检 —— ${DateTime.now().toIso8601String()}');
+  out('');
   out('主机：${Platform.operatingSystem} / ${Platform.localHostname}');
+  out('');
+  out('> 这份文件是**入库证据**：`.gitignore` 全局忽略 `*.log`，所以证据写成 `.md`。');
 
   // ---- 开跑前的现场 ----
   final RunResult before = await runProcess('adb', <String>['devices', '-l'],
@@ -125,9 +134,31 @@ Future<void> main(List<String> args) async {
   out('  ro.build.characteristics = ${chr.stdout.trim()}（期望含 emulator）');
   out('  ${booted ? 'PASS' : '**FAIL**'}');
 
-  final bool ok = pickedEmulator && booted;
+  // ---- 判据 3：内存 4096，否则 G4.6/G4.7 测出来是假数字 ----
+  //
+  // CLAUDE.md 把这条写死了：AVD 只给 1536MB 时**不会报错**，但会让 G4.6/G4.7
+  // 测出假数字，导致 gatekeeper 误判并白烧 3 轮预算。所以它必须在**开跑前**
+  // 被验，而且验的是**运行时** `MemTotal`，不是 `config.ini` 里那行配置
+  // （配置写了不等于真的给了）。
+  final RunResult mem = await runProcess(
+      'adb', <String>['-s', serial, 'shell', 'cat', '/proc/meminfo'],
+      timeout: const Duration(seconds: 20));
+  final RegExpMatch? mm =
+      RegExp(r'MemTotal:\s+(\d+)\s+kB').firstMatch(mem.stdout);
+  final int memTotalKb = mm == null ? 0 : int.parse(mm.group(1)!);
+  final double memGb = memTotalKb / 1024 / 1024;
+  // 4096MB 的 AVD 实测 MemTotal ≈ 3.83GB（内核占掉一部分），故按 ≥3.6GB 判。
+  final bool memOk = memTotalKb >= 3600000;
   out('');
-  out(ok ? '**预检 PASS**：模拟器可用（$serial），真机被正确忽略。'
-         : '**预检 FAIL**：见上。');
+  out('== 判据 3：内存是否 4096（CLAUDE.md 硬要求；否则 G4.6/4.7 是假数字）==');
+  out('  MemTotal = $memTotalKb kB ≈ ${memGb.toStringAsFixed(2)} GB'
+      '（4096MB 的 AVD 实测约 3.83GB，内核占一部分）');
+  out('  ${memOk ? 'PASS' : '**FAIL** —— 内存不对，G4.6/G4.7 的数不可信，禁止开跑'}');
+
+  final bool ok = pickedEmulator && booted && memOk;
+  out('');
+  out(ok
+      ? '## 结论：**预检 PASS** —— 模拟器可用（$serial），真机被正确忽略，内存 4096。'
+      : '## 结论：**预检 FAIL** —— 见上，禁止开跑设备侧 gate。');
   exit(ok ? 0 : 1);
 }
