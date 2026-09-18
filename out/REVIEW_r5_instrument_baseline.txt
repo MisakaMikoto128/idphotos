@@ -1,0 +1,98 @@
+# r5 量具基线（主会话在 r5 开跑前冻结；out/REVIEW_* 属主会话，gatekeeper 无权写）
+# 生成时间: 2026-09-17T17:42:10-1000
+# 用途: ACCEPTANCE 防作弊条款 2 的独立补偿控制 —— 与 gatekeeper 自报清单无关
+# 基线 tag: baseline-p6p0-r5 = f4517a4  (= HEAD)
+#
+# 沿革: r4 于 2026-09-17 作废（主会话认定，①类：门禁自身缺陷）—— 门禁崩在自身断言
+#   （gate_common「MANUAL 不许 pass=true」）上，out/GATE_P0_r4.* 未产出，零判决、
+#   无任何实现方消耗预算。本文件取代 out/REVIEW_r4_instrument_baseline.txt。
+#
+# 预设差异（baseline-p6p0-r4..HEAD，共 24 条，已声明，非越界）：
+#   gatekeeper（裁判，tools/gate + test/gate + docs/PITFALLS 归其势力范围）:
+#     docs/PITFALLS.md  out/GATE_P0_r3.md  out/GATE_device_preflight.md
+#     out/hashes_gate_r5_pre.txt
+#     test/gate/{emulator_pick_test.dart(新增),p0_gate_judgment_test.dart,provenance_test.dart}
+#     tools/gate/{capture_shots,collect_metrics,gate_G2A,gate_G2B,gate_G3,gate_G4,gate_P0,
+#                 gate_common,p0_p06_selftest}.dart  tools/gate/device_preflight.dart(新增)
+#   qa-batch（裁判，主会话授权的量具口径修正 + 纯改名）:
+#     test/batch/{p0_finalize_v1,p0_lib,p0_output_residual}.py  out/QA_r4.md  out/r4_logs/*
+#   **实现类 agent（ml-porting/imaging/ui-woodcraft/release）本轮未写 test/、tools/gate/、
+#     docs/ACCEPTANCE.md、docs/RUBRIC.md 中的任何文件（条款 1 无命中）。**
+#
+# 量测域冻结: lib/** 与 test/batch/** 自 5bf7612 起至 r5 判决落地不得再写
+#   （产物里的 blobHashes 与工作树逐条比，少一个字即 UNDECIDABLE）。
+#
+# 已知队列项（不阻塞 r5）: gate_P0/gate_G4 的 --out 不接管 MD 与若干硬编码输出路径；
+#   gate_G4 无 MANUAL 出口（设备掉线 ⇒ 6 条硬 FAIL）；capture_shots 有第四份内联启动旗标
+#   且丢弃 stdout/stderr。三项均待 r5 后清理。
+#
+# 期望: r5 结束时下列路径仅允许出现上述已声明的改动
+#
+# 本文件共 45 条哈希，分两段: 主体 35 条（tools/gate 28 + test/gate 5 + ACCEPTANCE + RUBRIC，
+#   开跑前冻结）+ 文末追加 10 条（integration_test 9 + test_driver 1，同为开跑前追加，
+#   起因见文末追加段）。
+
+--- 追加哈希 ---
+fb290ed367a9820135ccd532ecf54e33c2482de388415baa73731567f0b66434 *test/gate/anticheat_test.dart
+cab1484dc6ec589ff2dee840d86e5eac100b7397d7d1a75cefb4783f969734c7 *test/gate/crop_interaction_test.dart
+f57ad522d1f30a63adfcd42c333a40eb4b4b59a34499f387ff9be4afbb0d9ad8 *test/gate/emulator_pick_test.dart
+9d1d56fb071ab5537b5f4f607b01432514faadb6e177430400b5eb8238ef97da *test/gate/p0_gate_judgment_test.dart
+173278a7bb4f46919bb3dba4bdc2c7888d82d94e8d9534f86b321dc4cdc31af1 *test/gate/provenance_test.dart
+b60723b7ddfbc2761cc81a0f9243a23c6a710b097f8f5e28c3f99e92af0813ce *tools/gate/anticheat.dart
+4c12946b007da79dc3c25a32fec3e80fe5c3814b914837b1d5105a0b3aaa5445 *tools/gate/capture_shots.dart
+b36317aa6bff007a027860e0e5b738b4b59c63953da9a09a1c7bcece859f2e71 *tools/gate/collect_metrics.dart
+9ef0e19a1f5eed8ec0c5775b6c64afa21ddcd2a345251b6bad203f7d4d2ac828 *tools/gate/color_utils.dart
+b675395b6742cac303b5fe35aaf257de2f135331174f4cfe18d8203c5944c93a *tools/gate/compose_check_utils.dart
+14fac3f75f9bb4d5c7144a58cf51c495ab28d0216a2fee255c51603fd28954ef *tools/gate/device_harness_common.dart
+7eaae630567bd688aa1eb8141ab08c5c1821a83ee6602aca7f58e5bb154122d8 *tools/gate/device_preflight.dart
+14a866ce0afa322b663fcdf74a4bc59dffee300ef3b3d886754e0ddb44354087 *tools/gate/g4_release_memcheck.py
+ef5b216cd07fec30e73db7aae255a3df0c825d6b11a83fb60f09948be774b224 *tools/gate/gate_G1.dart
+eefc88cd9eaceace8a192691a02f9918c955c84ba786bb032ee75465b7650a81 *tools/gate/gate_G2A.dart
+4bbe565e8e2515533e03ccfe7d9fa14a6497af4741b842e76e261c0bafa36697 *tools/gate/gate_G2B.dart
+d5657019230268e08e994eede53a4e3cc2a8a04ddaea71c77e8dd7985ea2aea0 *tools/gate/gate_G2C.dart
+46c737309a50cbccdd7d7128441b66bded89ac58452c0309c3f2a817de9cc783 *tools/gate/gate_G3.dart
+629daf6693a9361e78338d75ad5f73dc4101d9222e4059df3d4a4ede9ae073cd *tools/gate/gate_G4.dart
+186ea8c020703998bb8964bbe9ac6b74af53f73521b61326291afb4ba8de1cce *tools/gate/gate_G5.dart
+c1048040824c8bb00487a73e44b6df60b479347fddbfac78940635b3625ecfe0 *tools/gate/gate_G5B.dart
+21645165e52bfaf795070f565f2ffd05a502da0b69eee460c685f6c112289874 *tools/gate/gate_P0.dart
+b26df9ad397166398d858cc9513361a02e0e6dc7f79a07034c9fcb7bddb8210f *tools/gate/gate_common.dart
+55a02caf2e5ba3b329ce1448fc4669dc52da2cf4796f1d439c575db929009f75 *tools/gate/jpeg_utils.dart
+ecc8d4da98a29f4ba134228dcf66efe665ac149614f358167ed1d95948a02ec8 *tools/gate/p0_eyeline.py
+7c30c6ee828d02f77159392a4aae0d979884f8dbf48f9bcd5b61033823be13ef *tools/gate/p0_overlap.py
+b12166ab7ad9fe4641cc7c2d17317cc00b54b6303b24eb0fa10bd9928d9c31ed *tools/gate/p0_p06_selftest.dart
+8a46d89c013acfb61a209e467036ffaf32eb734463e8cda4ba1082b8a96a5b08 *tools/gate/p0_rigid_check.py
+670cecd70b5624e9c30738aafcfb31e85ce390a872a4b504c3a855cc38f2bf45 *tools/gate/p0_roll_probe_test.dart
+fb0711446e483b8a1fc72f549516fec7fcd2fcbaf6eaf4d933456a59587c3ae2 *tools/gate/png_utils.dart
+5452451ef5a6e617b26fc65cce7ab79427b267c4dab076e64d5b223864764a9c *tools/gate/provenance.dart
+45ada1647fc0766a7dbf594d015274b5252850a8b43f62925db9ba629fb712b0 *tools/gate/rot_dir_check.dart
+86ccf34ec2b960f74727cd0bf528a42f4337fcf8b92c35a2c6ab15675d167c0a *tools/gate/sha256.dart
+d6318221e0186b9ec84927d734e9252cf01d630c6164ee022b29f67315eb5aeb *docs/ACCEPTANCE.md
+5a894bf3ec6c312a964e1171419cc4db3d3f939f4500f4286bd50e5d83172e8a *docs/RUBRIC.md
+
+# ── 2026-09-17 追加（开跑前，主会话裁定）─────────────────────────────
+# 起因: gatekeeper 报 integration_test/ 与 test_driver/ 同时落在条款 1 枚举
+#   （test/、tools/gate/、ACCEPTANCE、RUBRIC）与本基线之外。核实成立：
+#   gate_G2C.dart:178 的 excludeRects[name] ?? const [] 直接决定哪些像素
+#   被跳过（:182-183 continue），其来源 integration_test/shots_test.dart:123
+#   不在任何冻结面内 —— 把矩形放大即可让 2C.2/2C.3/2C.4 看不见 UI。
+#   另: integration_test/g4_{spotcheck,memcheck}_test.dart 是 G4 自己的设备
+#   复测仪器，而 G4 是 P0.5c 要重跑的一环 ⇒ 这两个目录在 r5 链上。
+# 处置: 只补基线（我的补偿控制，条款 2），不改 docs/ACCEPTANCE.md 条款 1 的
+#   枚举 —— 开跑前改法典会污染本轮防作弊巡查。扩枚举列为 r5 后队列项。
+# 范围核查: 其余顶层目录已逐个归位 —— lib/assets/native 由 provenance 绑定覆盖；
+#   test/ 与 tools/gate/ 在条款 1 + 本条基线；build/ 为易变构建产物；
+#   out/ 为产物非代码。故本次追加是两个目录的全部 10 个文件，无遗漏。
+# 注: _generated_*harness.dart 由 gate_G3 生成；r5 不重跑 G3，本窗口内不应变。
+#   若其哈希变了，是要我解释的信号，不是本项自动 FAIL。
+#
+--- 追加哈希（integration_test/ + test_driver/）---
+026fcafbd8cec1d7f4f16565d5ccdda46637d824fabc6109acf0b347ae8ad7e2 *integration_test/_generated_compose_harness.dart
+735056b60fc7c8a6e5b0032c6539c69aba12ac807ff43ab3bae53cc2ea1eae96 *integration_test/_generated_matting_harness.dart
+0d43fe17f0815b31985832314e830ef9f8ea4f98a086ea181aede9fcfe9661eb *integration_test/coldstart_probe_test.dart
+a81d19e369373f8c1295575bfcf07e52863df67dd27b858b66ecf5c80fdb7969 *integration_test/compose_eval_test.dart
+7a7f57d14179995c08381c4f540ff1821691bcfff9981791edb6d43e304d52a4 *integration_test/e2e_eval_test.dart
+f1cb7d0034695a4ff67f69ab51ff11ce17647f8a50de640a1df05cc180a6cc14 *integration_test/g4_memcheck_test.dart
+0887da21b8d8fca53e89890d4695777926193cbcdac96d4600e3da9c0842f8e9 *integration_test/g4_spotcheck_test.dart
+78bf239f5fdb50b89db9dadf0e1d3ab1d9bbec5514a7e7d5731c22bc9d59e559 *integration_test/matting_eval_test.dart
+f154b9531c2f64c7def1c492a46d82dc095f7b2dbd76c0d4334720f24a4f71ee *integration_test/shots_test.dart
+45afb6ce770c45ec1eaf9fb666368781fcc27fb93a0c3301e2505f469e0d52f4 *test_driver/integration_test_driver.dart
