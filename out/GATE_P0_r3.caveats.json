@@ -2,7 +2,7 @@
   "about": "out/gate_P0_r3.json",
   "role": "caveat",
   "generatedBy": "gatekeeper",
-  "generatedAt": "2026-09-17T09:15:05-10:00",
+  "generatedAt": "2026-09-17T09:24:41-10:00（C1–C9，随本轮 out/gate_P0_r3.json 出具）；2026-09-17（C10–C12，提交后并入主会话裁定与复核，标记 addedAfterCommit）",
   "notAnAmendment": "本文件不修改 out/gate_P0_r3.json。那份 JSON 是本轮门禁的原始输出记录，改它等于篡改裁决记录。这里是并列的旁注，只增不改；读者应同时读两者。",
   "whyThisFileExists": "本轮要求 P0.3b.actual 自带适用范围，但 actual 由 tools/gate/gate_P0.dart 生成，而该目录本轮处于冻结（主会话 2026-09-17 裁定：测量期间 tools/gate/** 与 test/gate/** 不得改动，以免动到已冻结的量具基线）。故适用范围改放此处 —— 位置换了，机器可读性没换。",
   "followUp": "解冻后应把适用范围直接写进 gate_P0.dart 的 P0.3b 'actual'，届时本文件的 C1 可由代码生成而不再依赖人工维护。",
@@ -123,6 +123,46 @@
       "statement": "-32be85b2dab13e3e 与 cd417a4d254ec1c2 是同一个 64 位 FNV：0x10000000000000000 - 0xcd417a4d254ec1c2 = 0x32be85b2dab13e3e。差异来自 Dart 的 int 有符号，tools/gate/provenance.dart:385 的 h.toRadixString(16) 在高位置 1 时带出负号；Python 打无符号。",
       "consequence": "判据本身走 blobHashes 逐条比对（正确，不受影响），但这两行**并排印在人读的报告里会被读成『代码变了』**。",
       "followUp": "解冻后统一按无符号零填充打印。跨实现比任何摘要前，先核渲染口径（有符号/无符号、大小写、补零、字节序）。"
+    },
+    {
+      "id": "C10-truth-rewrite-was-provenance-only",
+      "addedAfterCommit": true,
+      "appliesTo": ["本轮有效性", "out/P0_truth.json", "作废判据"],
+      "statement": "本窗口内 09:22:10 那次 out/P0_truth.json 重写，经逐叶比对**没有改变任何一个判据值**，故不足以作废本轮。",
+      "measurement": "git show HEAD:out/P0_truth.json 与工作树逐叶比对：两侧各 4374 叶，集合完全相同，仅 2 叶变化。",
+      "changedLeaves": [
+        { "path": "/evaluatedState/codeFingerprintAtFinalize/headCommit", "head": "fb2f161a77fcdd3b434da6168522b034f628e484", "worktree": "c825d021f47b24afd91ffad20f5bd5a1cbfdba8f" },
+        { "path": "/evaluatedState/headAtFinalize", "head": "fb2f161", "worktree": "c825d02" }
+      ],
+      "whyTheseDoNotMatter": "两叶都是自述性 provenance —— 记的是「跑 finalize 那一刻 HEAD 在哪」，不是任何被测量的值。其余 4372 个判据值逐位相同。",
+      "verifiedBy": "gatekeeper 独立复算，与主会话数字一致。",
+      "ruleEstablished": "**作废的判据是「判据值会不会变」，不是「文件有没有被碰」。** 两者必须分开写，否则会把一次实质变更和一次纯 provenance 变更报成同一件事。",
+      "notRetroactive": "本 Caveat 不追溯推翻上一次作废（out/GATE_P0_r3_VOID2_truthRewrittenMidWindow）。那次作废是在**尚未做此叶级比对**时作出的，按当时掌握的信息是正确的处置；且其重跑成本由流程承担，不消耗实现方预算。"
+    },
+    {
+      "id": "C11-p03a-ruled-boundary-noise-no-budget-consumed",
+      "addedAfterCommit": true,
+      "appliesTo": ["P0.3a", "轮次账"],
+      "severity": "ruling",
+      "statement": "主会话裁定：本轮 P0.3a 记**边界噪声 / 证据不足**，**不消耗** ml-porting 的修复轮次。",
+      "ruling": "gate_P0.dart:275 / :892-900 里「本规则不适用于 P0.3a」是描述性文字（描述 r1 当时的状态：超 7 倍、两支量具独立复现），**不是永久豁免**。P0.3a 与其他项一样受贴线规则约束。照字面读成豁免，则任何小于量具误差的超线都会自动定罪，而 1.5° 阈值只有两支量具自身误差（0.41 / 0.5）三倍余量 —— 记账的会是噪声，不是实现方的错。",
+      "basis": "c06_d+3 余量 0.2534 < 量具误差 0.41/0.5；第二支量具 SIFT 读 1.2610 未复现；构造真值 1.27（geoRecoveredDeltaDeg 2.999 / geoNcc 0.9994，成片施加角 0.0）与 SIFT 一致、与 eyeline 的 1.7534 差 0.48（正是 eyeline 自检误差）。",
+      "rulingSource": "主会话 e71e1d2a / 94a575a6",
+      "verdictTextUnchanged": "**判决正文仍写 FAIL**（按冻结判据）。变的只是记账：不消耗预算。**「算不算一轮有效」与「消不消耗预算」是两件事，必须分开写。**",
+      "mustBeWrittenVerbatim": [
+        "c06_d+3 成片确实保留了约 1.27° 倾角，成因是死区（引擎估 0.79° < kRollDeadZoneDeg=1.0 ⇒ 施加 0.0°）。它属于覆盖缺口 C3，不是「修好了」。",
+        "若下次第二支量具复现同一超线 ⇒ 那是真 FAIL，且照常消耗轮次。裁定的只是「单支量具、余量小于其误差」这一种情形。"
+      ],
+      "budgetAfter": "ml-porting 已用 1 次（r2）、剩 2 次。"
+    },
+    {
+      "id": "C12-p05c-manual-deferred-by-decision-not-by-prerequisite",
+      "addedAfterCommit": true,
+      "appliesTo": ["P0.5c"],
+      "statement": "P0.5c 本轮记 MANUAL，原因是**主会话决定推迟至下一轮**，不是「上游未修好所以重跑无意义」。",
+      "correction": "本报告正文 :533 及其生成层写的理由是「上游 P0.3a/P0.3b 未修好时不重跑」。**在 P0.3a 被裁定为边界噪声之后，该理由已不成立，撤回。**",
+      "actualReason": "lib/core/imaging/** 已解冻，imaging 正在改死区与裁剪回退（用户裁定「一律出图、缺口缩到最小」）。P0.5c 一轮约 40 分钟，现在跑完代码一变就要重跑。",
+      "accountingUnchanged": "MANUAL 状态不变，**不计入通过数**。下一轮随完整 r3 一起跑，两侧 generatedAt 都打印。"
     }
   ]
 }
