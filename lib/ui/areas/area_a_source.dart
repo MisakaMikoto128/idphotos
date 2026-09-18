@@ -67,7 +67,14 @@ class AreaASource extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
                 child: Row(
                   children: <Widget>[
-                    const _BrandPlate(),
+                    // "关于"入口：长按左上角铭牌（用户 2026-09-17：不要
+                    // 长按标尺，也不要可见提示）。
+                    GestureDetector(
+                      onLongPress: () => ref
+                          .read(workbenchProvider.notifier)
+                          .setAboutOpen(true),
+                      child: const _BrandPlate(),
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: SpecRuler(
@@ -75,10 +82,6 @@ class AreaASource extends ConsumerWidget {
                         onTap: () => ref
                             .read(workbenchProvider.notifier)
                             .setSpecSheet(true),
-                        // PHASE6 W1：长按标尺打开"关于"浮层。
-                        onLongPress: () => ref
-                            .read(workbenchProvider.notifier)
-                            .setAboutOpen(true),
                       ),
                     ),
                   ],
@@ -290,6 +293,10 @@ class _PhotoFrame extends ConsumerWidget {
         // 引擎的自动取景永远不出现。
         interactive: app.stage == Stage.ready,
         activeHandle: wb.activeHandle,
+        // 手动微调角度：**只转框、不转照片**（用户 2026-09-17）。符号取反
+        // 是因为画布此前整体转 canvasRotationRad(angle)，等价的"照片不动、
+        // 框转"要施加相反的角 —— 框与照片的相对几何与引擎完全一致。
+        frameRotationRad: -canvasRotationRad(app.manualAngleDeg),
         onChanged: (Rect r) {
           ref
               .read(workbenchProvider.notifier)
@@ -299,23 +306,6 @@ class _PhotoFrame extends ConsumerWidget {
         onDragStart: (String h) =>
             ref.read(workbenchProvider.notifier).beginDrag(h),
         onDragEnd: () => ref.read(workbenchProvider.notifier).endDrag(),
-      );
-    }
-
-    // 手动微调角度：预览必须跟着转，否则用户在调一个看不见的东西。
-    //
-    // 整体旋转（照片 + 裁剪框 + 把手）与引擎的做法一致：`_mapCropToRotated`
-    // 把用户的框**刚体**搬到旋转空间（中心映射、宽高原样带走），所以框在
-    // 成片里就是跟着图一起转的。`Transform` 默认 transformHitTests，
-    // CropOverlay 的 `globalToLocal` 会反解旋转，把手在斜着的框上照样拖得准。
-    //
-    // angle == 0 时**不套 Transform**：默认态（含全部截图场景与门禁）的
-    // widget 树与加本功能之前逐节点一致，不给既有裁决引入任何变量。
-    final double angle = app.manualAngleDeg;
-    if (angle != 0) {
-      inner = Transform.rotate(
-        angle: canvasRotationRad(angle),
-        child: inner,
       );
     }
 
@@ -436,10 +426,6 @@ class _PaperLabel extends StatelessWidget {
                 Text('轻触选择照片', style: Type.bodyStrong(T.inkBrown)),
                 const SizedBox(height: 2),
                 Text('从相册里挑一张正面照', style: Type.caption(T.inkBrown)),
-                const SizedBox(height: 6),
-                // 关于页入口的可见提示（visual-critic PHASE6：零提示发现率为零）
-                Text('长按顶部标尺，了解木照',
-                    style: Type.caption(T.brass)),
               ],
             ),
           ),

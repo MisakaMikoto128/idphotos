@@ -1,4 +1,4 @@
-/// 角度微调尺：一根凹槽黄铜刻度尺 + 游标滑块 + 度数读数窗 + 回正钮。
+/// 角度微调尺：一根凹槽黄铜刻度尺 + 游标滑块 + 左右微调钮 + 回正钮。
 ///
 /// 放在**区域 A 之内**、紧贴照片框下沿 —— 它调的就是框里那张图的面内角度，
 /// 不新增第四个主区域（CLAUDE.md §2）。
@@ -23,7 +23,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api.dart';
 import '../state/providers.dart';
 import '../theme/brass.dart';
-import '../theme/paper_painter.dart';
 import '../theme/surfaces.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
@@ -39,6 +38,9 @@ const double kAngleGaugeHeight = 44;
 /// 120ms 约合 8 次/秒，肉眼已经"跟手"；controller 侧另有 300ms 去抖才真正
 /// 重跑合成，所以真正昂贵的重算只发生在用户停手之后。
 const Duration kAngleCommitInterval = Duration(milliseconds: 120);
+
+/// 微调钮每按一下走的角度。
+const double kNudgeStepDeg = 0.5;
 
 /// 角度微调尺。
 class AngleGauge extends ConsumerStatefulWidget {
@@ -142,6 +144,13 @@ class _AngleGaugeState extends ConsumerState<AngleGauge> {
     ref.read(controllerProvider).setManualAngle(v);
   }
 
+  /// 左右微调钮：走一步 [kNudgeStepDeg]，提交语义与松手相同。
+  void _nudge(double delta) {
+    final double v = snapAngle(_deg + delta);
+    if (v != _deg) setState(() => _deg = v);
+    _send(v);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool on = widget.enabled;
@@ -155,6 +164,13 @@ class _AngleGaugeState extends ConsumerState<AngleGauge> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text('角度', style: Type.caption(T.creamText)),
+            const SizedBox(width: 8),
+            _NudgeKnob(
+              enabled: on,
+              label: '−',
+              semanticLabel: '逆时针微调',
+              onTap: () => _nudge(-kNudgeStepDeg),
+            ),
             const SizedBox(width: 6),
             Expanded(
               child: _VernierTrack(
@@ -166,8 +182,13 @@ class _AngleGaugeState extends ConsumerState<AngleGauge> {
                 onJumpTo: _onJumpTo,
               ),
             ),
-            const SizedBox(width: 8),
-            _Readout(deg: _deg, enabled: on),
+            const SizedBox(width: 6),
+            _NudgeKnob(
+              enabled: on,
+              label: '+',
+              semanticLabel: '顺时针微调',
+              onTap: () => _nudge(kNudgeStepDeg),
+            ),
             const SizedBox(width: 6),
             _ResetKnob(
               enabled: on,
@@ -209,7 +230,10 @@ class _VernierTrackState extends State<_VernierTrack> {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: '角度微调',
+      // 文案刻意不用"微调"：`微` 不在 Noto Serif SC 子集里（fonts.dart 的
+      // coveredCharset），用它会让无障碍标签出豆腐块。要改回"角度微调"，
+      // 必须先 `dart run tools/charset_scan.dart` 并重新子集化。
+      label: '调整角度',
       value: formatAngle(widget.deg),
       enabled: widget.enabled,
       child: LayoutBuilder(
@@ -259,7 +283,7 @@ class _VernierTrackState extends State<_VernierTrack> {
 /// 两端各留出半个游标滑块的宽度，滑块走到极限位置时不会探出尺身。
 class _ScaleMap {
   /// 游标滑块宽度。
-  static const double capW = 20;
+  static const double capW = 24;
 
   final double width;
 
@@ -312,18 +336,23 @@ class _VernierPainter extends CustomPainter {
 
   const _VernierPainter({required this.deg, required this.enabled});
 
-  /// 尺身（凹槽）上沿。上方留给游标滑块的帽子。
-  static const double _channelTop = 10.5;
+  /// 尺身（凹槽）上下各留的边距。留够之后整条尺子才落在行中线上，
+  /// 左中右三件（标签 / 读数窗 / 回正钮）才不用各自错位对齐。
+  static const double _channelInset = 5;
 
   /// 刻度线距离尺身下沿的高度。
   static const double _tickBase = 3;
 
+  /// 游标铜帽的高度。它骑在凹槽里，不是悬在凹槽上方。
+  static const double _capH = 13;
+
   @override
   void paint(Canvas canvas, Size size) {
     final _ScaleMap map = _ScaleMap(size.width);
-    if (!map.usable || size.height < _channelTop + 10) return;
+    final Rect ch = Rect.fromLTRB(
+        0, _channelInset, size.width, size.height - _channelInset);
+    if (!map.usable || ch.height < 22) return;
 
-    final Rect ch = Rect.fromLTRB(0, _channelTop, size.width, size.height);
     final RRect chRR = RRect.fromRectAndRadius(ch, const Radius.circular(3));
 
     canvas.save();
@@ -337,7 +366,10 @@ class _VernierPainter extends CustomPainter {
     _paintCarriage(canvas, map, size);
   }
 
-  /// 凹槽底：上暗下亮。光从左上来的话，槽的上内壁在阴影里、下内壁受光。
+  /// 凹槽底：暗只留在最上面一条窄唇上，其余是平整的黄铜面。
+  ///
+  /// 早先把暗部铺满上半段，34px 高的槽里会读成"上下两条不同色的带子"
+  /// 而不是一条挖出来的槽；暗唇压到 14% 才是"上内壁在阴影里"的观感。
   void _paintChannelFloor(Canvas canvas, Rect ch) {
     if (!enabled) {
       canvas.drawRect(
@@ -351,11 +383,12 @@ class _VernierPainter extends CustomPainter {
           ch.topCenter,
           ch.bottomCenter,
           <Color>[
-            Color.lerp(T.brassShadow, T.brass, 0.18)!,
+            Color.lerp(T.brassShadow, T.brass, 0.12)!,
             T.brass,
-            Color.lerp(T.brass, T.brassHi, 0.34)!,
+            T.brass,
+            Color.lerp(T.brass, T.brassHi, 0.30)!,
           ],
-          const <double>[0.0, 0.52, 1.0],
+          const <double>[0.0, 0.14, 0.70, 1.0],
         ),
     );
   }
@@ -376,7 +409,7 @@ class _VernierPainter extends CustomPainter {
       final bool zero = q == 0;
       final bool major = q % 40 == 0; // 10°
       final bool mid = q % 20 == 0; // 5°
-      final double len = zero ? 12 : (major ? 9 : (mid ? 7 : 5));
+      final double len = zero ? 14 : (major ? 12 : (mid ? 9 : 6));
 
       cut.color = (enabled ? T.brassShadow : T.woodDark)
           .withValues(alpha: zero ? 0.95 : (major ? 0.8 : (mid ? 0.62 : 0.45)));
@@ -419,7 +452,7 @@ class _VernierPainter extends CustomPainter {
       final String label =
           d == 0 ? '0' : '${d > 0 ? '+' : '−'}${d.abs().round()}';
       final TextPainter laid = _layoutNumeral(label, ink);
-      final Offset at = Offset(map.xOf(d) - laid.width / 2, ch.top + 2);
+      final Offset at = Offset(map.xOf(d) - laid.width / 2, ch.top + 1);
       _layoutNumeral(label, relief).paint(canvas, at + const Offset(0, 1));
       laid.paint(canvas, at);
     }
@@ -430,22 +463,25 @@ class _VernierPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       )..layout();
 
-  /// 游标滑块：上方一枚滚花铜帽，下面一道亮刻线贯穿尺身。
+  /// 游标滑块：一枚滚花铜帽骑在凹槽里，帽下伸出一道亮刻线指读数。
   void _paintCarriage(Canvas canvas, _ScaleMap map, Size size) {
     final double cx = map.xOf(deg);
     const double hw = _ScaleMap.capW / 2;
-    final double bottom = size.height - 3;
+    final double chTop = _channelInset;
+    final double chBottom = size.height - _channelInset;
+
+    final Rect cap =
+        Rect.fromLTWH(cx - hw + 1.5, chTop + 0.5, _ScaleMap.capW - 3, _capH);
 
     // 刻线：右一笔亮、左一笔暗托，线才有"立"起来的感觉
-    final Rect line = Rect.fromLTRB(cx - 1, _channelTop + 2, cx + 1, bottom);
+    final Rect line =
+        Rect.fromLTRB(cx - 1, cap.bottom, cx + 1, chBottom - 2);
     canvas.drawRect(
       line.shift(const Offset(-1.4, 0)),
       Paint()..color = Shade.warmShadow,
     );
     canvas.drawRect(line, Paint()..color = enabled ? T.brassHi : T.inkFaded);
 
-    // 铜帽
-    final Rect cap = Rect.fromLTRB(cx - hw, 0, cx + hw, _channelTop + 3.5);
     final RRect capRR = RRect.fromRectAndRadius(cap, const Radius.circular(2.5));
     canvas.drawRRect(
       capRR.shift(const Offset(1.0, 1.8)),
@@ -456,6 +492,17 @@ class _VernierPainter extends CustomPainter {
       Paint()
         ..shader = metalFaceShader(
             cap, enabled ? MetalFinish.brass : MetalFinish.matte),
+    );
+
+    // 帽下沿一枚小三角，明确"读的是这条线"
+    final Path pointer = Path()
+      ..moveTo(cx - 4, cap.bottom - 1)
+      ..lineTo(cx + 4, cap.bottom - 1)
+      ..lineTo(cx, cap.bottom + 4)
+      ..close();
+    canvas.drawPath(
+      pointer,
+      Paint()..color = enabled ? T.brassHi : T.inkFaded,
     );
 
     if (!enabled) return;
@@ -491,48 +538,8 @@ class _VernierPainter extends CustomPainter {
       old.deg != deg || old.enabled != enabled;
 }
 
-/// 读数窗：铜框里嵌一张小纸条，上头印着度数。
-class _Readout extends StatelessWidget {
-  final double deg;
-  final bool enabled;
-
-  const _Readout({required this.deg, required this.enabled});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 62,
-      height: 30,
-      child: MetalPlate(
-        finish: enabled ? MetalFinish.brass : MetalFinish.matte,
-        radius: const BorderRadius.all(Radius.circular(3)),
-        seed: 31,
-        padding: const EdgeInsets.all(3),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(2)),
-          child: CustomPaint(
-            painter: const PaperPainter(seed: 63, edgeDarken: 0.7),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    formatAngle(deg),
-                    style: Type.plate(T.inkBrown),
-                    maxLines: 1,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 回正钮：把角度一步归零。
+/// 回正钮：把角度一步归零。面板高度与尺身凹槽一致，整行读起来是
+/// 一台机器上的几件铜活。
 class _ResetKnob extends StatelessWidget {
   final bool enabled;
   final VoidCallback onTap;
@@ -541,20 +548,79 @@ class _ResetKnob extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PressSurface(
+    return _GaugeButton(
       key: const Key('btn_angle_reset'),
+      width: 48,
+      enabled: enabled,
+      semanticLabel: '角度回正',
+      onTap: onTap,
+      label: '回正',
+    );
+  }
+}
+
+/// 尺子左右两侧的微调钮：一按走 [kNudgeStepDeg]。
+class _NudgeKnob extends StatelessWidget {
+  final bool enabled;
+  final String label;
+  final String semanticLabel;
+  final VoidCallback onTap;
+
+  const _NudgeKnob({
+    required this.enabled,
+    required this.label,
+    required this.semanticLabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _GaugeButton(
+      width: 34,
+      enabled: enabled,
+      semanticLabel: semanticLabel,
+      onTap: onTap,
+      label: label,
+    );
+  }
+}
+
+/// 微调/回正共用的铜面按钮。高度与尺身凹槽对齐。
+class _GaugeButton extends StatelessWidget {
+  final double width;
+  final bool enabled;
+  final String semanticLabel;
+  final VoidCallback onTap;
+  final String label;
+
+  const _GaugeButton({
+    super.key,
+    required this.width,
+    required this.enabled,
+    required this.semanticLabel,
+    required this.onTap,
+    required this.label,
+  });
+
+  /// 尺身凹槽高度：[kAngleGaugeHeight] 减上下内壁各 5px。
+  static const double plateH = kAngleGaugeHeight - 10;
+
+  @override
+  Widget build(BuildContext context) {
+    return PressSurface(
+      key: key,
       enabled: enabled,
       sink: 1,
-      semanticLabel: '角度回正',
+      semanticLabel: semanticLabel,
       onTap: onTap,
       builder: (BuildContext context, bool pressed) {
         return SizedBox(
-          width: 48,
+          width: width,
           height: kAngleGaugeHeight,
           child: Center(
             child: SizedBox(
-              width: 48,
-              height: 30,
+              width: width,
+              height: plateH,
               child: MetalPlate(
                 finish: enabled ? MetalFinish.brass : MetalFinish.matte,
                 radius: const BorderRadius.all(Radius.circular(3)),
@@ -562,7 +628,7 @@ class _ResetKnob extends StatelessWidget {
                 seed: 17,
                 child: Center(
                   child: EngravedText(
-                    '回正',
+                    label,
                     // 哑光面偏暗，配奶油色（metal.dart 里实测 6.3:1）；
                     // 亮铜面配深褐（5.6:1）。两者都在无障碍红线之上。
                     style: Type.plate(enabled ? T.inkBrown : T.creamText),

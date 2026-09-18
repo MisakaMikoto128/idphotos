@@ -46,6 +46,48 @@ const int kFragMinComponentArea = 16;
 /// alpha 放回原图时的最小羽化 sigma（约 1–2px 过渡带）。
 const double kMinFeatherSigma = 0.6;
 
+/// 模型输出 alpha 在**模型尺度**上的去斑 + 平滑参数。
+///
+/// 为什么必须在 512 尺度上做、而不是放大回工作分辨率之后再做：
+/// 模型输出是一张 512 网格上的场，轮廓的过渡带只有约一个 512 像素宽。
+/// 直接面积放大到工作分辨率，只是把这个一像素宽的台阶拉成坡——台阶的
+/// **拐角仍然钉在 512 网格上**。下游 `render.dart` 会把 alpha **二值化**
+/// （`hardenAlpha` 恒返回 0/1）并按 `alphaMax ≥ 191` 强制不透明，于是
+/// 轮廓呈现为一堆轴对齐的直角缺口/凸块（实测 p_1x2「1 (2).jpg」的头顶
+/// 轮廓、p_2 的左侧发际线，3× 放大后肉眼可见）。
+///
+/// 先在 512 尺度上抹掉这个台阶，再放大，轮廓才是连续曲线。
+///
+/// - [kMatteMedianPasses] 轮 3×3 中值：吃掉孤立的高 alpha 噪点。这些噪点
+///   正是下游 `alphaMax ≥ 191` 强制不透明的触发源——一个 512 像素上的
+///   孤立亮点会被放大成 2×2 输出像素的方块凸起。
+/// - [kMatteSmoothSigma] 高斯 sigma（512 像素为单位）：把一像素宽的台阶
+///   展宽成几像素的坡，使 0.5 阈值穿越点连续变化。
+///
+/// **sigma 的取值是被 2A.5 卡死的，不是拍脑袋**。参考 alpha 是
+/// `cv2.INTER_AREA` 直接放大出来的、**没有**任何清理，所以本步做得越重，
+/// 与参考的边缘带 MAE 越高。实测（native/bench/matting_bench_test.dart，
+/// 8 张黄金集，阈值「每张 ≤ 0.12」，卡死在最碎的 g08）：
+///
+/// | 中值 | sigma | g08 edgeMAE |
+/// |---|---|---|
+/// | 0 | 0（= 改前基线） | 0.1085 |
+/// | 1 | 0.3 | 0.1109 |
+/// | 1 | **0.4** | **0.1131** |
+/// | 1 | 0.6 | 0.1228 ← 超线，FAIL |
+///
+/// 取 0.4：视觉上轮廓台阶已经消掉（native/bench/out/up_p_2.png 的对比），
+/// 而 g08 仍留 0.007 余量。**再往上就过不了 2A.5**——想继续加强必须由
+/// 主会话先决定「要不要动 2A.5 的口径」，不要在这里偷偷加码。
+///
+/// 另一条试过并被否决的路：把上采样从 INTER_AREA 换成双线性/双三次。
+/// 台阶确实少了一半，但 512 网格上那条一像素宽的坡线性插值后仍是折线
+/// （native/bench/out/up_p_2.png 中间那张），消不干净；而 guided filter
+/// 反而更差——它会把轮廓吸到头发内部的强纹理上，重新长出直角
+/// （native/bench/out/zg_p_2.png）。两者都没采纳。
+const int kMatteMedianPasses = 1;
+const double kMatteSmoothSigma = 0.4;
+
 /// 放大倍率低于这个值就认为"没有阶梯、但边缘偏硬"，固定补一次最小羽化。
 const double kHardEdgeUpscale = 1.5;
 
@@ -192,6 +234,21 @@ _MattingCore _mattingCore(DecodedImage image, int sessionAddress,
   return _MattingCore(alpha, subjectFace);
 }
 
+/// 模型输出的 512 尺度 alpha → 交给下游的 alpha：去斑 + 平滑。
+///
+/// 参数依据见 [kMatteSmoothSigma]。两步都作用在模型尺度（512）上，
+/// 必须在放大回工作分辨率**之前**做，否则网格台阶已经烙进数据里了。
+Uint8List cleanMatte(Uint8List alpha, int size) {
+  var out = alpha;
+  for (var i = 0; i < kMatteMedianPasses; i++) {
+    out = medianGray3(out, size, size);
+  }
+  if (kMatteSmoothSigma > 0) {
+    out = featherGray(out, size, size, kMatteSmoothSigma);
+  }
+  return out;
+}
+
 /// MODNet 推理 + alpha 后处理（前景占比/碎片门槛、放大回工作分辨率、羽化）。
 ///
 /// 输入是已按 [modnetInput]/[modnetInputFromRgba] 备好的 512×512 NCHW——
@@ -213,6 +270,9 @@ Uint8List _matteFromModnetInput(
       o?.release();
     }
   }
+  // 在模型尺度上去斑 + 平滑（理由见 kMatteSmoothSigma 的注释）。放在两个
+  // 门槛之前：门槛应当判"实际会交给下游的那张 alpha"，而不是清理前的中间态。
+  small = cleanMatte(small, kMattingInputSize);
 
   var foreground = 0;
   for (var i = 0; i < small.length; i++) {

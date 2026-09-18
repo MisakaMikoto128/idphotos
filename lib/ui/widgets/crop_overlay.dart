@@ -47,6 +47,11 @@ class CropOverlay extends ConsumerStatefulWidget {
   /// 到达时反而被静默覆盖，引擎的自动取景就永远不出现了。
   final bool interactive;
 
+  /// 裁剪框层的旋转角（弧度，Flutter 口径：正 = 顺时针）。**只转框，
+  /// 不转照片** —— 引擎取的是与照片呈此相对角的区域再转正，预览与成片
+  /// 的相对几何完全一致；0 = 不转（widget 树与旧版逐节点一致）。
+  final double frameRotationRad;
+
   final ValueChanged<Rect> onChanged;
   final ValueChanged<String> onDragStart;
   final VoidCallback onDragEnd;
@@ -59,6 +64,7 @@ class CropOverlay extends ConsumerStatefulWidget {
     required this.imageBytes,
     required this.activeHandle,
     this.interactive = true,
+    this.frameRotationRad = 0.0,
     required this.onChanged,
     required this.onDragStart,
     required this.onDragEnd,
@@ -76,7 +82,19 @@ class _CropOverlayState extends ConsumerState<CropOverlay> {
 
   Offset _toLocal(Offset global) {
     final RenderObject? ro = _stackKey.currentContext?.findRenderObject();
-    if (ro is RenderBox && ro.hasSize) return ro.globalToLocal(global);
+    if (ro is RenderBox && ro.hasSize) {
+      Offset p = ro.globalToLocal(global);
+      if (widget.frameRotationRad != 0) {
+        // 框层在旋转的 Transform 里，手势收到的是屏幕坐标；先落到
+        // 外层 Stack 坐标，再反旋回框层坐标（Transform 的逆变换）。
+        final Offset c = Offset(ro.size.width / 2, ro.size.height / 2);
+        final double a = -widget.frameRotationRad;
+        final double cosA = math.cos(a), sinA = math.sin(a);
+        final Offset d = p - c;
+        p = c + Offset(cosA * d.dx - sinA * d.dy, sinA * d.dx + cosA * d.dy);
+      }
+      return p;
+    }
     return global;
   }
 
@@ -117,6 +135,69 @@ class _CropOverlayState extends ConsumerState<CropOverlay> {
           ));
         }
 
+        // 框层：框线 + 三分线 + 角标 + 把手 + 拖拽热区。旋转时整体转、
+        // 照片层不动 —— 与引擎"取相对角区域再转正"的几何一致。
+        final List<Widget> frameLayers = <Widget>[
+          // 压暗 + 框线 + 三分线 + 角标
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: _CropChromePainter(
+                  display: display,
+                  crop: cropView,
+                  active: widget.activeHandle != null,
+                  dimmed: !interactive,
+                ),
+              ),
+            ),
+          ),
+          // 框内整体拖动
+          Positioned.fromRect(
+            rect: cropView,
+            child: IgnorePointer(
+              // 冲洗中禁拖（审查 X6）：这时拖出的框会把 suggestedCrop
+              // 顶掉，引擎的自动取景永远不出现。
+              ignoring: !interactive,
+              child: GestureDetector(
+                key: const Key('crop_box'),
+                behavior: HitTestBehavior.opaque,
+                onPanStart: (DragStartDetails d) {
+                  _startCrop = widget.crop;
+                  _startLocal = _toLocal(d.globalPosition);
+                  widget.onDragStart(CropHandle.move.keySuffix);
+                },
+                onPanUpdate: (DragUpdateDetails d) {
+                  final Offset local = _toLocal(d.globalPosition);
+                  final Offset deltaSrc =
+                      (local - _startLocal) / (scale <= 0 ? 1 : scale);
+                  widget.onChanged(
+                      CropMath.move(_startCrop, deltaSrc, bounds));
+                },
+                onPanEnd: (_) => widget.onDragEnd(),
+                onPanCancel: widget.onDragEnd,
+                child: const SizedBox.expand(),
+              ),
+            ),
+          ),
+          // 8 个控制点
+          for (final CropHandle h in kResizeHandles)
+            _handlePositioned(
+              handle: h,
+              cropView: cropView,
+              viewport: viewport,
+              interactive: interactive,
+              onStart: (DragStartDetails d) {
+                _startCrop = widget.crop;
+                _startLocal = _toLocal(d.globalPosition);
+                widget.onDragStart(h.keySuffix);
+              },
+              onUpdate: (DragUpdateDetails d) =>
+                  applyResize(h, d.globalPosition),
+              onEnd: widget.onDragEnd,
+              active: widget.activeHandle == h.keySuffix,
+            ),
+        ];
+
         return Stack(
           key: _stackKey,
           fit: StackFit.expand,
@@ -127,6 +208,7 @@ class _CropOverlayState extends ConsumerState<CropOverlay> {
             // 像素从色卡比对里剔除，G2C.7 靠它判裁剪框有没有跑到照片外面。
             // 即使 imageBytes 为 null（widget test 不解码像素）也保留这个
             // Positioned，否则 Key 时有时无，测试会静默跳过而不是报错。
+            // **照片层永不旋转**（用户 2026-09-17：角度微调时照片不动）。
             Positioned.fromRect(
               key: const Key('photo_display'),
               rect: display,
@@ -134,63 +216,14 @@ class _CropOverlayState extends ConsumerState<CropOverlay> {
                   ? const SizedBox.expand()
                   : raster(widget.imageBytes!, BoxFit.fill),
             ),
-            // 压暗 + 框线 + 三分线 + 角标
-            Positioned.fill(
-              child: IgnorePointer(
-                child: CustomPaint(
-                  painter: _CropChromePainter(
-                    display: display,
-                    crop: cropView,
-                    active: widget.activeHandle != null,
-                    dimmed: !interactive,
-                  ),
+            if (widget.frameRotationRad == 0)
+              ...frameLayers
+            else
+              Positioned.fill(
+                child: Transform.rotate(
+                  angle: widget.frameRotationRad,
+                  child: Stack(fit: StackFit.expand, children: frameLayers),
                 ),
-              ),
-            ),
-            // 框内整体拖动
-            Positioned.fromRect(
-              rect: cropView,
-              child: IgnorePointer(
-                // 冲洗中禁拖（审查 X6）：这时拖出的框会把 suggestedCrop
-                // 顶掉，引擎的自动取景永远不出现。
-                ignoring: !interactive,
-                child: GestureDetector(
-                  key: const Key('crop_box'),
-                  behavior: HitTestBehavior.opaque,
-                  onPanStart: (DragStartDetails d) {
-                    _startCrop = widget.crop;
-                    _startLocal = _toLocal(d.globalPosition);
-                    widget.onDragStart(CropHandle.move.keySuffix);
-                  },
-                  onPanUpdate: (DragUpdateDetails d) {
-                    final Offset local = _toLocal(d.globalPosition);
-                    final Offset deltaSrc =
-                        (local - _startLocal) / (scale <= 0 ? 1 : scale);
-                    widget.onChanged(
-                        CropMath.move(_startCrop, deltaSrc, bounds));
-                  },
-                  onPanEnd: (_) => widget.onDragEnd(),
-                  onPanCancel: widget.onDragEnd,
-                  child: const SizedBox.expand(),
-                ),
-              ),
-            ),
-            // 8 个控制点
-            for (final CropHandle h in kResizeHandles)
-              _handlePositioned(
-                handle: h,
-                cropView: cropView,
-                viewport: viewport,
-                interactive: interactive,
-                onStart: (DragStartDetails d) {
-                  _startCrop = widget.crop;
-                  _startLocal = _toLocal(d.globalPosition);
-                  widget.onDragStart(h.keySuffix);
-                },
-                onUpdate: (DragUpdateDetails d) =>
-                    applyResize(h, d.globalPosition),
-                onEnd: widget.onDragEnd,
-                active: widget.activeHandle == h.keySuffix,
               ),
           ],
         );

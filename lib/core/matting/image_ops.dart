@@ -429,6 +429,45 @@ Uint8List areaResampleGray(
   return out;
 }
 
+/// 3×3 中值滤波（可分离近似：先横向 3 元素中值，再纵向 3 元素中值）。
+///
+/// 用于抠图 alpha 的**去斑**：512 尺度上孤立的高 alpha 噪点会被下游
+/// （`render.dart` 的 `alphaMax ≥ 191 强制不透明`）放大成一块方形的
+/// "凸块/缺角"，在成片轮廓上表现为锯齿。中值能吃掉这类孤立噪点而不
+/// 移动轮廓本身的位置（均值滤波会把轮廓整体拖软）。
+///
+/// 边界按夹取处理（等价于复制边缘像素）。
+Uint8List medianGray3(Uint8List src, int w, int h) {
+  final tmp = Uint8List(w * h);
+  for (var y = 0; y < h; y++) {
+    final row = y * w;
+    for (var x = 0; x < w; x++) {
+      final a = src[row + (x > 0 ? x - 1 : 0)];
+      final b = src[row + x];
+      final c = src[row + (x < w - 1 ? x + 1 : w - 1)];
+      // 三元素中值：a,b,c 的中位数
+      tmp[row + x] = a < b
+          ? (b < c ? b : (a < c ? c : a))
+          : (a < c ? a : (b < c ? c : b));
+    }
+  }
+  final out = Uint8List(w * h);
+  for (var y = 0; y < h; y++) {
+    final row = y * w;
+    final up = (y > 0 ? y - 1 : 0) * w;
+    final dn = (y < h - 1 ? y + 1 : h - 1) * w;
+    for (var x = 0; x < w; x++) {
+      final a = tmp[up + x];
+      final b = tmp[row + x];
+      final c = tmp[dn + x];
+      out[row + x] = a < b
+          ? (b < c ? b : (a < c ? c : a))
+          : (a < c ? a : (b < c ? c : b));
+    }
+  }
+  return out;
+}
+
 /// 就地高斯羽化（可分离核）。仅在放大倍率很小、边缘还偏硬时才调用。
 ///
 /// 内存口径（G4.7）：横向滤波结果按滑动窗口缓存（`2r+1` 行），不再落地
