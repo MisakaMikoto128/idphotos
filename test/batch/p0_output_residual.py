@@ -36,6 +36,19 @@ REPO = L.REPO
 OUT = REPO + r"\out"
 COMPOSED = OUT + r"\P0_anchors\composed"
 
+# 摆正死区（v2，ACCEPTANCE G2B-P0「判据适用域」）。**从生产源码读，不硬编码** ——
+# 常量曾经从 1.0 改成 10.0 而本链仍按 1.0 分档，产物照旧"读起来正常"。
+DEAD_ZONE_DEG = L.dead_zone_deg()
+# 边界带 = 死区 ±1°：ACCEPTANCE 规定带内**只报数、不判 FAIL**。
+BAND_HALF_WIDTH_DEG = 1.0
+# 残余阈值：**这个 1.5 是判据容差，不是死区**，两者含义不同不可混。
+RESIDUAL_TOL_DEG = 1.5
+# **已退役**的 v1 分界（`ACCEPTANCE.md:83` 明写它被取代）。它与 `RESIDUAL_TOL_DEG`
+# 数值巧合相同、含义完全不同：一个是"|残余| 容差"，一个是"拿 |真值| 分档的分界"。
+# 所以给它单独一个名字 —— 只用于产出名字里带 `v1_retired` 的沿革字段，
+# **不得**被任何 v2 判据引用。两个 1.5 混用时读起来毫无异常。
+V1_RETIRED_DIVIDER_DEG = 1.5
+
 
 def _compose_provenance():
     """本文件数字的**代码来源**：继承成片台的指纹，**不自己重取**。
@@ -327,6 +340,45 @@ def main():
                if os.path.basename(r["path"]).endswith("__cn_big_1inch.jpg")]
     scored = [r for r in primary if r["end_to_end_status"] in ("ok", "low_confidence")]
     vals = [abs(r["primary_tilt_deg"]) for r in scored]
+
+    # ---- v2 分档（ACCEPTANCE G2B-P0「判据适用域」，2026-09-17 用户裁定）----
+    # 死区内（真值 |tilt| ≤ DZ）：判「引擎没有动它」，成片残余应 ≈ 真值，
+    #   故量 **|残余 − 真值|**；**转正与转歪都算违规**。
+    # 死区外（|tilt| > DZ）：判「必须摆平」，量 **|残余|**。
+    # 两者**分开报数**。旧口径（全表一律 |残余| > 1.5）保留为 *_v1_retired，仅作沿革。
+    def _abs_truth(r):
+        t = r.get("truthTiltDeg")
+        return None if t is None else abs(t)
+
+    def _in_dead_zone(r):
+        a = _abs_truth(r)
+        return a is not None and a <= DEAD_ZONE_DEG
+
+    def _in_band(r):
+        a = _abs_truth(r)
+        return (a is not None
+                and DEAD_ZONE_DEG - BAND_HALF_WIDTH_DEG <= a
+                <= DEAD_ZONE_DEG + BAND_HALF_WIDTH_DEG)
+
+    def _row(r):
+        return {"id": r["id"], "truth": r["truthTiltDeg"],
+                "estimate": r.get("faceRollDeg"),
+                "applied": r.get("straightenDeg"),
+                "residual": r.get("primary_tilt_deg")}
+
+    dz_in = [r for r in scored if _in_dead_zone(r)]
+    dz_out = [r for r in scored if _abs_truth(r) is not None and not _in_dead_zone(r)]
+    inside_viol = sorted(
+        (_row(r) for r in dz_in
+         if abs(r["primary_tilt_deg"] - r["truthTiltDeg"]) > RESIDUAL_TOL_DEG),
+        key=lambda d: d["id"])
+    outside_viol = sorted(
+        (_row(r) for r in dz_out
+         if abs(r["primary_tilt_deg"]) > RESIDUAL_TOL_DEG),
+        key=lambda d: d["id"])
+    band_rows = sorted((_row(r) for r in primary if _in_band(r)),
+                       key=lambda d: d["id"])
+
     summary = {
         "generatedBy": "qa-batch test/batch/p0_output_residual.py",
         "note": "成片眼线残余（口径无关）：理想 0。测量只用 Python/PIL/OpenCV。",
@@ -338,8 +390,35 @@ def main():
         "primaryAbsMax": round(max(vals), 3) if vals else None,
         "primaryAbsMedian": round(float(np.median(vals)), 3) if vals else None,
         "primaryAbsMean": round(float(np.mean(vals)), 3) if vals else None,
-        "primaryOver1p5": sorted(
-            r["id"] for r in scored if abs(r["primary_tilt_deg"]) > 1.5),
+        "primaryAbsNote": "以上三件是**描述量**（全部 scored 行的 |成片倾角|），"
+                          "**不是判据**：v2 下死区内样本合法地保留自身倾角，"
+                          "拿它们当越界上界会把正确行为读成缺陷。判据看 deadZone* 两栏。",
+        "deadZoneDeg": DEAD_ZONE_DEG,
+        "deadZoneSource": "lib/core/imaging/crop_geometry.dart 的 kRollDeadZoneDeg"
+                          "（运行时现读，未硬编码数值、未硬编码行号）",
+        "residualTolDeg": RESIDUAL_TOL_DEG,
+        "deadZoneInsideCount": len(dz_in),
+        "deadZoneOutsideCount": len(dz_out),
+        "deadZoneInsideViolations": inside_viol,
+        "deadZoneInsideRule": "真值 |tilt| ≤ deadZoneDeg：量 |残余 − 真值| > 容差"
+                              "（引擎不该动它；**转了也违规、转错更违规**）",
+        "deadZoneOutsideViolations": outside_viol,
+        "deadZoneOutsideRule": "真值 |tilt| > deadZoneDeg：量 |残余| > 容差（必须摆平）",
+        "deadZoneBoundaryBand": {
+            "what": "真值落在 deadZoneDeg ± 1° 带内：按 ACCEPTANCE **只报数、不判 FAIL**",
+            "lo": DEAD_ZONE_DEG - BAND_HALF_WIDTH_DEG,
+            "hi": DEAD_ZONE_DEG + BAND_HALF_WIDTH_DEG,
+            "n": len(band_rows),
+            "rows": band_rows,
+        },
+        "primaryOver1p5_v1_retired": sorted(
+            r["id"] for r in scored
+            if abs(r["primary_tilt_deg"]) > V1_RETIRED_DIVIDER_DEG),
+        "primaryOver1p5_v1_retired_note":
+            "**v1 口径，已作废，不得被任何判据引用。** `docs/ACCEPTANCE.md:83`："
+            "「原来的分界（|真值| > 1.5°）是旧产品行为的产物…已被本次裁定取代」。"
+            "保留仅供与 r1–r3 沿革比对；v2 请读 deadZoneInsideViolations / "
+            "deadZoneOutsideViolations。**名字里的 1p5 是它的真实口径，不是笔误。**",
         "unreliableMeasurement": sorted(
             r["id"] for r in primary
             if r["end_to_end_status"] == "reliability_mismatch"),
@@ -355,7 +434,9 @@ def main():
     for r in primary:
         c = r.get("corpus") or "?"
         d = bycorpus.setdefault(c, {"n": 0, "scored": 0, "absMax": None,
-                                    "ids": [], "over1p5": [],
+                                    "ids": [], "insideViolations": [],
+                                    "outsideViolations": [],
+                                    "over1p5_v1_retired": [],
                                     "unreliable": [], "unmeasured": []})
         d["n"] += 1
         if r["end_to_end_status"] in ("ok", "low_confidence"):
@@ -363,8 +444,13 @@ def main():
             v = abs(r["primary_tilt_deg"])
             d["absMax"] = max(d["absMax"] or 0.0, v)
             d["ids"].append(r["id"])
-            if v > 1.5:
-                d["over1p5"].append(r["id"])
+            if _in_dead_zone(r):
+                if abs(r["primary_tilt_deg"] - r["truthTiltDeg"]) > RESIDUAL_TOL_DEG:
+                    d["insideViolations"].append(r["id"])
+            elif _abs_truth(r) is not None and v > RESIDUAL_TOL_DEG:
+                d["outsideViolations"].append(r["id"])
+            if v > V1_RETIRED_DIVIDER_DEG:
+                d["over1p5_v1_retired"].append(r["id"])
         elif r["end_to_end_status"] == "reliability_mismatch":
             d["unreliable"].append(r["id"])
         else:

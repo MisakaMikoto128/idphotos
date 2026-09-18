@@ -25,10 +25,18 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import code_fingerprint as CF  # noqa: E402  （指纹实现，与 code_fingerprint.dart 同口径）
+import p0_lib as L  # noqa: E402  （只为 dead_zone_deg：死区只有一个来源，不许硬编码）
 
 REPO = r"C:\Users\liuyu\Desktop\WorkPlace\idPhotos"
 TRUTH = os.path.join(REPO, "out", "P0_truth.json")
 RESID = os.path.join(REPO, "out", "P0_output_residual.json")
+
+# 摆正死区（v2）。**运行时从生产源码读**，不接受硬编码数值或行号 ——
+# 本文件原先把 `kRollDeadZoneDeg = 1.0（…:125）` 写进产物，常量改成 10.0 之后
+# 那句仍然"读起来完全正常"，是"声称的口径宽于实际"的典型。
+DEAD_ZONE_DEG = L.dead_zone_deg()
+# 残余判据容差。**与死区是两个量，不可互相替代**（死区管"该不该转"，容差管"转得准不准"）。
+RESIDUAL_TOL_DEG = 1.5
 
 CONVENTION = (
     "角度一律用 tilt 表述，不要用'顺/逆时针'口头描述。"
@@ -248,35 +256,64 @@ def gate_inputs(truth, resid):
         comp[r["id"]] = r
 
     def coverage(corpus):
+        # v2：P0.1b / P0.3b 的适用域是**死区外**（真值 |tilt| > kRollDeadZoneDeg）。
+        # 原用 1.5 是 v1 的分界，已被 ACCEPTANCE:83 取代 —— 用 1.5 会把分母撑大
+        # 到 65 条，混进大量"本来就不该转"的样本。
         sel = [r for r in comp.values()
                if r.get("corpus") == corpus
                and r.get("truthTiltDeg") is not None
-               and abs(r["truthTiltDeg"]) > 1.5]
+               and abs(r["truthTiltDeg"]) > DEAD_ZONE_DEG]
         un = sorted(r["id"] for r in sel if r.get("rollSource") != "pupil")
         return {"n": len(sel), "unavailable": len(un), "culprits": un,
-                "nearZeroExempt": sorted(
+                "deadZoneDeg": DEAD_ZONE_DEG,
+                "deadZoneExempt": sorted(
                     r["id"] for r in comp.values()
                     if r.get("corpus") == corpus
                     and r.get("truthTiltDeg") is not None
-                    and abs(r["truthTiltDeg"]) <= 1.5
+                    and abs(r["truthTiltDeg"]) <= DEAD_ZONE_DEG
                     and r.get("rollSource") != "pupil")}
 
     pu = [r for r in prim if r.get("corpus") == "rotated"
           and r["rollSource"] == "pupil"
           and r["end_to_end_status"] in ("ok", "low_confidence")]
-    xs = np.array([r["truthTiltDeg"] for r in pu])
-    ys = np.array([r["primary_tilt_deg"] for r in pu])
+
+    def _abs_truth(r):
+        t = r.get("truthTiltDeg")
+        return None if t is None else abs(t)
+
+    def _in_dead_zone(r):
+        a = _abs_truth(r)
+        return a is not None and a <= DEAD_ZONE_DEG
+
+    def _out_of_dead_zone(r):
+        a = _abs_truth(r)
+        return a is not None and a > DEAD_ZONE_DEG
+
+    def _gross(r):
+        """v2 越界：死区内量 |残余 − 真值|（转了就是违规），死区外量 |残余|。"""
+        if _in_dead_zone(r):
+            return abs(r["primary_tilt_deg"] - r["truthTiltDeg"]) > RESIDUAL_TOL_DEG
+        if _out_of_dead_zone(r):
+            return abs(r["primary_tilt_deg"]) > RESIDUAL_TOL_DEG
+        return False
+
+    xs_all = np.array([r["truthTiltDeg"] for r in pu])
+    # v2：P0.3a② 的回归**只在死区外**算（ACCEPTANCE:129「只在死区外（|真值| > 10°）的
+    # 夹具上算，死区内归 P0.6」）。用全部 pu 会把几十条"合法保留自身倾角"的样本
+    # 拉进斜率，斜率天然趋近 1 —— 那不是回归，那是死区本身。
+    pu_out = [r for r in pu if _out_of_dead_zone(r)]
+    xs = np.array([r["truthTiltDeg"] for r in pu_out])
+    ys = np.array([r["primary_tilt_deg"] for r in pu_out])
     slope = intercept = None
     if len(xs) >= 3:
         slope, intercept = (float(v) for v in np.linalg.lstsq(
             np.vstack([xs, np.ones_like(xs)]).T, ys, rcond=None)[0])
-    # 诊断口径 ①：引擎施加角 vs 真值
+    # 诊断口径 ①：引擎施加角 vs 真值 —— **量程不受死区限制**，仍用全部 pu。
     xa = np.array([r["straightenDeg"] for r in pu])
     slope_est = int_est = None
     if len(xa) >= 3:
         slope_est, int_est = (float(v) for v in np.linalg.lstsq(
-            np.vstack([xs, np.ones_like(xs)]).T, xa, rcond=None)[0])
-    worst = sorted(pu, key=lambda r: -abs(r["primary_tilt_deg"]))[:5]
+            np.vstack([xs_all, np.ones_like(xs_all)]).T, xa, rcond=None)[0])
 
     cov = _load_jsonl(os.path.join(REPO, "out", "P0_coverage_items.jsonl"))
     un_all = [r for r in cov if r.get("rollSource") == "unavailable"]
@@ -289,8 +326,19 @@ def gate_inputs(truth, resid):
     ns_upr = stats("uprightSynthetic")["notScorable"]
     ns_items = _classify_not_scorable(ns_rot + ns_upr, frac)
     n_ns_unreliable = sum(1 for it in ns_items if it["class"] == "量测失效")
-    gross_ids = sorted(r["id"] for r in pu
-                       if abs(r["primary_tilt_deg"]) > 1.5)
+    gross_ids = sorted(r["id"] for r in pu if _gross(r))
+    # 反向检查的名单先算出来，叙述按它写 —— 见 reverseCheck 的"结论现算"说明。
+    rc_out_not_applied = sorted(
+        r["id"] for r in prim
+        if r.get("truthTiltDeg") is not None
+        and abs(r["truthTiltDeg"]) > DEAD_ZONE_DEG
+        and r.get("straightenDeg") in (0.0, 0, None))
+    rc_pupil_clamped = sorted(
+        r["id"] for r in prim
+        if r.get("truthTiltDeg") is not None
+        and abs(r["truthTiltDeg"]) > DEAD_ZONE_DEG
+        and r.get("straightenDeg") in (0.0, 0, None)
+        and r.get("rollSource") == "pupil")
     n_cov_culprits = len(coverage("rotated")["culprits"])
     src_sha = {p: _sha256_file(os.path.join(REPO, *p.split("/")))
                for p in ("out/P0_output_residual.json",
@@ -311,85 +359,94 @@ def gate_inputs(truth, resid):
         },
         "c05SlopeRecheck": _c05_slope_recheck(prim, in_hashes, in_hash_src),
         "deadZone": {
-            "const": "kRollDeadZoneDeg = 1.0（lib/core/imaging/crop_geometry.dart:125）",
+            "const": f"kRollDeadZoneDeg = {DEAD_ZONE_DEG}",
+            "constSource": "lib/core/imaging/crop_geometry.dart 的 kRollDeadZoneDeg，"
+                           "**运行时现读**（`p0_lib.dead_zone_deg()`）；不写数值、"
+                           "不写行号 —— 常量一改，这里跟着改，不会留下一个"
+                           "读起来正常但口径是旧的字符串。",
             "note": "**`rollSource == 'pupil'` 不蕴含「施加角非零」。** "
-                    "`|rollDeg| ≤ 1.0` 时 compose 把角钳到 0、不旋转；"
+                    f"`|rollDeg| ≤ {DEAD_ZONE_DEG}` 时 compose 把角钳到 0、不旋转；"
                     "`pupil` 只说明估计成功，不说明转了多少。判据里不得写 "
                     "「pupil ⟹ applied ≠ 0」——那是错的。",
-            "samplesWithAbsTruthAtMost1Deg": sorted(
+            "samplesWithAbsTruthWithinDeadZone": sorted(
                 r["id"] for r in prim
                 if r.get("truthTiltDeg") is not None
-                and abs(r["truthTiltDeg"]) <= 1.0),
+                and abs(r["truthTiltDeg"]) <= DEAD_ZONE_DEG),
             "forwardCheck": {
-                "what": "|truth| ≤ 1.0 的样本：全部 `straightenDeg == 0.0`，"
-                        "但其 `rollSource` 并不都是 `unavailable`。",
+                "what": f"|truth| ≤ {DEAD_ZONE_DEG} 的样本里，有多少条 `straightenDeg != 0`。",
                 "caveat": "**这是本轮的观察，不是死区的推论。** 死区判的是**估计值**，"
-                          "所以「真值小 ⇒ 施加角 0」并不成立——真值 0.9° 而估角器给 5° 的样本"
-                          "会被**真的旋转 5°**。本轮恰好全部为 0，是因为这些样本的估计也小。"
-                          "读这个分布时不要把「真值小」当成「估计小」的代理。",
+                          "所以「真值在死区内 ⇒ 施加角 0」并不成立——真值 5° 而估角器给 15° 的样本"
+                          "会被**真的旋转 15°**。不要把「真值小」当成「估计小」的代理。",
                 "n": sum(1 for r in prim
                          if r.get("truthTiltDeg") is not None
-                         and abs(r["truthTiltDeg"]) <= 1.0),
+                         and abs(r["truthTiltDeg"]) <= DEAD_ZONE_DEG),
                 "byRollSource": dict(_tally(
                     r.get("rollSource") or "?" for r in prim
                     if r.get("truthTiltDeg") is not None
-                    and abs(r["truthTiltDeg"]) <= 1.0)),
+                    and abs(r["truthTiltDeg"]) <= DEAD_ZONE_DEG)),
                 "clampedButNotUnavailable": sorted(
                     r["id"] for r in prim
                     if r.get("truthTiltDeg") is not None
-                    and abs(r["truthTiltDeg"]) <= 1.0
+                    and abs(r["truthTiltDeg"]) <= DEAD_ZONE_DEG
                     and r.get("rollSource") == "pupil"),
+                # 上面 `what` 里的断言**现算**，不写死在字符串里：v1 口径下这个桶只有
+                # 几条、断言碰巧为真；换到 10° 死区桶变大，写死的"全部为 0"会静默变假。
+                "appliedNotZero": sorted(
+                    r["id"] for r in prim
+                    if r.get("truthTiltDeg") is not None
+                    and abs(r["truthTiltDeg"]) <= DEAD_ZONE_DEG
+                    and r.get("straightenDeg") not in (0.0, 0, None)),
+                "appliedNotZeroNote": "空表 = `what` 那句在本轮成立；非空则 `what` 为假，"
+                                      "**以本表为准**（真值在死区内但估计不在，引擎照转）。",
                 "whyItMatters": "「pupil 不蕴含施加角非零」**不是边角情形**："
-                                "它在 100 条里覆盖 18 条（18%）。这条若被写反，"
-                                "受影响的样本量是两位数。",
+                                f"它在 {len(prim)} 条里覆盖 "
+                                f"{sum(1 for r in prim if r.get('truthTiltDeg') is not None and abs(r['truthTiltDeg']) <= DEAD_ZONE_DEG)} 条"
+                                "（死区内，占比现算）。这条若被写反，受影响的样本量是两位数。",
             },
             "reverseCheck": {
-                "what": "反向：|truth| > 1.0 却 `straightenDeg == 0.0` 的样本，"
+                "what": f"反向：|truth| > {DEAD_ZONE_DEG} 却 `straightenDeg == 0.0` 的样本，"
                         "其 `rollSource` 是什么？",
-                "n": sum(1 for r in prim
-                         if r.get("truthTiltDeg") is not None
-                         and abs(r["truthTiltDeg"]) > 1.0
-                         and r.get("straightenDeg") in (0.0, 0, None)),
+                "n": len(rc_out_not_applied),
                 "byRollSource": dict(_tally(
                     r.get("rollSource") or "?" for r in prim
                     if r.get("truthTiltDeg") is not None
-                    and abs(r["truthTiltDeg"]) > 1.0
+                    and abs(r["truthTiltDeg"]) > DEAD_ZONE_DEG
                     and r.get("straightenDeg") in (0.0, 0, None))),
-                "ids": sorted(
-                    r["id"] for r in prim
-                    if r.get("truthTiltDeg") is not None
-                    and abs(r["truthTiltDeg"]) > 1.0
-                    and r.get("straightenDeg") in (0.0, 0, None)),
-                "pupilClampedOutsideDeadZone": sorted(
-                    r["id"] for r in prim
-                    if r.get("truthTiltDeg") is not None
-                    and abs(r["truthTiltDeg"]) > 1.0
-                    and r.get("straightenDeg") in (0.0, 0, None)
-                    and r.get("rollSource") == "pupil"),
-                "conclusion": "**空集**：100 条里没有一条 `pupil` 在 |truth| > 1.0 时"
-                              "`straightenDeg == 0.0`（该集合 10 条**全部是 `unavailable`**）。"
-                              "**订正措辞（2026-09-17）**：原文写成「在死区之外被静默钳零」，"
-                              "把真值当成了估计值的代理——死区判的是**估计值**。"
-                              "严格的含义是：对 `pupil` 样本，`applied == 0` ⟺ "
-                              "`|估计| ≤ 1.0`，所以本集合为空 ⟺ **本轮不存在"
-                              "「真值大、而估计小」的样本**。这正是本次事故的形态"
-                              "（真值 −4.4° 被读成 +0.84°），它在本轮缺席——"
-                              "**这是关于估角器的经验结论，不是关于死区安全的结论**。",
+                "ids": rc_out_not_applied,
+                "pupilClampedOutsideDeadZone": rc_pupil_clamped,
+                "conclusion": (
+                    "**空集**：全库没有一条 `pupil` 在 |truth| 超出死区时"
+                    "`straightenDeg == 0.0`。"
+                    if not rc_pupil_clamped else
+                    f"**非空（{len(rc_pupil_clamped)} 条）**：这些样本真值在死区外、"
+                    "引擎返回 `pupil` 却没施加摆正。"
+                    "严格的含义是：对 `pupil` 样本，`applied == 0` ⟺ "
+                    f"`|估计| ≤ {DEAD_ZONE_DEG}`，所以本集合非空 ⟺ **存在"
+                    "「真值大、而估计小」的样本**。这正是本次事故的形态"
+                    "（真值 −4.4° 被读成 +0.84°）。逐条见本表。"
+                    "**注意：本检查按真值分档，而死区判的是估计值** —— "
+                    "真值出界而估计在界内时，硬转反而是错的；"
+                    "此处只报数，是否算违规由 P0.1a 的成片残余定。"),
+                "conclusionNote": "结论按上面的名单**现算**（v1 时该句是写死的字面量，"
+                                  "换到 10° 死区后桶变大，写死的「空集」会静默变假）。",
             },
-            "whyHarmless": "**本条订正（2026-09-17）。原文写「死区 1.0 ≤ P0.1a 容差 1.5，"
+            "whyHarmless": f"**本条订正（2026-09-17）。原文写「死区 1.0 ≤ P0.1a 容差 1.5，"
                            "被钳到 0 的样本其残余天然过线，因此死区本身不制造 P0.1a 违规」"
-                           "——该推导**不成立**。死区判的是**估计值**（`crop_geometry.dart:143` "
-                           "`roll.abs() <= deadZoneDeg`，入参来自 `compose_engine.dart:235` 的 "
+                           "——该推导**不成立**。死区判的是**估计值**（`crop_geometry.dart` "
+                           "`roll.abs() <= deadZoneDeg`，入参来自 `compose_engine.dart` 的 "
                            "`face?.rollDeg`），**不是真值**。被钳到 0 的样本其残余 = **它自己的真值**，"
                            "≤1.5° 当且仅当真值本来就小，「被钳下」不保证这一点。"
-                           "反例：真值 3.0°、估角器错给 0.5° → 钳零 → 残余 3.0° → P0.1a 违规，"
-                           "且它返回 `pupil` 而非 `unavailable`，**P0.1b 不拦**。"
-                           "**死区不衰减误差，它把小的估计误差透传成满量级残余。**",
+                           f"反例：真值 3.0°、估角器错给 {DEAD_ZONE_DEG - 5.0}° → 钳零 → "
+                           "残余 3.0° → P0.1a 违规，且它返回 `pupil` 而非 `unavailable`，"
+                           "**P0.1b 不拦**。"
+                           "**死区不衰减误差，它把小的估计误差透传成满量级残余。** "
+                           "死区从 1.0 放大到 10.0 之后，这个透传面**随死区同比放大**。",
             "whyThisRunIsStillClean": "本轮不出违规，靠的是**数据事实**而非死区性质："
-                                      "`reverseCheck` 实测，100 条里凡 |truth| > 1.0 且 "
+                                      f"`reverseCheck` 实测，凡 |truth| > {DEAD_ZONE_DEG} 且 "
                                       "`straightenDeg == 0.0` 的样本，其 `rollSource` "
-                                      "**全部是 `unavailable`**（10/10），没有一条 `pupil` 出现"
-                                      "「真值大而估计小」。**这是本轮的经验观察，不是不变量**——"
+                                      f"与上述名单一致（pupil 钳零 {len(rc_pupil_clamped)} 条，"
+                                      f"总 {len(rc_out_not_applied)} 条）。"
+                                      "**这是本轮的经验观察，不是不变量**——"
                                       "换个数据集或估角器失准，死区照样能制造 P0.1a 违规。",
             "example": "c05_d+3：truth = -0.91，实际 applied = 0.0，"
                        "成片残余 -0.938 —— 行为正确。",
@@ -462,33 +519,47 @@ def gate_inputs(truth, resid):
         },
         "P0.3a_pupilFixtureRegression": {
             "n": len(pu),
+            "nOutOfDeadZone": len(pu_out),
+            "deadZoneDeg": DEAD_ZONE_DEG,
             "criterionA_estimate_vs_truth": {
                 "note": "ACCEPTANCE P0.3a ①：估计值 rollDeg vs 真值，斜率 ∈[0.85,1.15]。"
-                        "**只作诊断**。",
+                        "**只作诊断**；**量程不受死区限制**，用全部返回 pupil 的夹具"
+                        "（死区内只是不施加，估计器照常工作）。",
+                "n": len(pu),
                 "slope": None if slope_est is None else round(slope_est, 3),
                 "intercept": None if int_est is None else round(int_est, 3),
             },
             "criterionB_outputResidual": {
                 "note": "ACCEPTANCE P0.3a ②（口径无关硬判据）：成片残余 vs 真值，"
-                        "|斜率| ≤ 0.15 且 |截距| ≤ 0.5° 且 max|残余| ≤ 1.5°。",
+                        "|斜率| ≤ 0.15 且 |截距| ≤ 0.5° 且 max|残余| ≤ 1.5°。"
+                        "**v2：只在死区外（真值 |tilt| > deadZoneDeg）的夹具上算**，"
+                        "死区内归 P0.6 —— 用全部 pupil 夹具会把几十条"
+                        "「合法保留自身倾角」的样本拉进来，斜率趋近 1 是死区的定义，不是回归。",
+                "n": len(pu_out),
                 "slope": None if slope is None else round(slope, 3),
                 "intercept": None if intercept is None else round(intercept, 3),
                 "max_abs_residual_deg": round(
-                    max(abs(r["primary_tilt_deg"]) for r in pu), 3) if pu else None,
+                    max(abs(r["primary_tilt_deg"]) for r in pu_out), 3) if pu_out else None,
                 "absMaxExcludingGrossOutlier": round(
-                    max([abs(r["primary_tilt_deg"]) for r in pu
-                         if abs(r["primary_tilt_deg"]) <= 1.5] or [0.0]), 3)
-                    if len(pu) > 1 else None,
+                    max([abs(r["primary_tilt_deg"]) for r in pu_out
+                         if not _gross(r)] or [0.0]), 3)
+                    if len(pu_out) > 1 else None,
                 "absMaxExcludingGrossOutlierNote":
-                    "剔除的是**全部** |残余| > 1.5° 的样本（见 grossOutliers），"
-                    "不是写死某个 id —— 写死 id 会在该样本不再是离群点时静默剔除错行。",
+                    "剔除的是**全部**按 v2 判越界的样本（见 grossOutliers），"
+                    "不是写死某个 id —— 写死 id 会在该样本不再是离群点时静默剔除错行。"
+                    "**v2 的越界量按分档取**：死区内 |残余 − 真值|、死区外 |残余|。",
             },
             "grossOutliers": [
                 {"id": r["id"], "truth": r["truthTiltDeg"],
+                 "inDeadZone": _in_dead_zone(r),
+                 "quantity": "|residual - truth|" if _in_dead_zone(r) else "|residual|",
+                 "value": round(
+                     abs(r["primary_tilt_deg"] - r["truthTiltDeg"])
+                     if _in_dead_zone(r) else abs(r["primary_tilt_deg"]), 3),
                  "applied": round(r["straightenDeg"], 3),
                  "output_tilt": round(r["primary_tilt_deg"], 3),
                  "evidence": r["path"]}
-                for r in worst if abs(r["primary_tilt_deg"]) > 1.5],
+                for r in pu if _gross(r)],
         },
         "P0.3b_fixtureConditionalCoverage": coverage("rotated"),
         "P0.3b_culpritBreakdown": {
@@ -607,15 +678,39 @@ def gate_inputs(truth, resid):
             "evidenceRealTiltHandled": {
                 "note": "真实照片锚点本身带真倾角，P0.1a 全过 —— **真倾角能处理，"
                         "合成旋转才炸**。",
+                "selectorNote": "下表按 **|truth| > 1.5°** 挑「有实际倾角的真实照片」，"
+                                "这只是一个**取证据的选择器**，**不是死区分界**"
+                                f"（v2 的死区分界是 |truth| ≤ {DEAD_ZONE_DEG}°）。"
+                                "两条不要混：选择器决定表里有谁，分档决定按什么量判。",
+                "criterionNote": "这些锚点真值全部落在死区内，故 v2 下 P0.1a 判的是"
+                                 "**|残余 − 真值| ≤ 1.5°**（「引擎没有动它」），"
+                                 "**不是 |残余| ≤ 1.5°**。下表同时给这两个量，"
+                                 "判据读 outOfDeadZoneResidual，"
+                                 "absoluteResidual 仅作对照。",
                 "rows": [
                     {"id": r["id"], "truthTiltDeg": r.get("truthTiltDeg"),
                      "outputTiltDeg": (None if r.get("primary_tilt_deg") is None
                                        else round(r["primary_tilt_deg"], 3)),
+                     "outOfDeadZoneResidual": (
+                         None if r.get("primary_tilt_deg") is None
+                         else round(abs(r["primary_tilt_deg"] - r["truthTiltDeg"]), 3)),
+                     "absoluteResidual": (
+                         None if r.get("primary_tilt_deg") is None
+                         else round(abs(r["primary_tilt_deg"]), 3)),
+                     "inDeadZone": (abs(r["truthTiltDeg"]) <= DEAD_ZONE_DEG
+                                    if r.get("truthTiltDeg") is not None else None),
                      "rollSource": r.get("rollSource")}
                     for r in prim
                     if r.get("corpus") == "anchor"
                     and r.get("truthTiltDeg") is not None
                     and abs(r["truthTiltDeg"]) > 1.5],
+                "allPassUnderV2": all(
+                    abs(r["primary_tilt_deg"] - r["truthTiltDeg"]) <= RESIDUAL_TOL_DEG
+                    for r in prim
+                    if r.get("corpus") == "anchor"
+                    and r.get("truthTiltDeg") is not None
+                    and r.get("primary_tilt_deg") is not None
+                    and abs(r["truthTiltDeg"]) > 1.5),
             },
         },
     }

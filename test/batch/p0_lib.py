@@ -22,6 +22,8 @@ M1/M2 共享 YuNet 的"眼大致在哪"，但 M1 依赖单眼 blob 定位、M2 �
 M3/M4 完全不碰 YuNet。方法间一致性由调用方判定。
 """
 import math
+import os
+import re
 
 import cv2
 import numpy as np
@@ -33,6 +35,29 @@ YUNET = REPO + r"\assets\models\face_yunet_2023mar.onnx"
 
 # 工作分辨率：长边缩到 1536（与主会话 step12/step15 同口径）
 WORK_LONG = 1536
+
+# 摆正死区（v2，2026-09-17 起为 10°）。**只有一个来源：生产源码。**
+# 曾经这里是写死的 `1.0`，常量改成 10 之后脚本仍按 1.0 分档 —— 那正是
+# "名字/字段声称的口径宽于实际"的形态，产物读起来完全正常却按旧口径算。
+# 故此处不设默认值：读不到就抛，不许静默退回任何一个数。
+_DEAD_ZONE_RE = re.compile(
+    r"const\s+double\s+kRollDeadZoneDeg\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*;")
+
+
+def dead_zone_deg(path=None):
+    """从 `lib/core/imaging/crop_geometry.dart` 读 `kRollDeadZoneDeg`。
+
+    不硬编码行号、不设默认值。找不到或找到多处一律抛异常 ——
+    "读不到就用一个数凑"会让下一轮又变成静默的旧口径。
+    """
+    p = path or os.path.join(REPO, "lib", "core", "imaging", "crop_geometry.dart")
+    with open(p, encoding="utf-8") as fh:
+        src = fh.read()
+    hits = _DEAD_ZONE_RE.findall(src)
+    if len(hits) != 1:
+        raise RuntimeError(
+            f"在 {p} 里找到 {len(hits)} 处 kRollDeadZoneDeg 定义，期望恰好 1 处")
+    return float(hits[0])
 
 
 # ---------------------------------------------------------------- 基础 I/O
