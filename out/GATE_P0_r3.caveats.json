@@ -163,6 +163,29 @@
       "correction": "本报告正文 :533 及其生成层写的理由是「上游 P0.3a/P0.3b 未修好时不重跑」。**在 P0.3a 被裁定为边界噪声之后，该理由已不成立，撤回。**",
       "actualReason": "lib/core/imaging/** 已解冻，imaging 正在改死区与裁剪回退（用户裁定「一律出图、缺口缩到最小」）。P0.5c 一轮约 40 分钟，现在跑完代码一变就要重跑。",
       "accountingUnchanged": "MANUAL 状态不变，**不计入通过数**。下一轮随完整 r3 一起跑，两侧 generatedAt 都打印。"
+    },
+    {
+      "id": "C13-carry-forward-to-final-round",
+      "addedAfterCommit": true,
+      "appliesTo": ["最终轮报告正文"],
+      "statement": "主会话要求下列三条必须写进**最终轮报告正文**，不得只留在别人的报告里。此处登记以防上下文丢失；最终轮报告出具后本项完成。",
+      "items": [
+        {
+          "topic": "c08_d-10 是盲区，不是 pass",
+          "text": "c08_d-10 的成片残余无法独立确认：真值自标 lowConfidence（两法互差 1.69°）> 判据 1.5°，无独立路径。本轮施加 -17.8222（pupil，不再是 unavailable）方向必然更好，但『准不准』无法确认。已由本文件 C5 覆盖。"
+        },
+        {
+          "topic": "m2_radon_yunet 的 16.0 是搜索轨值，不是读数",
+          "text": "c08_d-10 @ cn_big_1inch 报 deg=15.999999999999886、span=16.0，是搜索区间右端点（test/batch/p0_lib.py:217 `angs = np.arange(-span, span + 1e-9, step)`，span=16 < |真值 -18.01|，量程不够）。故该行 tiltAbsMaxDeg=16.0 与 methodSpreadDeg=12.665 是轨值产物，**不得读成『方法间分歧』**。",
+          "verifiedByGatekeeper": "2026-09-17 独立复核：p0_lib.py:217 逐字确认；out/P0_output_residual.json 当前值 deg=15.999999999999886 / span=16.0 / tiltAbsMaxDeg=16.0 / methodSpreadDeg=12.665 逐项复现。"
+        },
+        {
+          "topic": "alpha 洞缩小 53% 但没有消失",
+          "text": "alphaHoleHint 两个可见量都改善（largestBlobPx 66738 -> 31643，-53%；头内洋红占比 0.6037 -> 0.5349），但 alphaHole **仍为 true**。与输入侧扫描 c08_d-10 eyeBandZero 0.9677 一致：同一个未修好的缺陷，只是变小了。",
+          "verifiedByGatekeeper": "2026-09-17 独立复核当前侧：largestBlobPx=31643 / magentaInHeadFrac=0.5349 / alphaHole=true（out/P0_output_residual.json）。66738 与 0.6037 为修复前一侧，出自 qa-batch 的全字段差分（out/QA_r3.md §3.4），本门禁未独立复算那一侧。"
+        }
+      ],
+      "conclusionWording": "c06_d-3 是 r3 里唯一被真正修好的点；c08_d-10 是『动了、缺陷变小、但仍无可用读数』，属盲区，不是 pass。"
     }
   ]
 }
