@@ -1184,61 +1184,24 @@ Future<DevicePhaseResult> _runDevicePhase({
   }
   log.writeln('抽查计划: ${plan.entries.map((e) => '${e['id']}=${e['sourcePath']}').join(', ')}');
 
-  // 2. 设备（真机优先：小米 12 已接入，4.6/4.7/4.8 复测应与裁判判定源同机；
-  //    没有真机再等模拟器释放；等不到再自行启动模拟器）。
-  var deviceId = await _pickPreferredDevice();
+  // 2. 设备：**只认 emulator-*，真机一律不碰**（用户铁律）。拿不到模拟器就**抛**，
+  //    不在这里 `return DevicePhaseResult.failed(...)`：那会造出一批 `pass=false,
+  //    manual=false` 的条目，与"真的退化了"完全同形（4.1–4.4/4.6/4.8 六条）。
+  //    抛出去 ⇒ 本轮没有产物 ⇒ 上游 P0.5c 读到"本轮没跑成"而不是"退化了"。
+  //    规则的唯一实现见 gate_common.requireEmulatorDevice，此处不再复制解析。
   var launchedByGate = false;
-  if (deviceId == null) {
-    // G4 r2 安全修订：waitForAdbDeviceOnline 会返回任意 adb 设备——本轮真机
-    // 5bc6e093 在线且用户铁律"真机不要碰"，这里只等 emulator-*，非模拟器
-    // 设备（在线或稍后插上）一律无视。
-    deviceId = await _waitForEmulatorOnline(
-        timeout: Duration(seconds: deviceWaitSeconds));
-  }
-  if (deviceId == null) {
-    log.writeln('无在线模拟器，按本机安全参数启动模拟器 $kMainAvd');
-    launchedByGate = true;
-    deviceId = await _launchEmulatorAndWait(log);
-    if (deviceId == null) {
-      return DevicePhaseResult.failed(
-          '设备不可用：等了 $deviceWaitSeconds 秒没有模拟器上线，自行启动模拟器也失败');
-    }
-  }
+  final String deviceId = await requireEmulatorDevice(
+    wait: Duration(seconds: deviceWaitSeconds),
+    bootTimeout: const Duration(minutes: 5),
+    onMissing: () async {
+      log.writeln('无在线模拟器，按本机安全参数启动模拟器 $kMainAvd');
+      launchedByGate = true;
+      return _spawnEmulator(log);
+    },
+  );
   log.writeln('设备已上线: $deviceId');
 
   return _deviceWork(deviceId, plan, log, killAtEnd: launchedByGate);
-}
-
-/// 只认 emulator-* 的设备等待（真机一律无视，见 _pickPreferredDevice 注释）。
-Future<String?> _waitForEmulatorOnline({required Duration timeout}) async {
-  final deadline = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(deadline)) {
-    final id = await _pickPreferredDevice();
-    if (id != null) return id;
-    await Future<void>.delayed(const Duration(seconds: 5));
-  }
-  return null;
-}
-
-/// 快速扫一遍 adb devices：只返回 emulator-*（G4 r1 裁决：真机 1e01895d 被
-/// MIUI「USB 安装」开关阻塞，本轮绝不触碰 —— 即使真机在线也拒绝使用，
-/// 防止 `_pickPreferredDevice` 的"真机优先"逻辑把复测跑到用户设备上）。
-/// 没有模拟器返回 null（走后续等待/启动流程）。
-Future<String?> _pickPreferredDevice() async {
-  final r = await runProcess('adb', ['devices'],
-      timeout: const Duration(seconds: 15));
-  if (!r.ok) return null;
-  for (final line in r.stdout.split('\n')) {
-    final trimmed = line.trim();
-    if (trimmed.isEmpty || trimmed.startsWith('List of devices')) continue;
-    final parts = trimmed.split(RegExp(r'\s+'));
-    if (parts.length >= 2 &&
-        parts[1] == 'device' &&
-        parts[0].startsWith('emulator-')) {
-      return parts[0];
-    }
-  }
-  return null;
 }
 
 /// 对抗抽查：除随机抽 3 个外，固定追加这 5 个针对性用例（G4 r2 起）。
@@ -1603,7 +1566,9 @@ Future<Map<String, dynamic>?> _drive(
   }
 }
 
-Future<String?> _launchEmulatorAndWait(StringBuffer log) async {
+/// 拉起模拟器进程（打开控制台日志），**不等它上线** —— 等待与断言统一由
+/// `gate_common.requireEmulatorDevice` 负责，本函数只回"我发起了吗"。
+Future<bool> _spawnEmulator(StringBuffer log) async {
   // 先释放 Gradle daemon 内存（host 内存紧张曾挤崩 AVD）。
   final gradleStop = await runProcess('gradlew', ['--stop'],
       workingDirectory: 'android', timeout: const Duration(minutes: 2));
@@ -1627,20 +1592,9 @@ Future<String?> _launchEmulatorAndWait(StringBuffer log) async {
     unawaited(proc.exitCode.then((_) => consoleSink.close()));
   } catch (e) {
     log.writeln('emulator 启动失败: $e');
-    return null;
+    return false;
   }
-  // 同样只认 emulator-*：真机在线时 waitForAdbDeviceOnline 可能先返回真机。
-  final id = await _waitForEmulatorOnline(timeout: const Duration(minutes: 5));
-  if (id == null) return null;
-  final bootDeadline = DateTime.now().add(const Duration(minutes: 4));
-  while (DateTime.now().isBefore(bootDeadline)) {
-    final r = await runProcess(
-        'adb', ['-s', id, 'shell', 'getprop', 'sys.boot_completed'],
-        timeout: const Duration(seconds: 15));
-    if (r.ok && r.stdout.trim() == '1') return id;
-    await Future<void>.delayed(const Duration(seconds: 5));
-  }
-  return id;
+  return true;
 }
 
 // ---- memcheck：drive 跑 20 张 churn 的同时，host 侧并行采样 dumpsys meminfo ----

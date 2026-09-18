@@ -154,11 +154,15 @@ List<Map<String, dynamic>> _waitingItems() {
 }
 
 Future<List<Map<String, dynamic>>> _runDeviceEval() async {
-  final deviceId = await waitForAdbDeviceOnline(timeout: const Duration(seconds: 5)) ??
-      await _launchAndWait();
-  if (deviceId == null) {
-    return _deviceUnavailableItems('模拟器未能上线');
-  }
+  // 只认 emulator-*；拿不到就抛（不返回 null、不退回真机）。
+  final deviceId = await requireEmulatorDevice(
+    onMissing: () async {
+      await runProcess(
+          'flutter', ['emulators', '--launch', 'Pixel_3a_API_34_extension_level_7_x86_64'],
+          timeout: const Duration(seconds: 30));
+      return true;
+    },
+  );
 
   final prep = await prepareDeviceGateDir(deviceId, kDeviceGateDir);
   if (!prep.success) {
@@ -237,12 +241,6 @@ Future<List<Map<String, dynamic>>> _runDeviceEval() async {
 
   final data = jsonDecode(await responseFile.readAsString()) as Map<String, dynamic>;
   return _applyThresholds(data, pushFailCount: pushFailCount, rawDatasetCount: rawItems.length);
-}
-
-Future<String?> _launchAndWait() async {
-  await runProcess('flutter', ['emulators', '--launch', 'Pixel_3a_API_34_extension_level_7_x86_64'],
-      timeout: const Duration(seconds: 30));
-  return waitForAdbDeviceOnline(timeout: const Duration(minutes: 3));
 }
 
 List<Map<String, dynamic>> _deviceUnavailableItems(String reason) {

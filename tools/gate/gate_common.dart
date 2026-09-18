@@ -151,6 +151,10 @@ Future<RunResult> runProcess(
 
 /// 等待至少一台 adb 设备进入 `device`（在线可用）状态。
 /// 不负责启动模拟器，只负责轮询；启动逻辑由调用方决定（可能已经在跑，或需要 flutter emulators --launch）。
+///
+/// **警告：它会返回真机。** 只做设备编排时不要用它，用 [requireEmulatorDevice]。
+/// 现存调用点（截至 2026-09-17 未改，见 docs/PITFALLS.md「真机再次被抓进编排」）：
+/// `capture_shots.dart`、`collect_metrics.dart`。它们同样可能在真机在线时抓走用户设备。
 Future<String?> waitForAdbDeviceOnline({
   Duration timeout = const Duration(minutes: 3),
   Duration pollInterval = const Duration(seconds: 5),
@@ -171,6 +175,118 @@ Future<String?> waitForAdbDeviceOnline({
     await Future.delayed(pollInterval);
   }
   return null;
+}
+
+/// 一行 `adb devices` 输出里，若是在线的**模拟器**就返回它的 serial，否则 null。
+///
+/// **只认 `emulator-` 前缀。** 真机哪怕状态是 `device`、哪怕调试授权正常、哪怕它挂着
+/// 本项目的 app，一律返回 null。
+///
+/// 做成纯函数（不碰 adb）是刻意的：**选择逻辑正是曾经出错的那一部分**，纯函数才能把
+/// 各种 `adb devices` 输出逐条喂进 `test/gate/` 验，而不是"跑起来看着对"。
+String? emulatorSerialInLine(String line) {
+  final String trimmed = line.trim();
+  if (trimmed.isEmpty) return null;
+  if (trimmed.startsWith('List of devices')) return null;
+  final List<String> parts = trimmed.split(RegExp(r'\s+'));
+  if (parts.length < 2) return null;
+  if (parts[1] != 'device') return null;
+  if (!parts[0].startsWith('emulator-')) return null;
+  return parts[0];
+}
+
+/// 扫一遍 `adb devices`，**只认 `emulator-*`**；没有就返回 null。
+///
+/// 私有：调用方只准走 [requireEmulatorDevice]。那条路**拿不到 null、也拿不到真机** ——
+/// 这是"钉死 emulator-*"这条规则的**唯一一份实现**，不要再在别处复制这段解析。
+Future<String?> _findEmulator({
+  required Duration timeout,
+  required Duration pollInterval,
+}) async {
+  final DateTime deadline = DateTime.now().add(timeout);
+  while (true) {
+    final RunResult r =
+        await runProcess('adb', <String>['devices'], timeout: const Duration(seconds: 15));
+    if (r.ok) {
+      for (final String line in r.stdout.split('\n')) {
+        final String? id = emulatorSerialInLine(line);
+        if (id != null) return id;
+      }
+    }
+    if (!DateTime.now().isBefore(deadline)) return null;
+    await Future<void>.delayed(pollInterval);
+  }
+}
+
+/// 模拟器是否已经 boot 完成（`sys.boot_completed == 1`）。
+///
+/// 刚 launch 出来的模拟器"出现在 `adb devices` 里" ≠ "能用"。不等这一步就会在半启动的
+/// 设备上跑测试，失败信息会指向被测代码而不是设备 —— 那是最贵的一种误导。
+Future<bool> _bootCompleted(String serial) async {
+  final RunResult r = await runProcess(
+      'adb', <String>['-s', serial, 'shell', 'getprop', 'sys.boot_completed'],
+      timeout: const Duration(seconds: 15));
+  return r.ok && r.stdout.trim() == '1';
+}
+
+/// adb 当前在线的**非模拟器**设备（真机）。仅用于诊断消息，绝不用于挑选。
+Future<List<String>> _onlineNonEmulators() async {
+  final RunResult r =
+      await runProcess('adb', <String>['devices'], timeout: const Duration(seconds: 15));
+  final List<String> out = <String>[];
+  if (!r.ok) return out;
+  for (final String line in r.stdout.split('\n')) {
+    final String t = line.trim();
+    if (t.isEmpty || t.startsWith('List of devices')) continue;
+    final List<String> p = t.split(RegExp(r'\s+'));
+    if (p.length >= 2 && p[1] == 'device' && !p[0].startsWith('emulator-')) {
+      out.add(p[0]);
+    }
+  }
+  return out;
+}
+
+/// 设备编排的**唯一入口**：要一台模拟器，拿不到就**抛**。
+///
+/// **不返回 null，也不退回真机**，两者都是刻意的：
+/// - 返回 null 会给调用方留一个"顺手继续"的口子 —— 静默跳过、或退回真机；
+/// - 退回真机曾经真的发生过：2026-09-17 G2A/G2B 把用户真机 `5bc6e093`（vivo X21A）
+///   抓去装 APK，装不上，三轮各 ~191s 撞穿预算，产出 9/9 `pass=false, manual=false`
+///   —— 与"真的 9 项退化"**完全同形**。
+///
+/// 抛错不可忽略，是断言。
+///
+/// [wait]：先等这么久，看有没有现成的模拟器。
+/// [onMissing]：等不到时调用方在这里启动自己的模拟器；返回 true = 已发起，请再等一轮。
+/// [bootTimeout]：`onMissing` 之后最多再等这么久。
+///
+/// 两轮都拿不到 ⇒ 抛 [StateError]，消息里列出**当前在线却被拒绝的真机**（便于诊断，
+/// 并写明拒绝理由）。
+Future<String> requireEmulatorDevice({
+  Duration wait = const Duration(seconds: 5),
+  Duration bootTimeout = const Duration(minutes: 3),
+  Future<bool> Function()? onMissing,
+}) async {
+  const Duration kPoll = Duration(seconds: 5);
+  final String? preexisting = await _findEmulator(timeout: wait, pollInterval: kPoll);
+  if (preexisting != null) return preexisting;
+
+  if (onMissing != null && await onMissing()) {
+    final DateTime deadline = DateTime.now().add(bootTimeout);
+    while (true) {
+      final String? id = await _findEmulator(timeout: Duration.zero, pollInterval: kPoll);
+      if (id != null && await _bootCompleted(id)) return id;
+      if (!DateTime.now().isBefore(deadline)) break;
+      await Future<void>.delayed(kPoll);
+    }
+  }
+
+  final List<String> others = await _onlineNonEmulators();
+  throw StateError(
+    '拿不到模拟器：没有 emulator-* 在线（只认 emulator-*，真机一律不碰）。'
+    '${others.isEmpty ? '当前也没有其它在线设备。' : '当前在线但被拒绝使用的真机：'
+        '${others.join(', ')} —— 用户铁律「真机不要碰」，任何 gate 不得在其上安装或运行。'}',
+  );
 }
 
 /// 从 android/app/build.gradle(.kts) 里解析 applicationId，用于 adb 操作目标包。
