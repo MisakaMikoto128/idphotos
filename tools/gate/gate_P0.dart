@@ -133,6 +133,47 @@ const Map<int, List<String>> kRoundErrata = <int, List<String>>{
         '`c10`/`c11`/`c12` 是**三张不同照片**各自计数，`p2` 归 `straight` 不在锚点栏。'
         '数字未变，变的是理由与算式。',
   ],
+  4: <String>[
+    '### 判据变更声明（2026-09-17）—— 本轮与 r1–r3 **不是同一版判据**',
+    '1. **变更内容**：摆正死区定为 **10°**（`kRollDeadZoneDeg`，用户产品决定，'
+        'commit `4d276f2`）。G2B-P0 据此**分两档**：死区内（|真值| ≤ 10°）判"引擎不得转动它"'
+        '（|残余 − 真值| ≤ 1.5°，**转正与转歪都算 FAIL**）；死区外才要求 |残余| ≤ 1.5°。'
+        '**新增 P0.6「死区内不得被转动」** —— 本次事故里 `2.jpg`（真值 −0.2°、本来就竖直）'
+        '被转歪 3.7° 的那个检测面，此前整组判据没有条目去管死区。'
+        '2B.8 的夹具角由 ±10.0° 挪到 ±15.0°（原角度与门槛**恰好重合**，'
+        '转不转只取决于估角噪声落在门槛哪一侧 —— 夹具设计缺陷，不是阈值变更）。',
+    '2. **为什么这是"判据变更"而不是"阈值变更"**：变的是**判据的适用域**（哪些样本由哪条判据管、'
+        '以及"合格"的定义是 |残余| ≤ 1.5° 还是 |残余 − 真值| ≤ 1.5°），'
+        '阈值数字（1.5° / 0.15 / 0.5°）一个都没动。',
+    '3. **轮次影响**：法典「判据冻结声明」末句——判据确需修改时**改完必须作废当轮、'
+        '从第 1 轮重跑**。r3 于 14:28 收尾，判据修订落在 14:40，**在轮次之间而非轮次之内**；'
+        '但冻结点 `6f01e6e` 已被越过是事实。**轮次怎么记由主会话裁定**，'
+        '本门禁不自行重编号，只把这件事连同「判据版本声明」一起摆在页面上。',
+    '4. **口径后果（必须写进每轮报告，不得当成通过率上升来讲）**：'
+        '`out/P0_truth.json` 的 12 条锚点、1 条 `straight`、9 条 `uprightSynthetic` '
+        '**真值全部落在死区内**（最高是 `c08` 的 −8.01°），故"必须摆平"这半边在本语料上'
+        '只由**死区外的夹具**承担：全规格 19 行 → 门禁规格 `cn_big_1inch` 按 id 去重 **15 条** '
+        '→ 其中 4 条落在 9°–11° 边界带内 ⇒ 实际参与判定 **11 条**。'
+        '**报数一律报 15 / 11，不得写成 19。** 这是**产品定义变化带来的覆盖收缩**，'
+        '不是实现变好。',
+    '5. **边界带（真值 9°–11°）只报数、不判 FAIL**，且**必须逐条列出真值 / 估计 / 施加角 / 残余，'
+        '不得静默丢弃**。依据：那里"该不该转"由一个 0.4° 量级的估计误差决定'
+        '（语料实测 −0.091°…+0.477°），拿真值去罚它就是**把噪声记成实现方的错**。'
+        '两个方向都真实发生过：`c11_d+10`（真值 9.89°、估计 10.283°、**转了**）、'
+        '`c11_d-10`（真值 −10.11°、估计 −9.633°、**没转**）。',
+    '6. **分档一律按真值（外部锚点），不得按引擎自报的角。** 按自报角分档会让'
+        '**样本集本身变成测量的函数** —— 引擎的估计值决定哪些样本进判据，'
+        '而它天然会把"真值刚出死区、估计刚进死区"的样本移出。'
+        '**唯一例外是 P0.6 的主判据**：它问的是"引擎有没有照自己报的角行事"，'
+        '属**符合性**检查，按自报角判才是该问题的正确口径；但它是自洽性检查，'
+        '**不构成正确性证据**，故**不得单独出现**，必须与成片端到端残余的次判据同报。',
+    '7. **作废的旧豁免**：`tools/gate/gate_P0.dart` 的贴线规则里原有'
+        '「**本规则不适用于 P0.3a**：它超阈值 7 倍以上且两支量具独立复现，是确定性违规」。'
+        '那句话描述的是**第 1 轮的状态**（最差超线 11.368°），到 r3 时最差只超 1.17 倍、'
+        '单支量具超线，**两条理由都已不成立而豁免文字还在** —— 照字面读会把噪声记成违规。'
+        '本轮已作废该豁免：P0.3a 与其余条目同等适用贴线规则，'
+        '原本要豁免掉的边界带噪声改由**样本集定义**在更上游处理。',
+  ],
 };
 /// **条款 1 从 `7773df4` 起才真正执行。** 这句话每轮都印。
 ///
@@ -176,8 +217,44 @@ const double kSlopeHi = 1.15;
 /// P0.3a ② 成片残余回归：斜率应 ≈ 0（硬判据）。
 const double kResidSlopeAbsMax = 0.15;
 const double kResidInterceptAbsMax = 0.5;
-/// 条件覆盖率阈值：与残差容差同值，语义才自洽（ACCEPTANCE 口径 2 的脚注）。
-const double kCoverageMinTruthDeg = 1.5;
+/// 摆正死区（度）。**与 `lib/core/imaging/crop_geometry.dart` 的 `kRollDeadZoneDeg`
+/// 同值，但刻意抄一份、不 import** —— 理由同 2B.1 抄 CONTRACTS：死区是产品决定
+/// （ACCEPTANCE「判据适用域」节），改它必须同时改这里并留下痕迹，而不是让门禁
+/// 自动跟着走。历史：3.0（`0634c42`）→ 1.0（`27670b3`）→ **10.0**（`4d276f2`，
+/// 用户 2026-09-17 裁定）。上限仍是 `kMaxRollDeg` = 30°，实际摆正只发生在 (10, 30]。
+const double kDeadZoneDeg = 10.0;
+
+/// 死区**边界带**半宽。真值落在 `kDeadZoneDeg ± 本值` 内的样本，"该不该转"由
+/// 一个 0.4° 量级的估计误差决定（语料实测估计误差 −0.091°…+0.477°，且两个方向
+/// 都真实发生过）。**拿真值去罚它就是拿噪声记账**，故只报数、不判 FAIL。
+const double kDeadZoneBandDeg = 1.0;
+
+/// 该样本的真值是否落在**死区边界带** `kDeadZoneDeg ± kDeadZoneBandDeg` 内。
+///
+/// 带内的样本"该不该转"由一个 0.4° 量级的估计误差决定（语料实测 −0.091°…+0.477°，
+/// 且两个方向都真实发生过），**拿真值去罚它就是拿噪声记账**。ACCEPTANCE 规定
+/// 对 P0.1a / P0.1b / P0.3a② / P0.3b **一律只报数、不判 FAIL**，且带内样本必须
+/// 逐条列出真值 / 估计 / 施加角 / 残余，**不得静默丢弃**。
+///
+/// 分档**按真值**，不按引擎自报角：按自报角分档会让样本集变成测量的函数
+/// （引擎天然会把"真值刚出死区、估计刚进死区"的样本移出判据）。
+bool inBoundaryBand(Map<String, dynamic> s) {
+  final double t = (s['truth'] as double).abs();
+  return t >= kDeadZoneDeg - kDeadZoneBandDeg && t <= kDeadZoneDeg + kDeadZoneBandDeg;
+}
+
+/// 死区**内**（不含边界带）—— 这些样本判"引擎没有动它"：|残余 − 真值| ≤ 1.5°。
+bool isDeadZoneInterior(Map<String, dynamic> s) =>
+    (s['truth'] as double).abs() < kDeadZoneDeg - kDeadZoneBandDeg;
+
+/// 边界带样本的逐条挂牌格式：**真值 / 估计 / 施加角 / 残余**。
+/// ACCEPTANCE 要求带内样本"必须逐条列出真值 / 估计 / 施加角 / 残余，不得静默丢弃"。
+String bandRow(Map<String, dynamic> s) {
+  final Object? est = s['est'];
+  return '${s['id']}(真值 ${_f(s['truth'] as double)}°、'
+      '${est == null ? '估计 无' : '估计 ${_f(est as double)}°'}、'
+      '施加 ${_f(s['applied'] as double)}°、残余 ${_f(s['residual'] as double)}°)';
+}
 /// 锚点下限，按法典口径 6 表述为"11 张不同照片"。
 const int kMinDistinctPhotos = 8;
 /// 合成竖直样本（uprightSynthetic）的条数下限。法典 P0.2 写的是 9 张。
@@ -503,6 +580,12 @@ List<Map<String, dynamic>> buildSamples(Map<String, dynamic> inputs) {
       'corpus': c['corpus'],
       'truth': truth,
       'applied': applied,
+      // 引擎**自报**的倾角估计（`FaceInfo.rollDeg`，compose 记录的 `faceRollDeg`）。
+      // P0.6 主判据与边界带的逐条挂牌要用它。
+      // **它不参与分档** —— ACCEPTANCE 明令分档一律按真值：按自报角分档会让
+      // 样本集变成测量的函数（引擎把"真值刚出死区、估计刚进死区"的样本移出判据）。
+      'est': (c['faceRollDeg'] as num?)?.toDouble(),
+      'straightened': c['straightened'] == true,
       'source': source,
       'residual': measured,
       'residualBy': by,
@@ -571,14 +654,28 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
   final List<Map<String, dynamic>> pupils =
       samples.where((Map<String, dynamic> s) => s['source'] == 'pupil').toList();
 
-  // ---------------- P0.1a：锚点成片端到端残余 ----------------
+  // ---------------- P0.1a：锚点成片端到端残余（按适用域分档） ----------------
   {
     final List<Map<String, dynamic>> cohort =
         anchors.where((Map<String, dynamic> s) => s['source'] == 'pupil').toList();
+    // **按适用域分档**（ACCEPTANCE 2026-09-17）：
+    //  - 死区内：判"没被乱动"，成片残余应 ≈ 真值本身 ⇒ |残余 − 真值|；
+    //  - 死区外：判"必须摆平" ⇒ |残余|。（本语料锚点真值 −0.11°…−8.01° 全在死区内，
+    //    故 exterior 为空；保留它是为将来加入死区外锚点时不至于静默漏判。）
+    //  - 边界带内：只报数、不判 FAIL（"该不该转"由 0.4° 量级的估计误差决定）。
+    final List<Map<String, dynamic>> interior = cohort.where(isDeadZoneInterior).toList();
+    final List<Map<String, dynamic>> exterior = cohort
+        .where((Map<String, dynamic> s) =>
+            (s['truth'] as double).abs() > kDeadZoneDeg && !inBoundaryBand(s))
+        .toList();
+    final List<Map<String, dynamic>> band = cohort.where(inBoundaryBand).toList();
     final List<double> res =
-        cohort.map((Map<String, dynamic> s) => (s['residual'] as double).abs()).toList();
+        interior.map((Map<String, dynamic> s) => ((s['residual'] as double) - (s['truth'] as double)).abs()).toList();
+    final List<double> resExt =
+        exterior.map((Map<String, dynamic> s) => (s['residual'] as double).abs()).toList();
     final double maxAbs = res.isEmpty ? double.nan : res.reduce(math.max);
     final double median = _median(res);
+    final double maxExt = resExt.isEmpty ? double.nan : resExt.reduce(math.max);
     // 下限数的是**不同照片**，不是行数。见 distinctPhotoCount 的注释：
     // 判据文本写的是"≥ 8 张不同照片"，用 `cohort.length` 判就是判据比它的名字松。
     final int? distinct =
@@ -586,12 +683,13 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
     final bool pass = instrumentsOk &&
         distinct != null &&
         distinct >= kMinDistinctPhotos &&
-        maxAbs <= kResidualMaxDeg &&
-        median <= kResidualMedianMaxDeg;
+        (res.isEmpty || maxAbs <= kResidualMaxDeg) &&
+        (resExt.isEmpty || maxExt <= kResidualMaxDeg);
     items.add(<String, dynamic>{
       'id': 'P0.1a',
-      'description': '锚点残差（只用 pupil 锚点）：成片端到端残余 |residual| ≤ 1.5°，中位 ≤ 1.0°',
-      'expected': '|residual| ≤ $kResidualMaxDeg，中位 ≤ $kResidualMedianMaxDeg，'
+      'description': '锚点残差（只用 pupil 锚点，按适用域分档）：死区内判 |残余 − 真值| ≤ 1.5°'
+          '（"没被乱动"），死区外判 |残余| ≤ 1.5°；边界带内只报数',
+      'expected': '死区内 |残余 − 真值| ≤ $kResidualMaxDeg°、死区外 |残余| ≤ $kResidualMaxDeg°，'
           '样本 ≥ $kMinDistinctPhotos 张不同照片（数**不同照片**，不数行数）',
       'actual': _text(
         <String>[
@@ -608,7 +706,14 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
               '因此不会制造假 FAIL，但也**不能**反过来用它论证"三张里有两张其实是同一张"。'
               '原始锚点栏 12 条，`p2` 不在锚点栏——它同现于 anchors 与 straight，'
               '成片台按 id 合并后归入 straight。',
-          'max|残余| = ${_f(maxAbs)}，中位 = ${_f(median)}',
+          '**死区内 ${interior.length} 条**：max|残余 − 真值| = ${_f(maxAbs)}，中位 = ${_f(median)}'
+              '（判据按现文只判 max；**旧版还有「中位 ≤ $kResidualMedianMaxDeg°」，'
+              '2026-09-17 修订版未再提，此处仍报出以便对比，不参与 PASS/FAIL**）',
+          exterior.isEmpty
+              ? '**死区外 0 条**：本语料锚点真值 −0.11°…−8.01°，全在死区内 ⇒ 本项只判"没被乱动"'
+              : '**死区外 ${exterior.length} 条**：max|残余| = ${_f(maxExt)}',
+          if (band.isNotEmpty)
+            '**边界带内 ${band.length} 条，只报数不判 FAIL**：${band.map(bandRow).join("、")}',
           _provenance(cohort),
           _sampleLine(cohort),
         ],
@@ -623,28 +728,43 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
   // ---------------- P0.1b：条件覆盖率 ----------------
   {
     final List<Map<String, dynamic>> need =
-        anchors.where((Map<String, dynamic> s) => (s['truth'] as double).abs() > kCoverageMinTruthDeg).toList();
+        anchors.where((Map<String, dynamic> s) => (s['truth'] as double).abs() > kDeadZoneDeg).toList();
+    final List<Map<String, dynamic>> band = anchors.where(inBoundaryBand).toList();
+    // 边界带内的样本"该不该转"由估计误差决定，只报数、不判 FAIL（ACCEPTANCE）。
+    final List<Map<String, dynamic>> judged =
+        need.where((Map<String, dynamic> s) => !inBoundaryBand(s)).toList();
     final List<Map<String, dynamic>> bad =
-        need.where((Map<String, dynamic> s) => s['source'] == 'unavailable').toList();
+        judged.where((Map<String, dynamic> s) => s['source'] == 'unavailable').toList();
     final List<Map<String, dynamic>> exempt =
-        anchors.where((Map<String, dynamic> s) => (s['truth'] as double).abs() <= kCoverageMinTruthDeg &&
+        anchors.where((Map<String, dynamic> s) => (s['truth'] as double).abs() <= kDeadZoneDeg &&
             s['source'] == 'unavailable').toList();
     items.add(<String, dynamic>{
       'id': 'P0.1b',
-      'description': '条件覆盖率：真值 |tilt| > 1.5° 的锚点必须给出 pupil 估计，unavailable 必须 = 0',
-      'expected': '需要摆正的 ${need.length} 条锚点上 unavailable = 0',
+      'description': '条件覆盖率：真值 |tilt| > $kDeadZoneDeg°（死区外）的锚点必须给出 pupil 估计，unavailable 必须 = 0',
+      'expected': '需要摆正的 ${judged.length} 条锚点（已扣除边界带）上 unavailable = 0',
       'actual': _text(
         <String>[
-          '需要摆正（|truth| > 1.5°）的锚点 ${need.length} 条，其中 unavailable ${bad.length} 条'
+          '需要摆正（|truth| > $kDeadZoneDeg°）的锚点 ${need.length} 条，'
+              '其中边界带内 ${band.length} 条只报数 ⇒ **实际参与判定 ${judged.length} 条**，'
+              '其上 unavailable ${bad.length} 条'
               '${bad.isEmpty ? "" : "：" + bad.map((Map<String, dynamic> s) => "${s['id']}(truth ${_f(s['truth'] as double)})").join("、")}',
-          '|truth| ≤ 1.5° 而返回 unavailable 的 ${exempt.length} 条，按口径 2 可接受：'
+          '|truth| ≤ $kDeadZoneDeg° 而返回 unavailable 的 ${exempt.length} 条，按口径 2 可接受：'
               '${exempt.map((Map<String, dynamic> s) => "${s['id']}(${_f(s['truth'] as double)})").join("、")}',
+          if (band.isNotEmpty)
+            '**边界带（${_f(kDeadZoneDeg - kDeadZoneBandDeg)}°–${_f(kDeadZoneDeg + kDeadZoneBandDeg)}°）'
+                '内 ${band.length} 条，只报数不判 FAIL**：${band.map(bandRow).join("、")}',
         ],
         blockers,
       ),
       'pass': instrumentsOk && bad.isEmpty,
-      'manual': !instrumentsOk,
-      'owner': 'ml-porting',
+      // `judged` 为空时**不判 PASS**：那是"本语料对本项没有读数"，不是"本项达标"。
+      // 空集通过正是 P0.2 注释里点名的那种假证据（拿一个不存在的集合证明"没有违规"）。
+      // ACCEPTANCE :101 明写"必须摆平"这半边在本语料上只由**死区外的夹具**承担、
+      // 真实照片不再参与 —— 故这里如实记 MANUAL，把覆盖缺口摆出来，不当通过。
+      'manual': !instrumentsOk || judged.isEmpty,
+      'owner': judged.isEmpty
+          ? 'gatekeeper（本语料无死区外锚点，本项对锚点栏没有读数）'
+          : 'ml-porting',
     });
   }
 
@@ -658,28 +778,36 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
     // `upright.length >= kUprightSyntheticMin` 这道下限是防"空集静默通过"：
     // `notPupil.isEmpty` 在 upright 为空时为真，光靠它会让"一张竖直样本都没有"
     // 也判 PASS——拿一个不存在的集合去证明"没有非 pupil"是假证据。
+    //
+    // **2026-09-17**：ACCEPTANCE 删去了「uprightSynthetic 必须返回 pupil」。
+    // 它防的是"永远返回测不出"的策略免费拿下竖直样本；在死区产品定义下，
+    // "不动竖直样本"本来就是正确行为，该策略在死区外已被 P0.3a / 2B.8 拦住，
+    // 留着会与 P0.1b「死区内 unavailable 无害」直接矛盾。分布仍由 P0.4 报出。
+    //
+    // 判据口径：本项是 P0.6 在"真值 ≈ 0"上的特例（ACCEPTANCE P0.3a 行末）。
+    // 竖直样本真值本就 ≈ 0，"没被乱动"（|残余 − 真值|）与"不歪"（|残余|）
+    // 几乎同义；仍按 P0.6 的口径写，免得两条判据在边界样本上给出相反判决。
     final List<Map<String, dynamic>> cohort = <Map<String, dynamic>>[...straight, ...upright];
-    final List<double> res =
-        cohort.map((Map<String, dynamic> s) => (s['residual'] as double).abs()).toList();
+    final List<double> res = cohort
+        .map((Map<String, dynamic> s) => ((s['residual'] as double) - (s['truth'] as double)).abs())
+        .toList();
     final double maxAbs = res.isEmpty ? double.nan : res.reduce(math.max);
-    final List<Map<String, dynamic>> notPupil =
-        upright.where((Map<String, dynamic> s) => s['source'] != 'pupil').toList();
     final bool pass = instrumentsOk &&
         cohort.isNotEmpty &&
         upright.length >= kUprightSyntheticMin &&
-        maxAbs <= kResidualMaxDeg &&
-        notPupil.isEmpty;
+        maxAbs <= kResidualMaxDeg;
     items.add(<String, dynamic>{
       'id': 'P0.2',
-      'description': '不引入歪斜：已知竖直样本残余 ≤ 1.5°，且 uprightSynthetic 必须返回 pupil',
-      'expected': '|residual| ≤ $kResidualMaxDeg 且 $kUprightSyntheticMin 张 uprightSynthetic 全部 source=pupil',
+      'description': '不引入歪斜：已知竖直样本 |残余 − 真值| ≤ 1.5°（P0.6 的真值≈0 特例）',
+      'expected': '|残余 − 真值| ≤ $kResidualMaxDeg°，且 $kUprightSyntheticMin 张 uprightSynthetic 在位',
       'actual': _text(
         <String>[
           '竖直样本 ${cohort.length} 条（用户 2.jpg ${straight.length} 条 + 合成竖直 ${upright.length} 条，'
-              '后者下限 $kUprightSyntheticMin 条），max|残余| = ${_f(maxAbs)}'
+              '后者下限 $kUprightSyntheticMin 条），max|残余 − 真值| = ${_f(maxAbs)}'
               '${upright.length >= kUprightSyntheticMin ? "" : " —— **合成竖直样本不足，本项不可判**"}',
           'uprightSynthetic 来源分布：${_sourceHist(upright)}'
-              '${notPupil.isEmpty ? "（全部 pupil）" : "—— 非 pupil：" + notPupil.map((Map<String, dynamic> s) => s['id'] as String).join("、")}',
+              '（**不再据此判 PASS/FAIL** —— 2026-09-17 按 ACCEPTANCE 删去「必须返回 pupil」；'
+              '分布仍按 P0.4 报出，不得静默）',
           _sampleLine(cohort),
         ],
         blockers,
@@ -692,52 +820,101 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
 
   // ---------------- P0.3a：旋转等变（线性度） ----------------
   {
-    final List<Map<String, dynamic>> cohort = pupils.isNotEmpty ? pupils : samples;
-    final List<List<double>> estPts = cohort
+    // ① 估计值 vs 真值：**量程不受死区限制**，全部返回 pupil 的夹具都算
+    //    （估计器照常工作，死区内只是不施加）。只作诊断，不参与 PASS/FAIL。
+    final List<List<double>> estPts = pupils
         .where((Map<String, dynamic> s) => s['source'] == 'pupil')
         .map((Map<String, dynamic> s) => <double>[s['truth'] as double, s['applied'] as double])
         .toList();
     final double estSlope = _slope(estPts);
 
+    // ② 成片残余 vs 真值：**只在死区外（|真值| > 10°）的夹具上算**，死区内归 P0.6。
+    //    边界带（9°–11°）内只报数 —— 那里的"该不该转"由一个 0.4° 量级的估计误差
+    //    决定（`c11_d-10` 真值 −10.11 估计 −9.633 没转，其恒等式残余 −10.11，
+    //    单这一条就能把 15 条的斜率/截距一起带翻）。拿真值罚估计误差 = 噪声记账。
+    final List<Map<String, dynamic>> band = samples
+        .where((Map<String, dynamic> s) =>
+            s['corpus'] == 'rotated' &&
+            (s['truth'] as double).abs() > kDeadZoneDeg &&
+            inBoundaryBand(s))
+        .toList();
+    final List<Map<String, dynamic>> fit = samples
+        .where((Map<String, dynamic> s) =>
+            s['corpus'] == 'rotated' &&
+            (s['truth'] as double).abs() > kDeadZoneDeg &&
+            !inBoundaryBand(s))
+        .toList();
+
+    // 口径计数（写进报告用）。ACCEPTANCE 要求"报数一律报 **15 / 11** 这两个口径，
+    // 不得写成 19" —— 19 是全规格的行数，而判据只在门禁规格上跑。这里三个数都**现算**，
+    // 不硬编码：语料一变，硬编码的数就会变成一句读起来很正常的假话。
+    final List<Map<String, dynamic>> allComposeRows =
+        ((inputs['compose'] as List<dynamic>?) ?? <dynamic>[]).cast<Map<String, dynamic>>();
+    final int fitRowsAllSpecs = allComposeRows
+        .where((Map<String, dynamic> r) =>
+            r['corpus'] == 'rotated' && (r['truthTiltDeg'] as num).abs() > kDeadZoneDeg)
+        .length;
+    final int fitIdsAllSpecs = samples
+        .where((Map<String, dynamic> s) =>
+            s['corpus'] == 'rotated' && (s['truth'] as double).abs() > kDeadZoneDeg)
+        .length;
+
     final List<List<double>> resPts =
-        cohort.map((Map<String, dynamic> s) => <double>[s['truth'] as double, s['residual'] as double]).toList();
+        fit.map((Map<String, dynamic> s) => <double>[s['truth'] as double, s['residual'] as double]).toList();
     final double resSlope = _slope(resPts);
     final double resIntercept = _intercept(resPts);
-    final List<Map<String, dynamic>> over = cohort
+    final List<Map<String, dynamic>> over = fit
         .where((Map<String, dynamic> s) => (s['residual'] as double).abs() > kResidualMaxDeg)
         .toList()
       ..sort((Map<String, dynamic> a, Map<String, dynamic> b) =>
           (b['residual'] as double).abs().compareTo((a['residual'] as double).abs()));
     final List<Map<String, dynamic>> excluded =
         samples.where((Map<String, dynamic> s) => s['source'] != 'pupil').toList();
+    // **横轴范围必须报**：死区外只剩这一小段，斜率回归在这个区间上外推一点就翻，
+    // 只给一个斜率数会被读成"全量程线性"。
+    final List<double> axis = fit.map((Map<String, dynamic> s) => s['truth'] as double).toList();
+    final String axisRange = axis.isEmpty
+        ? '（无样本）'
+        : '${_f(axis.reduce(math.min))}° … ${_f(axis.reduce(math.max))}°'
+            '（跨度 ${_f(axis.reduce(math.max) - axis.reduce(math.min))}°）';
 
     final bool pass = instrumentsOk &&
+        fit.isNotEmpty &&
         resSlope.isFinite &&
         resSlope.abs() <= kResidSlopeAbsMax &&
         resIntercept.abs() <= kResidInterceptAbsMax &&
         over.isEmpty;
     items.add(<String, dynamic>{
       'id': 'P0.3a',
-      'description': '旋转等变：① 估计值 vs 真值斜率 ∈[0.85,1.15]（只作诊断）；'
-          '② 成片残余 vs 真值斜率 |·| ≤ 0.15、|截距| ≤ 0.5°、max|残余| ≤ 1.5°（硬判据，口径无关）',
-      'expected': '② 斜率 |·| ≤ $kResidSlopeAbsMax、|截距| ≤ $kResidInterceptAbsMax°、max|残余| ≤ $kResidualMaxDeg°',
+      'description': '旋转等变：① 估计值 vs 真值斜率 ∈[0.85,1.15]（只作诊断，量程不受死区限制）；'
+          '② 成片残余 vs 真值斜率 |·| ≤ 0.15、|截距| ≤ 0.5°、max|残余| ≤ 1.5°'
+          '（硬判据，**只在死区外 |真值| > $kDeadZoneDeg° 的夹具上算**，边界带只报数）',
+      'expected': '② 斜率 |·| ≤ $kResidSlopeAbsMax、|截距| ≤ $kResidInterceptAbsMax°、'
+          'max|残余| ≤ $kResidualMaxDeg°（样本集：死区外夹具 ${fit.length} 条）',
       'actual': _text(
         <String>[
           '② 硬判据：残余 vs 真值 斜率 = ${_f(resSlope)}（|·| ≤ 0.15），截距 = ${_f(resIntercept)}°'
               '（|·| ≤ 0.5），max|残余| = ${_f(over.isEmpty ? 0.0 : (over.first['residual'] as double).abs())}°'
               '（≤ 1.5）',
+          '**横轴范围 ${axisRange}** —— 判据只在死区外这一段上成立，'
+              '**不得读成"全量程线性"**：真值区间窄，外推一点斜率就翻。',
           '超 1.5° 的夹具 ${over.length} 条：${over.map((Map<String, dynamic> s) => "${s['id']}(${_f(s['residual'] as double)}°)").join("、")}',
-          '只用 pupil 夹具 ${cohort.length} 条（原始 ${samples.length} 条）',
-          '① 诊断：估计值 vs 真值 斜率 = ${_f(estSlope)}（带 [0.85, 1.15]，不参与 PASS/FAIL）',
+          '② 的样本集：死区外夹具 **${fit.length} 条**（口径与 ACCEPTANCE 一致：'
+              '全规格 $fitRowsAllSpecs 行 → 门禁规格 `$kSpec` 按 id 去重 $fitIdsAllSpecs 条 → '
+              '其中 9°–11° 带内 ${band.length} 条只报数 ⇒ 参与判定 ${fit.length} 条）',
+          '死区内夹具归 P0.6；**边界带内 ${band.length} 条只报数不判 FAIL**：'
+              '${band.isEmpty ? "（本轮无）" : band.map(bandRow).join("、")}',
+          '① 诊断：估计值 vs 真值 斜率 = ${_f(estSlope)}（带 [0.85, 1.15]，不参与 PASS/FAIL），'
+              '样本 ${estPts.length} 条（**不受死区限制**）',
           '按口径 1 排除在残余统计外的 unavailable 样本 ${excluded.length} 条'
               '（它们的账由 P0.3b 条件覆盖率算，不许在这里被悄悄算成通过）：'
               '${excluded.map((Map<String, dynamic> s) => s['id'] as String).join("、")}',
-          _provenance(cohort),
+          _provenance(fit),
         ],
         blockers,
       ),
       'pass': pass,
-      'manual': !instrumentsOk,
+      'manual': !instrumentsOk || fit.isEmpty,
       'owner': 'ml-porting',
     });
   }
@@ -745,25 +922,36 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
   // ---------------- P0.3b：旋转等变（覆盖率） ----------------
   {
     final List<Map<String, dynamic>> need =
-        rotated.where((Map<String, dynamic> s) => (s['truth'] as double).abs() > kCoverageMinTruthDeg).toList();
+        rotated.where((Map<String, dynamic> s) => (s['truth'] as double).abs() > kDeadZoneDeg).toList();
+    // 边界带取**与 need 的交集**（|真值| ∈ (10°, 11°]），不是"所有 9°–11° 的夹具"。
+    // 取后者会把死区内侧（9°–10°）的 5 条也算进来，于是"需要摆正 15 条（含带内 9 条）"
+    // 这句话**两个数都是错的** —— 而它读起来完全正常。ACCEPTANCE 要的 15 / 11
+    // 就是这条算术：15 条去重夹具 − 4 条带内 = 11 条参与判定。
+    final List<Map<String, dynamic>> band = need.where(inBoundaryBand).toList();
+    final List<Map<String, dynamic>> judged =
+        need.where((Map<String, dynamic> s) => !inBoundaryBand(s)).toList();
     final List<Map<String, dynamic>> bad =
-        need.where((Map<String, dynamic> s) => s['source'] == 'unavailable').toList();
+        judged.where((Map<String, dynamic> s) => s['source'] == 'unavailable').toList();
     final List<Map<String, dynamic>> exempt =
-        rotated.where((Map<String, dynamic> s) => (s['truth'] as double).abs() <= kCoverageMinTruthDeg &&
+        rotated.where((Map<String, dynamic> s) => (s['truth'] as double).abs() <= kDeadZoneDeg &&
             s['source'] == 'unavailable').toList();
     items.add(<String, dynamic>{
       'id': 'P0.3b',
-      'description': '旋转夹具条件覆盖率：真值 |tilt| > 1.5° 的夹具上 unavailable 必须 = 0',
-      'expected': '需要摆正的 ${need.length} 条夹具上 unavailable = 0',
+      'description': '旋转夹具条件覆盖率：真值 |tilt| > $kDeadZoneDeg°（死区外）的夹具上 unavailable 必须 = 0',
+      'expected': '需要摆正的 ${judged.length} 条夹具（已扣除边界带）上 unavailable = 0',
       'actual': _text(
         <String>[
           bad.isEmpty
-              ? '需要摆正（|truth| > 1.5°）的 ${need.length} 条夹具上 unavailable = 0'
-              : '违规 ${bad.length} 条（需要摆正 |truth| > 1.5° 却返回 unavailable）：'
+              ? '需要摆正（|truth| > $kDeadZoneDeg°）的 ${need.length} 条夹具中，'
+                  '边界带内 ${band.length} 条只报数 ⇒ **实际参与判定 ${judged.length} 条**，unavailable = 0'
+              : '违规 ${bad.length} 条（需要摆正 |truth| > $kDeadZoneDeg° 却返回 unavailable）：'
                   '${bad.map((Map<String, dynamic> s) => "${s['id']}(truth ${_f(s['truth'] as double)}°)").join("、")}'
                   '——这 ${bad.length} 条成片未施加任何旋转，仍歪着对应角度',
-          '旋转夹具原始总数 ${rotated.length} 条，需要摆正 ${need.length} 条',
-          '|truth| ≤ 1.5° 而 unavailable 的 ${exempt.length} 条，按口径 2 可接受',
+          '旋转夹具原始总数 ${rotated.length} 条，需要摆正 ${need.length} 条（含带内 ${band.length} 条）',
+          '|truth| ≤ $kDeadZoneDeg° 而 unavailable 的 ${exempt.length} 条，按口径 2 可接受',
+          if (band.isNotEmpty)
+            '**边界带（${_f(kDeadZoneDeg - kDeadZoneBandDeg)}°–${_f(kDeadZoneDeg + kDeadZoneBandDeg)}°）'
+                '内 ${band.length} 条，只报数不判 FAIL**：${band.map(bandRow).join("、")}',
           '分母：可计分 ${rotated.length} 条 / 原始 ${rotated.length} 条（无样本因量测失效被扣除，见条款 7 样本账）',
         ],
         blockers,
@@ -952,6 +1140,141 @@ List<Map<String, dynamic>> evaluateP0(Map<String, dynamic> inputs) {
         'owner': 'gatekeeper（本轮未重跑，无法判定是否退化；留待上游修好后补跑）',
       });
     }
+  }
+
+  // ---------------- P0.6：死区内不得被转动 ----------------
+  //
+  // 存在理由：本次事故里 `2.jpg`（真值 −0.2°、本来就竖直）被**转歪 3.7°**，
+  // 全流程 16 项 G4 门禁无一拦截 —— P0.1a 只管死区外"必须摆平"，死区内无人管。
+  //
+  // **主判据是符合性检查，不是正确性检查。** `straightenDeg` 由
+  // `planRotation(rollDeg: face.rollDeg)` 直接算出（compose_engine.dart:232-249，
+  // 两者同源），所以主判据是**拿估计核估计**：它证明"死区判断按规格实现、
+  // 报告的角度与施加的角度一致"，**不证明估计正确，也不证明旋转真的落到了像素上**。
+  // 故 ACCEPTANCE 明令：主判据必须标明「自洽性检查：证明引擎遵守自己的规则，
+  // 不构成正确性证据」，且**不得单独出现**，必须与成片端到端残余的次判据同报。
+  // 本项两者都报，缺一即不构成判决。
+  {
+    // 适用范围按**真值**给（口径 5"分档一律按真值"）：锚点、straight、
+    // uprightSynthetic、以及死区内的夹具。**只有主判据按自报角判** ——
+    // 它问的是"引擎有没有照它自己报的角行事"，自报角才是该问题的正确口径。
+    final List<Map<String, dynamic>> scope = <Map<String, dynamic>>[]
+      ..addAll(anchors)
+      ..addAll(straight)
+      ..addAll(upright)
+      ..addAll(rotated.where((Map<String, dynamic> s) =>
+          (s['truth'] as double).abs() <= kDeadZoneDeg));
+
+    // ---- 主判据（符合性）：|自报 rollDeg| ≤ 10° ⇒ 不许施加；> 10° ⇒ 必须施加 ----
+    final List<Map<String, dynamic>> mainBad = <Map<String, dynamic>>[];
+    final List<Map<String, dynamic>> estMissing = <Map<String, dynamic>>[];
+    for (final Map<String, dynamic> s in scope) {
+      final Object? e = s['est'];
+      if (e is! num) {
+        estMissing.add(s);
+        continue;
+      }
+      final bool shouldRotate = e.toDouble().abs() > kDeadZoneDeg;
+      final bool didRotate =
+          s['straightened'] == true || (s['applied'] as double).abs() > 1e-9;
+      if (shouldRotate != didRotate) mainBad.add(s);
+    }
+
+    // ---- 次判据（端到端残余，Python 侧独立量具）：真值 |tilt| ≤ 10° 的样本上
+    //      |成片残余 − 真值| ≤ 1.5°，**转正与转歪都算 FAIL**。----
+    final List<Map<String, dynamic>> band6 =
+        scope.where(inBoundaryBand).toList();
+    final List<Map<String, dynamic>> judged6 =
+        scope.where((Map<String, dynamic> s) => !inBoundaryBand(s)).toList();
+    final List<Map<String, dynamic>> errBad = <Map<String, dynamic>>[];
+    final List<Map<String, dynamic>> meterBad = <Map<String, dynamic>>[];
+    final List<Map<String, dynamic>> meterBlind = <Map<String, dynamic>>[];
+    for (final Map<String, dynamic> s in judged6) {
+      final double err =
+          ((s['residual'] as double) - (s['truth'] as double)).abs();
+      if (err <= kResidualMaxDeg) continue;
+      // 引擎自报"动了它" —— 两支量具都不用看，这就是 P0.6 要抓的违规。
+      if (s['straightened'] == true || (s['applied'] as double).abs() > 1e-9) {
+        errBad.add(s);
+        continue;
+      }
+      // 引擎自报"没动它"。合成路径（裁剪+缩放+重采样）是相似变换，不改变角度，
+      // 所以成片倾角必然 ≈ 真值 —— 除非量具读错，或者像素被动过而没报。
+      // 这两者在单支量具下**长得一模一样**，必须靠另一支独立量具分开；
+      // 分不开的那条**不许静默通过、也不许静默判失败**，按「量测失效」挂牌。
+      final List<Object>? second = _secondOpinion(s, s['residualBy'] as String);
+      if (second == null) {
+        meterBlind.add(s);
+      } else if (((second[0] as double) - (s['truth'] as double)).abs() <=
+          kResidualMaxDeg) {
+        meterBad.add(s);
+      } else {
+        errBad.add(s);
+      }
+    }
+    final int denom6 = judged6.length - meterBad.length;
+
+    final bool pass = instrumentsOk &&
+        scope.isNotEmpty &&
+        estMissing.isEmpty &&
+        mainBad.isEmpty &&
+        errBad.isEmpty &&
+        meterBlind.isEmpty;
+    items.add(<String, dynamic>{
+      'id': 'P0.6',
+      'description': '死区内不得被转动。**主判据按引擎自报角判**（符合性）：'
+          '|FaceInfo.rollDeg| ≤ $kDeadZoneDeg° ⇒ straightenDeg = 0 且 straightened = false；'
+          '> $kDeadZoneDeg° ⇒ 必须施加摆正。次判据用真值核成片：真值 |tilt| ≤ $kDeadZoneDeg° 的样本上 '
+          '|成片残余 − 真值| ≤ ${kResidualMaxDeg}°（转正与转歪都算 FAIL），'
+          '真值落在 9°–11° 边界带内的只报数',
+      'expected': '主判据 0 条不一致；次判据 ${judged6.length} 条（已扣边界带）中 0 条违规'
+          '（分母再扣「量测失效」${meterBad.length} 条 ⇒ $denom6 条可见）',
+      'actual': _text(
+        <String>[
+          '**主判据（符合性）**：`|自报 rollDeg| ≤ $kDeadZoneDeg° 就不许转，> $kDeadZoneDeg° 就必须转`。'
+              '**自洽性检查：证明引擎遵守自己的规则，不构成正确性证据** —— '
+              '`straightenDeg` 由 `planRotation(rollDeg: face.rollDeg)` 同源算出，'
+              '本判据是**拿估计核估计**，它抓得住"判错变量""报告与行为不一致"，'
+              '但正确性只能由下面的次判据（成片端到端残余）回答。**故它不得单独出现。**',
+          '主判据范围 ${scope.length} 条（锚点 ${anchors.length} + straight ${straight.length} + '
+              'uprightSynthetic ${upright.length} + 死区内夹具 '
+              '${scope.length - anchors.length - straight.length - upright.length}）'
+              '上不一致 ${mainBad.length} 条：'
+              '${mainBad.isEmpty ? "（无）" : mainBad.map((Map<String, dynamic> s) => "${s['id']}（自报 ${_f((s['est'] as num).toDouble())}°、"
+                  "施加 ${_f(s['applied'] as double)}°、straightened=${s['straightened']}）").join("、")}',
+          '自报角缺失（`faceRollDeg` 读不到，无法判符合性）${estMissing.length} 条：'
+              '${estMissing.isEmpty ? "（无）" : estMissing.map((Map<String, dynamic> s) => s['id'] as String).join("、")}',
+          '**次判据（成片端到端残余，独立量具）**：真值 |tilt| ≤ $kDeadZoneDeg° 的 '
+              '${judged6.length} 条上 |残余 − 真值| ≤ ${kResidualMaxDeg}°。**转正（把本来竖直的转歪）'
+              '与转歪（把已经歪的转得更歪）都算 FAIL。**',
+          '违规 ${errBad.length} 条：'
+              '${errBad.isEmpty ? "（无）" : errBad.map((Map<String, dynamic> s) => "${s['id']}(真值 ${_f(s['truth'] as double)}°、"
+                  "施加 ${_f(s['applied'] as double)}°、残余 ${_f(s['residual'] as double)}°)").join("、")}',
+          '**量测失效挂牌 ${meterBad.length + meterBlind.length} 条**（引擎自报没动它、残余读数却与真值差 > '
+              '${kResidualMaxDeg}°；裁剪+缩放是相似变换、不改变角度，故必是量具读错**或**像素被动过而没报，'
+              '二者单支量具分不开）：',
+          meterBad.isEmpty && meterBlind.isEmpty
+              ? '（无）'
+              : '　· 已由第二支独立量具复核为**量具读错**、不计违规（分母扣除）${meterBad.length} 条：'
+                  '${meterBad.isEmpty ? "（无）" : meterBad.map((Map<String, dynamic> s) => _meterRow(s, _secondOpinion(s, s['residualBy'] as String))).join("、")}',
+          meterBlind.isEmpty
+              ? ''
+              : '　· **两支量具都测不出、无独立复核 ⇒ 本项对这些样本没有读数**（不许靠主判据通过、'
+                  '也不许判失败，按「量测失效」挂牌）${meterBlind.length} 条：'
+                  '${meterBlind.map((Map<String, dynamic> s) => _meterRow(s, null)).join("、")}',
+          '真值落在 9°–11° 边界带内**只报数、不判 FAIL** 的 ${band6.length} 条'
+              '（那里的"该不该转"由一个 ${_f(0.4)}° 量级的估计误差决定，拿真值去罚它就是**把噪声记成实现方的错**；'
+              '两个方向都真实发生过）：${band6.isEmpty ? "（无）" : band6.map(bandRow).join("、")}',
+          '判据分母：原始 ${judged6.length} 条 → 扣「量测失效」${meterBad.length} 条 → 可见 $denom6 条。'
+              '**两个数一起报，不得只报其一**（口径 7）。',
+          _provenance(scope),
+        ],
+        blockers,
+      ),
+      'pass': pass,
+      'manual': !instrumentsOk || scope.isEmpty || meterBlind.isNotEmpty,
+      'owner': 'ml-porting',
+    });
   }
 
   // -------- PIN：生成的分母是不是手写分母 --------
@@ -2511,17 +2834,15 @@ String _renderMd({
       'gatekeeper 独立测量：`$kEyelinePath`。');
   b.writeln();
   b.writeln('### 判据版本声明（ACCEPTANCE 冻结条款要求写明）');
-  b.writeln('本轮判决依据的判据 = `docs/ACCEPTANCE.md` @ commit `6f01e6e`（P0 判据冻结点）。');
+  b.writeln(criteriaVersionMd());
   b.writeln('**第 1 轮初判作废的原因**：主会话在门禁运行期间于 03:23 / 03:24 / 03:39 / 03:47 '
       '连续四次修改 G2B-P0 判据，本门禁初版按改动前的草稿实现，且判据被从"读 '
       '`ComposeDiagnostics.straightenDeg`"改成"只认成片端到端残余"——初版判的正是新法典'
       '明令不作判据的量。故初判作废，本文件是**按冻结版判据重跑**后的第 1 轮结果，'
       '不消耗实现方的修复轮次。详见 `docs/ACCEPTANCE.md` 的「判据冻结声明」。');
   b.writeln();
-  b.writeln('### 轮次记账（主会话 2026-09-17 裁定，按 CLAUDE.md §7「最多 3 轮修复」）');  b.writeln('第 1 轮是**重写轮**（判据被中途改动致初判作废），**不消耗** ml-porting 的修复预算。');
-  b.writeln('ml-porting 有 3 次修复机会，对应门禁运行 **r2 / r3 / r4**；r4 仍 FAIL → '
-      '写 `out/BLOCKED_G2B-P0.md`，全流程停止等人工，不降阈值、不删夹具、不跳门禁。');
-  b.writeln('本轮按 `r$round` 编号。');
+  b.writeln('### 轮次记账（主会话 2026-09-17 裁定，按 CLAUDE.md §7「最多 3 轮修复」）');
+  b.writeln(kRoundLedgerMd(round));
   b.writeln();
   b.writeln('### 轮次有效性判定（主会话 2026-09-17 裁定，**r2 起生效**）');
   b.writeln('> **一轮判决只能由同一个被冻结、被标识的代码状态上的测量推导出来。**'
@@ -2958,8 +3279,150 @@ String _borderline(List<Map<String, dynamic>> items) {
   b.writeln();
   b.writeln('规则（主会话 2026-09-17 裁定，与条款 7 同源）：余量 < 量具误差的条目，'
       '**单支量具的 FAIL 不足以定罪** —— 必须第二支独立量具复现同一超线才计违规；'
-      '只有一支超线则记「边界噪声 / 证据不足」，不消耗实现方修复轮次。'
-      '**本规则不适用于 P0.3a**：它超阈值 7 倍以上且两支量具独立复现，是确定性违规。');
+      '只有一支超线则记「边界噪声 / 证据不足」，不消耗实现方修复轮次。');
+  b.writeln();
+  b.writeln('**P0.3a 的旧豁免已作废（2026-09-17，随死区 10° 落地一并重述）。** '
+      '原文写「本规则不适用于 P0.3a：它超阈值 7 倍以上且两支量具独立复现，是确定性违规」——'
+      '**那句话描述的是第 1 轮的状态**（当时最差超线 11.368°），不是一条通则。'
+      '到 r3 时最差只超 1.17 倍、且只有单支量具超线，**两条理由都已不成立，而豁免文字还在** ——'
+      '照字面读，P0.3a 上任何小于量具误差的超线都自动定罪，**记的是噪声、不是实现方的错**。'
+      '（同族教训见 `docs/PITFALLS.md`：豁免条款的理由是"当时的状态描述"，时过境迁后它读起来像通则。）');
+  b.writeln();
+  b.writeln('**新口径**：P0.3a 与其余条目**同等适用**本条贴线规则。'
+      '原本促成那条豁免的"边界带噪声"，现在由**样本集定义**在更上游处理掉了 ——'
+      'P0.3a② 只在死区外（|真值| > $kDeadZoneDeg°）的夹具上算，真值落在 9°–11° 带内的样本'
+      '只报数、不判 FAIL（那两个方向都真实发生过：`c11_d-10` 真值 −10.11° 没转、'
+      '`c11_d+10` 真值 9.89° 转了）。**噪声不再进判据，所以不再需要一条特例豁免。**');
+  return b.toString();
+}
+
+/// 对一条样本取一支**不同于** [primary] 的独立残余读数（成片倾角估计）。
+///
+/// 返回 `[值, 出处]`；没有独立读数时返回 `null`。
+///
+/// 存在理由（ACCEPTANCE 口径 7）：把"引擎真的乱转了"和"量具坏了"分开，**单支量具做不到**
+/// —— 两者在读数上长得一模一样。第二支必须**互不调用**（SIFT 源图↔成片刚体配准
+/// 与眼线量具是两条独立路径），且不能是产出 `primary` 的那一支，否则就是拿自己核自己。
+List<Object>? _secondOpinion(Map<String, dynamic> s, String primary) {
+  final List<List<Object?>> cand = <List<Object?>>[
+    <Object?>['gate_sift_align', s['sift_ok'] == true ? s['sift_residual'] : null],
+    <Object?>[
+      'qa_eyeline',
+      (s['qa_residual'] != null &&
+              s['qa_status'] != 'reliability_mismatch' &&
+              s['qa_status'] != 'unmeasured')
+          ? s['qa_residual']
+          : null,
+    ],
+  ];
+  for (final List<Object?> c in cand) {
+    if (c[0] == primary) continue;
+    final Object? v = c[1];
+    if (v is num) return <Object>[v.toDouble(), c[0] as String];
+  }
+  return null;
+}
+
+/// 量具故障挂牌的一行：真值 / 引擎自报角 / 施加角 / 残读数 / 第二支量具复核。
+String _meterRow(Map<String, dynamic> s, List<Object>? second) {
+  final Object? e = s['est'];
+  return '`${s['id']}`（真值 ${_f(s['truth'] as double)}°、'
+      '自报 ${e is num ? "${_f(e.toDouble())}°" : "无"}、'
+      '施加 ${_f(s['applied'] as double)}°、'
+      '残读数 ${_f(s['residual'] as double)}°［${s['residualBy']}］'
+      '${second == null ? "、无第二支量具" : "、复核 ${_f(second[0] as double)}°［${second[1]}］"}）';
+}
+
+/// P0 判据的冻结点（ACCEPTANCE「判据冻结声明」）。
+const String kCriteriaFrozenCommit = '6f01e6e';
+
+/// 本轮判决依据的判据版本。
+///
+/// **不许硬编码**：判据被改过之后，一句写死的"依据 @ `6f01e6e`"会继续读起来
+/// 完全正常，而它已经不是真的了 —— 这正是本项目当天反复出现的失效形态
+/// （名字/字段声称的口径宽于它实际覆盖的范围）。
+///
+/// 本函数只报**事实**：工作树里的 `docs/ACCEPTANCE.md` 现在是什么、最后一次
+/// 改动它的 commit 是哪个、它和冻结点是否逐字节一致。取不到时**不许当一致**
+/// （`git diff` 退出码 0/1/其他 三态分开）。
+///
+/// 轮次记法（"判据变更 ⇒ 作废当轮、从第 1 轮重跑"是否已触发、当前该记第几轮）
+/// 是**主会话的裁定**，本函数不自行决定，只把事实摆在页面上。
+String criteriaVersionMd() {
+  final RunResult last = _gitSync(<String>[
+    'log', '-1', '--format=%h %ad', '--date=format:%Y-%m-%d %H:%M',
+    '--', 'docs/ACCEPTANCE.md',
+  ]);
+  final RunResult diff = _gitSync(<String>[
+    'diff', '--quiet', kCriteriaFrozenCommit, '--', 'docs/ACCEPTANCE.md',
+  ]);
+  final String same = diff.exitCode == 0
+      ? '**与冻结点逐字节一致**'
+      : (diff.exitCode == 1
+          ? '**与冻结点不同** —— 判据在冻结点之后被改过'
+          : '**无法判定**（`git diff` 退出码 ${diff.exitCode}；取不到 ≠ 一致）');
+  return '本轮判决依据的判据 = 工作树里的 `docs/ACCEPTANCE.md`'
+      '（最后一次改动它的 commit：'
+      '${last.exitCode == 0 ? last.stdout.trim() : "（取不到，exit ${last.exitCode}）"}）；'
+      '冻结点 `$kCriteriaFrozenCommit`。$same。';
+}
+
+/// 逐轮的「消不消耗实现方的修复预算」。**轮次号 ≠ 消耗次数。**
+///
+/// 法典 CLAUDE.md §7 给的是 **3 次修复机会**，不是"3 轮门禁运行"。作废轮
+/// （输入不可信、判据中途被改、或超线被判为边界噪声）**不消耗**；把它们记成
+/// 同一个数，会让"还剩几次机会"这个判决性的事实在报告里失真 ——
+/// 而两种记法的报告在字面上长得一样正常。
+///
+/// 每轮一条：`[消耗?, 由来]`。**只追加，不改写已经发生过的轮。**
+const Map<int, List<String>> kRoundLedger = <int, List<String>>{
+  1: <String>[
+    '否',
+    '判据在门禁运行期间被连续修改 4 次（03:23 / 03:24 / 03:39 / 03:47），'
+        '初判按改动前的草稿实现 —— 初判作废，不是对代码的判决',
+  ],
+  2: <String>['是', '判决 FAIL —— 第 1 次修复机会'],
+  3: <String>[
+    '否',
+    '本轮无效：被判的两份产物早于修复落地，判决不是来自**同一个**代码状态；'
+        '且 P0.3a 的唯一超线被判为边界噪声（单支量具超线，第二支未复现）',
+  ],
+  4: <String>['是', '本轮'],
+};
+
+/// 修复预算的账本。**现算**，不写死 —— 写死的"对应 r2 / r3 / r4"在 r3 被判
+/// 不消耗之后就变成了一句读起来很正常的假话。
+String kRoundLedgerMd(int round) {
+  final StringBuffer b = StringBuffer();
+  b.writeln('**轮次号 ≠ 消耗次数**：法典给的是 **3 次修复机会**，不是 3 轮门禁运行。'
+      '作废轮不消耗实现方的预算 —— 把两者压成一个数，"还剩几次机会"这个'
+      '判决性的事实就会失真，而两种记法在人读的报告里长得一样正常。');
+  b.writeln();
+  b.writeln('| 轮 | 消耗修复机会？ | 由来 |');
+  b.writeln('|---|---|---|');
+  final List<int> ks = kRoundLedger.keys.toList()..sort();
+  for (final int k in ks) {
+    final List<String> v = kRoundLedger[k]!;
+    b.writeln('| r$k${k == round ? '（本轮）' : ''} | '
+        '${v[0] == '是' ? '**是**' : '否'} | ${v[1]} |');
+  }
+  final int usedBefore =
+      ks.where((int k) => k < round && kRoundLedger[k]![0] == '是').length;
+  final bool consumes = (kRoundLedger[round] ?? const <String>['是'])[0] == '是';
+  final int usedAfter = usedBefore + (consumes ? 1 : 0);
+  b.writeln();
+  b.writeln('本轮 r$round 是 ml-porting 的第 **${usedBefore + 1}** 次修复机会'
+      '（此前已消耗 $usedBefore 次，上限 **3** 次）。');
+  b.writeln(consumes
+      ? '本轮仍 FAIL ⇒ 累计消耗 $usedAfter 次'
+          '${usedAfter >= 3 ? '，达到上限：写 `out/BLOCKED_G2B-P0.md`，全流程停止等人工，'
+              '**不降阈值、不删夹具、不跳门禁**' : '，尚有余量：写回派指令，由主会话排下一轮'}。'
+      : '本轮不消耗预算。');
+  b.writeln();
+  b.writeln('**注**：判据在 r3 与 r4 之间被改过（见上方「判据版本声明」）。'
+      '法典「判据冻结声明」要求判据变更时**作废当轮、从第 1 轮重跑**；'
+      '这条是否触发、以及届时的轮次记法，**由主会话裁定** —— '
+      '本表只记已经发生的事，不自行重编号。');
   return b.toString();
 }
 
