@@ -141,7 +141,10 @@ class MuZhaoController implements IdPhotoController {
       clearError: true,
     ));
     await _guarded(gen, () async {
-      final MattingResult mat = await _engine.removeBackground(bytes);
+      final MattingResult mat = await _engine.removeBackground(
+        bytes,
+        quality: _state.mattingQuality,
+      );
       _checkGen(gen);
       _matting = mat;
 
@@ -181,6 +184,7 @@ class MuZhaoController implements IdPhotoController {
         candidates: candidates,
         spec: _state.spec,
         manualAngleDeg: _manualAngleDeg,
+        mattingQuality: _state.mattingQuality,
         stage: Stage.ready,
         errorMessage:
             face == null ? const NoFaceException().messageZh : null,
@@ -285,6 +289,7 @@ class MuZhaoController implements IdPhotoController {
         manualAngleDeg: _manualAngleDeg,
         composedAngleDeg: composedAngle,
         composedCrop: composedCrop,
+        mattingQuality: _state.mattingQuality,
         stage: Stage.ready,
         errorMessage:
             _face == null ? const NoFaceException().messageZh : null,
@@ -350,6 +355,67 @@ class MuZhaoController implements IdPhotoController {
       clearError: true,
     ));
     _recompose(showProgress: false);
+  }
+
+  @override
+  void setMattingQuality(MattingQuality quality) {
+    if (quality == _state.mattingQuality) return;
+    _debounce?.cancel();
+    _debounce = null;
+    final Uint8List? bytes = _state.sourceImage;
+    if (bytes == null) {
+      // 空态：只记档位，下次 loadImage 生效。
+      _emit(_state.copyWith(mattingQuality: quality));
+      return;
+    }
+    // 换档 = 换模型：旧 alpha 作废，必须重新抠图（alpha 来自哪个模型由
+    // 调用时的档位决定，旧结果不能换档后继续用）。检脸与抠图模型无关，
+    // [_face] 保留；用户的框选与手动角度也保留。
+    // 正在进行的 loadImage / 重合成由 ++_gen 整体作废，避免旧档结果落地。
+    _matting = null;
+    final int gen = ++_gen;
+    _emit(_state.copyWith(
+      mattingQuality: quality,
+      stage: Stage.matting,
+      candidates: const <Candidate>[],
+      clearError: true,
+    ));
+    unawaited(_guarded(gen, () async {
+      final MattingResult mat =
+          await _engine.removeBackground(bytes, quality: quality);
+      _checkGen(gen);
+      _matting = mat;
+
+      // 换图途中换档（loadImage 被作废）：检脸可能还没跑过，这里补一次。
+      // 引擎对同一 bytes 实例有单槽缓存，已检过则近零开销。
+      FaceInfo? face = _face;
+      if (face == null) {
+        try {
+          face = await _engine.detectFace(bytes);
+        } on IdPhotoException {
+          face = null;
+        }
+        _checkGen(gen);
+        _face = face;
+      }
+
+      _emit(_state.copyWith(stage: Stage.composing, clearError: true));
+      final List<Candidate> candidates = await _composeAll();
+      _checkGen(gen);
+      _emit(AppState(
+        sourceImage: _state.sourceImage,
+        suggestedCrop: _state.suggestedCrop,
+        candidates: candidates,
+        spec: _state.spec,
+        manualAngleDeg: _manualAngleDeg,
+        composedAngleDeg: _manualAngleDeg,
+        composedCrop: _cropOverride ?? _state.suggestedCrop,
+        mattingQuality: quality,
+        stage: Stage.ready,
+        errorMessage:
+            face == null ? const NoFaceException().messageZh : null,
+      ));
+    }));
   }
 
   /// 保存序号：与时间戳共同保证文件名在本进程内唯一

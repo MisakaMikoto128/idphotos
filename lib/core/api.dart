@@ -463,13 +463,35 @@ const double kManualAngleMaxDeg = 30.0;
 // 5. 引擎接口（CONTRACTS 第 2 节）
 // ---------------------------------------------------------------------------
 
+/// 抠图档位（2026-09-19 双模型合并，主会话落地）。
+///
+/// 用户可切换的两个抠图模型：
+/// - [fast]：MODNet-1024 int8（7.5MB）。PC ~1.5s，手机数秒；
+///   小尺寸证件照（295×413 级）可能抠不出人，发丝质量一般。
+/// - [fine]：BiRefNet-lite-1024 int8（67MB）。发丝级质量、小图稳，
+///   但 PC ~9s，手机更慢；4GB 以下设备可能被系统杀进程。
+///
+/// 默认 [fast]。档位的 UI 文案（"快/慢"提示）由 ui-woodcraft 按 DESIGN.md
+/// 呈现；本枚举不承载展示字符串。
+enum MattingQuality { fast, fine }
+
 abstract class IdPhotoEngine {
   /// 加载模型到内存。App 启动后异步调用一次。重复调用应幂等。
+  ///
+  /// 只加载 [MattingQuality.fast] 的抠图模型与人脸模型；[MattingQuality.fine]
+  /// 的大模型在首次以 fine 档调用 [removeBackground] 时懒加载（首次会明显
+  /// 更慢，之后会话常驻）。
   Future<void> warmUp();
 
   /// 抠图。失败抛 [MattingException]；
   /// 格式不支持抛 [UnsupportedImageException]；过大抛 [ImageTooLargeException]。
-  Future<MattingResult> removeBackground(Uint8List imageBytes);
+  ///
+  /// [quality] 选择抠图模型（见 [MattingQuality]）。同一张图换档后必须重新
+  /// 调用本方法——返回的 alpha 来自哪个模型由本次调用的档位决定。
+  Future<MattingResult> removeBackground(
+    Uint8List imageBytes, {
+    MattingQuality quality = MattingQuality.fast,
+  });
 
   /// 人脸检测。**无人脸返回 `null`，不抛异常。**
   Future<FaceInfo?> detectFace(Uint8List imageBytes);
@@ -561,6 +583,10 @@ class AppState {
   /// （UI 此时用 [suggestedCrop] 参与变换换算）。
   final Rect? composedCrop;
 
+  /// 当前抠图档位（见 [MattingQuality]）。换图不重置，跟随用户选择；
+  /// 切换档位会对当前图重新抠图并重建候选。
+  final MattingQuality mattingQuality;
+
   final Stage stage;
 
   /// **已本地化的中文文案**。UI 直接显示，不做任何加工。
@@ -574,6 +600,7 @@ class AppState {
     this.manualAngleDeg = 0.0,
     this.composedAngleDeg = 0.0,
     this.composedCrop,
+    this.mattingQuality = MattingQuality.fast,
     this.stage = Stage.idle,
     this.errorMessage,
   });
@@ -589,6 +616,7 @@ class AppState {
     double? manualAngleDeg,
     double? composedAngleDeg,
     Rect? composedCrop,
+    MattingQuality? mattingQuality,
     Stage? stage,
     String? errorMessage,
     bool clearError = false,
@@ -605,6 +633,7 @@ class AppState {
       composedAngleDeg: composedAngleDeg ?? this.composedAngleDeg,
       composedCrop:
           clearComposedCrop ? null : (composedCrop ?? this.composedCrop),
+      mattingQuality: mattingQuality ?? this.mattingQuality,
       stage: stage ?? this.stage,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
@@ -627,6 +656,12 @@ abstract class IdPhotoController {
   /// 取值范围 [kManualAngleMinDeg] ~ [kManualAngleMaxDeg]，越界即钳制；
   /// **自动摆正不受影响**，两者叠加。
   void setManualAngle(double deg);
+
+  /// 切换抠图档位（见 [MattingQuality]）。
+  ///
+  /// 无图时只记档位（下次 [loadImage] 生效）；有图时对当前图**重新抠图**
+  /// 并重建候选——用户的框选与手动角度保留。换图不重置档位。
+  void setMattingQuality(MattingQuality quality);
 
   /// 状态流。Riverpod `StateNotifier` 暴露。
   Stream<AppState> get state;

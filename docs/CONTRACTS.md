@@ -55,12 +55,20 @@ class Candidate {
 ## 2. 引擎接口（`lib/core/api.dart`）
 
 ```dart
+/// 抠图档位：fast = MODNet-1024（快，默认）；fine = BiRefNet-lite-1024（慢，发丝级）。
+enum MattingQuality { fast, fine }
+
 abstract class IdPhotoEngine {
   /// 加载模型到内存。App 启动后异步调用一次。
+  /// 只加载 fast 档抠图模型 + 人脸模型；fine 档大模型首次使用时懒加载。
   Future<void> warmUp();
 
   /// 抠图。失败抛 MattingException。
-  Future<MattingResult> removeBackground(Uint8List imageBytes);
+  /// quality 选择抠图模型；换档后必须对同一张图重新调用。
+  Future<MattingResult> removeBackground(
+    Uint8List imageBytes, {
+    MattingQuality quality = MattingQuality.fast,
+  });
 
   /// 人脸检测。无人脸返回 null（不抛异常）。
   Future<FaceInfo?> detectFace(Uint8List imageBytes);
@@ -93,6 +101,7 @@ abstract class IdPhotoController {
   Future<void> loadImage(Uint8List bytes);   // 触发抠图+检脸
   void setCrop(Rect rectInSourcePx);          // 用户拖拽框选
   void setSpec(PhotoSpec spec);
+  void setMattingQuality(MattingQuality quality); // 切换抠图档位；有图即重新抠图
   Stream<AppState> get state;                 // Riverpod StateNotifier 暴露
   Future<String> save(Candidate c);           // 返回保存路径
 }
@@ -105,10 +114,16 @@ class AppState {
   final double manualAngleDeg;     // 用户手动微调角（度），口径同 compose 的 manualRollDeg
   final double composedAngleDeg;   // 当前 candidates 的几何快照：角度
   final Rect? composedCrop;        // 当前 candidates 的几何快照：裁剪框（原图坐标）
+  final MattingQuality mattingQuality; // 当前抠图档位；换图不重置
   final Stage stage;           // idle | matting | composing | ready | error
   final String? errorMessage;  // 已本地化的中文文案
 }
 ```
+
+`mattingQuality` 的语义（2026-09-19 双模型合并）：fast（MODNet，默认，快）/
+fine（BiRefNet，慢但发丝级、小图稳）。用户切档后 controller 对当前图重新
+抠图并重建候选，框选与手动角度保留；UI 只读档位做展示与切换，文案需体现
+快慢差异（如「快速」「精细（较慢）」）。
 
 `composedAngleDeg` / `composedCrop` 是**实时预览变换**的基准：拖拽/调角期间
 UI 直接对候选缩略图做仿射变换跟手显示（不触发合成），停手后全精度候选
