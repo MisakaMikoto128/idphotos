@@ -544,6 +544,9 @@ Uint8List featherGray(Uint8List src, int w, int h, double sigma) {
 /// 通道顺序是 **BGR**：参考实现用 `cv2.imread` 读图后直接喂给模型，
 /// 黄金集参考 alpha 就是在 BGR 下产生的，换成 RGB 会得到不同的 mask。
 /// [size] 的生产口径 = `kMattingInputSize`（ort_runtime.dart，1024）。
+///
+/// **仅留给 MODNet A/B 对照 bench**（matte 换 BiRefNet 后生产路径不再调用）；
+/// MODNet 模型文件删除后一并删。
 Float32List modnetInput(Uint8List rgb, int w, int h, int size) {
   final resized = areaResampleRgb(rgb, w, h, size, size);
   return _modnetInputFromResampled(resized, size);
@@ -566,6 +569,42 @@ Float32List _modnetInputFromResampled(Uint8List resized, int size) {
     out[p] = (resized[i + 2] / 255.0 - 0.5) / 0.5; // B
     out[plane + p] = (resized[i + 1] / 255.0 - 0.5) / 0.5; // G
     out[2 * plane + p] = (resized[i] / 255.0 - 0.5) / 0.5; // R
+  }
+  return out;
+}
+
+/// BiRefNet 归一化常量（ImageNet mean/std，权重卡的 preprocessor_config 口径：
+/// 先 /255 再 `(x - mean) / std`）。
+const List<double> kBirefnetMean = <double>[0.485, 0.456, 0.406];
+const List<double> kBirefnetStd = <double>[0.229, 0.224, 0.225];
+
+/// BiRefNet 前处理：RGB → [size]×[size] → **RGB** 通道序、NCHW、
+/// `(x/255 − mean) / std`（ImageNet）。
+///
+/// 与 MODNet 的两处差异：通道序是 RGB 不是 BGR（onnx-community 的导出件
+/// 按 transformers.js 的 ViTFeatureExtractor 口径喂 RGB）；归一化用
+/// ImageNet 统计量而不是 ±0.5。[size] 的生产口径 = `kMattingInputSize`。
+Float32List birefnetInput(Uint8List rgb, int w, int h, int size) {
+  final resized = areaResampleRgb(rgb, w, h, size, size);
+  return _birefnetInputFromResampled(resized, size);
+}
+
+/// [birefnetInput] 的 RGBA 源版本（dart:ui 降采样解码路径专用）。
+/// 逐位等价论证同 [modnetInputFromRgba]。
+Float32List birefnetInputFromRgba(Uint8List rgba, int w, int h, int size) {
+  final resized = areaResampleRgbFromRgba(rgba, w, h, size, size);
+  return _birefnetInputFromResampled(resized, size);
+}
+
+Float32List _birefnetInputFromResampled(Uint8List resized, int size) {
+  final out = Float32List(3 * size * size);
+  final plane = size * size;
+  for (var i = 0, p = 0; p < plane; i += 3, p++) {
+    out[p] = (resized[i] / 255.0 - kBirefnetMean[0]) / kBirefnetStd[0]; // R
+    out[plane + p] =
+        (resized[i + 1] / 255.0 - kBirefnetMean[1]) / kBirefnetStd[1]; // G
+    out[2 * plane + p] =
+        (resized[i + 2] / 255.0 - kBirefnetMean[2]) / kBirefnetStd[2]; // B
   }
   return out;
 }

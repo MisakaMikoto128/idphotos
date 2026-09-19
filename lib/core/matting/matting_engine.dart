@@ -32,7 +32,7 @@ import 'matting_worker.dart';
 import 'ort_runtime.dart';
 import 'session_factory.dart';
 
-/// MODNet + YuNet 的端侧实现。全程本地，不触网。
+/// BiRefNet + YuNet 的端侧实现。全程本地，不触网。
 mixin MattingEngineMixin {
   int? _mattingSession;
   int? _faceSession;
@@ -76,7 +76,7 @@ mixin MattingEngineMixin {
     ensureOrtRuntimeLoaded();
     final mattingPath = await resolveModelPath(kMattingModelAsset);
     final facePath = await resolveModelPath(kFaceModelAsset);
-    // 建会话要读 7MB 模型并做图优化，放后台 isolate，别卡住首帧。
+    // 建会话要读 67MB 模型并做图优化，放后台 isolate，别卡住首帧。
     // 会话创建固定在常驻的工厂 isolate 里（env 每进程只建一次），
     // 推理另用瞬态 Isolate.run（不触 env，见 session_factory.dart 头注）。
     final factory = _factory ??= SessionFactory();
@@ -154,14 +154,14 @@ mixin MattingEngineMixin {
       // 无谓拷贝，G4.7 瞬时滞留的直接来源之一）。
       //
       // G4 r3：降采样路径改为**宿主就地从 rgba 备好模型输入**，worker 只收
-      // 固定两张 Float32 输入（YuNet letterbox 4.9MB + MODNet 1024² 12.6MB；
-      // 512 时代合计 8MB，1024 换档后 17.5MB），不再拷 rgba（w*h*4）、不再
-      // 在 worker 里转 rgb（w*h*3）——模型输入与旧路径逐位一致
-      // （见 modnetInputFromRgba / yunetInputFromRgba），输出不变，
+      // 固定两张 Float32 输入（YuNet letterbox 4.9MB + 抠图 1024² 12.6MB，
+      // 合计 17.5MB），不再拷 rgba（w*h*4）、不再在 worker 里转 rgb
+      // （w*h*3）——模型输入与旧路径逐位一致
+      // （见 birefnetInputFromRgba / yunetInputFromRgba），输出不变，
       // isolate 拷贝与 worker 峰值各少 ~12.6/9.4MB（2048 口径）。
       // 输入构建（面积重采样 ~20-40ms）留在宿主是为了不拷大缓冲；代价是
-      // NoFace 图也付一次 MODNet 输入构建（门槛没过时白备 12.6MB），与
-      // "门槛在 MODNet 之前省整次推理"的大头相比可忽略。
+      // NoFace 图也付一次抠图输入构建（门槛没过时白备 12.6MB），与
+      // "门槛在抠图推理之前省整次推理"的大头相比可忽略。
       final MattingPayload payload;
       if (rgba != null && plan != null) {
         final r = rgba;
@@ -173,14 +173,14 @@ mixin MattingEngineMixin {
         // rgba，而 1 字节/像素的灰度是这条路径上最小的一份拷贝。
         final Uint8List? gray =
             runGate ? grayPlaneFromRgba(r, p.width, p.height) : null;
-        final Float32List modnet =
-            modnetInputFromRgba(r, p.width, p.height, kMattingInputSize);
+        final Float32List matting =
+            birefnetInputFromRgba(r, p.width, p.height, kMattingInputSize);
         payload = await Isolate.run(() {
           // alpha-only 路径：worker 只回 alpha（+人像门槛的检脸结果），
           // rgba 缓冲留在宿主，就地强制 A=255 后直接作为结果——不跨
           // isolate 搬运、不重建 w*h*4 大缓冲（G4.7 瞬时滞留压缩）。
           return runMattingPrecomputed(
-            modnetInput: modnet,
+            mattingInput: matting,
             yunetInput: yunet,
             gray: gray,
             sessionAddress: session,

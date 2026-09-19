@@ -1,6 +1,28 @@
-# assets/models/ 里两个模型的来历
+# assets/models/ 里模型的来历
 
-## `modnet_portrait_1024_int8.onnx` — 抠图，7.19 MB
+## `birefnet_lite_1024_int8.onnx` — 抠图（现役，2026-09-19 起），67.38 MB
+
+- 来源：onnx-community/BiRefNet_lite-ONNX 的 `onnx/model.onnx`
+  （MIT，base = ZhengPeng7/BiRefNet_lite；deform_conv2d 已被导出方改写为
+  等价的 grid_sample 子图）。输入固定 1×3×1024×1024，opset 17。
+  下载（直连不通，走镜像）：
+  `curl -L -o native/quantize/src/birefnet_lite_1024_fp32.onnx
+  https://hf-mirror.com/onnx-community/BiRefNet_lite-ONNX/resolve/main/onnx/model.onnx`
+- 生成：`python native/quantize/build_birefnet_model.py`（脚本头部有完整策略）。
+  逐通道 int8 weight-only（Conv/MatMul，149 个张量）+ deform-conv 采样网格
+  常量（整数值、fp16 往返误差为 0）无损 fp16。每个消费方一个独立 DQ 节点——
+  共享 DQ 会触发 ORT 1.15 的复制优化丢 axis 属性（运行期报错）。
+- 前处理：`cv2.INTER_AREA` 缩到 1024×1024 → **RGB** 通道序（不是 BGR）→
+  NCHW → `(x/255 − mean) / std`，mean=[0.485,0.456,0.406]，
+  std=[0.229,0.224,0.225]（权重卡 preprocessor_config 口径）。
+- 后处理：输出是 **logits**（实测 −20 ~ +140），`sigmoid(x) * 255` 向零截断
+  成 uint8，再面积重采样放回原图尺寸。
+- 体积 67MB 的构成：44MB int8 权重 + 21.5MB fp16 采样网格 + 2MB 其余。
+  网格是 grid_sample 的坐标表，不是权重，吃不了 weight-only 量化。
+- 换档理由：MODNet 的发丝边缘是分割式硬过渡，换红底白边/色边明显；
+  BiRefNet 输出真抠图 alpha。代价：PC CPU 单张 ~12s（MODNet ~1.5s）。
+
+## `modnet_portrait_1024_int8.onnx` — 抠图（旧，留作 A/B 对照），7.19 MB
 
 - 来源：HivisionIDPhotos 的 `modnet_photographic_portrait_matting.onnx`
   （fp32，25,888,640 字节，在 `.ref_hivision/hivision/creator/weights/`）。

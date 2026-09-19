@@ -4337,3 +4337,84 @@ P0.3b 空集 ⇒ MANUAL / P0.4 空集 ⇒ MANUAL），**用 `dart run` 直调 `e
   门禁侧（`integration_test/compose_eval_test.dart` 的 `[15.0, -15.0]`、
   `tools/gate/gate_G2B.dart` 的 `kDeadZoneDeg`）需要 gatekeeper 同轮修：
   ① 夹具角挪到门槛外；② `buildGateSynthetic` 从**旋转后的内容**反推 box。
+
+## [ui-woodcraft] 没有设备也能看界面：`flutter test` + `RepaintBoundary.toImage`（但一个测试里只截一张）
+
+- 背景（2026-09-17）：加角度微调尺时手上没有可用的模拟器，而"能不能看"直接决定
+  这个控件做不做得对。实测**在普通 `flutter test` 里就能把界面导成 PNG**，
+  全程不碰设备、不占 emulator、不影响 `out/shots/` 的正式流水线：
+
+  ```dart
+  await tester.pumpWidget(
+      RepaintBoundary(key: const Key('shot'), child: buildShotScenario('S5_ready')));
+  await tester.pumpAndSettle();
+  final b = tester.renderObject<RenderRepaintBoundary>(find.byKey(const Key('shot')));
+  final img = await b.toImage(pixelRatio: 2);
+  File('build/_probe.png').writeAsBytesSync((await img.toByteData(
+      format: ui.ImageByteFormat.png))!.buffer.asUint8List());
+  ```
+
+  配合 `UiConfig(syncRaster: true, freezeAnimations: true)` 出来的就是可评审的画面。
+  探针放在 **`build/`**（已被 `.gitignore` 忽略）→ 在共享工作树里零足迹，
+  不会污染任何人的 `git status` / 指纹扫描。
+- **坑**：同一个 `testWidgets` 里**连续截第二张会挂死**。实测第一个
+  `toImage` 正常出图，紧接着 `pumpWidget` 第二个场景 + `pumpAndSettle` 后
+  整个用例卡到 10 分钟超时，一张图都写不出来。**每个场景一个 `testWidgets`**
+  就正常（本条只在一个用例里复现过两次，其余几次是被同机其他 agent 的
+  Dart 进程抢 CPU 拖慢；拿不准就先按"一测一图"写，它是无条件安全的写法）。
+- 另一个廉价但有效的用法：探针里**直接采样 PNG 像素**（`PIL` 逐列取色）来判定
+  "这块是不是渐变 / 有没有硬接缝"。肉眼看 3 倍图会把一段深色**数字铭文**
+  误读成"上下两条不同色的带子"，取色一看是 `T.brassShadow` 的字身 —— 眼睛会骗人。
+- 判据：**"我改的控件长什么样"这件事，没有设备也该自己看一眼再报完成。**
+  截图不是只有 gatekeeper 的流水线一种做法；探针 + `build/` 是零代价的自查路径。
+
+## [ui-woodcraft] `manualAngleDeg` 的正负号：`api.dart` 的注释与 `RotationPlan` 的实现相反
+
+- 现象（2026-09-17）：`lib/core/api.dart` 把 `manualRollDeg` / `manualAngleDeg`
+  写成"正值 = 顺时针"；而 `RotationPlan` 的换算式是
+  `p_src = C_src + R(θ)·(p_rot − C_rot)`，取 θ = +8° 手算一个头顶点
+  （源图偏移 `(+10, −100)`）得 `(−7.55, −100.2)` —— 点**左移**，即画面
+  **逆**时针转。**实现口径是"正 = 逆时针"**。
+- 这不是新问题：`docs/CONTRACTS.md` 记过一次**同源事故**（`rollDeg` 的
+  "顺/逆时针"措辞与实现相反，把 qa-batch 的真值文件带成
+  `expectedCorrectionDeg = −φ`，会让 p1 的残差从 +0.02 变成 8.82，PASS→FAIL）。
+  当时改的是 `rollDeg` 的措辞，新加的 `manualAngleDeg` 又踩了同一个坑。
+- UI 侧的处理：`lib/ui/widgets/angle_gauge.dart` 的 `canvasRotationRad()` 以
+  **实现**为准（`Transform.rotate` 正角是顺时针，故取负），并把符号收敛在
+  那一行；探针实测 `manualAngleDeg = −8` 时预览上沿右角比左角低 19.29px
+  （宽 137.2 × sin8° = 19.10），方向与量值都对得上。
+- 判据：**度量的"顺/逆"一律不要用文字描述，写成 R(θ) 和 p_src/p_rot 的式子。**
+  改这个符号要同时动 `api.dart` 注释、`canvasRotationRad` 和 qa-batch 的真值口径，
+  三处不同步就会重演上面那次 PASS→FAIL。
+
+## [ml-porting] 量化脚本的 onnx 依赖不在 .venv_ref 里：直接 `pip install onnx` 进 venv 即可
+
+- 现象（2026-09-19）：`native/quantize/build_matting_model.py` 旧头注写着
+  "onnx / ml_dtypes 需要另外装到一个 --target 目录，用 PYTHONPATH 指过去"，
+  但那个目录在机器上已不存在（全仓库与 home 前三层都搜不到），照头注跑
+  直接 `ModuleNotFoundError: No module named 'onnx'`。
+- 解法：`.venv_ref/Scripts/python.exe -m pip install onnx`（装进 venv 自身，
+  不是全局包，不违反"不装环境"纪律——venv 本来就是参考/量化专用环境）。
+  onnx 1.22.0 + ml_dtypes 0.6.0 实测可用，脚本头注已改成这个命令。
+- 判据：**脚本头注里的环境命令会腐烂**，跑之前先 `python -c "import onnx"`
+  验证；修好环境后顺手把头注改成实际可用的命令，别留给下一个人再踩。
+
+## [ml-porting] ORT 1.15 复制共享 DQ 节点时丢 per-channel axis：每个消费方一个独立 DQ
+
+- 现象（2026-09-19，BiRefNet 量化）：weight-only int8 量化若让多个节点共享
+  同一个 DequantizeLinear 输出（transformers.js 导出件里权重被图首 Identity
+  转发 + 图尾 MatMul 共用的结构），ORT 1.15.1 建会话后第一次推理即报
+  `DequantizeLinear ... '/duplicated' ... scale must be 1D tensor with size 3`
+  ——QDQ 传播把共享 DQ 复制成多份时**丢了 axis 属性**（回退默认 axis=1），
+  per-channel scale 维度对不上。onnxruntime 1.29（.venv_ref）无此问题，
+  只有插件绑死的 1.15.1 会炸，**venv 验证通过 ≠ 设备端能跑**。
+- 解法：量化脚本给每个消费方生成独立 DQ 节点（共享 int8/scale 常量，
+  体积不增），见 `native/quantize/build_birefnet_model.py`。
+- 判据：量化后的模型必须在**插件同款 ORT 版本**（flutter test 链路）里
+  真跑一次推理再收工；只在 .venv_ref 里验证会漏掉 1.15 独有的图变换坑。
+
+## [ml-porting] hf-mirror.com 可用，huggingface.co 直连不通（000）
+
+- 2026-09-19 实测：`curl https://huggingface.co` 直接超时（exit 000），
+  `https://hf-mirror.com` 正常（200）。下模型把域名换掉即可，API 路径
+  与官方一致（`/api/models/...`、`/<repo>/resolve/main/...`）。

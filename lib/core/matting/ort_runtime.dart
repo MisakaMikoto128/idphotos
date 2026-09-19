@@ -34,20 +34,27 @@ import 'package:onnxruntime/src/bindings/onnxruntime_bindings_generated.dart'
 // ignore: implementation_imports
 import 'package:path_provider/path_provider.dart';
 
-/// 抠图模型（MODNet photographic portrait matting，权重 int8 混合量化，
-/// 输入钉死 1024×1024；生成脚本 native/quantize/build_matting_model.py）。
-const String kMattingModelAsset = 'assets/models/modnet_portrait_1024_int8.onnx';
+/// 抠图模型（BiRefNet_lite，MIT 许可，来源 onnx-community/BiRefNet_lite-ONNX
+/// fp32 导出件，权重 int8 混合量化 + 整数网格常量无损 fp16；生成脚本
+/// native/quantize/build_birefnet_model.py，输入钉死 1024×1024）。
+///
+/// 2026-09-19 从 MODNet 换为 BiRefNet：MODNet 的发丝边缘是分割式的硬过渡，
+/// 换红底后白边/色边明显；BiRefNet 输出真正的抠图 alpha（发丝级软过渡）。
+/// 与 MODNet 的三处管线差异（缺一不可）：
+///   1. 归一化：RGB 通道序 + ImageNet mean/std（见 image_ops.dart 的
+///      kBirefnetMean/kBirefnetStd），不再是 BGR + (x/255−0.5)/0.5；
+///   2. 输出是 **logits**，要过 sigmoid 才是 alpha（见 matting_worker.dart）；
+///   3. 体积 67MB（MODNet 是 7.5MB），用户已批准"App 大点就大点"。
+/// 旧 MODNet 模型保留在 assets/models/ 供 A/B 对照 bench 使用，验收通过后清理。
+const String kMattingModelAsset = 'assets/models/birefnet_lite_1024_int8.onnx';
 
 /// 人脸模型（YuNet 2023mar）。
 const String kFaceModelAsset = 'assets/models/face_yunet_2023mar.onnx';
 
-/// MODNet 的固定输入边长。
+/// 抠图模型的固定输入边长。
 ///
-/// 2026-09-19 从 512 提到 1024（质量优先，用户批准不计速度）：512 时代
-/// 发丝锯齿的根源是分辨率而不是量化——全图压到 512² 后 alpha 要放大
-/// 4–8 倍，下游二值化把网格台阶烙进成片。fp32 源模型输入/输出是全动态
-/// 维度，量化脚本（native/quantize/build_matting_model.py，REF_SIZE）
-/// 钉成 1024；仍然钉死而不用动态维度，因为管线永远喂正方形固定尺寸。
+/// BiRefNet_lite 导出件把输入钉死在 1024×1024（MODNet 时代 512→1024 换档
+/// 的论证不变：发丝细节上限由模型输入分辨率决定）。
 ///
 /// 所有以"模型像素"为单位的下游参数（去斑/平滑/碎片判据/羽化）都以
 /// 本常量为基准换算，改这里即可整体换档，不要散落硬编码。

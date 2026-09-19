@@ -6,6 +6,7 @@
 library;
 
 import 'dart:isolate';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import '../api.dart';
@@ -16,9 +17,10 @@ import 'yunet_decoder.dart';
 
 /// 前景占比低于这个值就认为"这张图里没有可抠的人像"。
 ///
-/// 风景照 / 纯文字截图喂给 MODNet 会得到几乎全 0 的 mask，此时返回一张
+/// 风景照 / 纯文字截图喂给抠图模型会得到几乎全 0 的 mask，此时返回一张
 /// 空图对用户毫无意义，按契约抛 [MattingException]（"抠图失败了，换一张试试吧"）。
 /// 黄金集 8 张的前景占比在 0.21–0.69，阈值取 0.01 有足够余量。
+/// （BiRefNet 换档后复核：黄金集占比口径不变，见 G2A 重跑记录。）
 const double kMinForegroundRatio = 0.01;
 
 /// 前景完整性门槛（G4.3 碎片化优雅失败）：把二值 alpha（@128）按
@@ -182,12 +184,12 @@ MattingPayload runMattingSync(Uint8List bytes, int sessionAddress,
 /// **人像门槛（G4.3 的主判据）**：[faceSessionAddress] 非 null 时先跑
 /// 与 detectFace 完全同口径的检脸（YuNet + pickSubjectFace +
 /// kMinFaceAreaRatio），检不到就抛 [NoFaceException]（主会话 r2 指令，
-/// 文案"没找到人脸，请手动框选"经 controller 错误通道渲染）——MODNet 对任意图
+/// 文案"没找到人脸，请手动框选"经 controller 错误通道渲染）——抠图模型对任意图
 /// 都会强抠出一个"显著主体"，电路板/地球仪/风景的 alpha 甚至相当连贯，
 /// 单看 alpha 结构杀不掉这些伪主体；校准数据（88 张全量，见
 /// frag_gate_calib_test.dart）显示它是唯一能把"黄金集+14 张人像全过"与
 /// "21 张伪成功非人像全拒"同时做干净的分界：真图主脸面积 ≥0.066、置信度
-/// ≥0.93，全部伪成功非人像要么无脸要么主脸 ≤0.019。门槛放在 MODNet
+/// ≥0.93，全部伪成功非人像要么无脸要么主脸 ≤0.019。门槛放在抠图
 /// **之前**：被拒的图省掉整次抠图推理，失败路径更快、瞬时内存更小。
 /// 传 null 表示引擎已用缓存裁决过本次门槛（跳过检脸，省一次推理）。
 ///
@@ -210,7 +212,7 @@ MattingPayload runMattingFromRgb(DecodedImage image, int sessionAddress,
   );
 }
 
-/// 抠图核心：人像门槛（可选）→ MODNet → 前景占比/碎片化门槛 →
+/// 抠图核心：人像门槛（可选）→ BiRefNet → 前景占比/碎片化门槛 →
 /// alpha 放大回工作分辨率 + 羽化。alpha-only 路径与完整 payload 路径共用。
 class _MattingCore {
   _MattingCore(this.alpha, this.subjectFace);
@@ -234,8 +236,8 @@ _MattingCore _mattingCore(DecodedImage image, int sessionAddress,
   }
 
   final input =
-      modnetInput(image.rgb, image.width, image.height, kMattingInputSize);
-  final alpha = _matteFromModnetInput(
+      birefnetInput(image.rgb, image.width, image.height, kMattingInputSize);
+  final alpha = _matteFromModelInput(
       input, sessionAddress, image.width, image.height);
   return _MattingCore(alpha, subjectFace);
 }
@@ -244,23 +246,28 @@ _MattingCore _mattingCore(DecodedImage image, int sessionAddress,
 ///
 /// 参数依据见 [kMatteSmoothSigma]。两步都作用在模型尺度（[size]×[size]）
 /// 上，必须在放大回工作分辨率**之前**做，否则网格台阶已经烙进数据里了。
-Uint8List cleanMatte(Uint8List alpha, int size) {
+///
+/// [medianPasses]/[smoothSigma] 仅供 bench 做参数 A/B；生产路径不传，
+/// 走 [kMatteMedianPasses]/[kMatteSmoothSigma] 常量。
+Uint8List cleanMatte(Uint8List alpha, int size,
+    {int? medianPasses, double? smoothSigma}) {
   var out = alpha;
-  for (var i = 0; i < kMatteMedianPasses; i++) {
+  for (var i = 0; i < (medianPasses ?? kMatteMedianPasses); i++) {
     out = medianGray3(out, size, size);
   }
-  if (kMatteSmoothSigma > 0) {
-    out = featherGray(out, size, size, kMatteSmoothSigma);
+  final sigma = smoothSigma ?? kMatteSmoothSigma;
+  if (sigma > 0) {
+    out = featherGray(out, size, size, sigma);
   }
   return out;
 }
 
-/// MODNet 推理 + alpha 后处理（前景占比/碎片门槛、放大回工作分辨率、羽化）。
+/// 抠图模型推理 + alpha 后处理（前景占比/碎片门槛、放大回工作分辨率、羽化）。
 ///
-/// 输入是已按 [modnetInput]/[modnetInputFromRgba] 备好的 NCHW（边长 =
-/// [kMattingInputSize]）——rgb 路径（黄金集口径）与 RGBA 预计算路径
-/// （G4 r3）共用同一套实现，喂进模型的字节逐位一致，产出也逐位一致。
-Uint8List _matteFromModnetInput(
+/// 输入是已按 [birefnetInput]/[birefnetInputFromRgba] 备好的 NCHW
+/// （边长 = [kMattingInputSize]）——rgb 路径（黄金集口径）与 RGBA 预计算
+/// 路径（G4 r3）共用同一套实现，喂进模型的字节逐位一致，产出也逐位一致。
+Uint8List _matteFromModelInput(
     Float32List input, int sessionAddress, int dstW, int dstH) {
   final outputs = runFloatInput(
     sessionAddress,
@@ -327,12 +334,12 @@ MattingPayload runMattingAlphaOnly(DecodedImage image, int sessionAddress,
 /// 预计算输入版抠图（G4 r3 dart:ui 降采样路径专用）。
 ///
 /// 与 [runMattingAlphaOnly] 的差别只在**输入缓冲从哪来**：模型输入
-/// （YuNet letterbox + MODNet N²，N = kMattingInputSize）由调用方在宿主
+/// （YuNet letterbox + 抠图 N²，N = kMattingInputSize）由调用方在宿主
 /// isolate 直接从 RGBA 算好带进来，worker 里不再持有 rgba、不再转紧凑
 /// rgb——Isolate.run 的闭包拷贝从 w*h*4 降到固定两张 Float32 输入
-/// （1024 口径下 4.9+12.6 ≈ 17.5MB；512 时代是 8MB），worker 峰值少掉
+/// （1024 口径下 4.9+12.6 ≈ 17.5MB），worker 峰值少掉
 /// ~22MB（rgba 12.6 + rgb 9.4，2048 工作分辨率口径）。喂进模型的字节与
-/// 旧路径**逐位一致**（见 [modnetInputFromRgba] 的等价论证），输出不变。
+/// 旧路径**逐位一致**（见 [birefnetInputFromRgba] 的等价论证），输出不变。
 ///
 /// [faceSessionAddress] 非 null 时先跑人像门槛（同 [runFaceFromRgb] 口径：
 /// YuNet + pickSubjectFace + kMinFaceAreaRatio），检不到抛
@@ -344,7 +351,7 @@ MattingPayload runMattingAlphaOnly(DecodedImage image, int sessionAddress,
 /// 同口径——controller 先 removeBackground 再 detectFace 会命中缓存，
 /// 两者给不出不同的 rollDeg。传 null 则该次门槛不产摆正角。
 MattingPayload runMattingPrecomputed({
-  required Float32List modnetInput,
+  required Float32List mattingInput,
   LetterboxInput? yunetInput,
   Uint8List? gray,
   required int sessionAddress,
@@ -363,7 +370,7 @@ MattingPayload runMattingPrecomputed({
       throw const NoFaceException(cause: 'face gate: no subject face');
     }
   }
-  final alpha = _matteFromModnetInput(modnetInput, sessionAddress, width,
+  final alpha = _matteFromModelInput(mattingInput, sessionAddress, width,
       height);
   return MattingPayload.alphaOnly(
     TransferableTypedData.fromList(<Uint8List>[alpha]),
@@ -541,10 +548,11 @@ FaceInfo? faceFromYunetInput(LetterboxInput input, int sessionAddress, int imgW,
   return toFaceInfo(face, input.scale, imgW, imgH, pupil: pupil);
 }
 
-/// `[1,1,N,N]` 的嵌套输出 → N*N 的 uint8（N = 模型输入边长）。
+/// `[1,1,N,N]` 的嵌套 **logits** 输出 → N*N 的 uint8 alpha（N = 模型输入边长）。
 ///
-/// 取整方式刻意与参考实现的 `(matte * 255).astype("uint8")` 一致：向零截断，
-/// 不是四舍五入。差一个 LSB 在 g08 这类发丝图上会实打实地影响 IoU。
+/// BiRefNet 导出件的输出是 logits（实测范围 −20 ~ +140），必须过 sigmoid
+/// 才是 alpha。取整方式刻意与参考实现的 `(matte * 255).astype("uint8")`
+/// 一致：sigmoid 后向零截断，不是四舍五入。
 Uint8List _matteToBytes(dynamic value, int size) {
   final out = Uint8List(size * size);
   var i = 0;
@@ -555,7 +563,8 @@ Uint8List _matteToBytes(dynamic value, int size) {
       if (i >= out.length) {
         throw const MattingException(cause: 'matte longer than expected');
       }
-      var b = (v * 255).toInt();
+      final p = 1.0 / (1.0 + math.exp(-v.toDouble()));
+      var b = (p * 255).toInt();
       if (b < 0) b = 0;
       if (b > 255) b = 255;
       out[i++] = b;
