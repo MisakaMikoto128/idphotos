@@ -34,19 +34,31 @@ import 'package:onnxruntime/src/bindings/onnxruntime_bindings_generated.dart'
 // ignore: implementation_imports
 import 'package:path_provider/path_provider.dart';
 
-/// 抠图模型（MODNet photographic portrait matting，权重 int8 混合量化，
+/// fast 档抠图模型（MODNet photographic portrait matting，权重 int8 混合量化，
 /// 输入钉死 1024×1024；生成脚本 native/quantize/build_matting_model.py）。
 ///
-/// 2026-09-19 BiRefNet_lite 换档（02bcd3d，67MB）因速度回退：PC 上即使
-/// vendored ORT 1.29 + t6 也要 ~9s，手机更慢；回退到 MODNet-1024，
-/// ORT 1.29 与自适应线程保留。BiRefNet 生成脚本与对照 bench 留档在
-/// native/quantize/build_birefnet_model.py、native/bench/birefnet_compare_test.dart。
+/// 2026-09-19 双模型合并（db778aa 契约）：MODNet 回到生产，任 fast 档
+/// （默认档，warmUp 时加载）。BiRefNet 曾为唯一 matte（02bcd3d）、因速度
+/// 回退（5a699e8），现按用户拍板以 fine 档共存——用户自选快/慢。
 const String kMattingModelAsset = 'assets/models/modnet_portrait_1024_int8.onnx';
+
+/// fine 档抠图模型（BiRefNet_lite，MIT 许可，来源 onnx-community/
+/// BiRefNet_lite-ONNX fp32 导出件，权重 int8 混合量化 + 整数网格常量无损
+/// fp16；生成脚本 native/quantize/build_birefnet_model.py，输入钉死
+/// 1024×1024）。**懒加载**：首次 fine 档调用才建会话（67MB，读盘 + 图优化
+/// 数秒），不拖慢 warmUp；加载失败后允许重试（见 matting_engine.dart）。
+///
+/// 与 MODNet 的管线差异（matting_worker.dart 按 [MattingModelKind] 分流）：
+///   1. 归一化：RGB 通道序 + ImageNet mean/std（image_ops.dart 的
+///      kBirefnetMean/kBirefnetStd），不是 BGR + (x/255−0.5)/0.5；
+///   2. 输出是 **logits**，要过 sigmoid 才是 alpha。
+const String kFineMattingModelAsset =
+    'assets/models/birefnet_lite_1024_int8.onnx';
 
 /// 人脸模型（YuNet 2023mar）。
 const String kFaceModelAsset = 'assets/models/face_yunet_2023mar.onnx';
 
-/// MODNet 的固定输入边长。
+/// 抠图模型的固定输入边长（MODNet 与 BiRefNet 两档同为 1024）。
 ///
 /// 从 512 提到 1024（质量优先）：512 时代发丝锯齿的根源是分辨率而不是
 /// 量化——全图压到 512² 后 alpha 要放大 4–8 倍，下游二值化把网格台阶

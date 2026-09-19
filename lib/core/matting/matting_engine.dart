@@ -32,11 +32,17 @@ import 'matting_worker.dart';
 import 'ort_runtime.dart';
 import 'session_factory.dart';
 
-/// MODNet + YuNet 的端侧实现。全程本地，不触网。
+/// MODNet（fast 档）+ BiRefNet（fine 档）+ YuNet 的端侧实现。全程本地，不触网。
+///
+/// 双模型口径（db778aa 契约）：fast = MODNet-1024，warmUp 时与人脸模型一起
+/// 加载；fine = BiRefNet-lite-1024（67MB），首次 fine 档调用时懒加载、之后
+/// 常驻，加载失败允许重试（不一次故障钉死，成法同 [warmUp]）。
 mixin MattingEngineMixin {
-  int? _mattingSession;
+  int? _fastSession;
+  int? _fineSession;
   int? _faceSession;
   Future<void>? _warmUp;
+  Future<int>? _fineLoading;
   SessionFactory? _factory;
 
   /// 单槽人脸缓存（G4.3 人像门槛 + G4.7 内存）：key 是**同一实例**的输入
@@ -52,11 +58,17 @@ mixin MattingEngineMixin {
   String? get mattingProvider => _mattingProvider;
   String? _mattingProvider;
 
+  /// fine 档会话的执行提供者（未加载过为 null）。仅供排查。
+  String? get fineMattingProvider => _fineProvider;
+  String? _fineProvider;
+
   /// 工厂 isolate 里 OrtEnv 的 native 地址，供 bench 验证
   /// "每进程一个 env"（warmUp 失败重试前后必须同值）。生产代码勿用。
   int? get debugEnvAddress => _factory?.envAddress;
 
-  /// 加载两个模型。重复调用幂等：并发调用共享同一个 Future。
+  /// 加载 fast 档抠图模型与人脸模型（契约：fine 档大模型不在此加载，首次
+  /// fine 档调用时懒加载，见 [_loadFineSession]）。重复调用幂等：并发
+  /// 调用共享同一个 Future。
   Future<void> warmUp() {
     return _warmUp ??= _loadModels().catchError((Object e, StackTrace s) {
       // 失败后允许重试，否则一次瞬时故障会把引擎永久钉死。
@@ -68,7 +80,7 @@ mixin MattingEngineMixin {
   }
 
   Future<void> _loadModels() async {
-    if (_mattingSession != null && _faceSession != null) return;
+    if (_fastSession != null && _faceSession != null) return;
     // Windows：flutter test / 宿主机 bench 形态下 onnxruntime.dll 不在
     // 可执行文件旁，先按绝对路径预载（App 形态下是空操作）。必须在任何
     // ORT 绑定被触碰之前执行，否则 DynamicLibrary.open('onnxruntime.dll')
@@ -91,21 +103,53 @@ mixin MattingEngineMixin {
       releaseSession(matting.address);
       throw StateError('face session: ${face.error}');
     }
-    _mattingSession = matting.address;
+    _fastSession = matting.address;
     _mattingProvider = matting.provider;
     _faceSession = face.address;
   }
 
-  Future<int> _requireSession(bool matting) async {
+  /// fine 档会话：首次调用时懒加载（67MB 模型，读盘 + 图优化要数秒），之后
+  /// 常驻。并发调用共享同一个 Future；失败后重置 [_fineLoading] 允许重试
+  /// （成法同 [warmUp]，一次瞬时故障不把 fine 档永久钉死）。
+  ///
+  /// 前提：[_factory] 已由 [warmUp] 建好（fine 档调用必经 [_requireSession]，
+  /// 它内部先 await warmUp()）。
+  Future<int> _loadFineSession() async {
+    final existing = _fineSession;
+    if (existing != null) return existing;
+    final factory = _factory;
+    if (factory == null) {
+      throw StateError('fine session before warmUp factory');
+    }
+    final finePath = await resolveModelPath(kFineMattingModelAsset);
+    final fine = await factory.createSessionInFactory(finePath);
+    if (!fine.ok) {
+      throw StateError('fine session: ${fine.error}');
+    }
+    _fineSession = fine.address;
+    _fineProvider = fine.provider;
+    return fine.address;
+  }
+
+  Future<int> _requireSession(bool matting,
+      {MattingQuality quality = MattingQuality.fast}) async {
     await warmUp();
-    final s = matting ? _mattingSession : _faceSession;
+    if (matting && quality == MattingQuality.fine) {
+      return _fineLoading ??= _loadFineSession()
+          .catchError((Object e, StackTrace s) {
+        _fineLoading = null;
+        throw MattingException(cause: e.toString());
+      });
+    }
+    final s = matting ? _fastSession : _faceSession;
     if (s == null) {
       throw const MattingException();
     }
     return s;
   }
 
-  /// 抠图。
+  /// 抠图。[quality] 选择模型：fast = MODNet（默认，快），fine = BiRefNet
+  /// （慢，发丝级；首次调用懒加载 67MB 模型）。
   ///
   /// 返回的 rgba / alpha 同分辨率，为**引擎工作分辨率**：原图等比降采样
   /// 到长边 ≤ [kEngineMaxEdge]（原图本就 ≤ 该值时两者相同）。width/height
@@ -118,8 +162,12 @@ mixin MattingEngineMixin {
   /// - 检不到合格人脸（非人像或主脸过小，门槛见 matting_worker.dart）→
   ///   [NoFaceException]（"没找到人脸，请手动框选"）；alpha 呈碎片状 →
   ///   [MattingException]
-  Future<MattingResult> removeBackground(Uint8List imageBytes) async {
-    final session = await _requireSession(true);
+  Future<MattingResult> removeBackground(Uint8List imageBytes,
+      {MattingQuality quality = MattingQuality.fast}) async {
+    final session = await _requireSession(true, quality: quality);
+    final model = quality == MattingQuality.fine
+        ? MattingModelKind.birefnet
+        : MattingModelKind.modnet;
     // 人像门槛裁决优先吃缓存：同一 bytes 实例上次已检过脸，直接用结论，
     // 连解码都可以省（检不过的图在这儿就抛，不再进解码/推理管线）。
     // 缓存值在本 await 之前就拷进局部量，避免并发调用中途换条目。
@@ -173,8 +221,9 @@ mixin MattingEngineMixin {
         // rgba，而 1 字节/像素的灰度是这条路径上最小的一份拷贝。
         final Uint8List? gray =
             runGate ? grayPlaneFromRgba(r, p.width, p.height) : null;
-        final Float32List matting =
-            modnetInputFromRgba(r, p.width, p.height, kMattingInputSize);
+        final Float32List matting = model == MattingModelKind.birefnet
+            ? birefnetInputFromRgba(r, p.width, p.height, kMattingInputSize)
+            : modnetInputFromRgba(r, p.width, p.height, kMattingInputSize);
         payload = await Isolate.run(() {
           // alpha-only 路径：worker 只回 alpha（+人像门槛的检脸结果），
           // rgba 缓冲留在宿主，就地强制 A=255 后直接作为结果——不跨
@@ -189,6 +238,7 @@ mixin MattingEngineMixin {
             height: p.height,
             sourceWidth: p.sourceWidth,
             sourceHeight: p.sourceHeight,
+            model: model,
           );
         });
       } else {
@@ -196,7 +246,8 @@ mixin MattingEngineMixin {
           return runMattingSync(imageBytes, session,
               maxEdge: kEngineMaxEdge,
               targetEdge: kBigImageWorkEdge,
-              faceSessionAddress: runGate ? faceSession : null);
+              faceSessionAddress: runGate ? faceSession : null,
+              model: model);
         });
       }
       if (runGate) {
@@ -278,19 +329,24 @@ mixin MattingEngineMixin {
     }
   }
 
-  /// 释放两个会话与工厂 isolate。组合类的 `dispose()` 应当调用它。
+  /// 释放全部会话（fast / fine / face）与工厂 isolate。组合类的
+  /// `dispose()` 应当调用它。fine 档会话可能从未加载，按 null 跳过。
   Future<void> disposeMattingEngine() async {
-    final matting = _mattingSession;
+    final fast = _fastSession;
+    final fine = _fineSession;
     final face = _faceSession;
     final factory = _factory;
-    _mattingSession = null;
+    _fastSession = null;
+    _fineSession = null;
     _faceSession = null;
     _warmUp = null;
+    _fineLoading = null;
     _factory = null;
     _faceCacheKey = null;
     _faceCacheValue = null;
     _faceCacheValid = false;
-    if (matting != null) releaseSession(matting);
+    if (fast != null) releaseSession(fast);
+    if (fine != null) releaseSession(fine);
     if (face != null) releaseSession(face);
     // 会话全部释放后再关工厂，worker 里的 ReleaseEnv 才是安全的。
     await factory?.dispose();

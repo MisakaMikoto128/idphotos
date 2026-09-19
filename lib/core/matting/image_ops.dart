@@ -570,6 +570,43 @@ Float32List _modnetInputFromResampled(Uint8List resized, int size) {
   return out;
 }
 
+/// BiRefNet 归一化常量（ImageNet mean/std，权重卡的 preprocessor_config 口径：
+/// 先 /255 再 `(x - mean) / std`）。
+const List<double> kBirefnetMean = <double>[0.485, 0.456, 0.406];
+const List<double> kBirefnetStd = <double>[0.229, 0.224, 0.225];
+
+/// BiRefNet 前处理：RGB → [size]×[size] → **RGB** 通道序、NCHW、
+/// `(x/255 − mean) / std`（ImageNet）。
+///
+/// 与 MODNet 的两处差异：通道序是 RGB 不是 BGR（onnx-community 的导出件
+/// 按 transformers.js 的 ViTFeatureExtractor 口径喂 RGB）；归一化用
+/// ImageNet 统计量而不是 ±0.5。[size] 的生产口径 = `kMattingInputSize`。
+/// 生产路径由 fine 档（MattingQuality.fine）调用，见 matting_engine.dart。
+Float32List birefnetInput(Uint8List rgb, int w, int h, int size) {
+  final resized = areaResampleRgb(rgb, w, h, size, size);
+  return _birefnetInputFromResampled(resized, size);
+}
+
+/// [birefnetInput] 的 RGBA 源版本（dart:ui 降采样解码路径专用）。
+/// 逐位等价论证同 [modnetInputFromRgba]。
+Float32List birefnetInputFromRgba(Uint8List rgba, int w, int h, int size) {
+  final resized = areaResampleRgbFromRgba(rgba, w, h, size, size);
+  return _birefnetInputFromResampled(resized, size);
+}
+
+Float32List _birefnetInputFromResampled(Uint8List resized, int size) {
+  final out = Float32List(3 * size * size);
+  final plane = size * size;
+  for (var i = 0, p = 0; p < plane; i += 3, p++) {
+    out[p] = (resized[i] / 255.0 - kBirefnetMean[0]) / kBirefnetStd[0]; // R
+    out[plane + p] =
+        (resized[i + 1] / 255.0 - kBirefnetMean[1]) / kBirefnetStd[1]; // G
+    out[2 * plane + p] =
+        (resized[i + 2] / 255.0 - kBirefnetMean[2]) / kBirefnetStd[2]; // B
+  }
+  return out;
+}
+
 /// YuNet 前处理结果：等比缩放 + 右下角补 0 的 640×640 BGR NCHW（不做归一化）。
 class LetterboxInput {
   LetterboxInput(this.data, this.scale);

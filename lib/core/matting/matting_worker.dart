@@ -6,6 +6,7 @@
 library;
 
 import 'dart:isolate';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import '../api.dart';
@@ -13,6 +14,11 @@ import 'image_ops.dart';
 import 'iris_roll.dart';
 import 'ort_runtime.dart';
 import 'yunet_decoder.dart';
+
+/// 抠图模型种类（双模型合并，db778aa 契约）：[modnet] 任 fast 档，
+/// [birefnet] 任 fine 档。前处理（image_ops.dart）、输出解码（logits 是否
+/// 过 sigmoid）与模型尺度清理参数都按它分流。
+enum MattingModelKind { modnet, birefnet }
 
 /// 前景占比低于这个值就认为"这张图里没有可抠的人像"。
 ///
@@ -91,6 +97,15 @@ const double kMinFeatherSigma = 0.6;
 /// （native/bench/out/zg_p_2.png）。两者都没采纳。
 const int kMatteMedianPasses = 1;
 const double kMatteSmoothSigma = 0.4;
+
+/// BiRefNet（fine 档）的模型尺度去斑 + 平滑参数。标定于 BiRefNet 现役期
+/// （02bcd3d~5a699e8^）：1 轮 3×3 中值 + σ0.4，与 MODNet 数值巧合相同，
+/// 但两档独立成常量——BiRefNet 的 alpha 是真抠图软过渡，MODNet 偏硬边，
+/// 后续任何一档调参都不应波及另一档。前景占比 / 碎片化门槛两档共用
+/// （[kMinForegroundRatio] / [kMinLargestComponentShare]，BiRefNet 现役期
+/// 已按黄金集复核不变）。
+const int kBirefnetMatteMedianPasses = 1;
+const double kBirefnetMatteSmoothSigma = 0.4;
 
 /// 放大倍率低于这个值就认为"没有阶梯、但边缘偏硬"，固定补一次最小羽化。
 const double kHardEdgeUpscale = 1.5;
@@ -171,10 +186,13 @@ class MattingPayload {
 /// 兜底；全尺寸解码的瞬时缓冲不可避免，但后续管线只吃小图）。
 /// [faceSessionAddress] 非 null 时先跑人像门槛（见下）。
 MattingPayload runMattingSync(Uint8List bytes, int sessionAddress,
-    {int? maxEdge, int? targetEdge, int? faceSessionAddress}) {
+    {int? maxEdge,
+    int? targetEdge,
+    int? faceSessionAddress,
+    MattingModelKind model = MattingModelKind.modnet}) {
   final image = decodeToRgb(bytes, maxEdge: maxEdge, targetEdge: targetEdge);
   return runMattingFromRgb(image, sessionAddress,
-      faceSessionAddress: faceSessionAddress);
+      faceSessionAddress: faceSessionAddress, model: model);
 }
 
 /// 抠图推理 + 后处理。输入是已经按引擎工作分辨率解码好的 RGB。
@@ -192,9 +210,10 @@ MattingPayload runMattingSync(Uint8List bytes, int sessionAddress,
 /// 传 null 表示引擎已用缓存裁决过本次门槛（跳过检脸，省一次推理）。
 ///
 MattingPayload runMattingFromRgb(DecodedImage image, int sessionAddress,
-    {int? faceSessionAddress}) {
+    {int? faceSessionAddress,
+    MattingModelKind model = MattingModelKind.modnet}) {
   final core = _mattingCore(image, sessionAddress,
-      faceSessionAddress: faceSessionAddress);
+      faceSessionAddress: faceSessionAddress, model: model);
   final Uint8List rgba = image.toRgba();
   return MattingPayload(
     TransferableTypedData.fromList(<Uint8List>[rgba]),
@@ -210,7 +229,7 @@ MattingPayload runMattingFromRgb(DecodedImage image, int sessionAddress,
   );
 }
 
-/// 抠图核心：人像门槛（可选）→ MODNet → 前景占比/碎片化门槛 →
+/// 抠图核心：人像门槛（可选）→ 抠图模型 → 前景占比/碎片化门槛 →
 /// alpha 放大回工作分辨率 + 羽化。alpha-only 路径与完整 payload 路径共用。
 class _MattingCore {
   _MattingCore(this.alpha, this.subjectFace);
@@ -221,7 +240,8 @@ class _MattingCore {
 }
 
 _MattingCore _mattingCore(DecodedImage image, int sessionAddress,
-    {int? faceSessionAddress}) {
+    {int? faceSessionAddress,
+    MattingModelKind model = MattingModelKind.modnet}) {
   FaceInfo? subjectFace;
   if (faceSessionAddress != null) {
     subjectFace = runFaceFromRgb(image, faceSessionAddress);
@@ -233,10 +253,11 @@ _MattingCore _mattingCore(DecodedImage image, int sessionAddress,
     }
   }
 
-  final input =
-      modnetInput(image.rgb, image.width, image.height, kMattingInputSize);
-  final alpha = _matteFromModelInput(
-      input, sessionAddress, image.width, image.height);
+  final input = model == MattingModelKind.birefnet
+      ? birefnetInput(image.rgb, image.width, image.height, kMattingInputSize)
+      : modnetInput(image.rgb, image.width, image.height, kMattingInputSize);
+  final alpha = _matteFromModelInput(input, sessionAddress, image.width,
+      image.height, model: model);
   return _MattingCore(alpha, subjectFace);
 }
 
@@ -262,11 +283,14 @@ Uint8List cleanMatte(Uint8List alpha, int size,
 
 /// 抠图模型推理 + alpha 后处理（前景占比/碎片门槛、放大回工作分辨率、羽化）。
 ///
-/// 输入是已按 [modnetInput]/[modnetInputFromRgba] 备好的 NCHW
+/// 输入是已按对应模型的前处理函数（[modnetInput]/[modnetInputFromRgba] 或
+/// [birefnetInput]/[birefnetInputFromRgba]）备好的 NCHW
 /// （边长 = [kMattingInputSize]）——rgb 路径（黄金集口径）与 RGBA 预计算
 /// 路径（G4 r3）共用同一套实现，喂进模型的字节逐位一致，产出也逐位一致。
+/// [model] 决定输出解码（BiRefNet 的 logits 过 sigmoid）与模型尺度清理参数。
 Uint8List _matteFromModelInput(
-    Float32List input, int sessionAddress, int dstW, int dstH) {
+    Float32List input, int sessionAddress, int dstW, int dstH,
+    {MattingModelKind model = MattingModelKind.modnet}) {
   final outputs = runFloatInput(
     sessionAddress,
     input,
@@ -275,7 +299,8 @@ Uint8List _matteFromModelInput(
   );
   Uint8List small;
   try {
-    small = _matteToBytes(outputs.first?.value, kMattingInputSize);
+    small = _matteToBytes(outputs.first?.value, kMattingInputSize,
+        sigmoid: model == MattingModelKind.birefnet);
   } finally {
     for (final o in outputs) {
       o?.release();
@@ -283,7 +308,13 @@ Uint8List _matteFromModelInput(
   }
   // 在模型尺度上去斑 + 平滑（理由见 kMatteSmoothSigma 的注释）。放在两个
   // 门槛之前：门槛应当判"实际会交给下游的那张 alpha"，而不是清理前的中间态。
-  small = cleanMatte(small, kMattingInputSize);
+  small = cleanMatte(small, kMattingInputSize,
+      medianPasses: model == MattingModelKind.birefnet
+          ? kBirefnetMatteMedianPasses
+          : kMatteMedianPasses,
+      smoothSigma: model == MattingModelKind.birefnet
+          ? kBirefnetMatteSmoothSigma
+          : kMatteSmoothSigma);
 
   var foreground = 0;
   for (var i = 0; i < small.length; i++) {
@@ -314,9 +345,10 @@ Uint8List _matteFromModelInput(
 /// 调用方是 `native/bench/ml_probe3_main.dart`（P1 旧路径复刻探针），
 /// 删除前先改探针。
 MattingPayload runMattingAlphaOnly(DecodedImage image, int sessionAddress,
-    {int? faceSessionAddress}) {
+    {int? faceSessionAddress,
+    MattingModelKind model = MattingModelKind.modnet}) {
   final core = _mattingCore(image, sessionAddress,
-      faceSessionAddress: faceSessionAddress);
+      faceSessionAddress: faceSessionAddress, model: model);
   return MattingPayload.alphaOnly(
     TransferableTypedData.fromList(<Uint8List>[core.alpha]),
     image.width,
@@ -358,6 +390,7 @@ MattingPayload runMattingPrecomputed({
   required int height,
   int? sourceWidth,
   int? sourceHeight,
+  MattingModelKind model = MattingModelKind.modnet,
 }) {
   FaceInfo? subjectFace;
   if (faceSessionAddress != null) {
@@ -369,7 +402,7 @@ MattingPayload runMattingPrecomputed({
     }
   }
   final alpha = _matteFromModelInput(mattingInput, sessionAddress, width,
-      height);
+      height, model: model);
   return MattingPayload.alphaOnly(
     TransferableTypedData.fromList(<Uint8List>[alpha]),
     width,
@@ -546,11 +579,14 @@ FaceInfo? faceFromYunetInput(LetterboxInput input, int sessionAddress, int imgW,
   return toFaceInfo(face, input.scale, imgW, imgH, pupil: pupil);
 }
 
-/// `[1,1,N,N]` 的嵌套输出 → N*N 的 uint8（N = 模型输入边长）。
+/// `[1,1,N,N]` 的嵌套输出 → N*N 的 uint8 alpha（N = 模型输入边长）。
 ///
-/// 取整方式刻意与参考实现的 `(matte * 255).astype("uint8")` 一致：向零截断，
-/// 不是四舍五入。差一个 LSB 在 g08 这类发丝图上会实打实地影响 IoU。
-Uint8List _matteToBytes(dynamic value, int size) {
+/// [sigmoid] = true（BiRefNet/fine 档）时输出是 **logits**（实测范围
+/// −20 ~ +140），必须过 sigmoid 才是 alpha；MODNet（fast 档）直接产出
+/// matte，传 false。取整方式刻意与参考实现的 `(matte * 255).astype("uint8")`
+/// 一致：向零截断，不是四舍五入。差一个 LSB 在 g08 这类发丝图上会实打实
+/// 地影响 IoU。
+Uint8List _matteToBytes(dynamic value, int size, {bool sigmoid = false}) {
   final out = Uint8List(size * size);
   var i = 0;
   // 直接在嵌套结构上就地转换，不先摊平成 26 万个元素的 List<double>：
@@ -560,7 +596,9 @@ Uint8List _matteToBytes(dynamic value, int size) {
       if (i >= out.length) {
         throw const MattingException(cause: 'matte longer than expected');
       }
-      var b = (v * 255).toInt();
+      var d = v.toDouble();
+      if (sigmoid) d = 1.0 / (1.0 + math.exp(-d));
+      var b = (d * 255).toInt();
       if (b < 0) b = 0;
       if (b > 255) b = 255;
       out[i++] = b;
