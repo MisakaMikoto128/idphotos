@@ -4,8 +4,9 @@
 /// 原 "RUBRIC R5 45/38/17 偏差>10pp 致命" 的口径以用户要求为准，
 /// DESIGN.md §5 / RUBRIC R5 的同步由主会话处理）：
 /// * 桌面窗口（宽松档）：A 45% / B 38% / C 17%，维持原状；
-/// * 手机（紧凑档，`shortestSide < 600`）：A 51% / B 38% / C 11%，
-///   压缩区域 C 把空间让给区域 A 的拖拽框选。
+/// * 手机（紧凑档，`shortestSide < 600`）：A 56% / B 33% / C 11%，
+///   压缩区域 C、再收窄区域 B，把空间让给区域 A 的拖拽框选
+///   （2026-09-19 二次实测：A 再拉高约 1.1 倍，C 已到底不动）。
 ///
 /// 因此这里**不套 SafeArea**：整列铺满整屏，三段之和恒为 100%，
 /// 系统状态栏/导航栏的避让由各区域内部自己 padding 掉。
@@ -37,9 +38,9 @@ const int kAreaAFlex = 45;
 const int kAreaBFlex = 38;
 const int kAreaCFlex = 17;
 
-/// A / B / C 三段的 flex 权重（手机紧凑档）：压缩 C 让给 A。
-const int kAreaAFlexCompact = 51;
-const int kAreaBFlexCompact = 38;
+/// A / B / C 三段的 flex 权重（手机紧凑档）：C 压到底，B 再让给 A。
+const int kAreaAFlexCompact = 56;
+const int kAreaBFlexCompact = 33;
 const int kAreaCFlexCompact = 11;
 
 /// 全局 Theme。木制风格不用 Material 的配色，这里只做三件事：
