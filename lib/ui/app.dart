@@ -1,6 +1,12 @@
 /// 三段式骨架（CLAUDE.md §2，不得增删主区域）。
 ///
-/// 比例严格 **A 45% / B 38% / C 17%**（RUBRIC R5 实测，偏差 >10pp 是致命项）。
+/// 比例分**两档**（用户 2026-09-19 手机实测反馈后调整，门禁体系已停用，
+/// 原 "RUBRIC R5 45/38/17 偏差>10pp 致命" 的口径以用户要求为准，
+/// DESIGN.md §5 / RUBRIC R5 的同步由主会话处理）：
+/// * 桌面窗口（宽松档）：A 45% / B 38% / C 17%，维持原状；
+/// * 手机（紧凑档，`shortestSide < 600`）：A 51% / B 38% / C 11%，
+///   压缩区域 C 把空间让给区域 A 的拖拽框选。
+///
 /// 因此这里**不套 SafeArea**：整列铺满整屏，三段之和恒为 100%，
 /// 系统状态栏/导航栏的避让由各区域内部自己 padding 掉。
 ///
@@ -22,13 +28,19 @@ import 'state/providers.dart';
 import 'theme/fonts.dart';
 import 'theme/tokens.dart';
 import 'theme/typography.dart';
+import 'util/form_factor.dart';
 import 'widgets/about_sheet.dart';
 import 'widgets/spec_drawer.dart';
 
-/// A / B / C 三段的 flex 权重。
+/// A / B / C 三段的 flex 权重（桌面窗口宽松档）。
 const int kAreaAFlex = 45;
 const int kAreaBFlex = 38;
 const int kAreaCFlex = 17;
+
+/// A / B / C 三段的 flex 权重（手机紧凑档）：压缩 C 让给 A。
+const int kAreaAFlexCompact = 51;
+const int kAreaBFlexCompact = 38;
+const int kAreaCFlexCompact = 11;
 
 /// 全局 Theme。木制风格不用 Material 的配色，这里只做三件事：
 /// 关掉 ripple、锁死浅色模式、给未指定样式的文本一个衬线默认值。
@@ -48,6 +60,10 @@ class MuZhaoWorkbench extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool compact = isCompactPhone(context);
+    final int flexA = compact ? kAreaAFlexCompact : kAreaAFlex;
+    final int flexB = compact ? kAreaBFlexCompact : kAreaBFlex;
+    final int flexC = compact ? kAreaCFlexCompact : kAreaCFlex;
     return FontGate(
       child: DefaultTextStyle(
         style: Type.body(T.creamText),
@@ -55,16 +71,16 @@ class MuZhaoWorkbench extends StatelessWidget {
           color: T.woodBase,
           child: Stack(
             fit: StackFit.expand,
-            children: const <Widget>[
+            children: <Widget>[
               Column(
                 children: <Widget>[
-                  Expanded(flex: kAreaAFlex, child: AreaASource()),
-                  Expanded(flex: kAreaBFlex, child: AreaBCandidates()),
-                  Expanded(flex: kAreaCFlex, child: AreaCSave()),
+                  Expanded(flex: flexA, child: const AreaASource()),
+                  Expanded(flex: flexB, child: const AreaBCandidates()),
+                  Expanded(flex: flexC, child: const AreaCSave()),
                 ],
               ),
-              _SpecDrawerHost(),
-              _AboutSheetHost(),
+              const _SpecDrawerHost(),
+              const _AboutSheetHost(),
             ],
           ),
         ),

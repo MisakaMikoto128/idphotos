@@ -23,6 +23,7 @@ import '../theme/typography.dart';
 import '../theme/wood_painter.dart';
 import '../util/crop_geometry.dart';
 import '../util/error_text.dart';
+import '../util/form_factor.dart';
 import '../util/image_size.dart';
 import '../widgets/angle_gauge.dart';
 import '../widgets/crop_overlay.dart';
@@ -40,6 +41,10 @@ class AreaASource extends ConsumerWidget {
     final WorkbenchState wb = ref.watch(workbenchProvider);
     final double topInset = MediaQuery.paddingOf(context).top;
     final bool hasImage = app.sourceImage != null;
+    // 手机紧凑档：挤掉装饰性留白（顶部间距、行距、相框外边距），
+    // 把像素让给相框本体（用户 2026-09-19：手机上框选太小不好拖）。
+    // 触摸热区不缩水：档位拨杆/角度尺仍是 44 高。
+    final bool compact = isCompactPhone(context);
 
     // 换了新照片：上一张留下的取图/保存错误立即作废（审查 L3）——
     // 保存失败的红条不该跟着新照片走进第二轮。以 sourceImage 的**实例身份**
@@ -63,7 +68,7 @@ class AreaASource extends ConsumerWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              SizedBox(height: topInset + 8),
+              SizedBox(height: topInset + (compact ? 4 : 8)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
                 child: Row(
@@ -103,7 +108,7 @@ class AreaASource extends ConsumerWidget {
               // 仍在区域 A 之内，不新增第四个主区域（CLAUDE.md §2）。
               // 抠图中不禁用 —— controller 有代数守卫，连点安全（CONTRACTS §3）。
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 2, 14, 0),
+                padding: EdgeInsets.fromLTRB(16, compact ? 1 : 2, 14, 0),
                 child: QualitySwitch(
                   value: app.mattingQuality,
                   onChanged: (MattingQuality q) =>
@@ -112,7 +117,9 @@ class AreaASource extends ConsumerWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
+                  padding: compact
+                      ? const EdgeInsets.fromLTRB(14, 2, 14, 6)
+                      : const EdgeInsets.fromLTRB(14, 4, 14, 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
@@ -123,7 +130,7 @@ class AreaASource extends ConsumerWidget {
                           onPick: () => _pick(ref),
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: compact ? 4 : 6),
                       // 角度微调尺。紧贴画布下沿，因为它调的就是框里这张图；
                       // 仍在区域 A 之内，不新增第四个主区域（CLAUDE.md §2）。
                       // 冲洗中禁拖，与裁剪框同一条规矩。
@@ -218,8 +225,11 @@ class _CaptionRow extends StatelessWidget {
             : hasImage
                 ? '拖动四角调整裁剪范围　·　已锁定${spec.nameZh}比例'
                 : '支持 JPG / PNG　·　全程离线处理，照片不离开本机');
+    final bool compact = isCompactPhone(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 7, 14, 1),
+      padding: compact
+          ? const EdgeInsets.fromLTRB(16, 4, 14, 0)
+          : const EdgeInsets.fromLTRB(16, 7, 14, 1),
       child: Row(
         children: <Widget>[
           if (error != null)

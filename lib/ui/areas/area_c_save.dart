@@ -1,4 +1,5 @@
-/// 区域 C — 保存（DESIGN.md §5，占屏 17%）。
+/// 区域 C — 保存（DESIGN.md §5，桌面占屏 17%，手机紧凑档 11% ——
+/// 用户 2026-09-19 实测反馈：手机上 C 偏大，压缩后把空间让给区域 A）。
 ///
 /// 一块宽大的黄铜压花按钮，浮雕字"保 存 照 片"；按下时下沉 + 中等强度震动；
 /// 成功后按钮短暂改字，并从按钮上方飘出一张纸条。
@@ -21,6 +22,7 @@ import '../theme/surfaces.dart';
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
 import '../theme/wood_painter.dart';
+import '../util/form_factor.dart';
 import '../widgets/metal.dart';
 import '../widgets/press_effect.dart';
 
@@ -94,6 +96,7 @@ class _AreaCSaveState extends ConsumerState<AreaCSave> {
     final bool developing =
         app.stage == Stage.matting || app.stage == Stage.composing;
     final double bottomInset = MediaQuery.paddingOf(context).bottom;
+    final bool compact = isCompactPhone(context);
 
     return SizedBox.expand(
       key: const Key('area_c'),
@@ -108,14 +111,17 @@ class _AreaCSaveState extends ConsumerState<AreaCSave> {
           // 与区域 B 之间的接缝
           const Align(alignment: Alignment.topCenter, child: SeamDivider()),
           Padding(
-            padding: EdgeInsets.fromLTRB(16, 8, 16, 4 + bottomInset),
+            padding: EdgeInsets.fromLTRB(16, compact ? 4 : 8, 16, 4 + bottomInset),
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints c) {
-                // 按钮高度：占区域 C 可用高度的 68%，上限 92 逻辑像素。
-                // 旧上限 74 曾在主屏留下 ~50 逻辑像素的纯装饰空木面，
-                // 区域 C 因此显得比 17% 更空（visual-critic R5）。
-                final double h =
-                    (c.maxHeight * 0.68).clamp(40.0, 92.0).clamp(0.0, c.maxHeight);
+                // 按钮高度：占区域 C 可用高度的 68%。
+                // 桌面档上限 92 逻辑像素（旧上限 74 曾在主屏留下 ~50 逻辑像素
+                // 的纯装饰空木面，区域 C 因此显得比 17% 更空——visual-critic R5）。
+                // 手机紧凑档上限降到 60（用户 2026-09-19：C 在手机上偏大），
+                // 下限 44 保住触摸热区；桌面档维持 40–92 不动。
+                final double h = (c.maxHeight * 0.68)
+                    .clamp(compact ? 44.0 : 40.0, compact ? 60.0 : 92.0)
+                    .clamp(0.0, c.maxHeight);
                 // 高度够时在按钮上方刻一行当前规格小字，填掉按钮与桌沿
                 // 之间的空木面。注意 c.maxHeight 已扣除本层 Padding，
                 // 主屏约 121 逻辑像素；小屏约 97，放不下（97 < 116）就省略。
