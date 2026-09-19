@@ -15,7 +15,6 @@
 library;
 
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -29,24 +28,13 @@ import 'package:muzhao/core/matting/ort_runtime.dart' as ort;
 
 /// 宿主机（Windows）上跑 flutter test 时，onnxruntime 插件里那句
 /// `DynamicLibrary.open('onnxruntime.dll')` 找不到 DLL —— 插件的 DLL 只有在
-/// 打包成桌面 App 时才会被拷到可执行文件旁边。先按绝对路径把同一个 DLL
-/// 载进进程，之后 Windows 的 LoadLibrary 会按模块名命中已加载的那份。
+/// 打包成桌面 App 时才会被拷到可执行文件旁边。交给
+/// [ort.ensureOrtRuntimeLoaded] 处理：它按 package_config 解析插件真实落点
+/// （path 依赖 native/vendor/onnxruntime_flutter，ORT 1.29）。不要回退到
+/// 扫 pub cache 的旧写法——hosted 1.4.1 残留旧 dll，会抢先进场让升级失效。
 void _preloadHostOnnxRuntime() {
   if (!Platform.isWindows) return;
-  final home = Platform.environment['LOCALAPPDATA'];
-  if (home == null) return;
-  final dir = Directory('$home\\Pub\\Cache\\hosted\\pub.dev');
-  if (!dir.existsSync()) return;
-  for (final e in dir.listSync()) {
-    final name = e.path.split(Platform.pathSeparator).last;
-    if (e is Directory && name.startsWith('onnxruntime-')) {
-      final dll = File('${e.path}\\windows\\onnxruntime.dll');
-      if (dll.existsSync()) {
-        DynamicLibrary.open(dll.path);
-        return;
-      }
-    }
-  }
+  ort.ensureOrtRuntimeLoaded();
 }
 
 class _Engine with MattingEngineMixin {}
@@ -135,8 +123,12 @@ void main() {
 
   setUpAll(() async {
     _preloadHostOnnxRuntime();
-    ort.debugModelDirectory =
-        '$repo${Platform.pathSeparator}assets${Platform.pathSeparator}models';
+    // ③ A/B：MUZHAO_MODEL_DIR 指到候选模型目录（内含同名模型文件），
+    // 不覆盖 assets/models 里的现役模型。
+    final modelDir = Platform.environment['MUZHAO_MODEL_DIR'];
+    ort.debugModelDirectory = (modelDir != null && modelDir.isNotEmpty)
+        ? modelDir
+        : '$repo${Platform.pathSeparator}assets${Platform.pathSeparator}models';
     engine = _Engine();
     try {
       await engine.warmUp();

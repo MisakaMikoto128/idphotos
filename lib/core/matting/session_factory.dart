@@ -93,15 +93,18 @@ class SessionFactory {
     return send;
   }
 
-  /// 在工厂 isolate 里创建会话。
+  /// 在工厂 isolate 里创建会话。[threads] 为 null 时按
+  /// [defaultInferenceThreads] 在**工厂 isolate** 内自适应（同一进程同一
+  /// 硬件，值与宿主一致）。
   Future<SessionFactoryResult> createSessionInFactory(
     String modelPath, {
-    int threads = 4,
+    int? threads,
   }) async {
     try {
       final send = await _ensurePort();
       final reply = ReceivePort();
-      send.send(<Object>[reply.sendPort, modelPath, threads]);
+      // 0 = 自适应哨兵（List<Object> 不能装 null 之外的缺省语义）。
+      send.send(<Object>[reply.sendPort, modelPath, threads ?? 0]);
       final msg = await reply.first as List<dynamic>;
       reply.close();
       final result = SessionFactoryResult(
@@ -191,7 +194,9 @@ Future<void> _factoryMain(List<Object> init) async {
       return;
     }
     try {
-      final h = createSession(req[1] as String, threads: req[2] as int);
+      final t = req[2] as int;
+      final h = createSession(req[1] as String,
+          threads: t > 0 ? t : null); // 0 = 自适应（见 createSessionInFactory）
       reply.send(<Object?>[
         h.address,
         h.provider,

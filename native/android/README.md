@@ -3,7 +3,7 @@
 ## 为什么需要这个目录
 
 pub 包 `onnxruntime: ^1.4.1` 的 `android/src/main/jniLibs/` **只带了
-`arm64-v8a` 和 `armeabi-v7a`**，没有 `x86_64`。
+`arm64-v8a` 和 `armeabi-v7a`**，没有 `x86_64`（上游 2023-12 刻意移除）。
 
 后果：真机（全是 arm64）没问题，但本项目的两台 AVD
 （`Pixel_3a_API_34_extension_level_7_x86_64` 与 `MuZhao_Small`）都是 x86_64，
@@ -14,24 +14,24 @@ pub 包 `onnxruntime: ^1.4.1` 的 `android/src/main/jniLibs/` **只带了
 
 ## 这里放了什么
 
-`jniLibs/x86_64/libonnxruntime.so`（16.5 MB）取自 Maven Central 官方包
-`com.microsoft.onnxruntime:onnxruntime-android:1.15.1` 的 `jni/x86_64/`。
+`jniLibs/x86_64/libonnxruntime.so`（38.5 MB）取自 Maven Central 官方包
+`com.microsoft.onnxruntime:onnxruntime-android:1.29.0` 的 `jni/x86_64/`，
+与 vendored 插件（`native/vendor/onnxruntime_flutter`，见该处 VENDORED.md）
+三 ABI 同源同版本。
 
-版本对得上：该 AAR 里 `jni/arm64-v8a/libonnxruntime.so` 与插件自带的那份
-字节数完全一致（14,203,224），说明插件就是从这个 AAR 重打包出来的，
-两者 ABI/API 版本相同（`OrtGetApiBase()->GetApi(14)`）。
+2026-09-19 提速专项从 1.15.1 换到 1.29.0：插件已改 path 依赖 vendored 版
+（自带 x86_64），本目录这份与 vendored 的 x86_64 **字节相同**，gradle
+`packaging.jniLibs.pickFirsts` 取哪份都一样。保留本目录是为了
+"插件被换回 hosted 时模拟器仍能跑"的兜底。
 
-## 需要 release agent 做的事
+旧 1.15.1 版留档：`native/vendor/ort-bin/ort-1.15.1-android-x86_64.libonnxruntime.so`。
 
-`android/app/build.gradle.kts` 不归 ml-porting，请在 `android { }` 里加：
+版本对得上：Dart 绑定按 `GetApi(15)` 取前缀布局，ORT 1.29 实测兼容
+（GetApi 支持 [1,29]，append-only 结构体，Python ctypes 与设备端探针
+双路验证，探针打印 `ort=1.29.0`）。
 
-```kotlin
-sourceSets {
-    getByName("main") {
-        jniLibs.srcDirs("src/main/jniLibs", "../../native/android/jniLibs")
-    }
-}
-```
+## release agent 已做的事（历史记录）
 
-发布包不需要 x86_64（真机没有 x86_64 Android 手机），用 abiFilters 排掉即可，
-详见 ml-porting 阶段 2 报告里给 release 的完整清单。
+`android/app/build.gradle.kts` 已加 jniLibs.srcDirs 合并本目录，
+release 用 abiFilters 排掉 x86/x86_64（模拟器验证走 MUZHAO_EXTRA_ABIS）。
+

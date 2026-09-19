@@ -10,7 +10,7 @@
 ///    任一步失败都能降级，不会让 App 起不来。
 library;
 
-import 'dart:convert' show utf8;
+import 'dart:convert' show jsonDecode, utf8;
 import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:typed_data';
@@ -76,37 +76,39 @@ String? debugModelDirectory;
 /// 两条运行形态的差别：
 ///
 /// 1. **Flutter 桌面 App**（`flutter run -d windows` / build）：插件的
-///    `windows/CMakeLists.txt` 把 pub cache 里的 onnxruntime.dll 列进
+///    `windows/CMakeLists.txt` 把 vendored 插件里的 onnxruntime.dll 列进
 ///    `onnxruntime_bundled_libraries`，构建时自动拷到 runner.exe 旁边，
-///    什么都不用做。
+///    什么都不用做（候选 3 的 exe 旁路径覆盖同一文件，显式预载等价）。
 /// 2. **`flutter test` / 宿主机 bench**（flutter_tester.exe）：没有任何
-///    打包步骤，按名字搜索必然失败。这里按绝对路径先 `DynamicLibrary.open`
-///    一次；之后绑定层按模块名再 open 时，LoadLibrary 命中已加载的同名
-///    模块，返回同一句柄。
+///    打包步骤，按名字搜索会命中**错误来源**——本机 System32 里躺着别的
+///    软件装的 onnxruntime.dll 1.17.1（2026-09-19 实测劫持：标着"1.29 A/B"
+///    的两组数字其实在跑 1.17.1）。所以**绝不先按名字 open**，一律按绝对
+///    路径预载候选，全部失败才轮到按名字兜底。
 ///
-/// 搜索顺序：环境变量 `MUZHAO_ORT_DLL`（指向 dll 文件，优先）→ pub cache
-/// 里 onnxruntime 插件包的 `windows/onnxruntime.dll` → 可执行文件目录。
-/// 非 Windows 平台是空操作。找不到也不抛：让后续真正的 open 按原样失败，
-/// 错误信息保持插件原生语义。
+/// 候选顺序：环境变量 `MUZHAO_ORT_DLL`（A/B 切换用）→ package_config 解析的
+/// 插件包 windows/onnxruntime.dll（hosted/path 依赖都正确）→ 可执行文件旁
+/// （App 形态）→ pub cache hosted 目录（旧布局兼容）。
+/// 实际命中的路径记在 [ortLoadedFrom]，版本可经 [ortVersionString] 复核。
+/// 非 Windows 平台是空操作。
 ///
 /// 必须在**任何** ORT 绑定被触碰之前调用（warmUp / createSession 之前）。
 bool ensureOrtRuntimeLoaded() {
   if (!Platform.isWindows) return false;
-  try {
-    ffi.DynamicLibrary.open('onnxruntime.dll');
-    // 按名字已经能打开（App 形态，dll 在 exe 旁），无需预载。
-    ortLoadFailureReason = null;
-    return false;
-  } on ArgumentError {
-    // 继续按候选路径找。
-  } on IOException {
-    // 同上（路径存在但加载失败等）。
-  }
   final candidates = <String>[];
   final env = Platform.environment['MUZHAO_ORT_DLL'];
   if (env != null && env.isNotEmpty) {
     candidates.add(env);
   }
+  // 2026-09-19 起 onnxruntime 改为 path 依赖（native/vendor/onnxruntime_flutter，
+  // ORT 1.29.0 二进制）。宿主 test/bench 形态下按 package_config 解析插件的
+  // 真实落点——不能只看 pub cache：那里残留 hosted 1.4.1 的旧 dll（1.15.1），
+  // 抢先把旧库载进进程会让升级静默失效。
+  final vendored = _pluginDllFromPackageConfig();
+  if (vendored != null) {
+    candidates.add(vendored);
+  }
+  candidates.add('${File(Platform.resolvedExecutable).parent.path}'
+      '\\onnxruntime.dll');
   final pubCache = Platform.environment['PUB_CACHE'];
   final localAppData = Platform.environment['LOCALAPPDATA'];
   final cacheRoots = <String>[
@@ -125,13 +127,12 @@ bool ensureOrtRuntimeLoaded() {
       }
     }
   }
-  candidates.add('${File(Platform.resolvedExecutable).parent.path}'
-      '\\onnxruntime.dll');
   for (final path in candidates) {
     if (!File(path).existsSync()) continue;
     try {
       ffi.DynamicLibrary.open(path);
       ortLoadFailureReason = null;
+      ortLoadedFrom = path;
       return true;
     } catch (e) {
       // 换下一个候选，但**把原因留下来**：候选全失败时本函数只回 false，
@@ -140,12 +141,72 @@ bool ensureOrtRuntimeLoaded() {
       ortLoadFailureReason = '$path: $e';
     }
   }
+  // 全部候选不可用：按名字兜底（App 形态的正常路径；宿主形态下若命中
+  // System32 的异版 dll，ortLoadedFrom 会如实记下 'by-name' 供排查）。
+  try {
+    ffi.DynamicLibrary.open('onnxruntime.dll');
+    ortLoadFailureReason = null;
+    ortLoadedFrom ??= 'by-name (system search)';
+    return false;
+  } on ArgumentError {
+    // 继续按候选路径找。
+  } on IOException {
+    // 同上（路径存在但加载失败等）。
+  }
   return false;
+}
+
+/// 实际预载命中的 dll 路径（'by-name (system search)' 表示按名字命中系统
+/// 搜索序——宿主形态下这通常意味着 System32 里异版 dll 劫持，要警惕）。
+/// 与 [ortVersionString] 配合是"运行时版本自证"的两条腿。
+String? ortLoadedFrom;
+
+/// 从 `.dart_tool/package_config.json` 解析 onnxruntime 插件包的真实根目录，
+/// 返回其 `windows/onnxruntime.dll` 路径（不存在返回 null）。
+///
+/// 同时兼容 hosted 与 path 两种依赖形态；flutter test / 宿主 bench 的 cwd 是
+/// 仓库根目录，package_config 就在那里。解析失败一律返回 null（让候选链继续）。
+String? _pluginDllFromPackageConfig() {
+  try {
+    final cfg = File('.dart_tool${Platform.pathSeparator}package_config.json');
+    if (!cfg.existsSync()) return null;
+    final json = jsonDecode(cfg.readAsStringSync()) as Map<String, dynamic>;
+    for (final p in (json['packages'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()) {
+      if (p['name'] != 'onnxruntime') continue;
+      // rootUri 可能是相对 package_config.json 的相对路径（path 依赖）或
+      // file:/// 绝对 URI（hosted）。统一交给 Uri 解析。
+      final root = Uri.parse(p['rootUri'] as String);
+      final resolved = root.isAbsolute
+          ? root.toFilePath()
+          : Uri.file('${cfg.parent.path}${Platform.pathSeparator}')
+              .resolveUri(root)
+              .toFilePath();
+      final dll = '$resolved${Platform.pathSeparator}windows'
+          '${Platform.pathSeparator}onnxruntime.dll';
+      if (File(dll).existsSync()) return dll;
+    }
+  } catch (_) {
+    // 解析失败不挡路：返回 null，候选链继续。
+  }
+  return null;
 }
 
 /// 最近一次候选路径装载失败的原因（`"<path>: <error>"`），成功装载或按名字
 /// 直接打开时置 null。仅供排查——见 [ensureOrtRuntimeLoaded]。
 String? ortLoadFailureReason;
+
+/// 当前进程实际加载的 ORT 库版本字符串（如 "1.15.1" / "1.29.0"）。
+///
+/// 排查口：二进制替换（vendor 升级）或预载路径出错时，这里说的是**实际生效**
+/// 的版本，比 pubspec.lock 可信。必须在任一 ORT 绑定被触碰后调用才有意义
+/// （本质是问已加载的 dll/so 要版本号）。
+String ortVersionString() {
+  final base = ob.onnxRuntimeBinding.OrtGetApiBase();
+  final fn = base.ref.GetVersionString
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+  return fn().cast<fz.Utf8>().toDartString();
+}
 
 /// 把模型资源落地成一个可被 ORT 直接打开的文件路径。
 Future<String> resolveModelPath(String assetKey) async {
@@ -196,10 +257,24 @@ void _ensureEnv() {
   _envInitialized = true;
 }
 
+/// 抠图会话的默认 intra-op 线程数（2026-09-19 提速专项标定）。
+///
+/// 标定数据（native/bench/ort_speed_sweep_test.dart 轮询交替采样，PC 16 逻辑
+/// 核）：t4→t6 的 min 口径 −6~9%（1.15.1 与 1.29 一致），t8 的 min 更好但
+/// p95 在负载下显著劣化（更多线程对争抢更敏感），取 6 为上界。
+/// 中低端 Android（4–8 逻辑核）落在 2–4，与阶段 2 的原默认一致。
+int defaultInferenceThreads() {
+  final n = Platform.numberOfProcessors;
+  if (n >= 12) return 6;
+  if (n >= 6) return 4;
+  return 2;
+}
+
 /// 按 XNNPACK → NNAPI → CPU 的顺序创建会话，返回第一个成功的。
 ///
-/// [threads] 为 intra-op 线程数。中端机大核通常 2–4 个，给 4 已经够用，
-/// 再多反而因为调度抖动拉高 p95。
+/// [threads] 为 intra-op 线程数；null（默认）按 [defaultInferenceThreads]
+/// 自适应。中端机大核通常 2–4 个，给 4 已经够用，再多反而因为调度抖动
+/// 拉高 p95。
 ///
 /// 内存口径（G4.7 floor）：本函数绕过插件的 `OrtSessionOptions`，直接走
 /// OrtApi 的 FFI 入口建会话（插件不暴露 options 的 native 指针，无法在其上
@@ -214,10 +289,11 @@ void _ensureEnv() {
 /// 只能用默认 arena 配置。CPU 直连（无 XNNPACK）+ kSameAsRequested 实测
 /// 稳定，但瞬态峰值反而更高（+75MB vs +25MB）。要启用需显式调
 /// [applySameAsRequestedArena]（生产代码不要调）。
-OrtSessionHandle createSession(String modelPath, {int threads = 4}) {
+OrtSessionHandle createSession(String modelPath, {int? threads}) {
   _ensureEnv();
+  final intra = threads ?? defaultInferenceThreads();
   if (debugUsePluginSessionCreation) {
-    return _createSessionViaPlugin(modelPath, threads: threads);
+    return _createSessionViaPlugin(modelPath, threads: intra);
   }
   // 刻意不用 `OrtSession.fromFile`：插件把路径按 UTF-8 `char*` 传给
   // `CreateSession`，而 Windows 上 ORT 的 `ORTCHAR_T` 是 `wchar_t`，
@@ -230,13 +306,14 @@ OrtSessionHandle createSession(String modelPath, {int threads = 4}) {
       ? <String>[debugForceEp!]
       : <String>['xnnpack', 'nnapi', 'cpu'];
   Object? lastError;
+  lastEpErrors.clear();
   for (final ep in attempts) {
     if (ep == 'nnapi' && !Platform.isAndroid) {
       continue;
     }
     ffi.Pointer<obg.OrtSessionOptions>? options;
     try {
-      options = _createSessionOptions(api, ep, threads);
+      options = _createSessionOptions(api, ep, intra);
       if (_envAllocatorReady && !debugOptOutEnvAllocator) {
         // 会话显式改用环境共享分配器（CreateAndRegisterAllocator 注册的那份，
         // 带 kSameAsRequested arena）。键名在 ORT 1.15 的
@@ -257,6 +334,7 @@ OrtSessionHandle createSession(String modelPath, {int threads = 4}) {
       }
     } catch (e) {
       lastError = e;
+      lastEpErrors[ep] = e.toString();
     } finally {
       // 成功、失败两条路径都要释放：`CreateSessionFromArray` 成功后
       // session 内部已经拷走了它需要的配置，`options` 不再被引用，
@@ -298,6 +376,30 @@ bool debugDisableCpuMemArena = false;
 /// 建会话（归因基准：把"FFI 建会话"从方程里消掉）。生产代码保持 false。
 bool debugUsePluginSessionCreation = false;
 
+/// bench 钩子：非 null 时覆盖 inter-op 线程数（生产恒为 1）。
+int? debugInterOpThreads;
+
+/// bench 钩子：true 时对会话调 `DisableMemPattern`（默认启用内存模式）。
+/// 生产代码保持 false。
+bool debugDisableMemPattern = false;
+
+/// bench 钩子：true 时把会话执行模式切到 PARALLEL（配合 inter-op>1 才有意义）。
+/// 生产代码保持 false（SEQUENTIAL）。
+bool debugParallelExecutionMode = false;
+
+/// bench 钩子：true 时设 `session.set_denormal_as_zero=1`（denormal 刷新为零，
+/// 部分 fp32 负载可免去 denormal 微码陷阱）。生产代码保持 false。
+bool debugSetDenormalAsZero = false;
+
+/// bench 钩子：true 时设 `session.disable_prepacking=1`（关掉权重预打包——
+/// 预打包会把 fp32 权重再拷一份 packed 布局，大模型上省 ~200MB 常驻，
+/// 代价是 conv 走非打包 kernel 变慢）。生产代码保持 false。
+bool debugDisablePrepacking = false;
+
+/// 最近一次 [createSession] 每个 EP 的失败原因（成功的 EP 不在表里）。
+/// 仅供 bench/排查读取。
+final Map<String, String> lastEpErrors = <String, String>{};
+
 /// 把 bench 钩子打包（跨 isolate 传递用）。这些全局量在工厂 isolate 里有
 /// **独立副本**——Isolate.spawn 不继承主 isolate 的全局量，必须在孵化时
 /// 显式带过去，否则 bench 的 A/B 开关在工厂里全部静默失效（踩过：
@@ -308,6 +410,11 @@ Map<String, Object?> debugBenchFlags() => <String, Object?>{
       'forceEp': debugForceEp,
       'usePluginSessionCreation': debugUsePluginSessionCreation,
       'disableCpuMemArena': debugDisableCpuMemArena,
+      'interOpThreads': debugInterOpThreads,
+      'disableMemPattern': debugDisableMemPattern,
+      'parallelExecutionMode': debugParallelExecutionMode,
+      'setDenormalAsZero': debugSetDenormalAsZero,
+      'disablePrepacking': debugDisablePrepacking,
     };
 
 /// 在工厂 isolate 里应用 [debugBenchFlags] 的快照。
@@ -318,6 +425,11 @@ void applyDebugBenchFlags(Map<Object?, Object?> f) {
       f['skipEnvAllocatorRegistration'] == true;
   debugUsePluginSessionCreation = f['usePluginSessionCreation'] == true;
   debugDisableCpuMemArena = f['disableCpuMemArena'] == true;
+  debugInterOpThreads = f['interOpThreads'] as int?;
+  debugDisableMemPattern = f['disableMemPattern'] == true;
+  debugParallelExecutionMode = f['parallelExecutionMode'] == true;
+  debugSetDenormalAsZero = f['setDenormalAsZero'] == true;
+  debugDisablePrepacking = f['disablePrepacking'] == true;
   debugForceEp = f['forceEp'] as String?;
 }
 
@@ -487,7 +599,8 @@ ffi.Pointer<obg.OrtSessionOptions> _createSessionOptions(
     _checkOrt(
         api.SetInterOpNumThreads.asFunction<
                 obg.OrtStatusPtr Function(
-                    ffi.Pointer<obg.OrtSessionOptions>, int)>()(options, 1),
+                    ffi.Pointer<obg.OrtSessionOptions>, int)>()(
+            options, debugInterOpThreads ?? 1),
         'SetInterOpNumThreads');
     _checkOrt(
         api.SetSessionGraphOptimizationLevel.asFunction<
@@ -495,6 +608,27 @@ ffi.Pointer<obg.OrtSessionOptions> _createSessionOptions(
                     ffi.Pointer<obg.OrtSessionOptions>, int)>()(
             options, GraphOptimizationLevel.ortEnableAll.value),
         'SetSessionGraphOptimizationLevel');
+    if (debugDisableMemPattern) {
+      _checkOrt(
+          api.DisableMemPattern.asFunction<
+              obg.OrtStatusPtr Function(
+                  ffi.Pointer<obg.OrtSessionOptions>)>()(options),
+          'DisableMemPattern');
+    }
+    if (debugParallelExecutionMode) {
+      // ExecutionMode.ORT_PARALLEL = 1（onnxruntime_c_api.h）。
+      _checkOrt(
+          api.SetSessionExecutionMode.asFunction<
+              obg.OrtStatusPtr Function(
+                  ffi.Pointer<obg.OrtSessionOptions>, int)>()(options, 1),
+          'SetSessionExecutionMode(PARALLEL)');
+    }
+    if (debugSetDenormalAsZero) {
+      _setConfigEntry(api, options, 'session.set_denormal_as_zero', '1');
+    }
+    if (debugDisablePrepacking) {
+      _setConfigEntry(api, options, 'session.disable_prepacking', '1');
+    }
     if (debugDisableCpuMemArena) {
       final disableArena = api.DisableCpuMemArena.asFunction<
           obg.OrtStatusPtr Function(ffi.Pointer<obg.OrtSessionOptions>)>();
