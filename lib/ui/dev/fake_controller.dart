@@ -100,6 +100,31 @@ class FakeController implements IdPhotoController {
   }
 
   @override
+  void setMattingQuality(MattingQuality quality) {
+    if (quality == _state.mattingQuality) return;
+    if (_state.sourceImage == null) {
+      // 无图：只记档位，下次 loadImage 生效（CONTRACTS §3）。
+      _emit(_state.copyWith(mattingQuality: quality));
+      return;
+    }
+    // 有图：模拟真 controller 的"重新抠图"流转（matting → composing →
+    // ready）。假引擎没有模型可跑，候选在 ready 时原样重建；旧候选在流转
+    // 期间保留，区域 B 不会因清空而闪空框。
+    _emit(_state.copyWith(mattingQuality: quality, stage: Stage.matting));
+    _finishRemat();
+  }
+
+  Future<void> _finishRemat() async {
+    await _pause();
+    _emit(_state.copyWith(stage: Stage.composing));
+    await _pause();
+    _emit(_state.copyWith(
+      stage: Stage.ready,
+      candidates: buildFakeCandidates(_state.spec),
+    ));
+  }
+
+  @override
   Future<String> save(Candidate c) async {
     await _pause();
     return '/storage/emulated/0/Pictures/MuZhao/${c.style.id}.jpg';

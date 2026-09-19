@@ -28,6 +28,7 @@ import '../widgets/angle_gauge.dart';
 import '../widgets/crop_overlay.dart';
 import '../widgets/metal.dart';
 import '../widgets/press_effect.dart';
+import '../widgets/quality_switch.dart';
 import '../widgets/spec_ruler.dart';
 
 class AreaASource extends ConsumerWidget {
@@ -90,10 +91,24 @@ class AreaASource extends ConsumerWidget {
               _CaptionRow(
                 hasImage: hasImage,
                 spec: app.spec,
+                stage: app.stage,
+                quality: app.mattingQuality,
                 // 取图失败是 UI 层自己的错（不经过 controller），优先显示；
                 // 其余错误仍来自 AppState.errorMessage（CONTRACTS §6）。
                 error: wb.pickError ?? app.errorMessage,
                 onRepick: () => _pick(ref),
+              ),
+              // 抠图档位拨杆（双模型切换）。放在相框正上方：它调的就是框里
+              // 这张图的处理方式，与相框下方的角度尺上下呼应；
+              // 仍在区域 A 之内，不新增第四个主区域（CLAUDE.md §2）。
+              // 抠图中不禁用 —— controller 有代数守卫，连点安全（CONTRACTS §3）。
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 2, 14, 0),
+                child: QualitySwitch(
+                  value: app.mattingQuality,
+                  onChanged: (MattingQuality q) =>
+                      ref.read(controllerProvider).setMattingQuality(q),
+                ),
               ),
               Expanded(
                 child: Padding(
@@ -179,22 +194,30 @@ class _BrandPlate extends StatelessWidget {
 class _CaptionRow extends StatelessWidget {
   final bool hasImage;
   final PhotoSpec spec;
+  final Stage stage;
+  final MattingQuality quality;
   final String? error;
   final VoidCallback onRepick;
 
   const _CaptionRow({
     required this.hasImage,
     required this.spec,
+    required this.stage,
+    required this.quality,
     required this.error,
     required this.onRepick,
   });
 
   @override
   Widget build(BuildContext context) {
+    // 精细档重新抠图明显更慢（CONTRACTS §3）：等待中的提示就放在拨杆旁边，
+    // 免得用户以为卡住。错误优先于一切提示。
     final String text = error ??
-        (hasImage
-            ? '拖动四角调整裁剪范围　·　已锁定${spec.nameZh}比例'
-            : '支持 JPG / PNG　·　全程离线处理，照片不离开本机');
+        (stage == Stage.matting && quality == MattingQuality.fine
+            ? '精细档抠图较慢，请稍候'
+            : hasImage
+                ? '拖动四角调整裁剪范围　·　已锁定${spec.nameZh}比例'
+                : '支持 JPG / PNG　·　全程离线处理，照片不离开本机');
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 7, 14, 1),
       child: Row(

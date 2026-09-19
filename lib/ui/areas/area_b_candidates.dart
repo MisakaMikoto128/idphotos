@@ -62,7 +62,11 @@ class _AreaBCandidatesState extends ConsumerState<AreaBCandidates> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              _Header(stage: app.stage, count: app.candidates.length),
+              _Header(
+                stage: app.stage,
+                count: app.candidates.length,
+                quality: app.mattingQuality,
+              ),
               Expanded(
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints c) {
@@ -217,12 +221,19 @@ class _LipPainter extends CustomPainter {
 class _Header extends StatelessWidget {
   final Stage stage;
   final int count;
+  final MattingQuality quality;
 
-  const _Header({required this.stage, required this.count});
+  const _Header({
+    required this.stage,
+    required this.count,
+    required this.quality,
+  });
 
   String get _status => switch (stage) {
     Stage.idle => '等待照片',
-    Stage.matting => '正在抠图',
+    // 精细档抠图明显更慢（CONTRACTS §3），状态行明说，免得用户以为卡住。
+    Stage.matting =>
+      quality == MattingQuality.fine ? '正在精细抠图（较慢）' : '正在抠图',
     Stage.composing => '正在冲洗 $count / 6',
     Stage.ready => '已完成 6 张',
     Stage.error => '未能完成',

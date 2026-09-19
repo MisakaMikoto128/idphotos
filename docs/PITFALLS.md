@@ -4543,3 +4543,21 @@ Windows 上 dart:io 建目录 symlink 需要管理员或开发者模式；此前
 - 解法：**APK/IPA 构建期间不要在同仓库跑任何 flutter test/drive**。撞上了就
   `flutter clean && flutter build apk --release`（pub get 会重新生成干净的
   registrant），不用手改那个 java 文件。
+
+## [ui-woodcraft] 2026-09-19 字体子集再生成 pipeline 已验证可复现 + 共享工作树的已暂存文件陷阱
+
+- 子集字体完整再生命令（本机离线，fontTools 4.41.1）：
+  `fonttools varLib.instancer C:\Windows\Fonts\NotoSerifSC-VF.ttf wght=<400|700> -o %TEMP%\nsc<w>.ttf`
+  → `pyftsubset nsc<w>.ttf --text-file=%TEMP%\muzhao_charset.txt --output-file=assets/fonts\NotoSerifSC-Subset-<Regular|Bold>.ttf`
+  （charset 文件由 `dart run tools/charset_scan.dart` 生成；**不要加 --layout-features**，见 2026-09-14 条目）。
+  已验证：同字符集重跑产出的字体与仓库内旧文件**字节数相同、cmap/表集/字形序完全一致**
+  （仅 head 时间戳不同），即 pipeline 无损可复现，后续补字直接按上式跑即可。
+- 字符集预算是硬约束：G2C.8 按 `total <= 400*1024` 字节判定（409,600B，含 .gitkeep）。
+  本次补 66 字后两字体合计 401,140B（+148B gitkeep = 401,288B），**余量只剩 ~8KB**。
+  ml-porting 引擎侧字符串会进子集（errorMessage 由 UI 直接渲染，CONTRACTS §6），
+  引擎文案每加一批生僻字都要重跑扫描+子集化，且可能顶爆预算——届时需要主会话裁定
+  （例如控制台日志用字豁免子集）。
+- **共享工作树 commit 陷阱**：`git commit` 会把索引里**别人已 `git add` 暂存的文件**
+  一起卷进你的提交（本次 ml-porting 暂存的 67MB onnx 模型差点被我提交）。
+  多 agent 并行期，commit 前先 `git status --porcelain` 看暂存区，
+  发现非本势力的已暂存文件用 `git restore --staged <path>` 退出暂存再提交。
