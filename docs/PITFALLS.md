@@ -4503,3 +4503,43 @@ Windows 上 dart:io 建目录 symlink 需要管理员或开发者模式；此前
   `ortVersionString()` + `ortLoadedFrom` 自证。
 - 判据：**任何 ORT 版本对比数字，第一行输出必须是实测版本字符串**；
   没有自证行的历史数字一律存疑重测。
+
+## QDQ 静态量化对 CPU-only 运行时零收益（2026-09-19，提速专项 ③）
+
+- 症状：89MB QDQ 模型（QUInt8 激活 + QInt8 逐通道权重，22 张校准图）在
+  官方 ORT 构建上**速度和内存都没有收益**：官方 Windows/Android 包没有
+  XNNPACK EP，CPU EP 把 DQ 折回 fp32 执行，int8 只省了模型文件的落盘体积。
+- 实测（1.29.0，同机同夹具）：PC min 9277 vs 8137ms（轮间负载不均，交替
+  采样口径打平）；进程峰值 RSS 7971 vs 8434MB；模拟器 xnnpack 下 warmUp
+  成功、第一次推理峰值 3.1GB 被 LMK 杀（oom_score_adj=0），内存 cliff 原样。
+- 精度代价倒是真的：黄金集 dIoU −0.0034~+0.0016，但边缘带 edgeMAE 一致
+  变差（最差 +0.047），红底发丝裁片可见红晕加重。
+- 判据：**内存瓶颈在 fp32 中间激活（deform-conv 单次 transpose 瞬态
+  784MB），不在权重**——不碰激活量化执行链（XNNPACK 或 VNNI 核）的量化
+  方案，对这张模型一律无效，不要重试。
+
+## [ml-porting] 黄金集 g05 的参考 alpha 本身是坏的（和 g08 的混沌区不是一回事）
+- 现象：MODNet 回退复核（2026-09-19）发现 g05 IoU=0.03、MAE=0.56，
+  但生产输出的 alpha 肉眼完好（头肩轮廓干净）。
+- 原因：ref 来自参考脚本（`.ref_hivision/run_matting.py`，HivisionIDPhotos
+  原版 MODNet）在 295×413 低分辨率小图上的坏产出——几乎全黑，只剩几块
+  白斑（眼镜/衬衫高光），前景占比口径表里却是 58.2%（那是 src 统计，
+  不是 ref alpha 的实际情况）。冻结时没人逐张目检 ref 图。
+- 与 g08 的区别：g08 是 alpha 贴 128 阈值的混沌区（±1 LSB 翻大盘），
+  g05 是 ref 文件本身就是错的。两者都不适合当 IoU 断言对象，但定性不同。
+- 解法：ml-porting 的自测 bench（native/bench/matting_bench_test.dart）把
+  g05/g08 列入 knownBadRefs 跳过断言、逐张数值照打。要修 ref 得 qa-batch
+  解冻重建黄金集，不是实现侧的事。
+
+## [ml-porting] flutter test 与 flutter build apk 并发 = release 编译炸 integration_test 包不存在
+- 现象：`flutter build apk --release` 跑到一半，另一个进程起了 `flutter test`，
+  release 编译报 `程序包dev.flutter.plugins.integration_test不存在`
+  （GeneratedPluginRegistrant.java:39）。
+- 原因：GeneratedPluginRegistrant.java 与 .flutter-plugins-dependencies 是
+  `flutter pub get` 的副产品；`flutter test`（dev 依赖含 integration_test）
+  运行时会把 IntegrationTestPlugin 写进 registrant，而 release 构建的类路径里
+  没有这个包。两者落在同一个未跟踪的生成文件上，并发就互相污染。
+  `flutter clean` 不删这个 java 文件，光 clean 不一定够。
+- 解法：**APK/IPA 构建期间不要在同仓库跑任何 flutter test/drive**。撞上了就
+  `flutter clean && flutter build apk --release`（pub get 会重新生成干净的
+  registrant），不用手改那个 java 文件。

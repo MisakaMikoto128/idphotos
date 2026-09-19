@@ -65,13 +65,13 @@ void _resetHooks() {
 String _modelPath() {
   final sep = Platform.pathSeparator;
   // ③ A/B：MUZHAO_MODEL_DIR 指到候选模型目录（文件名仍为
-  // birefnet_lite_1024_int8.onnx），不覆盖仓库里的现役模型。
+  // modnet_portrait_1024_int8.onnx），不覆盖仓库里的现役模型。
   final dir = Platform.environment['MUZHAO_MODEL_DIR'];
   if (dir != null && dir.isNotEmpty) {
-    return '$dir${sep}birefnet_lite_1024_int8.onnx';
+    return '$dir${sep}modnet_portrait_1024_int8.onnx';
   }
   return '${Directory.current.path}${sep}assets${sep}models$sep'
-      'birefnet_lite_1024_int8.onnx';
+      'modnet_portrait_1024_int8.onnx';
 }
 /// 对一批配置（≤3 个常驻会话）做轮询采样并打印结果。
 void _runBatch(List<_Cfg> cfgs) {

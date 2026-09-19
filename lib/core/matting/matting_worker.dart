@@ -6,7 +6,6 @@
 library;
 
 import 'dart:isolate';
-import 'dart:math' as math;
 import 'dart:typed_data';
 
 import '../api.dart';
@@ -20,7 +19,6 @@ import 'yunet_decoder.dart';
 /// 风景照 / 纯文字截图喂给抠图模型会得到几乎全 0 的 mask，此时返回一张
 /// 空图对用户毫无意义，按契约抛 [MattingException]（"抠图失败了，换一张试试吧"）。
 /// 黄金集 8 张的前景占比在 0.21–0.69，阈值取 0.01 有足够余量。
-/// （BiRefNet 换档后复核：黄金集占比口径不变，见 G2A 重跑记录。）
 const double kMinForegroundRatio = 0.01;
 
 /// 前景完整性门槛（G4.3 碎片化优雅失败）：把二值 alpha（@128）按
@@ -212,7 +210,7 @@ MattingPayload runMattingFromRgb(DecodedImage image, int sessionAddress,
   );
 }
 
-/// 抠图核心：人像门槛（可选）→ BiRefNet → 前景占比/碎片化门槛 →
+/// 抠图核心：人像门槛（可选）→ MODNet → 前景占比/碎片化门槛 →
 /// alpha 放大回工作分辨率 + 羽化。alpha-only 路径与完整 payload 路径共用。
 class _MattingCore {
   _MattingCore(this.alpha, this.subjectFace);
@@ -236,7 +234,7 @@ _MattingCore _mattingCore(DecodedImage image, int sessionAddress,
   }
 
   final input =
-      birefnetInput(image.rgb, image.width, image.height, kMattingInputSize);
+      modnetInput(image.rgb, image.width, image.height, kMattingInputSize);
   final alpha = _matteFromModelInput(
       input, sessionAddress, image.width, image.height);
   return _MattingCore(alpha, subjectFace);
@@ -264,7 +262,7 @@ Uint8List cleanMatte(Uint8List alpha, int size,
 
 /// 抠图模型推理 + alpha 后处理（前景占比/碎片门槛、放大回工作分辨率、羽化）。
 ///
-/// 输入是已按 [birefnetInput]/[birefnetInputFromRgba] 备好的 NCHW
+/// 输入是已按 [modnetInput]/[modnetInputFromRgba] 备好的 NCHW
 /// （边长 = [kMattingInputSize]）——rgb 路径（黄金集口径）与 RGBA 预计算
 /// 路径（G4 r3）共用同一套实现，喂进模型的字节逐位一致，产出也逐位一致。
 Uint8List _matteFromModelInput(
@@ -339,7 +337,7 @@ MattingPayload runMattingAlphaOnly(DecodedImage image, int sessionAddress,
 /// rgb——Isolate.run 的闭包拷贝从 w*h*4 降到固定两张 Float32 输入
 /// （1024 口径下 4.9+12.6 ≈ 17.5MB），worker 峰值少掉
 /// ~22MB（rgba 12.6 + rgb 9.4，2048 工作分辨率口径）。喂进模型的字节与
-/// 旧路径**逐位一致**（见 [birefnetInputFromRgba] 的等价论证），输出不变。
+/// 旧路径**逐位一致**（见 [modnetInputFromRgba] 的等价论证），输出不变。
 ///
 /// [faceSessionAddress] 非 null 时先跑人像门槛（同 [runFaceFromRgb] 口径：
 /// YuNet + pickSubjectFace + kMinFaceAreaRatio），检不到抛
@@ -548,11 +546,10 @@ FaceInfo? faceFromYunetInput(LetterboxInput input, int sessionAddress, int imgW,
   return toFaceInfo(face, input.scale, imgW, imgH, pupil: pupil);
 }
 
-/// `[1,1,N,N]` 的嵌套 **logits** 输出 → N*N 的 uint8 alpha（N = 模型输入边长）。
+/// `[1,1,N,N]` 的嵌套输出 → N*N 的 uint8（N = 模型输入边长）。
 ///
-/// BiRefNet 导出件的输出是 logits（实测范围 −20 ~ +140），必须过 sigmoid
-/// 才是 alpha。取整方式刻意与参考实现的 `(matte * 255).astype("uint8")`
-/// 一致：sigmoid 后向零截断，不是四舍五入。
+/// 取整方式刻意与参考实现的 `(matte * 255).astype("uint8")` 一致：向零截断，
+/// 不是四舍五入。差一个 LSB 在 g08 这类发丝图上会实打实地影响 IoU。
 Uint8List _matteToBytes(dynamic value, int size) {
   final out = Uint8List(size * size);
   var i = 0;
@@ -563,8 +560,7 @@ Uint8List _matteToBytes(dynamic value, int size) {
       if (i >= out.length) {
         throw const MattingException(cause: 'matte longer than expected');
       }
-      final p = 1.0 / (1.0 + math.exp(-v.toDouble()));
-      var b = (p * 255).toInt();
+      var b = (v * 255).toInt();
       if (b < 0) b = 0;
       if (b > 255) b = 255;
       out[i++] = b;

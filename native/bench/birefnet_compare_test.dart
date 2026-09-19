@@ -3,9 +3,14 @@
 // 跑法（Windows，仓库根目录）：
 //   flutter test native/bench/birefnet_compare_test.dart
 //
+// 注意（2026-09-19 回退后）：BiRefNet 因速度已从生产管线回退，模型文件
+// 已不在 assets/models/——要跑本脚本先用 native/quantize/build_birefnet_model.py
+// 重新生成 birefnet_lite_1024_int8.onnx 放回 assets/models/。BiRefNet 前处理
+// 随生产删除一并内联进本文件（见 _birefnetInput），不再依赖 image_ops。
+//
 // 口径：
 //   * BiRefNet = 生产引擎完整链路（removeBackground：decode → 人脸门槛 →
-//     birefnetInput → 推理 → sigmoid → cleanMatte → 门槛 → 放大羽化）。
+//     _birefnetInput → 推理 → sigmoid → cleanMatte → 门槛 → 放大羽化）。
 //   * MODNet-1024 = worker 级复刻旧生产链路（modnetInput + 同一套
 //     cleanMatte/门槛/放大/羽化函数），模型用保留的
 //     assets/models/modnet_portrait_1024_int8.onnx。
@@ -95,14 +100,30 @@ Uint8List _matteBytesModnet(dynamic value, int size) {
   return (alpha, inferMs);
 }
 
+/// BiRefNet 前处理（原 image_ops.birefnetInput，随回退内联留档）：
+/// RGB → [size]×[size] → RGB 通道序、NCHW、`(x/255 − ImageNet mean) / std`。
+Float32List _birefnetInput(Uint8List rgb, int w, int h, int size) {
+  const mean = <double>[0.485, 0.456, 0.406];
+  const std = <double>[0.229, 0.224, 0.225];
+  final resized = areaResampleRgb(rgb, w, h, size, size);
+  final out = Float32List(3 * size * size);
+  final plane = size * size;
+  for (var i = 0, p = 0; p < plane; i += 3, p++) {
+    out[p] = (resized[i] / 255.0 - mean[0]) / std[0]; // R
+    out[plane + p] = (resized[i + 1] / 255.0 - mean[1]) / std[1]; // G
+    out[2 * plane + p] = (resized[i + 2] / 255.0 - mean[2]) / std[2]; // B
+  }
+  return out;
+}
+
 /// BiRefNet 模型尺度 alpha 的 cleanMatte 参数 A/B 变体（供参数去留决策）。
 /// 输入是生产引擎返回的工作分辨率 alpha —— 无法回推模型尺度，所以这里
-/// 直接复刻生产后处理链（birefnetInput → 推理 → sigmoid → 参数化
+/// 直接复刻生产后处理链（_birefnetInput → 推理 → sigmoid → 参数化
 /// cleanMatte → 放大 → 羽化）。
 Uint8List _birefnetAlphaVariant(DecodedImage image, int sessionAddress,
     int medianPasses, double smoothSigma) {
   const size = ort.kMattingInputSize;
-  final input = birefnetInput(image.rgb, image.width, image.height, size);
+  final input = _birefnetInput(image.rgb, image.width, image.height, size);
   final outputs = ort.runFloatInput(
       sessionAddress, input, <int>[1, 3, size, size], const <String>[]);
   dynamic value;
