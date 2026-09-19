@@ -60,12 +60,19 @@ class MuZhaoController implements IdPhotoController {
   FaceInfo? _face;
   Rect? _cropOverride;
   Timer? _debounce;
+  Timer? _draftDebounce;
 
   /// 用户手动微调的面内角度。**不随规格/裁剪重置**，只在换图时归零。
   double _manualAngleDeg = 0.0;
 
-  /// 拖拽停止多久后触发重新合成。
-  static const Duration kCropDebounce = Duration(milliseconds: 300);
+  /// 拖拽停止多久后触发**全精度**重新合成。
+  static const Duration kCropDebounce = Duration(milliseconds: 600);
+
+  /// 拖拽停止多久后先出一张**草稿**（draft-then-final，契约见
+  /// [IdPhotoEngine.compose] 的 draft 参数）：高频交互中只刷候选条
+  /// 缩略图，耗时约为全精度的一成，跟手；停手到 [kCropDebounce]
+  /// 再由全精度结果替换。
+  static const Duration kDraftDebounce = Duration(milliseconds: 120);
 
   @override
   AppState get currentState => _state;
@@ -125,6 +132,8 @@ class MuZhaoController implements IdPhotoController {
     // 3. 代数前进，让一切在途请求作废。
     _debounce?.cancel();
     _debounce = null;
+    _draftDebounce?.cancel();
+    _draftDebounce = null;
     _matting = null;
     _face = null;
     _cropOverride = null;
@@ -238,7 +247,7 @@ class MuZhaoController implements IdPhotoController {
   /// 入口对 matting/spec/face/crop 做**快照**：合成 6 张是顺序异步，
   /// 途中用户拖拽（改 [_cropOverride]）或换规格不得让同一批候选
   /// 混用两种几何（审查 L1）。
-  Future<List<Candidate>> _composeAll() async {
+  Future<List<Candidate>> _composeAll({bool draft = false}) async {
     final MattingResult mat = _matting!;
     final PhotoSpec spec = _state.spec;
     // face 本就是工作分辨率坐标（detectFace 契约），compose 直接可用；
@@ -255,19 +264,20 @@ class MuZhaoController implements IdPhotoController {
         face: face,
         cropOverride: cropOverride,
         manualRollDeg: manualAngleDeg,
+        draft: draft,
       ));
     }
     return out;
   }
 
   /// 重新合成当前图（保留 [_matting] / [_face] 缓存，只重跑 compose）。
-  Future<void> _recompose({required bool showProgress}) async {
+  Future<void> _recompose({required bool showProgress, bool draft = false}) async {
     final int gen = ++_gen;
     if (showProgress) {
       _emit(_state.copyWith(stage: Stage.composing, clearError: true));
     }
     await _guarded(gen, () async {
-      final List<Candidate> candidates = await _composeAll();
+      final List<Candidate> candidates = await _composeAll(draft: draft);
       _checkGen(gen);
       // 成功即重算 errorMessage（审查 X3）：此前失败的红色提示不能在
       // 恢复正常后残留；无人脸的提示则随事实保持。
@@ -288,7 +298,11 @@ class MuZhaoController implements IdPhotoController {
   void setCrop(Rect rectInSourcePx) {
     if (_matting == null) return; // 无图或在加载中：忽略
     _cropOverride = rectInSourcePx;
-    // 拖拽是高频事件：去抖后合成，用户停手 300ms 出候选。
+    // 拖拽是高频事件：120ms 先出草稿跟手，停手 600ms 再全精度重合成。
+    _draftDebounce?.cancel();
+    _draftDebounce = Timer(kDraftDebounce, () {
+      _recompose(showProgress: false, draft: true);
+    });
     _debounce?.cancel();
     _debounce = Timer(kCropDebounce, () {
       _recompose(showProgress: false);
@@ -303,10 +317,14 @@ class MuZhaoController implements IdPhotoController {
         deg.clamp(kManualAngleMinDeg, kManualAngleMaxDeg).toDouble();
     if (v == _state.manualAngleDeg) return;
     // 角度**立刻**广播：UI 的度数读数与画布要跟手。
-    // 重新合成则与拖拽一样去抖 —— 一次拖动会经过几十个角度，
-    // 逐个合成会把主 isolate 压死。
+    // 重新合成与拖拽一样双档去抖 —— 一次拖动会经过几十个角度，
+    // 逐个全精度合成会把主 isolate 压死。
     _manualAngleDeg = v;
     _emit(_state.copyWith(manualAngleDeg: v));
+    _draftDebounce?.cancel();
+    _draftDebounce = Timer(kDraftDebounce, () {
+      _recompose(showProgress: false, draft: true);
+    });
     _debounce?.cancel();
     _debounce = Timer(kCropDebounce, () {
       _recompose(showProgress: false);
@@ -323,6 +341,7 @@ class MuZhaoController implements IdPhotoController {
     // 宽高比变了，用户旧框按新比例解释没有意义：作废回自动推算。
     _cropOverride = null;
     _debounce?.cancel();
+    _draftDebounce?.cancel();
     if (_matting == null) {
       // 无图（含加载中）：只更新规格，等 loadImage 走完后按新规格出图。
       _emit(_state.copyWith(spec: tuned));
@@ -376,6 +395,22 @@ class MuZhaoController implements IdPhotoController {
 
   @override
   Future<String> save(Candidate c) async {
+    // 落盘字节永远来自**当前几何的全精度重合成**，不用候选列表里的字节：
+    // 列表在 draft-then-final 交互中可能还是草稿分辨率（契约：草稿禁止落盘），
+    // 也可能在用户停手到全精度刷新之间的窗口内是上一档几何。
+    Uint8List bytes = c.jpegBytes;
+    final MattingResult? mat = _matting;
+    if (mat != null) {
+      bytes = (await _engine.compose(
+        matting: mat,
+        spec: _state.spec,
+        style: c.style,
+        face: _face,
+        cropOverride: _cropInWorkingSpace(_cropOverride, mat),
+        manualRollDeg: _manualAngleDeg,
+      ))
+          .jpegBytes;
+    }
     // 返回的路径必须真实存在且可重新解码（G3.3），所以先在私有目录落一份。
     // 相册写入走 MediaStore（gal），不返回路径，二者各司其职：
     // 私有文件给门禁/回读用，相册条目才是用户看到的"已保存到相册"。
@@ -385,7 +420,7 @@ class MuZhaoController implements IdPhotoController {
     if (!kIsWeb && Platform.isWindows) {
       final File? dest = await _pickSaveDestination(c);
       if (dest == null) return ''; // 用户取消——UI 按空路径静默处理
-      await dest.writeAsBytes(c.jpegBytes, flush: true);
+      await dest.writeAsBytes(bytes, flush: true);
       return dest.path;
     }
     final Directory dir = await getTemporaryDirectory();
@@ -397,12 +432,12 @@ class MuZhaoController implements IdPhotoController {
       '_${_saveSeq++}_${c.style.id}.jpg',
     );
     try {
-      await file.writeAsBytes(c.jpegBytes, flush: true);
+      await file.writeAsBytes(bytes, flush: true);
     } on FileSystemException catch (e) {
       throw SaveException(cause: e);
     }
     try {
-      await Gal.putImageBytes(c.jpegBytes, album: '木照');
+      await Gal.putImageBytes(bytes, album: '木照');
     } on GalException catch (e) {
       // 审查 X4：相册写入失败时清掉已落的私有文件——失败的保存不能把
       // 全分辨率用户照片永久留在 temp 目录。
@@ -421,6 +456,7 @@ class MuZhaoController implements IdPhotoController {
   /// 进程生命周期内引擎常驻，这里只停掉去抖计时器和状态流。
   void dispose() {
     _debounce?.cancel();
+    _draftDebounce?.cancel();
     _gen++; // 让在途的异步全部作废
     _out.close();
   }

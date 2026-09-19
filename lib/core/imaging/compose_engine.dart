@@ -54,6 +54,10 @@ const int kThumbJpegQuality = 80;
 /// 缩略图长边像素数（契约规定）。
 const int kThumbMaxEdge = 320;
 
+/// 草稿（draft）渲染长边像素数。高频交互中的跟手预览只需要喂饱候选条
+/// 缩略图，256 已高于条内显示尺寸；真正的成品在停手后由全精度合成给出。
+const int kDraftMaxEdge = 256;
+
 /// 一次 [ComposeEngineMixin.compose] 的几何诊断信息。
 ///
 /// 自检脚本与 controller 都可以读，用来解释「为什么这张裁成了这样」。
@@ -224,6 +228,7 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
     FaceInfo? face,
     Rect? cropOverride,
     double manualRollDeg = 0.0,
+    bool draft = false,
   }) async {
     _validate(matting);
     // **按调用方给的 spec 原样执行**，不在这里替换成 photo_specs.dart 里调校过的
@@ -273,6 +278,38 @@ mixin ComposeEngineMixin implements IdPhotoEngine {
       achievedHeadTopRatio: solution.achievedHeadTopRatio,
       note: solution.note,
     );
+
+    if (draft) {
+      // 草稿路径：直接按草稿尺寸渲染 + 低质量 JPEG，跳过全尺寸渲染、
+      // 全尺寸 JPEG 与缩略图二次下采样。jpegBytes 与 thumbBytes 同为草稿
+      // 字节（契约：禁止落盘；controller 的 save 会以 draft = false 重合成）。
+      final double ds =
+          math.min(1.0, kDraftMaxEdge / math.max(s.widthPx, s.heightPx));
+      final int dw = math.max(1, (s.widthPx * ds).round());
+      final int dh = math.max(1, (s.heightPx * ds).round());
+      final BackgroundRamp draftRamp = BackgroundRamp.build(
+        colorTop: style.colorTop,
+        colorBottom: style.colorBottom,
+        height: dh,
+      );
+      final MipLevel draftMip =
+          _mipFor(clean, mipFactorFor(solution.rect.height, dh));
+      final RenderedImage d = renderComposite(
+        mip: draftMip,
+        srcWidth: clean.width,
+        srcHeight: clean.height,
+        plan: plan,
+        crop: solution.rect,
+        outWidth: dw,
+        outHeight: dh,
+        background: draftRamp,
+        workBuffers: _renderPool,
+      );
+      final Uint8List draftJpeg =
+          _encodeRgbJpeg(d, quality: kThumbJpegQuality, dpi: s.dpi);
+      d.release();
+      return Candidate(style: style, jpegBytes: draftJpeg, thumbBytes: draftJpeg);
+    }
 
     final BackgroundRamp ramp = BackgroundRamp.build(
       colorTop: style.colorTop,

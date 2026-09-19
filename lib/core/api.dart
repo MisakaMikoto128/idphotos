@@ -489,6 +489,12 @@ abstract class IdPhotoEngine {
   /// **相加**后再统一钳制。正值即表示与同值 `rollDeg` 相同的方向。
   /// **自动只处理方向明显不对的照片**（|倾角| > 30°），细微倾角一律由
   /// 用户自己调。0.0 = 用户未调整。
+  ///
+  /// [draft] = true 出**草稿**：只保证 [Candidate.thumbBytes] 反映当前几何，
+  /// [Candidate.jpegBytes] 可以是草稿分辨率（约缩略图大小），**禁止落盘**。
+  /// 用途是拖拽框选/角度微调这类高频交互中的跟手预览（draft-then-final）；
+  /// 用户停手后调用方必须再以 draft = false 合成全精度结果。落盘路径不得
+  /// 信任草稿字节——controller 的 save 一律以 draft = false 重合成后再写。
   Future<Candidate> compose({
     required MattingResult matting,
     required PhotoSpec spec,
@@ -496,6 +502,7 @@ abstract class IdPhotoEngine {
     FaceInfo? face,
     Rect? cropOverride,
     double manualRollDeg = 0.0,
+    bool draft = false,
   });
 
   /// 自动推算的裁剪框，用作 [AppState.suggestedCrop]。
