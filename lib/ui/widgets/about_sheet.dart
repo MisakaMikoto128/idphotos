@@ -28,7 +28,7 @@ import 'spec_drawer.dart' show DrawerPull;
 /// 刻意**硬编码**而不是 `package_info`：pubspec 归主会话独占，引入
 /// package_info_plus 需要新增依赖并改 pubspec（CLAUDE.md §7.5），
 /// 对一个只在关于页显示一次的字符串不值当。升版本时改这里 + pubspec 两处。
-const String kAppVersion = '1.3.3';
+const String kAppVersion = '1.4.0';
 
 /// GitHub 仓库地址（占位，仓库尚未建立）。纯文本展示，不引入 url_launcher。
 const String kRepoUrl = 'github.com/liuyuanlin/idphotos';
