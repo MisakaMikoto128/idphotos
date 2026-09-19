@@ -159,29 +159,28 @@ class CandidateCard extends ConsumerWidget {
       child: Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          const PaperSurface(seed: 17, edgeDarken: 0.5),
+          // 相纸衬底只在空态/显影占位时露出；有照片时照片顶满相框内沿——
+          // 白色衬边会让人以为成片带白框（用户 2026-09-19），成片并没有。
+          if (thumb == null) const PaperSurface(seed: 17, edgeDarken: 0.5),
           if (thumb != null)
-            Padding(
-              padding: const EdgeInsets.all(3),
-              child: ClipRect(
-                child: liveAdjust == null
-                    ? _tinted(raster(thumb!, BoxFit.cover))
-                    : LayoutBuilder(
-                        builder: (BuildContext context, BoxConstraints c) {
-                          return ColoredBox(
-                            // 旋转/缩放露出的边角用本色底的纯色端补齐
-                            //（实时预览是过渡态，停手后全精度候选替换）。
-                            color: Color(style.colorTop),
-                            child: Transform(
-                              transform: liveAdjust!.matrixFor(
-                                Size(c.maxWidth, c.maxHeight),
-                              ),
-                              child: _tinted(raster(thumb!, BoxFit.cover)),
+            ClipRect(
+              child: liveAdjust == null
+                  ? _tinted(raster(thumb!, BoxFit.cover))
+                  : LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints c) {
+                        return ColoredBox(
+                          // 旋转/缩放露出的边角用本色底的纯色端补齐
+                          //（实时预览是过渡态，停手后全精度候选替换）。
+                          color: Color(style.colorTop),
+                          child: Transform(
+                            transform: liveAdjust!.matrixFor(
+                              Size(c.maxWidth, c.maxHeight),
                             ),
-                          );
-                        },
-                      ),
-              ),
+                            child: _tinted(raster(thumb!, BoxFit.cover)),
+                          ),
+                        );
+                      },
+                    ),
             )
           else if (placeholder != null)
             Padding(padding: const EdgeInsets.all(3), child: placeholder!),
