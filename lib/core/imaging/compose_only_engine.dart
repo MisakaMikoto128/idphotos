@@ -25,7 +25,10 @@ class ComposeOnlyEngine with ComposeEngineMixin {
   }
 
   @override
-  Future<MattingResult> removeBackground(Uint8List imageBytes) async {
+  Future<MattingResult> removeBackground(
+    Uint8List imageBytes, {
+    MattingQuality quality = MattingQuality.fast,
+  }) async {
     // 本引擎不含抠图能力，按错误契约返回中文文案而不是崩溃。
     throw const MattingException(cause: 'ComposeOnlyEngine 不提供抠图能力');
   }
