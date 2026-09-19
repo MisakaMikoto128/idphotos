@@ -44,3 +44,6 @@ desktop.ini
 .venv_ref/
 .ref_hivision/
 out/tmp_*/
+
+# ORT 官方二进制留档（复现用，体量大，只留本地）
+native/vendor/ort-bin/

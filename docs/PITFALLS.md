@@ -4418,3 +4418,88 @@ P0.3b 空集 ⇒ MANUAL / P0.4 空集 ⇒ MANUAL），**用 `dart run` 直调 `e
 - 2026-09-19 实测：`curl https://huggingface.co` 直接超时（exit 000），
   `https://hf-mirror.com` 正常（200）。下模型把域名换掉即可，API 路径
   与官方一致（`/api/models/...`、`/<repo>/resolve/main/...`）。
+
+## [ml-porting] 插件捆绑的 Windows onnxruntime.dll 是 CPU-only 精简构建，没有 XNNPACK
+
+- 现象（2026-09-19，提速专项）：`createSession` 按 xnnpack→cpu 降级，Windows 上
+  实测恒落到 cpu，报 `XNNPACK execution provider is not supported in this build`
+  （插件 1.4.1 捆绑的 1.15.1 dll，9.63MB，是精简构建；官方 1.15.1 win-x64 发行版
+  是含 XNNPACK 的）。Android 的 .so 不受影响（XNNPACK/NNAPI 字符串均在）。
+- 解法：提速靠换 dll（官方 1.29.0，见 native/vendor/onnxruntime_flutter/VENDORED.md），
+  不是在 1.15.1 CPU-only 构建上调 session 参数——线程/mempattern 扫参 min 口径
+  差距 ≤8%，与其在旧运行时上挤牙膏不如换运行时。
+- 判据：Windows 端侧推理性能排查第一步先 `stdout` 打印实际 EP（引擎有
+  `mattingProvider` 排查口），别假定官方构建包含某个 EP。
+
+## [ml-porting] 同一进程常驻 ≥6 个本模型会话会撞内存：扫参分批 ≤3
+
+- 现象（2026-09-19）：6 个会话常驻做配置扫参时，推理途中
+  `BFCArena::AllocateRawInternal Failed to allocate memory for requested buffer
+  of size 822083584`（decoder/aspp_deforms 的 Transpose 瞬态要 784MB）。会话各自
+  的 kNextPowerOf2 arena 会把这块顶到 1GB，6 份叠加 + flutter_tester 本体超限。
+- 解法：扫参分批，每批 ≤3 个常驻会话（native/bench/ort_speed_sweep_test.dart
+  的 batch1/batch2 结构）；生产代码不受影响（每进程只有抠图+人脸 2 个会话）。
+- 判据：本模型单会话推理瞬态峰值 ~1–2GB（784MB 单缓冲 + arena 冗余），
+  任何"多会话并行"的 bench 设计先算内存账。
+
+## [ml-porting] 本机后台常驻负载 ~40% CPU：延迟扫参的 median 不可用，看 min
+
+- 现象（2026-09-19）：同一配置两次测量的 median 可差 2 倍（t4 基线：安静时
+  全管线 10.8s，负载时纯推理 median 21.2s）；p95 可达 70s。轮询交替采样只能
+  摊薄、不能消除——17 分钟的扫参窗口里负载本身在漂移。
+- 解法：排序用 **min**（最少受干扰的样本 ≈ 真实速度）；结论性数字挑安静窗口
+  用 G2A.6 全管线口径复测。测量前先 `Get-Counter '\Processor(_Total)\% Processor Time'`
+  看一眼，>30% 就等或标注。
+- 判据：任何"快了 X%"的结论必须同机同窗口对照；跨负载窗口的数字不可比。
+
+## [ml-porting] "Building with plugins requires symlink support"：预建 junction 绕过
+
+- 现象（2026-09-19）：`flutter clean` 删掉 `windows/flutter/ephemeral/.plugin_symlinks`
+  后，`flutter build apk/windows` 报 `Building with plugins requires symlink support`
+  （errno 1314 无特权）。本机 Developer Mode 关闭、shell 非提权，建不了符号链接。
+  （此前 out/ 里的 APK 能建成，说明当时的 shell 有此特权；现在的 agent shell 没有。）
+- 解法：flutter_tools 建链接前逐条 `link.existsSync()` 检查，**已存在就跳过**
+  （flutter_plugins.dart `_createPlatformPluginSymlinks`）。而 NTFS 目录 **junction**
+  不需要任何特权。按 `.flutter-plugins-dependencies` 的 windows 插件清单预建：
+  `cmd.exe /c "mklink /J <插件名> <pub cache 绝对路径>"` 放进
+  `windows/flutter/ephemeral/.plugin_symlinks/`。之后 build 正常。
+- 判据：**不要再跑 `flutter clean`**（会连带删掉 junction，要重建）；
+  构建前 `ls windows/flutter/ephemeral/.plugin_symlinks` 确认 junction 还在。
+
+## [ml-porting] XNNPACK 的 EP 失败发生在**推理时**而非建会话时：降级链拦不住
+
+- 现象（2026-09-19，emulator-5554，ORT 1.15.1）：`createSession` 按
+  xnnpack→nnapi→cpu 降级链**成功**建出 xnnpack 会话（图分区没问题），
+  第一次推理才炸：`Non-zero status code returned while running Resize node
+  '/squeeze_module/squeeze_module.0/dec_att/Resize' —
+  xnn_setup_resize_bilinear2d_nhwc_fp32 returned 2`。
+  即"会话建成 ≠ EP 可用"，现有降级链只守卫建会话，运行时失败会穿透成
+  MattingException。跨平台对照探针当年钉死 `debugForceEp='cpu'`（win_cmp_core）
+  恰好绕开了它，生产默认链此前从未在 Android 上真跑过这条模型。
+- 解法（提速专项内落地）：推理失败且当前 EP 非 cpu 时，用 cpu 重建会话重试一次
+  （健康设备零成本）；运行时升级到 ORT 1.29 后复测 XNNPACK 是否修好这个 Resize。
+- 判据：**EP 的可用性验收必须包含一次真实推理**，只看 createSession 成功
+  会把"建得出跑不了"的 EP 当成可用。
+
+## 2026-09-19 path 依赖插件触发 Windows symlink 权限墙（主会话）
+
+pubspec 把 onnxruntime 从 pub-cache 改成 path 依赖（vendored 1.29）后，`flutter build windows` 报
+"Building with plugins requires symlink support / Please enable Developer Mode"。
+根因：Flutter 每轮构建都会在 `windows/flutter/ephemeral/.plugin_symlinks/` 重建插件链接，
+Windows 上 dart:io 建目录 symlink 需要管理员或开发者模式；此前能构建是因为链接早已存在且
+目标没变、逐轮跳过（`flutter clean` 会删掉这些链接，把能构建的状态也毁掉）。
+预建 junction 无效（Flutter 不看已有链接，删了重建）。
+**解法：设置 → 系统 → 高级 → 开发者选项（或 隐私和安全性 → 开发者选项）打开"开发者模式"，一次性。**
+
+## [ml-porting] System32 里的第三方 onnxruntime.dll 会劫持按名加载：版本自证是刚需
+
+- 现象（2026-09-19）：`C:\Windows\System32\onnxruntime.dll`（别的软件装的
+  ORT **1.17.1**）会被 `DynamicLibrary.open('onnxruntime.dll')` 的按名搜索
+  命中。ensureOrtRuntimeLoaded 原来**先按名 open**——导致一整组标着
+  "1.29 vs 1.15.1" 的 A/B 实际全在 1.17.1 上跑（两组数字"恰好持平"就是
+  这么来的）。插件绑哪个版本的 dll 与实际加载哪个版本完全是两回事。
+- 解法：候选一律改**绝对路径**预载（MUZHAO_ORT_DLL → package_config 解析
+  插件包 → exe 旁 → pub cache），按名 open 降为最后兜底；每次测量打印
+  `ortVersionString()` + `ortLoadedFrom` 自证。
+- 判据：**任何 ORT 版本对比数字，第一行输出必须是实测版本字符串**；
+  没有自证行的历史数字一律存疑重测。

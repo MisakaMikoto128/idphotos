@@ -37,7 +37,13 @@ dependencies:
   flutter_riverpod: ^3.4.3
   image: ^4.9.2
   image_picker: ^1.2.3
-  onnxruntime: ^1.4.1
+  # 提速专项②（2026-09-19）：pub.dev 上 onnxruntime 最高就是 1.4.1（2024-03，
+  # 绑 ORT 1.15.1，无 XNNPACK 的 CPU-only 精简构建）。vendored 版 = 插件 1.4.1
+  # 代码零改动 + 官方 ORT 1.29.0 二进制（win-x64 dll + android 三 ABI .so），
+  # 由 ml-porting 备制并双路实测 ABI 直通，见 native/vendor/onnxruntime_flutter/。
+  # 代价：arm64 .so 14.2→32.1MB（release APK 约 +18MB）。
+  onnxruntime:
+    path: native/vendor/onnxruntime_flutter
   # ml-porting 自建 FFI 层（session_factory/arena 配置）的显式声明；
   # 此前借 onnxruntime 的传递依赖。阶段 4 加（G4.7 内存攻坚）。
   ffi: ^2.1.0
