@@ -32,12 +32,15 @@ import 'package:flutter/widgets.dart';
 import 'package:image/image.dart' as img;
 
 /// 已解码的位图：源尺寸 + 顶点色网格。
-final class _Raster {
+///
+/// 公开给 DevelopingPlate 这类"需要在 CustomPainter 里同步画位图"的调用方
+/// （冲洗中占位照片，见 developing.dart 的文件头说明），配合 [rasterGridFor]。
+final class RasterGrid {
   final int width;
   final int height;
   final ui.Vertices vertices;
 
-  const _Raster(this.width, this.height, this.vertices);
+  const RasterGrid(this.width, this.height, this.vertices);
 }
 
 /// 最近使用的条目提到队尾，超出上限从队头淘汰。
@@ -46,11 +49,13 @@ final class _Raster {
 /// 必须有上限：42 张 distinct 缩略图的场景若不淘汰，每张钉住的约 10 万
 /// 顶点（几十 MB）会随场景增长永不释放（审查 S6）。
 const int kCacheCap = 8;
-final List<(Uint8List, _Raster)> _cache = <(Uint8List, _Raster)>[];
+final List<(Uint8List, RasterGrid)> _cache = <(Uint8List, RasterGrid)>[];
 
-_Raster _rasterFor(Uint8List bytes) {
+/// 同步解码 [bytes] 为顶点网格（按字节实例身份 LRU 缓存）。截图/测试与
+/// 小图占位专用；大图同步解码会卡 UI 线程，见文件头说明。
+RasterGrid rasterGridFor(Uint8List bytes) {
   for (int i = 0; i < _cache.length; i++) {
-    final (Uint8List b, _Raster r) = _cache[i];
+    final (Uint8List b, RasterGrid r) = _cache[i];
     if (identical(b, bytes)) {
       if (i != _cache.length - 1) {
         _cache.removeAt(i);
@@ -59,13 +64,13 @@ _Raster _rasterFor(Uint8List bytes) {
       return r;
     }
   }
-  final _Raster r = _build(bytes);
+  final RasterGrid r = _build(bytes);
   _cache.add((bytes, r));
   if (_cache.length > kCacheCap) _cache.removeAt(0);
   return r;
 }
 
-_Raster _build(Uint8List bytes) {
+RasterGrid _build(Uint8List bytes) {
   img.Image? maybe = img.decodeImage(bytes);
   if (maybe == null) {
     throw ArgumentError.value(
@@ -137,7 +142,7 @@ _Raster _build(Uint8List bytes) {
     positions,
     colors: colors,
   );
-  return _Raster(w, h, vertices);
+  return RasterGrid(w, h, vertices);
 }
 
 /// 同步出图的位图 widget。[fit] 支持 fill（区域 A 的 `photo_display` 矩形
@@ -155,7 +160,7 @@ class SyncRaster extends StatelessWidget {
         return CustomPaint(
           size: Size(c.maxWidth, c.maxHeight),
           painter: _SyncRasterPainter(
-            raster: _rasterFor(bytes),
+            raster: rasterGridFor(bytes),
             fit: fit,
           ),
         );
@@ -165,7 +170,7 @@ class SyncRaster extends StatelessWidget {
 }
 
 class _SyncRasterPainter extends CustomPainter {
-  final _Raster raster;
+  final RasterGrid raster;
   final BoxFit fit;
 
   const _SyncRasterPainter({required this.raster, required this.fit});

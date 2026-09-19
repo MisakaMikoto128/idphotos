@@ -71,7 +71,14 @@ Widget buildShotScenario(String scenarioId) {
 
 Widget _scenarioTree(String scenarioId) {
   final Uint8List photo = sampleSourceJpeg();
-  const PhotoSpec spec = kDefaultSpec;
+  // 调试出入口：`--dart-define=SHOT_SPEC=visa_us` 可让截图场景换规格
+  // （验证方形规格的显影占位等）。不传即默认一寸，官方流水线行为不变。
+  const String specId =
+      String.fromEnvironment('SHOT_SPEC', defaultValue: '');
+  final PhotoSpec spec = kBuiltInSpecs.firstWhere(
+    (PhotoSpec s) => s.id == specId,
+    orElse: () => kDefaultSpec,
+  );
   final Rect suggested = defaultSuggestedCrop(photo, spec);
   final Rect bounds =
       Rect.fromLTWH(0, 0, kSampleWidth.toDouble(), kSampleHeight.toDouble());

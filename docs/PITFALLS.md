@@ -4561,3 +4561,18 @@ Windows 上 dart:io 建目录 symlink 需要管理员或开发者模式；此前
   一起卷进你的提交（本次 ml-porting 暂存的 67MB onnx 模型差点被我提交）。
   多 agent 并行期，commit 前先 `git status --porcelain` 看暂存区，
   发现非本势力的已暂存文件用 `git restore --staged <path>` 退出暂存再提交。
+
+## [ui-woodcraft] 2026-09-19 截图流水线里 asset 异步解码必丢帧（S4 空白相纸）
+
+- 症状：DevelopingPlate 用 `rootBundle.load` + `ui.instantiateImageCodec` 异步加载
+  占位照片，真机逻辑完全正确，但 S4（冲洗中）截出来是**没有影像的空白相纸**，
+  无报错、无日志（catchError 静默）。
+- 根因：与官方 S2 间歇丢照片同根（out/VISUAL_2C.md 致命项 [F-场景]）——
+  `pumpAndSettle` 只等"已调度的帧"，解码回调落地前没有任何帧被调度就提前退出；
+  `freezeAnimations=true` 时没有 ticker，首帧后再无新帧，解码永远赶不上截图。
+  **凡是截图场景要见的图，都不能靠异步 asset/网络解码首帧落地。**
+- 正解（项目内已有两套先例）：内嵌 base64 字节（sample_photo.dart）+ 纯 Dart
+  同步光栅（sync_raster.dart 的 `rasterGridFor`，本条目把它从私有提成公开 API）。
+  DevelopingPlate 现在两条都用：字节内嵌在 `lib/ui/dev/placeholder_photo.dart`，
+  由 `out/tmp/doubao-pw/make_embedded_placeholder.py` 从 assets/images 的
+  高清源生成，换图时重跑两个脚本（prep_placeholder.py → make_embedded_placeholder.py）。
