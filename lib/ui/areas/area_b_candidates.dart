@@ -50,6 +50,7 @@ class _AreaBCandidatesState extends ConsumerState<AreaBCandidates> {
     final bool developing =
         app.stage == Stage.matting || app.stage == Stage.composing;
     final bool hasResult = app.candidates.isNotEmpty;
+    final LivePreviewAdjust? adjust = _liveAdjust(app, wb);
 
     return SizedBox.expand(
       key: const Key('area_b'),
@@ -90,6 +91,7 @@ class _AreaBCandidatesState extends ConsumerState<AreaBCandidates> {
                             style: style,
                             thumb: found?.thumbBytes,
                             aspectRatio: aspect,
+                            liveAdjust: found == null ? null : adjust,
                             selected:
                                 hasResult && wb.selectedStyleId == style.id,
                             width: cardW,
@@ -122,6 +124,32 @@ class _AreaBCandidatesState extends ConsumerState<AreaBCandidates> {
       if (c.style.id == id) return c;
     }
     return null;
+  }
+
+  /// 交互中的实时预览调整：把当前几何（角度 + 裁剪框）与候选合成时的
+  /// 快照（[AppState.composedAngleDeg] / [AppState.composedCrop]）之差
+  /// 折成缩略图上的仿射变换。几何未动或数据不齐时返回 null（原样显示）。
+  ///
+  /// 角度的符号换算与区域 A 的框选层同源：框选层在 manual 增大时顺时针
+  /// 转 `+δ`，透过框看到的照片内容等于逆时针转 —— 缩略图内容同样按
+  /// `−(manual − composed)` 旋转（见 crop_overlay 的 frameRotationRad）。
+  static LivePreviewAdjust? _liveAdjust(AppState app, WorkbenchState wb) {
+    if (app.candidates.isEmpty) return null;
+    final Rect? live = wb.crop ?? app.suggestedCrop;
+    final Rect? composed = app.composedCrop ?? app.suggestedCrop;
+    if (live == null || composed == null) return null;
+    if (live.width < 1 || live.height < 1 || composed.width < 1) return null;
+    final double dDeg = app.manualAngleDeg - app.composedAngleDeg;
+    final bool still = dDeg.abs() < 0.01 &&
+        (live.center - composed.center).distance < 0.5 &&
+        (live.width - composed.width).abs() < 0.5 &&
+        (live.height - composed.height).abs() < 0.5;
+    if (still) return null;
+    return LivePreviewAdjust(
+      dAngleRad: -dDeg * math.pi / 180,
+      composedCrop: composed,
+      liveCrop: live,
+    );
   }
 }
 

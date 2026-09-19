@@ -32,6 +32,53 @@ const ColorFilter _desaturate = ColorFilter.matrix(<double>[
   0, 0, 0, 1, 0, //
 ]);
 
+/// 实时预览调整：把"当前交互几何"相对"候选合成时几何"的差量表达成
+/// 一个作用在缩略图上的仿射变换（旋转 + 等比缩放 + 平移）。
+///
+/// 推导：候选缩略图展示的是源图区域 [composedCrop]；用户把框改成
+/// [liveCrop] 后，新图（近似）就是旧图把 [liveCrop] 中心的内容挪到
+/// 画面中心、再按 `composedCrop.width / liveCrop.width` 缩放；角度差
+/// [dAngleRad] 直接旋转（口径同 `Transform.rotate`：正值顺时针）。
+/// 裁剪框比例被锁定，缩放恒为等比。
+class LivePreviewAdjust {
+  /// 内容旋转角（弧度）。调用方负责按引擎口径换算符号：
+  /// `-(manualAngleDeg - composedAngleDeg) * π / 180`。
+  final double dAngleRad;
+
+  /// 候选合成时使用的裁剪框（原图像素坐标）。
+  final Rect composedCrop;
+
+  /// 当前交互中的裁剪框（原图像素坐标）。
+  final Rect liveCrop;
+
+  const LivePreviewAdjust({
+    required this.dAngleRad,
+    required this.composedCrop,
+    required this.liveCrop,
+  });
+
+  /// 在 [frame]（缩略图照片区的实际像素尺寸）上求变换矩阵。
+  Matrix4 matrixFor(Size frame) {
+    final Offset cf = frame.center(Offset.zero);
+    final double k = composedCrop.width / liveCrop.width;
+    // 旧图（child）上对应"新框中心"的像素位置：这个点要被挪到画面中心。
+    final Offset t = Offset(
+      (liveCrop.center.dx - composedCrop.left) /
+          composedCrop.width *
+          frame.width,
+      (liveCrop.center.dy - composedCrop.top) /
+          composedCrop.height *
+          frame.height,
+    );
+    // M = T(cf) · R · S(k) · T(−t)：t 点 → 中心，绕中心等比缩放 k，再旋转。
+    return Matrix4.identity()
+      ..translateByDouble(cf.dx, cf.dy, 0, 1)
+      ..rotateZ(dAngleRad)
+      ..scaleByDouble(k, k, 1, 1)
+      ..translateByDouble(-t.dx, -t.dy, 0, 1);
+  }
+}
+
 class CandidateCard extends ConsumerWidget {
   final BackgroundStyle style;
 
@@ -42,6 +89,11 @@ class CandidateCard extends ConsumerWidget {
   final bool selected;
   final double width;
   final VoidCallback? onTap;
+
+  /// 交互中的实时预览调整。非 null 时缩略图按「当前几何 − 合成时几何」
+  /// 做旋转/缩放/平移跟手显示，替代等待重新合成；全精度候选抵达后
+  /// 快照更新，调整自然归零（见 [AppState.composedAngleDeg]）。
+  final LivePreviewAdjust? liveAdjust;
 
   /// 冲洗中时用的占位内容。
   final Widget? placeholder;
@@ -56,6 +108,7 @@ class CandidateCard extends ConsumerWidget {
     required this.selected,
     required this.width,
     required this.onTap,
+    this.liveAdjust,
     this.placeholder,
     this.seed = 11,
   });
@@ -111,7 +164,23 @@ class CandidateCard extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(3),
               child: ClipRect(
-                child: _tinted(raster(thumb!, BoxFit.cover)),
+                child: liveAdjust == null
+                    ? _tinted(raster(thumb!, BoxFit.cover))
+                    : LayoutBuilder(
+                        builder: (BuildContext context, BoxConstraints c) {
+                          return ColoredBox(
+                            // 旋转/缩放露出的边角用本色底的纯色端补齐
+                            //（实时预览是过渡态，停手后全精度候选替换）。
+                            color: Color(style.colorTop),
+                            child: Transform(
+                              transform: liveAdjust!.matrixFor(
+                                Size(c.maxWidth, c.maxHeight),
+                              ),
+                              child: _tinted(raster(thumb!, BoxFit.cover)),
+                            ),
+                          );
+                        },
+                      ),
               ),
             )
           else if (placeholder != null)

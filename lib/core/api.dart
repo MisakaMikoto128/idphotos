@@ -489,12 +489,6 @@ abstract class IdPhotoEngine {
   /// **相加**后再统一钳制。正值即表示与同值 `rollDeg` 相同的方向。
   /// **自动只处理方向明显不对的照片**（|倾角| > 30°），细微倾角一律由
   /// 用户自己调。0.0 = 用户未调整。
-  ///
-  /// [draft] = true 出**草稿**：只保证 [Candidate.thumbBytes] 反映当前几何，
-  /// [Candidate.jpegBytes] 可以是草稿分辨率（约缩略图大小），**禁止落盘**。
-  /// 用途是拖拽框选/角度微调这类高频交互中的跟手预览（draft-then-final）；
-  /// 用户停手后调用方必须再以 draft = false 合成全精度结果。落盘路径不得
-  /// 信任草稿字节——controller 的 save 一律以 draft = false 重合成后再写。
   Future<Candidate> compose({
     required MattingResult matting,
     required PhotoSpec spec,
@@ -502,7 +496,6 @@ abstract class IdPhotoEngine {
     FaceInfo? face,
     Rect? cropOverride,
     double manualRollDeg = 0.0,
-    bool draft = false,
   });
 
   /// 自动推算的裁剪框，用作 [AppState.suggestedCrop]。
@@ -557,6 +550,17 @@ class AppState {
   /// UI 的画布预览、裁剪框与成片都必须按它旋转；重新载入图片时归零。
   final double manualAngleDeg;
 
+  /// 当前 [candidates] 这一批所用的几何快照：手动角度（度）。
+  ///
+  /// 与 [composedCrop] 一起供 UI 做**实时预览变换**：拖拽框选/角度微调期间，
+  /// 候选缩略图不必等重新合成，直接按「当前几何 − 本快照」做旋转/缩放/平移
+  /// 跟手显示；停手后的全精度候选抵达时本快照随之更新，变换自然归零。
+  final double composedAngleDeg;
+
+  /// 当前 [candidates] 所用的裁剪框（原图像素坐标）。null = 自动推算框
+  /// （UI 此时用 [suggestedCrop] 参与变换换算）。
+  final Rect? composedCrop;
+
   final Stage stage;
 
   /// **已本地化的中文文案**。UI 直接显示，不做任何加工。
@@ -568,6 +572,8 @@ class AppState {
     this.candidates = const <Candidate>[],
     this.spec = kDefaultSpec,
     this.manualAngleDeg = 0.0,
+    this.composedAngleDeg = 0.0,
+    this.composedCrop,
     this.stage = Stage.idle,
     this.errorMessage,
   });
@@ -581,10 +587,13 @@ class AppState {
     List<Candidate>? candidates,
     PhotoSpec? spec,
     double? manualAngleDeg,
+    double? composedAngleDeg,
+    Rect? composedCrop,
     Stage? stage,
     String? errorMessage,
     bool clearError = false,
     bool clearSuggestedCrop = false,
+    bool clearComposedCrop = false,
   }) {
     return AppState(
       sourceImage: sourceImage ?? this.sourceImage,
@@ -593,6 +602,9 @@ class AppState {
       candidates: candidates ?? this.candidates,
       spec: spec ?? this.spec,
       manualAngleDeg: manualAngleDeg ?? this.manualAngleDeg,
+      composedAngleDeg: composedAngleDeg ?? this.composedAngleDeg,
+      composedCrop:
+          clearComposedCrop ? null : (composedCrop ?? this.composedCrop),
       stage: stage ?? this.stage,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );

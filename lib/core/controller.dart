@@ -60,19 +60,14 @@ class MuZhaoController implements IdPhotoController {
   FaceInfo? _face;
   Rect? _cropOverride;
   Timer? _debounce;
-  Timer? _draftDebounce;
 
   /// 用户手动微调的面内角度。**不随规格/裁剪重置**，只在换图时归零。
   double _manualAngleDeg = 0.0;
 
-  /// 拖拽停止多久后触发**全精度**重新合成。
+  /// 拖拽停止多久后触发**全精度**重新合成。交互期间候选条由 UI 按
+  /// [AppState.composedAngleDeg]/[AppState.composedCrop] 快照做实时变换，
+  /// 不在这里出中间档。
   static const Duration kCropDebounce = Duration(milliseconds: 600);
-
-  /// 拖拽停止多久后先出一张**草稿**（draft-then-final，契约见
-  /// [IdPhotoEngine.compose] 的 draft 参数）：高频交互中只刷候选条
-  /// 缩略图，耗时约为全精度的一成，跟手；停手到 [kCropDebounce]
-  /// 再由全精度结果替换。
-  static const Duration kDraftDebounce = Duration(milliseconds: 120);
 
   @override
   AppState get currentState => _state;
@@ -132,8 +127,6 @@ class MuZhaoController implements IdPhotoController {
     // 3. 代数前进，让一切在途请求作废。
     _debounce?.cancel();
     _debounce = null;
-    _draftDebounce?.cancel();
-    _draftDebounce = null;
     _matting = null;
     _face = null;
     _cropOverride = null;
@@ -247,7 +240,7 @@ class MuZhaoController implements IdPhotoController {
   /// 入口对 matting/spec/face/crop 做**快照**：合成 6 张是顺序异步，
   /// 途中用户拖拽（改 [_cropOverride]）或换规格不得让同一批候选
   /// 混用两种几何（审查 L1）。
-  Future<List<Candidate>> _composeAll({bool draft = false}) async {
+  Future<List<Candidate>> _composeAll() async {
     final MattingResult mat = _matting!;
     final PhotoSpec spec = _state.spec;
     // face 本就是工作分辨率坐标（detectFace 契约），compose 直接可用；
@@ -264,20 +257,23 @@ class MuZhaoController implements IdPhotoController {
         face: face,
         cropOverride: cropOverride,
         manualRollDeg: manualAngleDeg,
-        draft: draft,
       ));
     }
     return out;
   }
 
   /// 重新合成当前图（保留 [_matting] / [_face] 缓存，只重跑 compose）。
-  Future<void> _recompose({required bool showProgress, bool draft = false}) async {
+  Future<void> _recompose({required bool showProgress}) async {
     final int gen = ++_gen;
     if (showProgress) {
       _emit(_state.copyWith(stage: Stage.composing, clearError: true));
     }
+    // 几何快照必须与 _composeAll 实际读到的值同源（都在本同步段内读取，
+    // 途中不会被拖拽改写）——它随候选一起发给 UI 做实时预览变换的基准。
+    final double composedAngle = _manualAngleDeg;
+    final Rect? composedCrop = _cropOverride ?? _state.suggestedCrop;
     await _guarded(gen, () async {
-      final List<Candidate> candidates = await _composeAll(draft: draft);
+      final List<Candidate> candidates = await _composeAll();
       _checkGen(gen);
       // 成功即重算 errorMessage（审查 X3）：此前失败的红色提示不能在
       // 恢复正常后残留；无人脸的提示则随事实保持。
@@ -287,6 +283,8 @@ class MuZhaoController implements IdPhotoController {
         candidates: candidates,
         spec: _state.spec,
         manualAngleDeg: _manualAngleDeg,
+        composedAngleDeg: composedAngle,
+        composedCrop: composedCrop,
         stage: Stage.ready,
         errorMessage:
             _face == null ? const NoFaceException().messageZh : null,
@@ -298,11 +296,8 @@ class MuZhaoController implements IdPhotoController {
   void setCrop(Rect rectInSourcePx) {
     if (_matting == null) return; // 无图或在加载中：忽略
     _cropOverride = rectInSourcePx;
-    // 拖拽是高频事件：120ms 先出草稿跟手，停手 600ms 再全精度重合成。
-    _draftDebounce?.cancel();
-    _draftDebounce = Timer(kDraftDebounce, () {
-      _recompose(showProgress: false, draft: true);
-    });
+    // 拖拽是高频事件：交互中候选条靠 UI 实时变换跟手，
+    // 停手 600ms 后这里全精度重合成替换。
     _debounce?.cancel();
     _debounce = Timer(kCropDebounce, () {
       _recompose(showProgress: false);
@@ -316,15 +311,11 @@ class MuZhaoController implements IdPhotoController {
     final double v =
         deg.clamp(kManualAngleMinDeg, kManualAngleMaxDeg).toDouble();
     if (v == _state.manualAngleDeg) return;
-    // 角度**立刻**广播：UI 的度数读数与画布要跟手。
-    // 重新合成与拖拽一样双档去抖 —— 一次拖动会经过几十个角度，
-    // 逐个全精度合成会把主 isolate 压死。
+    // 角度**立刻**广播：UI 的表盘、裁剪框与候选条实时变换都跟手。
+    // 全精度重合成则去抖 —— 一次拖动会经过几十个角度，
+    // 逐个合成会把主 isolate 压死。
     _manualAngleDeg = v;
     _emit(_state.copyWith(manualAngleDeg: v));
-    _draftDebounce?.cancel();
-    _draftDebounce = Timer(kDraftDebounce, () {
-      _recompose(showProgress: false, draft: true);
-    });
     _debounce?.cancel();
     _debounce = Timer(kCropDebounce, () {
       _recompose(showProgress: false);
@@ -341,7 +332,6 @@ class MuZhaoController implements IdPhotoController {
     // 宽高比变了，用户旧框按新比例解释没有意义：作废回自动推算。
     _cropOverride = null;
     _debounce?.cancel();
-    _draftDebounce?.cancel();
     if (_matting == null) {
       // 无图（含加载中）：只更新规格，等 loadImage 走完后按新规格出图。
       _emit(_state.copyWith(spec: tuned));
@@ -456,7 +446,6 @@ class MuZhaoController implements IdPhotoController {
   /// 进程生命周期内引擎常驻，这里只停掉去抖计时器和状态流。
   void dispose() {
     _debounce?.cancel();
-    _draftDebounce?.cancel();
     _gen++; // 让在途的异步全部作废
     _out.close();
   }

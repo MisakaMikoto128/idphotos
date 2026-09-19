@@ -102,10 +102,18 @@ class AppState {
   final Rect? suggestedCrop;   // 自动推算的框，UI 用作拖拽初始值
   final List<Candidate> candidates;
   final PhotoSpec spec;
+  final double manualAngleDeg;     // 用户手动微调角（度），口径同 compose 的 manualRollDeg
+  final double composedAngleDeg;   // 当前 candidates 的几何快照：角度
+  final Rect? composedCrop;        // 当前 candidates 的几何快照：裁剪框（原图坐标）
   final Stage stage;           // idle | matting | composing | ready | error
   final String? errorMessage;  // 已本地化的中文文案
 }
 ```
+
+`composedAngleDeg` / `composedCrop` 是**实时预览变换**的基准：拖拽/调角期间
+UI 直接对候选缩略图做仿射变换跟手显示（不触发合成），停手后全精度候选
+抵达、快照随之更新。`save()` 落盘前一律按当前几何全精度重合成，
+不信任候选列表里的字节。
 
 ui-woodcraft **只依赖 `IdPhotoController` 和 `AppState`**，阶段 2 用 `FakeController`（返回纯色占位图）自测。
 
